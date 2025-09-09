@@ -1,0 +1,200 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>git入门 | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="git一些基本的概念和操作">
+<meta property="og:type" content="article">
+<meta property="og:title" content="git入门">
+<meta property="og:url" content="https://xloverflow.github.io/2022/07/05/git%E5%85%A5%E9%97%A8/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="git一些基本的概念和操作">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pic2.zhimg.com/80/v2-7cb1b45abcd853e66e024a802aa4fffc_1440w.jpeg">
+<meta property="article:published_time" content="2022-07-05T17:28:56.000Z">
+<meta property="article:modified_time" content="2025-09-09T15:41:12.457Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="学习笔记">
+<meta property="article:tag" content="CS工具">
+<meta property="article:tag" content="git">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pic2.zhimg.com/80/v2-7cb1b45abcd853e66e024a802aa4fffc_1440w.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "git入门",
+  "url": "https://xloverflow.github.io/2022/07/05/git%E5%85%A5%E9%97%A8/",
+  "image": "https://pic2.zhimg.com/80/v2-7cb1b45abcd853e66e024a802aa4fffc_1440w.jpeg",
+  "datePublished": "2022-07-05T17:28:56.000Z",
+  "dateModified": "2025-09-09T15:41:12.457Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2022/07/05/git%E5%85%A5%E9%97%A8/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'git入门',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">24</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">15</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">5</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-film"></i><span> Movies</span></a></li><li><a class="site-page child" href="/games/"><i class="fa-fw fas fa-gamepad"></i><span> Games</span></a></li><li><a class="site-page child" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://pic2.zhimg.com/80/v2-7cb1b45abcd853e66e024a802aa4fffc_1440w.jpeg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">git入门</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-film"></i><span> Movies</span></a></li><li><a class="site-page child" href="/games/"><i class="fa-fw fas fa-gamepad"></i><span> Games</span></a></li><li><a class="site-page child" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">git入门</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2022-07-05T17:28:56.000Z" title="Created 2022-07-05 13:28:56">2022-07-05</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2025-09-09T15:41:12.457Z" title="Updated 2025-09-09 11:41:12">2025-09-09</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CS%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">CS学习笔记</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="git入门"><a href="#git入门" class="headerlink" title="git入门"></a>git入门</h1><p>依托清华大学暑培进行一些实操，参照书籍<a target="_blank" rel="noopener" href="https://git-scm.com/book/en/v2">《pro git》</a>。</p>
+<p>同时推荐一个<a target="_blank" rel="noopener" href="https://learngitbranching.js.org/?locale=zh_CN">快速入门的网站</a>。能够更加增加对于分支的理解。</p>
+<span id="more"></span>
+
+<h2 id="什么是git？"><a href="#什么是git？" class="headerlink" title="什么是git？"></a>什么是git？</h2><p>Git 是一个开源的分布式版本控制系统，用于敏捷高效地处理项目。</p>
+<h3 id="版本控制"><a href="#版本控制" class="headerlink" title="版本控制"></a>版本控制</h3><p>能够轻易的将仓库里的东西恢复到上一次的<strong>commit</strong>。</p>
+<p>原理：采用快照的方式进行版本控制。</p>
+<h3 id="分布式"><a href="#分布式" class="headerlink" title="分布式"></a>分布式</h3><p>我的理解就是能够多人多台主机在不同时空进行同一个开发，且互不影响，最后统一提交。</p>
+<h2 id="基本原理"><a href="#基本原理" class="headerlink" title="基本原理"></a>基本原理</h2><p>分为工作区、暂存区与版本库，文件夹中有一个.git文件，里面是暂存区和版本库，而.git外的区域就是工作区。</p>
+<p><img src="https://pic2.zhimg.com/80/v2-99d8bb59ba479252bfae5f71554b33aa_1440w.png" alt="img"></p>
+<h2 id="案例演示"><a href="#案例演示" class="headerlink" title="案例演示"></a>案例演示</h2><p>首先使用命令行进入当前的文件夹。</p>
+<p>需要初始化当前的文件夹建立一个空的仓库，使用命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git init</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://pica.zhimg.com/80/v2-099c25239375be8b37a05910cbc07143_1440w.png" alt="img"></p>
+<p>将所需文件添加进入缓存区：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git add &lt;文件名&gt;</span><br></pre></td></tr></table></figure>
+
+<p>将缓存区内的文件commit进入版本库：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git commit </span><br></pre></td></tr></table></figure>
+
+<p>&#x3D;&#x3D;这个时候一般会弹出默认的编辑器，要求对本次的提交进行一些描述，通常需要统一标准，写的清楚详细。&#x3D;&#x3D;</p>
+<p><img src="https://pic1.zhimg.com/80/v2-245d2877ae4fc8dfe9e8b64e3e8081e2_1440w.png" alt="img"></p>
+<h3 id="一些常用的命令"><a href="#一些常用的命令" class="headerlink" title="一些常用的命令"></a>一些常用的命令</h3><p>查看commit日志：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">log</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://pic1.zhimg.com/80/v2-1025580221e635d84f2ebf13e632c0fe_1440w.png" alt="img"></p>
+<p>查看git状态，即缓存区内的文件。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git status</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://pic3.zhimg.com/80/v2-0edf6701fd8e886a2a037d0cc283edb9_1440w.png" alt="img"></p>
+<p>修改<strong>工作区文件</strong>与上次的commit进行比对，并输出不同的地方。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git diff</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://picx.zhimg.com/80/v2-0c8cd096128899e7b95e084d974e0214_1440w.png" alt="img"></p>
+<h3 id="分支和远程操作"><a href="#分支和远程操作" class="headerlink" title="分支和远程操作"></a>分支和远程操作</h3><p>参见文章开始处的网站教学，生动自然令人印象深刻。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2022/07/05/git%E5%85%A5%E9%97%A8/">https://xloverflow.github.io/2022/07/05/git%E5%85%A5%E9%97%A8/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">学习笔记</a><a class="post-meta__tags" href="/tags/CS%E5%B7%A5%E5%85%B7/">CS工具</a><a class="post-meta__tags" href="/tags/git/">git</a></div><div class="post-share"><div class="social-share" data-image="https://pic2.zhimg.com/80/v2-7cb1b45abcd853e66e024a802aa4fffc_1440w.jpeg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2022/07/17/git%E8%BF%9C%E7%A8%8B%E8%BF%9E%E6%8E%A5/" title="git远程连接"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/david-kaloczi-012FTEA0ZQ0-unsplash.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">git远程连接</div></div><div class="info-2"><div class="info-item-1">这个是继上篇文章git入门往后写的，主要原因还是在尝试将一些资料文件上传到github的时候遇到了比较多的问题吧。 我认为建立连接的方式我所目前能够实现的应该是两种。 在讲述实现方法之前，我觉得应该对于远程操作的命令应该有所了解。 git常见的命令1234567891011121314151617181920212223242526272829303132git init                    //初始化本地仓库，生成一个.git文件夹，这也是git的核心git add [target]            //添加目标文件到缓存区git rm -f &lt;filename&gt;        //这个命令是删除缓存区里和工作区里该文件git rm --cached &lt;filename&gt;  //当你add了你不想要的文件，这个命令可以删除缓存区的文件，但保留工作区git commit                  //提交在缓存区的文件，使用 -m [message]添加必要的信息（不添加也行自动弹出）git status          ...</div></div></div></a><a class="pagination-related" href="/2022/06/19/Makefile%E5%85%A5%E9%97%A8/" title="Makefile入门"><img class="cover" src="https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">Makefile入门</div></div><div class="info-2"><div class="info-item-1">Makefile概念入门知乎原文链接 博客讲解链接 又一篇讲解 本文主要介绍怎么利用“基于目标分层”的方式去理解一个工具，写作一个概念，定义一个设计或者部署一套代码。 本文首先是一个“Makefile入门”，然后才是“基于目标分层的方法介绍”。   关于程序编译Makefile解决的是编译的问题。Makefile最初是用来解决C语言的编译问题的，所以和C的关系特别密切，但并不是说Makefile只能用来解决C的编译问题。你用来处理Java一点问题没有，但对于Java，显然ant比Makefile处理得更好。 比如说，你有foo.c, bar.c, main.c三个C文件，你要编译成一个app.executable，你会怎么做呢？你会执行这样的命令： 1234gcc -Wall -c foo.c -o foo.ogcc -Wall -c bar.c -o bar.ogcc -Wall -c main.c -o main.ogcc main.o foo.o bar.o -lpthread -o app.executable  按照程序猿的惯例，凡是要一次次重新执行的命令，都应该写成脚...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2022/07/17/git%E8%BF%9C%E7%A8%8B%E8%BF%9E%E6%8E%A5/" title="git远程连接"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/david-kaloczi-012FTEA0ZQ0-unsplash.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-17</div><div class="info-item-2">git远程连接</div></div><div class="info-2"><div class="info-item-1">这个是继上篇文章git入门往后写的，主要原因还是在尝试将一些资料文件上传到github的时候遇到了比较多的问题吧。 我认为建立连接的方式我所目前能够实现的应该是两种。 在讲述实现方法之前，我觉得应该对于远程操作的命令应该有所了解。 git常见的命令1234567891011121314151617181920212223242526272829303132git init                    //初始化本地仓库，生成一个.git文件夹，这也是git的核心git add [target]            //添加目标文件到缓存区git rm -f &lt;filename&gt;        //这个命令是删除缓存区里和工作区里该文件git rm --cached &lt;filename&gt;  //当你add了你不想要的文件，这个命令可以删除缓存区的文件，但保留工作区git commit                  //提交在缓存区的文件，使用 -m [message]添加必要的信息（不添加也行自动弹出）git status          ...</div></div></div></a><a class="pagination-related" href="/2022/07/20/CPP%E5%87%BD%E6%95%B0%E9%83%A8%E5%88%86/" title="CPP函数部分"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/jason-blackeye-GPPAjJicemU-unsplash.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-20</div><div class="info-item-2">CPP函数部分</div></div><div class="info-2"><div class="info-item-1">函数部分rand函数函数原型 :int rand(void);所需头文件 : &lt;cstdlib&gt;功能和返回值 : 求出并返回一个伪随机数  srand函数函数原型 :void srand(unsigned int seed);参数：seed产生随机数的种子所需头文件 : &lt;cstdlib&gt;功能：为使rand（）能产生一系列伪随机整数而设置起始点。使用1作为seed参数，可以重新初化rand（）。  需要指出，若不使用种子seed，则会出现每次运行程序产生的随机数是固定不变的。故rand函数返回的是伪随机数。引用的概念 引用(&amp;)是标识符的别名； 定义一个引用时，必须同时对它进行初始化，使它指向一个已存在的对象。例如：  1234int i, j;int &amp;ri = i; //定义int引用ri，并初始化为变量i的引用j = 10;ri = j;  //相当于 i = j;   一旦一个引用被初始化后，就不能改为指向其它对象。引用可以作为形参。  引用可以实现函数形参和实参之间的双向传递    例如下列程序： 1234567891011121...</div></div></div></a><a class="pagination-related" href="/2022/07/20/CPP%E5%9F%BA%E7%A1%80%E4%B8%AD%E9%9C%80%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E9%83%A8%E5%88%86/" title="CPP基础中需要注意的部分"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/ann-savchenko-H0h_89iFsWs-unsplash.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-20</div><div class="info-item-2">CPP基础中需要注意的部分</div></div><div class="info-2"><div class="info-item-1">数据的输入和输出I&#x2F;O流在C++，将数据从一个对象到另一个对象的流动抽象为“流”。cin和cout是预定义的流类对象，cin用来处理标准输入，即键盘输入，cout用来处理标准输出，即屏幕输出。  预定义的插入符和提取符“&lt;&lt;”是预定义的插入符，作用在流类对象cout上便可以实现最一般的屏幕输出。 “&gt;&gt;”是提取符，作用在流类对象cin上便可以实现最一般的键盘输入。  常用的I&#x2F;O流类库操纵符   操纵符名 含义    dec 数值数据采用十进制表示   hex 数值数据采用十六进制表示   oct 数值数据采用八进制表示   ws 提取空白符   endl 插入换行符，并且更新流   setsprecision(int) 设置浮点数的小数位数（包括小数点）   setw(int) 设置域宽    if-else语句首先是else的配对方式是与向上找同层的if配对.例如： 123456if()    if()    else()else    if()    else()  这样是可行的因为else都有配对的，但是缩进并不能代表结构，严格...</div></div></div></a><a class="pagination-related" href="/2022/07/21/CPP%E6%95%B0%E6%8D%AE%E7%9A%84%E5%85%B1%E4%BA%AB%E4%B8%8E%E4%BF%9D%E6%8A%A4/" title="CPP数据的共享与保护"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/romain-briaux-P-O6B62iWgA-unsplash.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-21</div><div class="info-item-2">CPP数据的共享与保护</div></div><div class="info-2"><div class="info-item-1">标识符的作用域与可见性作用域作用域是一个标识符在程序正文中有效的区域。 函数原型作用域在函数原型声明时形式参数的作用范围就是函数原型作用域。 函数原型的形参列表中起作用的只是类型，而非标识符，允许省去，为了可读性，最好写上。   局部作用域简单理解就是函数体内声明的变量，从声明处开始，一直到声明所在块结束的大括号为止。  具有局部作用域的变量也叫做局部变量。  类作用域类是一组有名成员的集合，其成员m具有类的作用域。访问方式有以下三种：  成员函数中没有定义m标识符，成员m没有被函数体屏蔽，该函数可以直接访问到m； 通过表达式x.m或者X::m。这是最基本的方法，后者主要用来访问类的静态成员。 通过ptr-&gt;m访问，其中ptr为指向该类对象的一个指针。  命名空间作用域命名空间的作用是为了消除一个项目中可能具有歧义的不同的文件，例如：两个不同的模块之前变量的命名重名了。 语法形式如下： 123namespace 命名空间名&#123;  命名空间内的各种声明（函数声明、类声明、...）&#125;  在命名空间的内部可以直接使用当前空间所定义的标识符，如果需要使用其他命名空...</div></div></div></a><a class="pagination-related" href="/2022/07/23/CPP%E6%95%B0%E7%BB%84%E5%92%8C%E6%8C%87%E9%92%88/" title="CPP数组、指针和字符串"><img class="cover" src="https://pica.zhimg.com/80/v2-bb5f6ef138cca79e736aa26bb4bdc2e4_1440w.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-23</div><div class="info-item-2">CPP数组、指针和字符串</div></div><div class="info-2"><div class="info-item-1">数组数组是具有一定顺序关系的若干对象的集合体，组成数组的对象成为该数组的元素。数组名是一个不能被赋值的指针，叫做指针常量。 C++中的二维数组被当作一维数组的数组。因此二维数组是按照行优先的顺序存储。    把数组作为参数时，一般不指定数组第一维的大小，即使指定，也会被忽略。   程序实例—线性拟合查看源代码  指针基本定义使用略去。 void指针的使用123456789101112131415#include &lt;iostream&gt;using namespace std;int main()&#123;  void voidObject;             //不能声明void类型的变量  void *pv;                    //可以声明void类型的指针  int i = 5;  pv = &amp;i;  int *pint = static_cast&lt;int *&gt;(pv);  cout &lt;&lt; &quot;* pint=&quot; &lt;&lt; * pint &lt;&lt; endl;  return 0...</div></div></div></a><a class="pagination-related" href="/2024/09/26/HUST%E4%BF%A1%E6%81%AF%E7%B3%BB%E7%BB%9F%E5%AE%89%E5%85%A8Lab1-%E8%BD%AF%E4%BB%B6%E5%AE%89%E5%85%A8/" title="HUST信息系统安全Lab1-软件安全"><img class="cover" src="https://t3.chei.com.cn/zyk/zybk/zyjd/cdn/showImg/ikb2ll7ejr4ufkfj.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-26</div><div class="info-item-2">HUST信息系统安全Lab1-软件安全</div></div><div class="info-2"><div class="info-item-1">信息系统安全lab1记录prog1 改变var值攻击思路：利用printf函数的缺陷，利用%.nx是n位长度的字符，然后%n用来在给出的地址处写入前面已打印的字符长度。  首先进行环境的相关配置与程序的编译 123456# 关闭ASLRsudo sysctl -w kernel.randomize_va_space=0 # 以32位编译prog1.c，要修改以下源文件的fread位fgets# 切记不要使用-fno-stack-protector选项gcc -z execstack -o prog1 prog1.c  执行程序，查看布局 12# %08x | %08x | %08x | %08x | %08x.\prog1     构造格式化字符串以修改为0x66887799 1sh exploit_prog1_1.sh bfffed54    构造格式化字符串以修改为0xdeadbeef 1sh exploit_prog1_2.sh bfffed54  prog2 shellcode注入，获得shell攻击思路：将函数返回地址修改为注入的shellcode的地址,注意shell...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">24</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">15</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">5</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#git%E5%85%A5%E9%97%A8"><span class="toc-number">1.</span> <span class="toc-text">git入门</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFgit%EF%BC%9F"><span class="toc-number">1.1.</span> <span class="toc-text">什么是git？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6"><span class="toc-number">1.1.1.</span> <span class="toc-text">版本控制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F"><span class="toc-number">1.1.2.</span> <span class="toc-text">分布式</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="toc-number">1.2.</span> <span class="toc-text">基本原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A1%88%E4%BE%8B%E6%BC%94%E7%A4%BA"><span class="toc-number">1.3.</span> <span class="toc-text">案例演示</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E4%BA%9B%E5%B8%B8%E7%94%A8%E7%9A%84%E5%91%BD%E4%BB%A4"><span class="toc-number">1.3.1.</span> <span class="toc-text">一些常用的命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%86%E6%94%AF%E5%92%8C%E8%BF%9C%E7%A8%8B%E6%93%8D%E4%BD%9C"><span class="toc-number">1.3.2.</span> <span class="toc-text">分支和远程操作</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2024/09/26/HUST%E4%BF%A1%E6%81%AF%E7%B3%BB%E7%BB%9F%E5%AE%89%E5%85%A8Lab3-Web%E5%AE%89%E5%85%A8/" title="HUST信息系统安全Lab3-Web安全"><img src="https://pic1.zhimg.com/80/v2-416f1b8d4133d67e746a67adbb40f508_720w.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="HUST信息系统安全Lab3-Web安全"/></a><div class="content"><a class="title" href="/2024/09/26/HUST%E4%BF%A1%E6%81%AF%E7%B3%BB%E7%BB%9F%E5%AE%89%E5%85%A8Lab3-Web%E5%AE%89%E5%85%A8/" title="HUST信息系统安全Lab3-Web安全">HUST信息系统安全Lab3-Web安全</a><time datetime="2024-09-26T15:04:15.000Z" title="Created 2024-09-26 11:04:15">2024-09-26</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/09/26/HUST%E4%BF%A1%E6%81%AF%E7%B3%BB%E7%BB%9F%E5%AE%89%E5%85%A8Lab2-%E7%B3%BB%E7%BB%9F%E5%AE%89%E5%85%A8/" title="HUST信息系统安全Lab2-系统安全"><img src="https://picx.zhimg.com/80/v2-06450eedf96def79a590cec5c6c0ecbd_720w.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="HUST信息系统安全Lab2-系统安全"/></a><div class="content"><a class="title" href="/2024/09/26/HUST%E4%BF%A1%E6%81%AF%E7%B3%BB%E7%BB%9F%E5%AE%89%E5%85%A8Lab2-%E7%B3%BB%E7%BB%9F%E5%AE%89%E5%85%A8/" title="HUST信息系统安全Lab2-系统安全">HUST信息系统安全Lab2-系统安全</a><time datetime="2024-09-26T15:03:54.000Z" title="Created 2024-09-26 11:03:54">2024-09-26</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/09/26/HUST%E4%BF%A1%E6%81%AF%E7%B3%BB%E7%BB%9F%E5%AE%89%E5%85%A8Lab1-%E8%BD%AF%E4%BB%B6%E5%AE%89%E5%85%A8/" title="HUST信息系统安全Lab1-软件安全"><img src="https://t3.chei.com.cn/zyk/zybk/zyjd/cdn/showImg/ikb2ll7ejr4ufkfj.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="HUST信息系统安全Lab1-软件安全"/></a><div class="content"><a class="title" href="/2024/09/26/HUST%E4%BF%A1%E6%81%AF%E7%B3%BB%E7%BB%9F%E5%AE%89%E5%85%A8Lab1-%E8%BD%AF%E4%BB%B6%E5%AE%89%E5%85%A8/" title="HUST信息系统安全Lab1-软件安全">HUST信息系统安全Lab1-软件安全</a><time datetime="2024-09-26T15:03:38.000Z" title="Created 2024-09-26 11:03:38">2024-09-26</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/12/05/HUST%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" title="HUST操作系统实验三:内存管理"><img src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/david-marcu-78A265wPiO4-unsplash.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="HUST操作系统实验三:内存管理"/></a><div class="content"><a class="title" href="/2023/12/05/HUST%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" title="HUST操作系统实验三:内存管理">HUST操作系统实验三:内存管理</a><time datetime="2023-12-05T23:51:55.000Z" title="Created 2023-12-05 18:51:55">2023-12-05</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/11/29/HUST%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%BA%8C-%E8%BF%9B%E7%A8%8B-%E7%BA%BF%E7%A8%8B%E7%9A%84%E5%90%8C%E6%AD%A5%E6%9C%BA%E5%88%B6%E5%92%8C%E5%BA%94%E7%94%A8%E7%BC%96%E7%A8%8B/" title="HUST操作系统实验二:进程/线程的同步机制和应用编程"><img src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/v2osk-1Z2niiBPg5A-unsplash.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="HUST操作系统实验二:进程/线程的同步机制和应用编程"/></a><div class="content"><a class="title" href="/2023/11/29/HUST%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%BA%8C-%E8%BF%9B%E7%A8%8B-%E7%BA%BF%E7%A8%8B%E7%9A%84%E5%90%8C%E6%AD%A5%E6%9C%BA%E5%88%B6%E5%92%8C%E5%BA%94%E7%94%A8%E7%BC%96%E7%A8%8B/" title="HUST操作系统实验二:进程/线程的同步机制和应用编程">HUST操作系统实验二:进程/线程的同步机制和应用编程</a><time datetime="2023-11-29T15:01:55.000Z" title="Created 2023-11-29 10:01:55">2023-11-29</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

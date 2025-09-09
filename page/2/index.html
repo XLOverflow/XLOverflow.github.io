@@ -1,0 +1,236 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Xiang Li&#39;s Blog">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Life is not a race, but a journey">
+<meta property="og:url" content="https://xloverflow.github.io/page/2/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Xiang Li&#39;s Blog">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg">
+<meta property="article:author" content="Xiang Li">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg"><script type="application/ld+json"></script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/page/2/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Life is not a race, but a journey',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'home'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">24</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">15</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">5</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-film"></i><span> Movies</span></a></li><li><a class="site-page child" href="/games/"><i class="fa-fw fas fa-gamepad"></i><span> Games</span></a></li><li><a class="site-page child" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="page" id="body-wrap"><header class="full_page" id="page-header" style="background-image: url(https://pic1.zhimg.com/80/v2-41a768719fe07abaf1a4886dcc6e6f7a_1440w.jpeg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-film"></i><span> Movies</span></a></li><li><a class="site-page child" href="/games/"><i class="fa-fw fas fa-gamepad"></i><span> Games</span></a></li><li><a class="site-page child" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="site-info"><h1 id="site-title">Life is not a race, but a journey</h1></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts nc" id="recent-posts"><div class="recent-post-items"><div class="recent-post-item"><div class="post_cover left"><a href="/2022/08/04/%E6%B3%9B%E5%9E%8B%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1%E4%B8%8EC-%E6%A0%87%E5%87%86%E6%A8%A1%E7%89%88%E5%BA%93%EF%BC%88STL%EF%BC%89/" title="泛型程序设计与C++标准模版库（STL）"><img class="post-bg" src="https://pic1.zhimg.com/80/v2-b3235667ca289c4b127e5448bed79144_1440w.jpeg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="泛型程序设计与C++标准模版库（STL）"></a></div><div class="recent-post-info"><a class="article-title" href="/2022/08/04/%E6%B3%9B%E5%9E%8B%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1%E4%B8%8EC-%E6%A0%87%E5%87%86%E6%A8%A1%E7%89%88%E5%BA%93%EF%BC%88STL%EF%BC%89/" title="泛型程序设计与C++标准模版库（STL）">泛型程序设计与C++标准模版库（STL）</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">Created</span><time datetime="2022-08-04T18:31:05.000Z" title="Created 2022-08-04 14:31:05">2022-08-04</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/CS%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">CS学习笔记</a></span></div><div class="content">上来先来两篇文章作为参考：STL函数大全什么是STL？ 泛型程序设计及STL结构泛性程序设计的基本概念即指编写不依赖具体数据类型的程序，模板是泛性程序设计的主要工具。 术语：概念 用来界定具备一定功能的数据类型。例如:  将“可以比大小的所有数据类型(有比较运算符)”这一概念记为Comparable 将“具有公有的复制构造函数并可以用‘&#x3D;’赋值的数据类型”这一概念 记为Assignable 将“可以比大小、具有公有的复制构造函数并可以用‘&#x3D;’赋值的所有数 据类型”这个概念记作Sortable。  对于两个不同的概念A和B，如果概念A所需求的所有功能也是概念B所需求的功能，那么就说概念B是概念A的子概念。例如:  Sortable既是Comparable的子概念，也是Assignable的子概念   其实这个子概念和基类派生的子类意思差不多。  术语：模型 模型（model）：符合一个概念的数据类型称为该概念的模型  int型是Comparable概念的模型； 静态数组类型不是Assignable概念的类型（静态数组不可赋值）。  用概念做模板参数名  很多ST...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/2022/08/04/%E6%A8%A1%E7%89%88%E4%B8%8E%E7%BE%A4%E4%BD%93%E6%95%B0%E6%8D%AE/" title="模版与群体数据的组织"><img class="post-bg" src="https://pic1.zhimg.com/80/v2-4d8dbc5f894427d430bdf29ad9ee3d04_1440w.jpeg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="模版与群体数据的组织"></a></div><div class="recent-post-info"><a class="article-title" href="/2022/08/04/%E6%A8%A1%E7%89%88%E4%B8%8E%E7%BE%A4%E4%BD%93%E6%95%B0%E6%8D%AE/" title="模版与群体数据的组织">模版与群体数据的组织</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">Created</span><time datetime="2022-08-04T18:29:17.000Z" title="Created 2022-08-04 14:29:17">2022-08-04</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/CS%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">CS学习笔记</a></span></div><div class="content">函数模版与类模版模板可以实现参数化多态性，就是将程序处理对象的类型参数化，使一段程序能够用于处理多种不同类型的对象。 函数模板函数模板存在的意义简单来说就是为了避免两个只有处理数据类型不同的函数重复编写，使代码的可重用性大大提高，从而提高软件的开发效率。 语法形式在函数定义前加上语句template&lt;模板参数表&gt; 模板参数表的内容：  类型参数： class（或typename）标识符 常量参数： 类型说明符 标识符 模板参数： template&lt;参数表&gt; class 标识符  实例： 12345//通用类型的绝对值函数template&lt;typename T&gt;T abs(T x)&#123;  return x&gt;0 ? x : -x;&#125;   函数模版与函数有着本质的区别  函数模版本身在编译时不会生成任何目标代码，只有函数模版的实例会生成目标代码。 被多个源文件引用的函数模板，需要连通函数体一同放在头文件中，而不能像普通函数那样只把声明放在头文件中。 函数指针也只能指向函数模版的实例，不能指向函数模板。    类模版使用类模板能...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/2022/07/31/%E5%A4%9A%E6%80%81%E6%80%A7/" title="多态性"><img class="post-bg" src="https://pic1.zhimg.com/80/v2-aa2b0445c8d4db32c0e021608da2a7fc_1440w.jpeg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="多态性"></a></div><div class="recent-post-info"><a class="article-title" href="/2022/07/31/%E5%A4%9A%E6%80%81%E6%80%A7/" title="多态性">多态性</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">Created</span><time datetime="2022-07-31T19:33:50.000Z" title="Created 2022-07-31 15:33:50">2022-07-31</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/CS%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">CS学习笔记</a></span></div><div class="content">多态性概述多态指的是同样的消息被不同类型的对象接收时导致的不同的行为。消息指的是对类的成员函数的调用，不同的行为指的的是不同的实现，就是调用了不同的函数。 最简单的一个例子就是**“+”**，可以实现整数、浮点数和双精度浮点数之间的加法，包括混合类的加法。同样的一个“+”消息，被不同类型对象接受后，采用不同的方式进行加法运算。这就是多态性。 多态的类型面向对象的多态性可以分为四类：  重载多态 强制多态 包含多态 参数多态  前两种称为专用多态，后两种称为通用多态。  重载多态也就是之前学过的普通函数和类的成员函数的重载，当然也包括运算符的重载。 强制多态，简单说举个例子就是**+**涉及混合类型的时候，会进行强制类型的转化，这是强制多态的实例。 包含多态主要指的是类族中定义于不同类的同名成员函数的多态行为，通过虚函数实现。 参数多态与类模版相关联，使用的时候必须赋予实际的类型才能实例化。  本篇所要介绍的正式运算符的重载和虚函数。 多态的实现多态从实现的角度可以分为两类，编译时的多态和运行时的多态，前者顾名思义，在编译的过程中确定了同名操作的具体操作对象，这种操作的具体对象的过...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/2022/07/31/%E7%BB%A7%E6%89%BF%E4%B8%8E%E6%B4%BE%E7%94%9F/" title="CPP继承与派生"><img class="post-bg" src="https://picx.zhimg.com/80/v2-198d4af1c9c6939cf37223aae9e7102f_1440w.jpeg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="CPP继承与派生"></a></div><div class="recent-post-info"><a class="article-title" href="/2022/07/31/%E7%BB%A7%E6%89%BF%E4%B8%8E%E6%B4%BE%E7%94%9F/" title="CPP继承与派生">CPP继承与派生</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">Created</span><time datetime="2022-07-31T19:33:24.000Z" title="Created 2022-07-31 15:33:24">2022-07-31</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/CS%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">CS学习笔记</a></span></div><div class="content">类的继承与派生概述所谓继承就是从先辈处得到属性和行为特征。 类的继承，是新的类从已有类那里得到已有的特性。从另一个角度来看，从已有类产生新类的过程就是类的派生。 两者本质上是一样的，只是同一过程从不同角度去看而已。   继承与派生的目的继承的目的：实现设计与代码的重用。 派生的目的：当新的问题出现，原有程序无法较好的解决，需要对原有程序进行改造。  不同标准的分类 直接参与派生出某类的基类叫做直接基类，基类的基类甚至更高层的基类称为间接基类。   一个派生类，可以同时有多个基类，这种情况称为多继承。同理，只有一个基类的情况称为单继承。    派生类的定义派生类定义语法为： 1234class 派生类名: 继承方式 基类名1,...,继承方式 基类名n&#123;  成员声明&#125;  派生类的生成过程 吸收基类成员  ​	吸收基类成员之后，派生类实际上就包含了它的全部基类中除构造和析构函数之外的所有成员。  改造基类成员  ​	如果派生类声明了一个和某基类成员同名的新成员，派生的新成员就隐藏或覆盖了外层同名成员。  添加新的成员  ​	派生类增加新成员使派生类在功能上有所发展...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/2022/07/23/CPP%E6%95%B0%E7%BB%84%E5%92%8C%E6%8C%87%E9%92%88/" title="CPP数组、指针和字符串"><img class="post-bg" src="https://pica.zhimg.com/80/v2-bb5f6ef138cca79e736aa26bb4bdc2e4_1440w.jpeg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="CPP数组、指针和字符串"></a></div><div class="recent-post-info"><a class="article-title" href="/2022/07/23/CPP%E6%95%B0%E7%BB%84%E5%92%8C%E6%8C%87%E9%92%88/" title="CPP数组、指针和字符串">CPP数组、指针和字符串</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">Created</span><time datetime="2022-07-23T15:29:37.000Z" title="Created 2022-07-23 11:29:37">2022-07-23</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/CS%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">CS学习笔记</a></span></div><div class="content">数组数组是具有一定顺序关系的若干对象的集合体，组成数组的对象成为该数组的元素。数组名是一个不能被赋值的指针，叫做指针常量。 C++中的二维数组被当作一维数组的数组。因此二维数组是按照行优先的顺序存储。    把数组作为参数时，一般不指定数组第一维的大小，即使指定，也会被忽略。   程序实例—线性拟合查看源代码  指针基本定义使用略去。 void指针的使用123456789101112131415#include &lt;iostream&gt;using namespace std;int main()&#123;  void voidObject;             //不能声明void类型的变量  void *pv;                    //可以声明void类型的指针  int i = 5;  pv = &amp;i;  int *pint = static_cast&lt;int *&gt;(pv);  cout &lt;&lt; &quot;* pint=&quot; &lt;&lt; * pint &lt;&lt; endl;  return 0...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/2022/07/21/CPP%E6%95%B0%E6%8D%AE%E7%9A%84%E5%85%B1%E4%BA%AB%E4%B8%8E%E4%BF%9D%E6%8A%A4/" title="CPP数据的共享与保护"><img class="post-bg" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/romain-briaux-P-O6B62iWgA-unsplash.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="CPP数据的共享与保护"></a></div><div class="recent-post-info"><a class="article-title" href="/2022/07/21/CPP%E6%95%B0%E6%8D%AE%E7%9A%84%E5%85%B1%E4%BA%AB%E4%B8%8E%E4%BF%9D%E6%8A%A4/" title="CPP数据的共享与保护">CPP数据的共享与保护</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">Created</span><time datetime="2022-07-21T23:50:22.000Z" title="Created 2022-07-21 19:50:22">2022-07-21</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/CS%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">CS学习笔记</a></span></div><div class="content">标识符的作用域与可见性作用域作用域是一个标识符在程序正文中有效的区域。 函数原型作用域在函数原型声明时形式参数的作用范围就是函数原型作用域。 函数原型的形参列表中起作用的只是类型，而非标识符，允许省去，为了可读性，最好写上。   局部作用域简单理解就是函数体内声明的变量，从声明处开始，一直到声明所在块结束的大括号为止。  具有局部作用域的变量也叫做局部变量。  类作用域类是一组有名成员的集合，其成员m具有类的作用域。访问方式有以下三种：  成员函数中没有定义m标识符，成员m没有被函数体屏蔽，该函数可以直接访问到m； 通过表达式x.m或者X::m。这是最基本的方法，后者主要用来访问类的静态成员。 通过ptr-&gt;m访问，其中ptr为指向该类对象的一个指针。  命名空间作用域命名空间的作用是为了消除一个项目中可能具有歧义的不同的文件，例如：两个不同的模块之前变量的命名重名了。 语法形式如下： 123namespace 命名空间名&#123;  命名空间内的各种声明（函数声明、类声明、...）&#125;  在命名空间的内部可以直接使用当前空间所定义的标识符，如果需要使用其他命名空...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/2022/07/20/CPP%E7%B1%BB%E5%92%8C%E5%AF%B9%E8%B1%A1/" title="CPP类和对象"><img class="post-bg" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/larm-rmah-1cvEeuJKYto-unsplash.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="CPP类和对象"></a></div><div class="recent-post-info"><a class="article-title" href="/2022/07/20/CPP%E7%B1%BB%E5%92%8C%E5%AF%B9%E8%B1%A1/" title="CPP类和对象">CPP类和对象</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">Created</span><time datetime="2022-07-20T21:27:29.000Z" title="Created 2022-07-20 17:27:29">2022-07-20</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/CS%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">CS学习笔记</a></span></div><div class="content">类和对象面向对象程序设计的基本特点抽象  对同一类对象的共同属性和行为进行概括，形成类。 先注意问题的本质及描述，其次是实现过程或细节。 数据抽象：描述某类对象的属性或状态（对象相互区别的物理量）。 代码抽象：描述某类对象的共有的行为特征或具有的功能。 抽象的实现：类。   抽象实例——钟表 数据抽象：int hour,int minute,int second 代码抽象：setTime(),showTime()    1234567class  Clock &#123;  public:   void setTime(int newH, int newM, int newS);   void showTime();  private:   int hour, minute, second;&#125;;   封装  将抽象出的数据、代码封装在一起，形成类。 目的：增强安全性和简化编程，使用者不必了解具体的实现细节，而只需要通过外部接口，以特定的访问权限，来使用类的成员。 实现封装：类声明中的{}   例：  12345class  Clock &#123;  public: v...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/2022/07/20/CPP%E5%87%BD%E6%95%B0%E9%83%A8%E5%88%86/" title="CPP函数部分"><img class="post-bg" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/jason-blackeye-GPPAjJicemU-unsplash.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="CPP函数部分"></a></div><div class="recent-post-info"><a class="article-title" href="/2022/07/20/CPP%E5%87%BD%E6%95%B0%E9%83%A8%E5%88%86/" title="CPP函数部分">CPP函数部分</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">Created</span><time datetime="2022-07-20T21:27:11.000Z" title="Created 2022-07-20 17:27:11">2022-07-20</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/CS%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">CS学习笔记</a></span></div><div class="content">函数部分rand函数函数原型 :int rand(void);所需头文件 : &lt;cstdlib&gt;功能和返回值 : 求出并返回一个伪随机数  srand函数函数原型 :void srand(unsigned int seed);参数：seed产生随机数的种子所需头文件 : &lt;cstdlib&gt;功能：为使rand（）能产生一系列伪随机整数而设置起始点。使用1作为seed参数，可以重新初化rand（）。  需要指出，若不使用种子seed，则会出现每次运行程序产生的随机数是固定不变的。故rand函数返回的是伪随机数。引用的概念 引用(&amp;)是标识符的别名； 定义一个引用时，必须同时对它进行初始化，使它指向一个已存在的对象。例如：  1234int i, j;int &amp;ri = i; //定义int引用ri，并初始化为变量i的引用j = 10;ri = j;  //相当于 i = j;   一旦一个引用被初始化后，就不能改为指向其它对象。引用可以作为形参。  引用可以实现函数形参和实参之间的双向传递    例如下列程序： 1234567891011121...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/2022/07/20/CPP%E5%9F%BA%E7%A1%80%E4%B8%AD%E9%9C%80%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E9%83%A8%E5%88%86/" title="CPP基础中需要注意的部分"><img class="post-bg" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/ann-savchenko-H0h_89iFsWs-unsplash.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="CPP基础中需要注意的部分"></a></div><div class="recent-post-info"><a class="article-title" href="/2022/07/20/CPP%E5%9F%BA%E7%A1%80%E4%B8%AD%E9%9C%80%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E9%83%A8%E5%88%86/" title="CPP基础中需要注意的部分">CPP基础中需要注意的部分</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">Created</span><time datetime="2022-07-20T21:27:01.000Z" title="Created 2022-07-20 17:27:01">2022-07-20</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/CS%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">CS学习笔记</a></span></div><div class="content">数据的输入和输出I&#x2F;O流在C++，将数据从一个对象到另一个对象的流动抽象为“流”。cin和cout是预定义的流类对象，cin用来处理标准输入，即键盘输入，cout用来处理标准输出，即屏幕输出。  预定义的插入符和提取符“&lt;&lt;”是预定义的插入符，作用在流类对象cout上便可以实现最一般的屏幕输出。 “&gt;&gt;”是提取符，作用在流类对象cin上便可以实现最一般的键盘输入。  常用的I&#x2F;O流类库操纵符   操纵符名 含义    dec 数值数据采用十进制表示   hex 数值数据采用十六进制表示   oct 数值数据采用八进制表示   ws 提取空白符   endl 插入换行符，并且更新流   setsprecision(int) 设置浮点数的小数位数（包括小数点）   setw(int) 设置域宽    if-else语句首先是else的配对方式是与向上找同层的if配对.例如： 123456if()    if()    else()else    if()    else()  这样是可行的因为else都有配对的，但是缩进并不能代表结构，严格...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/2022/07/17/git%E8%BF%9C%E7%A8%8B%E8%BF%9E%E6%8E%A5/" title="git远程连接"><img class="post-bg" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/david-kaloczi-012FTEA0ZQ0-unsplash.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="git远程连接"></a></div><div class="recent-post-info"><a class="article-title" href="/2022/07/17/git%E8%BF%9C%E7%A8%8B%E8%BF%9E%E6%8E%A5/" title="git远程连接">git远程连接</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">Created</span><time datetime="2022-07-17T20:54:39.000Z" title="Created 2022-07-17 16:54:39">2022-07-17</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/CS%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">CS学习笔记</a></span></div><div class="content">这个是继上篇文章git入门往后写的，主要原因还是在尝试将一些资料文件上传到github的时候遇到了比较多的问题吧。 我认为建立连接的方式我所目前能够实现的应该是两种。 在讲述实现方法之前，我觉得应该对于远程操作的命令应该有所了解。 git常见的命令1234567891011121314151617181920212223242526272829303132git init                    //初始化本地仓库，生成一个.git文件夹，这也是git的核心git add [target]            //添加目标文件到缓存区git rm -f &lt;filename&gt;        //这个命令是删除缓存区里和工作区里该文件git rm --cached &lt;filename&gt;  //当你add了你不想要的文件，这个命令可以删除缓存区的文件，但保留工作区git commit                  //提交在缓存区的文件，使用 -m [message]添加必要的信息（不添加也行自动弹出）git status          ...</div></div></div></div><nav id="pagination"><div class="pagination"><a class="extend prev" rel="prev" href="/"><i class="fas fa-chevron-left fa-fw"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/#content-inner">3</a><a class="extend next" rel="next" href="/page/3/#content-inner"><i class="fas fa-chevron-right fa-fw"></i></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">24</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">15</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">5</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2024/09/26/HUST%E4%BF%A1%E6%81%AF%E7%B3%BB%E7%BB%9F%E5%AE%89%E5%85%A8Lab3-Web%E5%AE%89%E5%85%A8/" title="HUST信息系统安全Lab3-Web安全"><img src="https://pic1.zhimg.com/80/v2-416f1b8d4133d67e746a67adbb40f508_720w.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="HUST信息系统安全Lab3-Web安全"/></a><div class="content"><a class="title" href="/2024/09/26/HUST%E4%BF%A1%E6%81%AF%E7%B3%BB%E7%BB%9F%E5%AE%89%E5%85%A8Lab3-Web%E5%AE%89%E5%85%A8/" title="HUST信息系统安全Lab3-Web安全">HUST信息系统安全Lab3-Web安全</a><time datetime="2024-09-26T15:04:15.000Z" title="Created 2024-09-26 11:04:15">2024-09-26</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/09/26/HUST%E4%BF%A1%E6%81%AF%E7%B3%BB%E7%BB%9F%E5%AE%89%E5%85%A8Lab2-%E7%B3%BB%E7%BB%9F%E5%AE%89%E5%85%A8/" title="HUST信息系统安全Lab2-系统安全"><img src="https://picx.zhimg.com/80/v2-06450eedf96def79a590cec5c6c0ecbd_720w.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="HUST信息系统安全Lab2-系统安全"/></a><div class="content"><a class="title" href="/2024/09/26/HUST%E4%BF%A1%E6%81%AF%E7%B3%BB%E7%BB%9F%E5%AE%89%E5%85%A8Lab2-%E7%B3%BB%E7%BB%9F%E5%AE%89%E5%85%A8/" title="HUST信息系统安全Lab2-系统安全">HUST信息系统安全Lab2-系统安全</a><time datetime="2024-09-26T15:03:54.000Z" title="Created 2024-09-26 11:03:54">2024-09-26</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/09/26/HUST%E4%BF%A1%E6%81%AF%E7%B3%BB%E7%BB%9F%E5%AE%89%E5%85%A8Lab1-%E8%BD%AF%E4%BB%B6%E5%AE%89%E5%85%A8/" title="HUST信息系统安全Lab1-软件安全"><img src="https://t3.chei.com.cn/zyk/zybk/zyjd/cdn/showImg/ikb2ll7ejr4ufkfj.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="HUST信息系统安全Lab1-软件安全"/></a><div class="content"><a class="title" href="/2024/09/26/HUST%E4%BF%A1%E6%81%AF%E7%B3%BB%E7%BB%9F%E5%AE%89%E5%85%A8Lab1-%E8%BD%AF%E4%BB%B6%E5%AE%89%E5%85%A8/" title="HUST信息系统安全Lab1-软件安全">HUST信息系统安全Lab1-软件安全</a><time datetime="2024-09-26T15:03:38.000Z" title="Created 2024-09-26 11:03:38">2024-09-26</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/12/05/HUST%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" title="HUST操作系统实验三:内存管理"><img src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/david-marcu-78A265wPiO4-unsplash.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="HUST操作系统实验三:内存管理"/></a><div class="content"><a class="title" href="/2023/12/05/HUST%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" title="HUST操作系统实验三:内存管理">HUST操作系统实验三:内存管理</a><time datetime="2023-12-05T23:51:55.000Z" title="Created 2023-12-05 18:51:55">2023-12-05</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/11/29/HUST%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%BA%8C-%E8%BF%9B%E7%A8%8B-%E7%BA%BF%E7%A8%8B%E7%9A%84%E5%90%8C%E6%AD%A5%E6%9C%BA%E5%88%B6%E5%92%8C%E5%BA%94%E7%94%A8%E7%BC%96%E7%A8%8B/" title="HUST操作系统实验二:进程/线程的同步机制和应用编程"><img src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/v2osk-1Z2niiBPg5A-unsplash.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="HUST操作系统实验二:进程/线程的同步机制和应用编程"/></a><div class="content"><a class="title" href="/2023/11/29/HUST%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%BA%8C-%E8%BF%9B%E7%A8%8B-%E7%BA%BF%E7%A8%8B%E7%9A%84%E5%90%8C%E6%AD%A5%E6%9C%BA%E5%88%B6%E5%92%8C%E5%BA%94%E7%94%A8%E7%BC%96%E7%A8%8B/" title="HUST操作系统实验二:进程/线程的同步机制和应用编程">HUST操作系统实验二:进程/线程的同步机制和应用编程</a><time datetime="2023-11-29T15:01:55.000Z" title="Created 2023-11-29 10:01:55">2023-11-29</time></div></div></div></div><div class="card-widget card-categories"><div class="item-headline">
+            <i class="fas fa-folder-open"></i>
+            <span>Categories</span>
+            
+          </div>
+          <ul class="card-category-list" id="aside-cat-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/CS%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/"><span class="card-category-list-name">CS学习笔记</span><span class="card-category-list-count">20</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/CS%E5%B7%A5%E5%85%B7/"><span class="card-category-list-name">CS工具</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%86%99%E4%BD%9C/"><span class="card-category-list-name">写作</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%AD%A6%E4%B9%A0%E8%B5%84%E6%BA%90/"><span class="card-category-list-name">学习资源</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%BF%83%E8%B7%AF/"><span class="card-category-list-name">心路</span><span class="card-category-list-count">1</span></a></li>
+          </ul></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>Tags</span></div><div class="card-tag-cloud"><a href="/tags/C-%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/" style="font-size: 1.37em; color: #99a4b2">C++程序设计</a> <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E6%A0%A1%E5%9B%AD%E7%BD%91-%E8%B7%AF%E7%94%B1/" style="font-size: 1.1em; color: #999">计算机网络 - 校园网 - 路由</a> <a href="/tags/%E7%94%9F%E6%B4%BB/" style="font-size: 1.1em; color: #999">生活</a> <a href="/tags/makefile%E5%9F%BA%E7%A1%80/" style="font-size: 1.1em; color: #999">makefile基础</a> <a href="/tags/C-%E8%AF%AD%E8%A8%80/" style="font-size: 1.43em; color: #99a6b9">C++语言</a> <a href="/tags/CS%E5%B7%A5%E5%85%B7/" style="font-size: 1.23em; color: #999ea6">CS工具</a> <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" style="font-size: 1.1em; color: #999">计算机网络</a> <a href="/tags/ui%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/" style="font-size: 1.1em; color: #999">ui程序设计</a> <a href="/tags/git/" style="font-size: 1.17em; color: #999c9f">git</a> <a href="/tags/%E4%B8%AA%E4%BA%BA%E5%8F%8D%E6%80%9D/" style="font-size: 1.1em; color: #999">个人反思</a> <a href="/tags/%E8%AF%BE%E7%A8%8B%E5%AE%9E%E9%AA%8C/" style="font-size: 1.3em; color: #99a1ac">课程实验</a> <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" style="font-size: 1.17em; color: #999c9f">操作系统</a> <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" style="font-size: 1.5em; color: #99a9bf">学习笔记</a> <a href="/tags/%E5%AD%A6%E4%B9%A0/" style="font-size: 1.23em; color: #999ea6">学习</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E5%86%99%E4%BD%9C%E6%8A%80%E5%B7%A7/" style="font-size: 1.1em; color: #999">博客写作技巧</a></div></div><div class="card-widget card-archives">
+    <div class="item-headline">
+      <i class="fas fa-archive"></i>
+      <span>Archives</span>
+      <a class="card-more-btn" href="/archives/"
+            title="View More">
+            <i class="fas fa-angle-right"></i>
+          </a>
+    </div>
+  
+    <ul class="card-archive-list">
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2024/09/">
+            <span class="card-archive-list-date">
+              September 2024
+            </span>
+            <span class="card-archive-list-count">3</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2023/12/">
+            <span class="card-archive-list-date">
+              December 2023
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2023/11/">
+            <span class="card-archive-list-date">
+              November 2023
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2023/02/">
+            <span class="card-archive-list-date">
+              February 2023
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/09/">
+            <span class="card-archive-list-date">
+              September 2022
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/08/">
+            <span class="card-archive-list-date">
+              August 2022
+            </span>
+            <span class="card-archive-list-count">4</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/07/">
+            <span class="card-archive-list-date">
+              July 2022
+            </span>
+            <span class="card-archive-list-count">10</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/06/">
+            <span class="card-archive-list-date">
+              June 2022
+            </span>
+            <span class="card-archive-list-count">2</span>
+          </a>
+        </li>
+      
+    </ul>
+  </div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>Website Info</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">Article Count :</div><div class="item-count">24</div></div><div class="webinfo-item"><div class="item-name">Unique Visitors :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">Page Views :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">Last Update :</div><div class="item-count" id="last-push-date" data-lastPushDate="2025-09-09T16:03:04.310Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
