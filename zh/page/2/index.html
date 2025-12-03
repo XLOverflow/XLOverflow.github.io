@@ -1,0 +1,236 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Xiang Li 的中文博客">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Life is not a race, but a journey">
+<meta property="og:url" content="https://xloverflow.github.io/zh/page/2/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Xiang Li 的中文博客">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg">
+<meta property="article:author" content="Xiang Li">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg"><script type="application/ld+json"></script><link rel="shortcut icon" href="/zh/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/zh/page/2/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/zh/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/zh/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Life is not a race, but a journey',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'home'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">25</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">19</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li><li><a class="site-page child" href="/zh/movies/"><i class="fa-fw fas fa-film"></i><span> 电影</span></a></li><li><a class="site-page child" href="/zh/games/"><i class="fa-fw fas fa-gamepad"></i><span> 游戏</span></a></li><li><a class="site-page child" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="page" id="body-wrap"><header class="full_page" id="page-header" style="background-image: url(https://pic1.zhimg.com/80/v2-41a768719fe07abaf1a4886dcc6e6f7a_1440w.jpeg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/zh/"><span class="site-name">Life is not a race, but a journey</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li><li><a class="site-page child" href="/zh/movies/"><i class="fa-fw fas fa-film"></i><span> 电影</span></a></li><li><a class="site-page child" href="/zh/games/"><i class="fa-fw fas fa-gamepad"></i><span> 游戏</span></a></li><li><a class="site-page child" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/"><i class="fas fa-language fa-fw"></i><span> English</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="site-info"><h1 id="site-title">Life is not a race, but a journey</h1></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts nc" id="recent-posts"><div class="recent-post-items"><div class="recent-post-item"><div class="post_cover left"><a href="/zh/2022/08/04/%E5%A4%A7%E4%B8%80%E5%AD%A6%E5%B9%B4%E6%80%BB%E7%BB%93/" title="大一学年总结"><img class="post-bg" src="https://pic2.zhimg.com/80/v2-4d380ad206fdba720bbf2bc330d23f6c_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="大一学年总结"></a></div><div class="recent-post-info"><a class="article-title" href="/zh/2022/08/04/%E5%A4%A7%E4%B8%80%E5%AD%A6%E5%B9%B4%E6%80%BB%E7%BB%93/" title="大一学年总结">大一学年总结</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-08-04T23:24:57.000Z" title="发表于 2022-08-04 19:24:57">2022-08-04</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/zh/categories/%E5%BF%83%E8%B7%AF/">心路</a></span></div><div class="content">忙于生活，或忙于死亡。      一个阶段的结束滴滴滴… 高考结束的铃声响起，身上的重担全部消失了，高中三年第一次全身心放松的离开我的母校，也是最后一次。  在洪高旁边拍摄的最后一张照片，标志高中的结束，我也搬离了那里。这条路，我走过很多很多次，这个湖，我也曾远眺过很多很多次。那时的我喜欢望着远方憧憬着大学的一切，充满梦想与激情。我就是那么一个感性，拥有着一个丰富内心世界的人。 离开了，就永远回不去了。另一个残酷的事实就是，我即将脱离父母的羽翼，独立追求着自己梦想…    开端带着高考的些许不甘心和迈入新阶段的激动与憧憬。我来到了这里。1037号森林——华中科技大学。   站在校门前，身旁是大包小包的物件，看着这个陌生的地方，看着这些陌生的人，憧憬着未来几年大学的生活，探索属于我自己的一条路…    一段新的、未知的甚至可能是艰难的旅程就此开始… 适应初入大学的我，第一次的挑战，是为期19天的军训，唯一的收获是认识了许多不同的人，听到了许多不同的事儿，最开心的时候莫过于大家坐在一起开心的聊着聊那。累但没有什么压力。 大学的第一堂课没记错的话应该是微积分，进入一个只在视频上见到过的...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/zh/2022/08/04/Generic%20Programming%20and%20C++%20Standard%20Template%20Library%20(STL)/" title="Generic Programming and C++ Standard Template Library (STL)"><img class="post-bg" src="https://pic1.zhimg.com/80/v2-b3235667ca289c4b127e5448bed79144_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="Generic Programming and C++ Standard Template Library (STL)"></a></div><div class="recent-post-info"><a class="article-title" href="/zh/2022/08/04/Generic%20Programming%20and%20C++%20Standard%20Template%20Library%20(STL)/" title="Generic Programming and C++ Standard Template Library (STL)">Generic Programming and C++ Standard Template Library (STL)</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-08-04T18:31:05.000Z" title="发表于 2022-08-04 14:31:05">2022-08-04</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/zh/categories/CS-Study-Notes/">CS Study Notes</a></span></div><div class="content">泛型编程与 STL 结构泛型编程的基本概念指编写不依赖于特定数据类型的程序。模板是泛型编程的主要工具。 术语：概念 用于定义具有某些功能的数据类型。例如：  “所有可以比较（使用比较运算符）的数据类型”的概念表示为 Comparable “具有公共复制构造函数并可以使用 ‘&#x3D;’ 赋值的数据类型”的概念表示为 Assignable “所有可以比较、具有公共复制构造函数并可以使用 ‘&#x3D;’ 赋值的数据类型”的概念表示为 Sortable。  对于两个不同的概念 A 和 B，如果概念 A 所需的所有函数也被概念 B 所需，则称概念 B 是概念 A 的子概念。例如：  Sortable 是 Comparable 和 Assignable 的子概念   实际上，这个子概念类似于从基类派生的类。  术语：模型 模型：符合某个概念的数据类型称为该概念的模型  int 类型是 Comparable 概念的模型； 静态数组类型不是 Assignable 概念的类型（静态数组不能被赋值）。  使用概念作为模板参数名称  许多 STL 实现代码使用概念来命名模板参数。 给一个概念命名...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/zh/2022/08/04/Templates%20and%20Data%20Organization/" title="Templates and Data Organization"><img class="post-bg" src="https://pic1.zhimg.com/80/v2-4d8dbc5f894427d430bdf29ad9ee3d04_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="Templates and Data Organization"></a></div><div class="recent-post-info"><a class="article-title" href="/zh/2022/08/04/Templates%20and%20Data%20Organization/" title="Templates and Data Organization">Templates and Data Organization</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-08-04T18:29:17.000Z" title="发表于 2022-08-04 14:29:17">2022-08-04</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/zh/categories/CS-Study-Notes/">CS Study Notes</a></span></div><div class="content">函数模板和类模板模板可以实现参数多态性，它对程序处理的对象类型进行参数化，使得单个程序能够处理多种不同类型的对象。 函数模板函数模板的目的是为了避免重复编写仅在数据类型上有所不同的函数，从而大大提高代码的可重用性，增强软件开发效率。 语法形式是在函数定义前添加语句 template&lt;模板参数列表&gt; 模板参数列表的内容：  类型参数：class（或 typename）标识符 常量参数：类型说明符标识符 模板参数：template&lt;参数列表&gt; class 标识符  示例： 12345//通用绝对值函数template&lt;typename T&gt;T abs(T x)&#123;  return x&gt;0 ? x : -x;&#125;  函数模板与函数在本质上是不同的  函数模板本身不会生成任何对象代码；只有函数模板的实例才会生成对象代码。 被多个源文件引用的函数模板需要与函数体一起放在头文件中，而不仅仅是像普通函数那样的声明。 函数指针只能指向函数模板的实例，不能指向函数模板。    类模板使用类模板可以定义类的模式，使得某些数据成员、某些成员函数...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/zh/2022/07/31/Polymorphism/" title="Polymorphism"><img class="post-bg" src="https://pic1.zhimg.com/80/v2-aa2b0445c8d4db32c0e021608da2a7fc_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="Polymorphism"></a></div><div class="recent-post-info"><a class="article-title" href="/zh/2022/07/31/Polymorphism/" title="Polymorphism">Polymorphism</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-07-31T19:33:50.000Z" title="发表于 2022-07-31 15:33:50">2022-07-31</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/zh/categories/CS-Study-Notes/">CS Study Notes</a></span></div><div class="content">多态概述多态是指当相同的消息被不同类型的对象接收时，表现出不同的行为。消息指的是对类成员函数的调用，而不同的行为指的是不同的实现，即调用不同的函数。 最简单的例子是**”+”**运算符，它可以在整数、浮点数和双精度浮点数之间实现加法，包括混合类型加法。当不同类型的对象接收到相同的”+”消息时，使用不同的方法进行加法操作。这就是多态。 多态的类型面向对象的多态可以分为四类：  重载多态 强制转换多态 包含多态 参数化多态  前两者称为特定多态，后两者称为普遍多态。  重载多态指的是普通函数和类成员函数的重载，当然也包括运算符重载。 强制转换多态，简单来说，就是当**+**涉及混合类型时，会进行类型强制转换，这是强制转换多态的一个实例。 包含多态主要指的是在类层次结构中定义在不同类中同名的成员函数的多态行为，通过虚函数实现。 参数化多态与类模板相关，使用时必须给出实际类型以便实例化。  本文将介绍运算符重载和虚函数。 多态的实现从实现的角度来看，多态可以分为两类：编译时多态和运行时多态。前者顾名思义，在编译期间确定同名操作的具体操作对象。这个确定操作具体对象的过程称为绑定。 绑定是指...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/zh/2022/07/31/CPP%20Inheritance%20and%20Derivation/" title="CPP Inheritance and Derivation"><img class="post-bg" src="https://picx.zhimg.com/80/v2-198d4af1c9c6939cf37223aae9e7102f_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="CPP Inheritance and Derivation"></a></div><div class="recent-post-info"><a class="article-title" href="/zh/2022/07/31/CPP%20Inheritance%20and%20Derivation/" title="CPP Inheritance and Derivation">CPP Inheritance and Derivation</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-07-31T19:33:24.000Z" title="发表于 2022-07-31 15:33:24">2022-07-31</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/zh/categories/CS-Study-Notes/">CS Study Notes</a></span></div><div class="content">类的继承与派生概述继承意味着从祖先那里获取属性和行为特征。 类的继承是指一个新类从现有类中获取现有特征。从另一个角度看，从现有类创建新类的过程称为类的派生。 它们本质上是相同的，只是从不同的角度看同一过程。   继承与派生的目的继承的目的：实现设计和代码的重用。 派生的目的：当出现新问题且原程序无法很好解决时，需要对原程序进行修改。  不同的分类标准 直接参与派生类的基类称为直接基类，基类的基类或更高层次的基类称为间接基类。   一个派生类可以同时有多个基类，这种情况称为多重继承。类似地，只有一个基类的情况称为单一继承。    派生类的定义派生类定义语法： 1234class DerivedClassName: inheritance_mode BaseClassName1,...,inheritance_mode BaseClassNamen&#123;  member declarations&#125;  创建派生类的过程 吸收基类成员  ​  吸收基类成员后，派生类实际上包含了其基类的所有成员除了构造函数和析构函数。  修改基类成员  ​  如果派生类声明了一个与基类成员...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/zh/2022/07/23/C++%20Arrays,%20Pointers%20and%20Strings/" title="C++ Arrays, Pointers and Strings"><img class="post-bg" src="https://pica.zhimg.com/80/v2-bb5f6ef138cca79e736aa26bb4bdc2e4_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="C++ Arrays, Pointers and Strings"></a></div><div class="recent-post-info"><a class="article-title" href="/zh/2022/07/23/C++%20Arrays,%20Pointers%20and%20Strings/" title="C++ Arrays, Pointers and Strings">C++ Arrays, Pointers and Strings</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-07-23T15:29:37.000Z" title="发表于 2022-07-23 11:29:37">2022-07-23</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/zh/categories/CS-Study-Notes/">CS Study Notes</a></span></div><div class="content">数组数组是具有一定顺序关系的对象集合，构成数组的对象成为该数组的元素。数组名称是一个不能被赋值的指针，称为指针常量。 C++中的二维数组被视为一维数组的数组。因此，二维数组以行优先的顺序存储。    在作为参数传递数组时，通常不指定第一维的大小，即使指定也会被忽略。   程序示例—线性拟合查看源代码  指针基本定义和用法省略。 void指针的使用123456789101112131415#include &lt;iostream&gt;using namespace std;int main()&#123;  void voidObject;             //不能声明void类型的变量  void *pv;                    //可以声明void类型的指针  int i = 5;  pv = &amp;i;  int *pint = static_cast&lt;int *&gt;(pv);  cout &lt;&lt; &quot;* pint=&quot; &lt;&lt; * pint &lt;&lt; endl;  return 0;&#1...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/zh/2022/07/21/C++%20Data%20Sharing%20and%20Protection/" title="C++ Data Sharing and Protection"><img class="post-bg" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/romain-briaux-P-O6B62iWgA-unsplash.jpg" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="C++ Data Sharing and Protection"></a></div><div class="recent-post-info"><a class="article-title" href="/zh/2022/07/21/C++%20Data%20Sharing%20and%20Protection/" title="C++ Data Sharing and Protection">C++ Data Sharing and Protection</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-07-21T23:50:22.000Z" title="发表于 2022-07-21 19:50:22">2022-07-21</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/zh/categories/CS-Study-Notes/">CS Study Notes</a></span></div><div class="content">标识符作用域和可见性作用域作用域是标识符在程序文本中有效的有效区域。 函数原型作用域函数原型声明期间，形式参数的作用域是函数原型作用域。 在函数原型参数列表中，只有类型是重要的，标识符可以省略。为了可读性，最好包含它。   局部作用域简单理解为在函数体内声明的变量，从声明点到声明所在块的闭合括号。  具有局部作用域的变量也称为局部变量。  类作用域类是命名成员的集合，其成员 m 具有类作用域。访问它有三种方式：  如果成员 m 没有在成员函数中定义，并且没有被函数体遮蔽，函数可以直接访问 m； 通过表达式 x.m 或 X::m 访问。这是最基本的方法，后者主要用于访问类的静态成员。 通过 ptr-&gt;m 访问，其中 ptr 是该类对象的指针。  命名空间作用域命名空间的目的是消除项目中不同文件可能存在的歧义，例如：当两个不同模块中的变量具有相同名称时。 语法如下： 123namespace namespace_name&#123;  命名空间内的各种声明（函数声明、类声明等...）&#125;  在命名空间内，可以直接使用当前空间中定义的标识符。如果需要使用其他命名空间中定义...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/zh/2022/07/20/C++%20Classes%20and%20Objects/" title="C++ Classes and Objects"><img class="post-bg" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/larm-rmah-1cvEeuJKYto-unsplash.jpg" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="C++ Classes and Objects"></a></div><div class="recent-post-info"><a class="article-title" href="/zh/2022/07/20/C++%20Classes%20and%20Objects/" title="C++ Classes and Objects">C++ Classes and Objects</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-07-20T21:27:29.000Z" title="发表于 2022-07-20 17:27:29">2022-07-20</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/zh/categories/CS-Study-Notes/">CS Study Notes</a></span></div><div class="content">类与对象面向对象编程的基本特征抽象  概括同一类对象的共同属性和行为，形成一个类。 首先关注问题的本质和描述，然后是实现过程或细节。 数据抽象：描述某一类对象的属性或状态（区分对象的物理量）。 代码抽象：描述某一类对象所具有的共同行为特征或功能。 抽象的实现：类。   抽象示例—时钟 数据抽象：int hour,int minute,int second 代码抽象：setTime(),showTime()    1234567class  Clock &#123;  public:   void setTime(int newH, int newM, int newS);   void showTime();  private:   int hour, minute, second;&#125;;   封装  将抽象的数据和代码封装在一起，形成一个类。 目的：增强安全性，简化编程。用户不需要了解具体的实现细节，只需通过具有特定访问权限的外部接口使用类成员。 封装的实现：类声明中的 {}   示例：  12345class  Clock &#123;  public: void s...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/zh/2022/07/20/C++%20Functions/" title="C++ Functions"><img class="post-bg" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/jason-blackeye-GPPAjJicemU-unsplash.jpg" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="C++ Functions"></a></div><div class="recent-post-info"><a class="article-title" href="/zh/2022/07/20/C++%20Functions/" title="C++ Functions">C++ Functions</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-07-20T21:27:11.000Z" title="发表于 2022-07-20 17:27:11">2022-07-20</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/zh/categories/CS-Study-Notes/">CS Study Notes</a></span></div><div class="content">函数rand 函数函数原型: int rand(void);所需头文件: &lt;cstdlib&gt;函数及返回值: 生成并返回一个伪随机数  srand 函数函数原型: void srand(unsigned int seed);参数: 生成随机数的种子所需头文件: &lt;cstdlib&gt;函数: 设置 rand() 生成一系列伪随机整数的起始点。使用 1 作为种子参数可以重新初始化 rand()。  需要注意的是，如果不使用种子，每次程序运行生成的随机数将是 固定且不变 的。因此，rand 函数返回的是 伪随机数。引用的概念 引用 (&amp;) 是标识符的别名； 定义引用时，必须同时初始化以指向现有对象。例如：  1234int i, j;int &amp;ri = i; // 定义 int 引用 ri，并将其初始化为变量 i 的引用j = 10;ri = j;  // 等价于 i = j;   一旦引用被初始化，就不能更改为指向其他对象。引用可以作为形式参数使用。  引用可以实现函数形式参数与实际参数之间的双向传递   例如，以下程序： 1234567891011...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/zh/2022/07/20/Important%20Points%20to%20Note%20in%20C++%20Basics/" title="Important Points to Note in C++ Basics"><img class="post-bg" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/ann-savchenko-H0h_89iFsWs-unsplash.jpg" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="Important Points to Note in C++ Basics"></a></div><div class="recent-post-info"><a class="article-title" href="/zh/2022/07/20/Important%20Points%20to%20Note%20in%20C++%20Basics/" title="Important Points to Note in C++ Basics">Important Points to Note in C++ Basics</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-07-20T21:27:01.000Z" title="发表于 2022-07-20 17:27:01">2022-07-20</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/zh/categories/CS-Study-Notes/">CS Study Notes</a></span></div><div class="content">数据输入与输出I&#x2F;O 流在 C++ 中，数据从一个对象流向另一个对象被抽象为“流”。cin 和 cout 是预定义的流类对象，其中 cin 用于处理标准输入（键盘输入），而 cout 用于处理标准输出（屏幕输出）。  预定义的插入和提取运算符“&lt;&lt;” 是预定义的插入运算符，当应用于流类对象 cout 时，可以实现最一般的屏幕输出。 “&gt;&gt;” 是提取运算符，当应用于流类对象 cin 时，可以实现最一般的键盘输入。  常见的 I&#x2F;O 流库操控符   操控符名称 意义    dec 十进制表示的数字数据   hex 十六进制表示的数字数据   oct 八进制表示的数字数据   ws 提取空白字符   endl 插入换行并刷新流   setsprecision(int) 设置浮点数的小数位数（包括小数点）   setw(int) 设置字段宽度    if-else 语句首先，else 的配对方法是通过向上查找与同一层级的 if 配对。例如： 123456if()    if()    else()else    if()    else()  ...</div></div></div></div><nav id="pagination"><div class="pagination"><a class="extend prev" rel="prev" href="/zh/"><i class="fas fa-chevron-left fa-fw"></i></a><a class="page-number" href="/zh/">1</a><span class="page-number current">2</span><a class="page-number" href="/zh/page/3/#content-inner">3</a><a class="extend next" rel="next" href="/zh/page/3/#content-inner"><i class="fas fa-chevron-right fa-fw"></i></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li 的中文博客</div><div class="site-data"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">25</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">19</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/zh/2025/10/03/CNN_P2/" title="CNNs - Part 2"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251002142654568.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="CNNs - Part 2"/></a><div class="content"><a class="title" href="/zh/2025/10/03/CNN_P2/" title="CNNs - Part 2">CNNs - Part 2</a><time datetime="2025-10-03T15:59:12.000Z" title="发表于 2025-10-03 11:59:12">2025-10-03</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2025/10/02/CNN_P1/" title="CNNs - Part 1"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251002142654568.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="CNNs - Part 1"/></a><div class="content"><a class="title" href="/zh/2025/10/02/CNN_P1/" title="CNNs - Part 1">CNNs - Part 1</a><time datetime="2025-10-02T18:01:45.000Z" title="发表于 2025-10-02 14:01:45">2025-10-02</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2024/09/26/HUST%20Information%20System%20Security%20Lab3-Web%20Security/" title="HUST Information System Security Lab3-Web Security"><img src="https://pic1.zhimg.com/80/v2-416f1b8d4133d67e746a67adbb40f508_720w.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="HUST Information System Security Lab3-Web Security"/></a><div class="content"><a class="title" href="/zh/2024/09/26/HUST%20Information%20System%20Security%20Lab3-Web%20Security/" title="HUST Information System Security Lab3-Web Security">HUST Information System Security Lab3-Web Security</a><time datetime="2024-09-26T15:04:15.000Z" title="发表于 2024-09-26 11:04:15">2024-09-26</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2024/09/26/HUST%20Information%20System%20Security%20Lab2-System%20Security/" title="HUST Information System Security Lab2-System Security"><img src="https://picx.zhimg.com/80/v2-06450eedf96def79a590cec5c6c0ecbd_720w.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="HUST Information System Security Lab2-System Security"/></a><div class="content"><a class="title" href="/zh/2024/09/26/HUST%20Information%20System%20Security%20Lab2-System%20Security/" title="HUST Information System Security Lab2-System Security">HUST Information System Security Lab2-System Security</a><time datetime="2024-09-26T15:03:54.000Z" title="发表于 2024-09-26 11:03:54">2024-09-26</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2024/09/26/HUST%20Information%20System%20Security%20Lab1-Software%20Security/" title="HUST Information System Security Lab1-Software Security"><img src="https://t3.chei.com.cn/zyk/zybk/zyjd/cdn/showImg/ikb2ll7ejr4ufkfj.jpg" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="HUST Information System Security Lab1-Software Security"/></a><div class="content"><a class="title" href="/zh/2024/09/26/HUST%20Information%20System%20Security%20Lab1-Software%20Security/" title="HUST Information System Security Lab1-Software Security">HUST Information System Security Lab1-Software Security</a><time datetime="2024-09-26T15:03:38.000Z" title="发表于 2024-09-26 11:03:38">2024-09-26</time></div></div></div></div><div class="card-widget card-categories"><div class="item-headline">
+            <i class="fas fa-folder-open"></i>
+            <span>分类</span>
+            
+          </div>
+          <ul class="card-category-list" id="aside-cat-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/zh/categories/CS-Study-Notes/"><span class="card-category-list-name">CS Study Notes</span><span class="card-category-list-count">21</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/zh/categories/CS-Tools/"><span class="card-category-list-name">CS Tools</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/zh/categories/Learning-Resources/"><span class="card-category-list-name">Learning Resources</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/zh/categories/Writing/"><span class="card-category-list-name">Writing</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/zh/categories/%E5%BF%83%E8%B7%AF/"><span class="card-category-list-name">心路</span><span class="card-category-list-count">1</span></a></li>
+          </ul></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/zh/tags/Course-Experiments/" style="font-size: 1.3em; color: #99a1ac">Course Experiments</a> <a href="/zh/tags/C-Programming/" style="font-size: 1.37em; color: #99a4b2">C++ Programming</a> <a href="/zh/tags/Computer-Networks/" style="font-size: 1.1em; color: #999">Computer Networks</a> <a href="/zh/tags/Learning/" style="font-size: 1.17em; color: #999c9f">Learning</a> <a href="/zh/tags/Operating-System/" style="font-size: 1.17em; color: #999c9f">Operating System</a> <a href="/zh/tags/%E4%B8%AA%E4%BA%BA%E5%8F%8D%E6%80%9D/" style="font-size: 1.1em; color: #999">个人反思</a> <a href="/zh/tags/Computer-Networks-Campus-Network-Routing/" style="font-size: 1.1em; color: #999">Computer Networks - Campus Network - Routing</a> <a href="/zh/tags/Makefile-Basics/" style="font-size: 1.1em; color: #999">Makefile Basics</a> <a href="/zh/tags/UI-Programming/" style="font-size: 1.1em; color: #999">UI Programming</a> <a href="/zh/tags/C-Language/" style="font-size: 1.43em; color: #99a6b9">C++ Language</a> <a href="/zh/tags/CMU-11-785/" style="font-size: 1.17em; color: #999c9f">CMU 11-785</a> <a href="/zh/tags/Blog-Writing-Tips/" style="font-size: 1.1em; color: #999">Blog Writing Tips</a> <a href="/zh/tags/git/" style="font-size: 1.17em; color: #999c9f">git</a> <a href="/zh/tags/Deep-Learning/" style="font-size: 1.17em; color: #999c9f">Deep Learning</a> <a href="/zh/tags/Study-Notes/" style="font-size: 1.5em; color: #99a9bf">Study Notes</a> <a href="/zh/tags/CNN/" style="font-size: 1.17em; color: #999c9f">CNN</a> <a href="/zh/tags/%E7%94%9F%E6%B4%BB/" style="font-size: 1.1em; color: #999">生活</a> <a href="/zh/tags/Study/" style="font-size: 1.1em; color: #999">Study</a> <a href="/zh/tags/CS-Tools/" style="font-size: 1.23em; color: #999ea6">CS Tools</a></div></div><div class="card-widget card-archives">
+    <div class="item-headline">
+      <i class="fas fa-archive"></i>
+      <span>归档</span>
+      <a class="card-more-btn" href="/zh/archives/"
+            title="查看更多">
+            <i class="fas fa-angle-right"></i>
+          </a>
+    </div>
+  
+    <ul class="card-archive-list">
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/zh/archives/2025/10/">
+            <span class="card-archive-list-date">
+              十月 2025
+            </span>
+            <span class="card-archive-list-count">2</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/zh/archives/2024/09/">
+            <span class="card-archive-list-date">
+              九月 2024
+            </span>
+            <span class="card-archive-list-count">3</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/zh/archives/2023/12/">
+            <span class="card-archive-list-date">
+              十二月 2023
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/zh/archives/2023/11/">
+            <span class="card-archive-list-date">
+              十一月 2023
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/zh/archives/2023/02/">
+            <span class="card-archive-list-date">
+              二月 2023
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/zh/archives/2022/09/">
+            <span class="card-archive-list-date">
+              九月 2022
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/zh/archives/2022/08/">
+            <span class="card-archive-list-date">
+              八月 2022
+            </span>
+            <span class="card-archive-list-count">3</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/zh/archives/2022/07/">
+            <span class="card-archive-list-date">
+              七月 2022
+            </span>
+            <span class="card-archive-list-count">10</span>
+          </a>
+        </li>
+      
+    </ul>
+  </div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站信息</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">25</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总浏览量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2025-12-03T03:29:38.988Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 By Xiang Li</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/zh/js/utils.js"></script><script src="/zh/js/main.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
