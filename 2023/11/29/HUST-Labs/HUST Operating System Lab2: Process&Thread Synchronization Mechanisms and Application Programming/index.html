@@ -1,0 +1,798 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>HUST Operating System Lab2: Process&amp;Thread Synchronization Mechanisms and Application Programming | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Operation process record for HUST Operating System Lab2">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HUST Operating System Lab2: Process&amp;Thread Synchronization Mechanisms and Application Programming">
+<meta property="og:url" content="https://xloverflow.github.io/2023/11/29/HUST-Labs/HUST%20Operating%20System%20Lab2:%20Process&Thread%20Synchronization%20Mechanisms%20and%20Application%20Programming/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Operation process record for HUST Operating System Lab2">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/v2osk-1Z2niiBPg5A-unsplash.jpg">
+<meta property="article:published_time" content="2023-11-29T15:01:55.000Z">
+<meta property="article:modified_time" content="2026-02-15T05:04:17.012Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="Course Experiments">
+<meta property="article:tag" content="Operating System">
+<meta property="article:tag" content="Study Notes">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/v2osk-1Z2niiBPg5A-unsplash.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "HUST Operating System Lab2: Process&Thread Synchronization Mechanisms and Application Programming",
+  "url": "https://xloverflow.github.io/2023/11/29/HUST-Labs/HUST%20Operating%20System%20Lab2:%20Process&Thread%20Synchronization%20Mechanisms%20and%20Application%20Programming/",
+  "image": "https://raw.githubusercontent.com/hustlixiang21/blog-image/main/v2osk-1Z2niiBPg5A-unsplash.jpg",
+  "datePublished": "2023-11-29T15:01:55.000Z",
+  "dateModified": "2026-02-15T05:04:17.012Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2023/11/29/HUST-Labs/HUST%20Operating%20System%20Lab2:%20Process&amp;Thread%20Synchronization%20Mechanisms%20and%20Application%20Programming/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'HUST Operating System Lab2: Process&Thread Synchronization Mechanisms and Application Programming',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/hustlixiang21/blog-image/main/v2osk-1Z2niiBPg5A-unsplash.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">HUST Operating System Lab2: Process&amp;Thread Synchronization Mechanisms and Application Programming</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">HUST Operating System Lab2: Process&amp;Thread Synchronization Mechanisms and Application Programming</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2023-11-29T15:01:55.000Z" title="Created 2023-11-29 10:01:55">2023-11-29</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-02-15T05:04:17.012Z" title="Updated 2026-02-15 00:04:17">2026-02-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/HUST-Lab-Reports/">HUST Lab Reports</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="operating-system-lab2">Operating System Lab2</h1>
+<h2 id="experiment-objectives">Experiment Objectives</h2>
+<ol type="1">
+<li>Understand the concepts and application programming process of
+processes/threads;</li>
+<li>Understand the synchronization mechanisms and application
+programming of processes/threads;</li>
+<li>Master and promote domestic operating systems (recommend Galaxy
+Kylin or Ubuntu Kylin)</li>
+</ol>
+<h2 id="experiment-content">Experiment Content</h2>
+<ol type="1">
+<li>Create 2 threads A and B in Linux/Windows to loop output data or
+strings.</li>
+<li>Create (fork) a child process in Linux, experiment with wait/exit
+functions</li>
+<li>Use threads to implement concurrent drawing of circles and squares
+in Windows/Linux.</li>
+<li>Use threads to implement “producer-consumer” synchronization control
+in Windows or Linux</li>
+<li>Use signal mechanism (signal) to implement inter-process
+communication in Linux</li>
+<li>Simulate dining philosophers in Windows or Linux, provide deadlock
+and non-deadlock solutions.</li>
+<li>Study Linux kernel and use printk to debug process creation and
+scheduling policy related information.</li>
+</ol>
+<h2
+id="task-1-create-2-threads-a-and-b-in-linuxwindows-to-loop-output-data-or-strings">Task
+1: Create 2 Threads A and B in Linux/Windows to Loop Output Data or
+Strings</h2>
+<p>Requirements:</p>
+<ol type="1">
+<li><p>Use pthread thread library or CreateThread function</p></li>
+<li><p>Thread A outputs 1-1000 in ascending order; Thread B outputs
+1000-1 in descending order. To avoid output being too fast, output one
+number every 0.2 seconds (adjustable).</p></li>
+<li><p>When outputting data, also output “A” or “B” to indicate which
+thread is outputting, and pay attention to formatted output information.
+For example:</p>
+<p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">A:1000</span><br><span class="line">A:0999</span><br><span class="line">B:0001</span><br><span class="line">A:0998</span><br><span class="line">B:0002</span><br></pre></td></tr></table></figure></p></li>
+</ol>
+<h3 id="write-code-and-compile">Write Code and Compile</h3>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;pthread.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Thread A function - ascending output</span></span><br><span class="line"><span class="type">void</span>* <span class="title function_">print_numbers_ascending</span><span class="params">(<span class="type">void</span>* arg)</span> &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">1</span>; i &lt;= <span class="number">1000</span>; i++) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;A:%04d\n&quot;</span>, i);</span><br><span class="line">        usleep(<span class="number">200000</span>); <span class="comment">// pause 0.2 seconds</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Thread B function - descending output</span></span><br><span class="line"><span class="type">void</span>* <span class="title function_">print_numbers_descending</span><span class="params">(<span class="type">void</span>* arg)</span> &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">1000</span>; i &gt;= <span class="number">1</span>; i--) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;B:%04d\n&quot;</span>, i);</span><br><span class="line">        usleep(<span class="number">200000</span>); <span class="comment">// pause 0.2 seconds</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">pthread_t</span> threadA, threadB;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Create threads</span></span><br><span class="line">    pthread_create(&amp;threadA, <span class="literal">NULL</span>, print_numbers_ascending, <span class="literal">NULL</span>);</span><br><span class="line">    pthread_create(&amp;threadB, <span class="literal">NULL</span>, print_numbers_descending, <span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Wait for threads to finish</span></span><br><span class="line">    pthread_join(threadA, <span class="literal">NULL</span>);</span><br><span class="line">    pthread_join(threadB, <span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* pthread_create function: creates a thread</span></span><br><span class="line"><span class="comment"> * Function prototype int pthread_create(pthread_t *thread, const pthread_attr_t *attr, void *(*start_routine) (void *), void *arg);</span></span><br><span class="line"><span class="comment"> * pthread_t *thread: This is a pointer to a pthread_t type variable, pthread_t is usually used to identify threads. After the function executes successfully, this variable will be assigned the identifier of the newly created thread.</span></span><br><span class="line"><span class="comment"> * const pthread_attr_t *attr: Pointer to pthread_attr_t structure, used to set thread attributes. If NULL is passed, default attributes are used.</span></span><br><span class="line"><span class="comment"> * void *(*start_routine) (void *): Pointer to the function that will be executed by the new thread. This function must accept a void * type parameter and return a void * type value.</span></span><br><span class="line"><span class="comment"> * void *arg: Parameter passed to the start_routine function. This can be a pointer to any type, depending on your specific needs.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* pthread_join function: waits for a thread to terminate</span></span><br><span class="line"><span class="comment"> * Function prototype int pthread_join(pthread_t thread, void **retval);</span></span><br><span class="line"><span class="comment"> * pthread_t thread: The thread identifier to wait for. This is the identifier returned when creating a thread with pthread_create function.</span></span><br><span class="line"><span class="comment"> * void **retval: If not NULL, points to a location used to store the exit status returned by the thread. If the thread exits through pthread_exit, retval will contain the value passed to pthread_exit. If the thread exits by returning (i.e., the thread start routine returns), retval will contain the returned value.</span></span><br><span class="line"><span class="comment"> */</span></span><br></pre></td></tr></table></figure>
+<p>Detailed explanation of pthread_create function:</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/pthread_create.png"
+alt="Detailed explanation of pthread_create function" />
+<figcaption aria-hidden="true">Detailed explanation of pthread_create
+function</figcaption>
+</figure>
+<p>Use the command <code>gcc -o mission1 mission1.c -lpthread</code> to
+compile the file and execute it.</p>
+<h3 id="view-process-running-status-during-execution">View Process
+Running Status During Execution</h3>
+<p>Common commands for viewing processes or threads:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">ps -ef | grep [process name] <span class="comment"># View information of processes with specific names</span></span><br><span class="line">lixiang     4874    3403  0 11:11 pts/1    00:00:00 ./mission1</span><br><span class="line">lixiang     4883    3455  0 11:12 pts/2    00:00:00 grep --color=auto mission1</span><br><span class="line"></span><br><span class="line">ps -T -p [process PID] <span class="comment"># View information of process with specific PID (-T shows its threads)</span></span><br><span class="line">PID    SPID    TTY       TIME       CMD</span><br><span class="line">4874   4874   pts/1    00:00:00   mission1</span><br><span class="line">4874   4875   pts/1    00:00:00   mission1</span><br><span class="line">4874   4876   pts/1    00:00:00   mission1</span><br><span class="line"></span><br><span class="line">ps -Tfl -p [process PID] <span class="comment"># More detailed display of process information with specific PID (including CPU utilization, etc.)</span></span><br><span class="line">F S UID          PID    SPID    PPID  C PRI  NI ADDR SZ WCHAN  STIME TTY          TIME CMD</span><br><span class="line">0 S lixiang     4945    4945    3403  0  80   0 - 21144 futex_ 11:17 pts/1    00:00:00 ./mission1</span><br><span class="line">1 S lixiang     4945    4946    3403  0  80   0 - 21144 hrtime 11:17 pts/1    00:00:00 ./mission1</span><br><span class="line">1 S lixiang     4945    4947    3403  0  80   0 - 21144 hrtime 11:17 pts/1    00:00:00 ./mission1</span><br><span class="line"></span><br><span class="line"><span class="comment"># Below are introductions to commonly used parameters:</span></span><br><span class="line">-e: Display all processes, not just current user<span class="string">&#x27;s processes.</span></span><br><span class="line"><span class="string">-f: Display complete process information, including parent process ID, CPU utilization, etc.</span></span><br><span class="line"><span class="string">-l: Display process information in long format, including process status, PID, terminal, CPU utilization, etc.</span></span><br><span class="line"><span class="string">-u user: Display process information for specified user.</span></span><br><span class="line"><span class="string">-p pid: Display process information for specified PID.</span></span><br><span class="line"><span class="string">-s: Sort output by process start time.</span></span><br><span class="line"><span class="string">-r: Sort output by process CPU utilization.</span></span><br><span class="line"><span class="string">-T: Display threads</span></span><br></pre></td></tr></table></figure>
+<p>After running mission1, use ps command to display its detailed
+information</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/pid_spid.png"
+alt="Detailed information of mission1 process" />
+<figcaption aria-hidden="true">Detailed information of mission1
+process</figcaption>
+</figure>
+<p>In the figure, SPID represents the thread ID numbers, 3852 and 3852
+are the A and B threads we created</p>
+<h3 id="program-execution-results">Program Execution Results</h3>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/result.png"
+alt="Execution result" />
+<figcaption aria-hidden="true">Execution result</figcaption>
+</figure>
+<p>Reference Materials:</p>
+<p><a
+target="_blank" rel="noopener" href="https://blog.csdn.net/qq_44824574/article/details/110672780">Linux
+- Thread Creation</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://blog.csdn.net/qq_37037348/article/details/131491031#:~:text=%E6%A6%82%E5%BF%B5%E5%92%8C%E5%8E%9F%E7%90%86%201%20ps%E5%91%BD%E4%BB%A4%E9%80%9A%E8%BF%87%E8%AF%BB%E5%8F%96%2Fproc%E7%9B%AE%E5%BD%95%E4%B8%8B%E7%9A%84%E8%BF%9B%E7%A8%8B%E4%BF%A1%E6%81%AF%E6%96%87%E4%BB%B6%E8%8E%B7%E5%8F%96%E8%BF%9B%E7%A8%8B%E7%9A%84%E8%AF%A6%E7%BB%86%E4%BF%A1%E6%81%AF%E3%80%82,2%20%E8%BF%9B%E7%A8%8B%E4%BF%A1%E6%81%AF%E6%96%87%E4%BB%B6%E4%B8%AD%E5%8C%85%E5%90%AB%E4%BA%86%E8%BF%9B%E7%A8%8B%E7%9A%84PID%E3%80%81%E7%8A%B6%E6%80%81%E3%80%81%E7%88%B6%E8%BF%9B%E7%A8%8BID%E3%80%81CPU%E5%88%A9%E7%94%A8%E7%8E%87%E3%80%81%E5%86%85%E5%AD%98%E5%8D%A0%E7%94%A8%E7%AD%89%E4%BF%A1%E6%81%AF%E3%80%82%203%20ps%E5%91%BD%E4%BB%A4%E8%A7%A3%E6%9E%90%E8%BF%9B%E7%A8%8B%E4%BF%A1%E6%81%AF%E6%96%87%E4%BB%B6%E5%B9%B6%E6%A0%BC%E5%BC%8F%E5%8C%96%E8%BE%93%E5%87%BA%EF%BC%8C%E4%BB%A5%E4%BE%BF%E7%94%A8%E6%88%B7%E6%9F%A5%E7%9C%8B%E3%80%82">ps
+Command Introduction</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.linuxcool.com/ps">Complete ps Command
+Manual</a></p>
+<h2
+id="task-2-create-fork-a-child-process-in-linux-experiment-with-waitexit-functions">Task
+2: Create (fork) a Child Process in Linux, Experiment with wait/exit
+Functions</h2>
+<p>Requirements:</p>
+<ol type="1">
+<li>Effect 1: Parent process does not use wait function, let parent
+process end before child process, child process enters infinite loop or
+long-term loop, observe process ID and parent process ID of parent and
+child processes.
+<ol type="1">
+<li>Use printf in the program to output process number and parent
+process number of each process. Note, parent process and child process
+output should provide corresponding prompt strings for mutual
+distinction, same below</li>
+<li>At the same time, use ps command to display process list, observe
+process ID and parent process ID of specified processes, and explain
+whether these IDs are consistent with those output by printf.</li>
+</ol></li>
+<li>Effect 2: Parent process uses wait function. Child process sleeps
+for 5 seconds, parent process does not sleep. Child process uses exit to
+return parameters. Parent process printf the parameters returned by
+child process.</li>
+</ol>
+<h3 id="effect-one">Effect One</h3>
+<p>The core of this task is to let the parent process end before the
+child process, observing the changes in process IDs.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">pid_t</span> pid = fork();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (pid == <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// Child process</span></span><br><span class="line">        <span class="comment">// Child process enters infinite loop</span></span><br><span class="line">        <span class="keyword">while</span> (<span class="number">1</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;Child process print: Child process PID: %d, Parent process PID: %d\n&quot;</span>, getpid(), getppid());</span><br><span class="line">            sleep(<span class="number">5</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (pid &gt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// Parent process</span></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Parent process print: Parent process PID: %d, Child process PID: %d\n&quot;</span>, getpid(), pid);</span><br><span class="line">        sleep(<span class="number">20</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// fork failed</span></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Failed to create child process\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Program execution result is as follows:</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/2-program1_run.png"
+alt="Program execution result" />
+<figcaption aria-hidden="true">Program execution result</figcaption>
+</figure>
+<p>Parent process PID=3604, child process PID=3605, then after the
+parent process ends after 20s, the child process prints its own PID and
+parent process PID. Within the 20s before the parent process ends, the
+child process prints parent process PID=3604, but after the parent
+process ends, the child process continues running, and at this time the
+parent process ID becomes 1. The reason for this effect is:</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/2-program1-explain.png"
+alt="Reason why child process’s parent process ID becomes 1 after parent process ends" />
+<figcaption aria-hidden="true">Reason why child process’s parent process
+ID becomes 1 after parent process ends</figcaption>
+</figure>
+<h3 id="effect-two">Effect Two</h3>
+<p>Child process ends before parent process, and uses exit to return a
+value, parent process prints this status value.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">pid_t</span> pid = fork();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (pid == <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// Child process</span></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Child process print: Child process PID: %d, Parent process PID: %d\n&quot;</span>, getpid(), getppid());</span><br><span class="line">        sleep(<span class="number">5</span>);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">42</span>); <span class="comment">// Use exit to return status value 42</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (pid &gt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// Parent process</span></span><br><span class="line">        <span class="type">int</span> status;</span><br><span class="line">        wait(&amp;status); <span class="comment">// wait for child process to finish</span></span><br><span class="line">        <span class="keyword">if</span> (WIFEXITED(status))</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;Child process exit status: %d\n&quot;</span>, WEXITSTATUS(status));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// fork failed</span></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Failed to create child process\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Program execution result is as follows:</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/2-program2_run.png"
+alt="Program execution result" />
+<figcaption aria-hidden="true">Program execution result</figcaption>
+</figure>
+<p>In the code, child process exit(42), parent process prints the exit
+status code 42.</p>
+<p><a
+target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43412060/article/details/105442802">【Linux】——Process
+Creation fork() Detailed Explanation</a></p>
+<h2
+id="task-3-use-threads-to-implement-concurrent-drawing-of-circles-and-squares-in-windowslinux">Task
+3: Use Threads to Implement Concurrent Drawing of Circles and Squares in
+Windows/Linux</h2>
+<p>For this task, I used Qt6 to implement a dual-threaded GUI interface
+for drawing circles and squares. Here I only explain the core code
+parts:</p>
+<p>Since Qt’s <strong>drawing actions can only be completed in the main
+thread</strong>, our two threads for drawing circles and squares are
+used to calculate the coordinate points of circles and squares
+respectively, and pass them to the main thread, which completes the
+corresponding drawing actions.</p>
+<p>Project file directory is as follows:</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/3-directory.png"
+alt="Project file directory" />
+<figcaption aria-hidden="true">Project file directory</figcaption>
+</figure>
+<p>First, Qt needs to overwrite paintEvent in the MainWindow class to
+draw graphics:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">MainWindow::paintEvent</span><span class="params">(QPaintEvent *event)</span> </span>&#123;</span><br><span class="line">    <span class="function">QPainter <span class="title">painter</span><span class="params">(<span class="keyword">this</span>)</span></span>;</span><br><span class="line">    painter.<span class="built_in">setPen</span>(Qt::blue);</span><br><span class="line">    <span class="comment">// Draw all circle points</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">const</span> QPoint &amp;pt : circlePoints) &#123;</span><br><span class="line">        painter.<span class="built_in">drawPoint</span>(pt);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// Connect points to draw circle (optional)</span></span><br><span class="line">    <span class="keyword">if</span> (circlePoints.<span class="built_in">size</span>() &gt; <span class="number">1</span>) &#123;</span><br><span class="line">        painter.<span class="built_in">setPen</span>(Qt::red);</span><br><span class="line">        painter.<span class="built_in">drawPolyline</span>(circlePoints.<span class="built_in">constData</span>(), circlePoints.<span class="built_in">size</span>());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Draw all square points</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">const</span> QPoint &amp;pt : squarePoints) &#123;</span><br><span class="line">        painter.<span class="built_in">drawPoint</span>(pt);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// Connect points to draw square (optional)</span></span><br><span class="line">    <span class="keyword">if</span> (squarePoints.<span class="built_in">size</span>() &gt; <span class="number">1</span>) &#123;</span><br><span class="line">        painter.<span class="built_in">setPen</span>(Qt::blue);</span><br><span class="line">        painter.<span class="built_in">drawPolyline</span>(squarePoints.<span class="built_in">constData</span>(), squarePoints.<span class="built_in">size</span>());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Two thread-related classes, one is a circle thread class, one is a
+square thread class, they are both subclasses of Qt’s thread class
+QThread. Since they only differ in coordinate point calculation, I’ll
+choose the circle thread class to explain:</p>
+<p>The process function in the circle thread class is used to handle the
+next coordinate point, then emit the circlePoint signal, passing this
+coordinate to the main thread for processing.</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">CircleThread::process</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="type">double</span> radianIncrement = <span class="number">2</span> * (M_PI / <span class="number">180.0</span>); <span class="comment">// Radian increment each time (1 degree)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Calculate new point position, using circle&#x27;s parametric equation as example</span></span><br><span class="line">    <span class="type">int</span> centerX = center.<span class="built_in">x</span>();</span><br><span class="line">    <span class="type">int</span> centerY = center.<span class="built_in">y</span>();</span><br><span class="line">    <span class="type">int</span> x = centerX + <span class="built_in">static_cast</span>&lt;<span class="type">int</span>&gt;(radius * <span class="built_in">cos</span>(circleAngle));</span><br><span class="line">    <span class="type">int</span> y = centerY + <span class="built_in">static_cast</span>&lt;<span class="type">int</span>&gt;(radius * <span class="built_in">sin</span>(circleAngle));</span><br><span class="line">    circleAngle += radianIncrement;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Send new point position</span></span><br><span class="line">    <span class="function">emit <span class="title">circlePoint</span><span class="params">(QPoint(x, y))</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>For the circle thread class, we need to overwrite the run function.
+The run function is called when the thread starts. The specific logic is
+to call the process function at intervals. The process function handles
+point information and then sends it to the main thread.</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">CircleThread::run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">while</span> (!<span class="built_in">isInterruptionRequested</span>()) &#123;</span><br><span class="line">        <span class="built_in">process</span>();</span><br><span class="line">        <span class="keyword">if</span> (circleAngle &gt;= <span class="number">2</span> * M_PI) <span class="keyword">break</span>;</span><br><span class="line">        <span class="built_in">msleep</span>(<span class="number">62</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>What the main thread needs to do is initialize an instance of the
+circle thread class and connect the circlePoint signal mentioned earlier
+with the slot that handles points. Note that the Slot function is
+written as a Lambda expression, adding the points returned from the
+child thread to the circle point set, then updating the drawing.</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Create circle drawing thread</span></span><br><span class="line">circleThread = <span class="keyword">new</span> <span class="built_in">CircleThread</span>(<span class="keyword">this</span>, <span class="built_in">QPoint</span>(<span class="built_in">width</span>() / <span class="number">4</span>, <span class="built_in">height</span>() / <span class="number">2</span> - <span class="built_in">height</span>() / <span class="number">10</span>), <span class="built_in">qMin</span>(<span class="built_in">width</span>() / <span class="number">2</span>, <span class="built_in">height</span>()) / <span class="number">2</span> - <span class="number">50</span>);</span><br><span class="line"><span class="comment">// Connect circle drawing thread&#x27;s data sending signal with main thread&#x27;s data receiving slot function</span></span><br><span class="line"><span class="built_in">connect</span>(circleThread, &amp;CircleThread::circlePoint, <span class="keyword">this</span>, [&amp;](<span class="type">const</span> QPoint &amp;pt) &#123;</span><br><span class="line">    circlePoints.<span class="built_in">append</span>(pt);</span><br><span class="line">    <span class="comment">// Update to call paintEvent</span></span><br><span class="line">    <span class="built_in">update</span>();</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>The final step is relatively simple. We need to start the threads,
+and thread startup is controlled by the “Start Drawing” button. Clicking
+it starts both threads.</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// This is a slot function used to connect with button&#x27;s click signal</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">MainWindow::on_startpaint_clicked</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Start circle drawing thread</span></span><br><span class="line">    circleThread-&gt;<span class="built_in">start</span>();</span><br><span class="line">    <span class="comment">// Start square drawing thread</span></span><br><span class="line">    squareThread-&gt;<span class="built_in">start</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Finally, start the program. The program execution effect is as
+follows:</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/双线程画圆方.gif"
+alt="Program execution effect" />
+<figcaption aria-hidden="true">Program execution effect</figcaption>
+</figure>
+<p>Reference Materials:</p>
+<p><a
+target="_blank" rel="noopener" href="https://blog.csdn.net/qq_48985554/article/details/114990083">Qt
+Multi-threading Method 1 (Step-by-step explanation + code +
+demonstration)</a></p>
+<p><a target="_blank" rel="noopener" href="https://doc.qt.io/">Qt Documentation</a></p>
+<h2
+id="task-4-use-threads-to-implement-producer-consumer-synchronization-control-in-windows-or-linux">Task
+4: Use Threads to Implement “Producer-Consumer” Synchronization Control
+in Windows or Linux</h2>
+<p>Task Requirements:</p>
+<ol type="1">
+<li>Use an array (10 elements) instead of a buffer. 2 input threads
+produce products (random numbers) and store them in the array; 3 output
+threads take numbers from the array and output them.</li>
+<li>Linux uses mutex objects and lightweight semaphore objects, main
+functions: sem_wait(), sem_post(), pthread_mutex_lock(),
+pthread_mutex_unlock()</li>
+<li>Producer 1 data: 1000-1999 (random interval 100ms-1s for each data),
+Producer 2 data: 2000-2999 (random interval 100ms-1s for each data)</li>
+<li>Consumers sleep for random time 100ms-1s to consume one data.</li>
+<li>Screen print (or log file record) production and consumption records
+for each data.</li>
+</ol>
+<p>Source code is as follows:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;pthread.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;semaphore.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> BUFFER_SIZE 10</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Buffer and related synchronization mechanisms</span></span><br><span class="line"><span class="type">int</span> buffer[BUFFER_SIZE];</span><br><span class="line"><span class="type">int</span> in = <span class="number">0</span>, out = <span class="number">0</span>;</span><br><span class="line"><span class="type">pthread_mutex_t</span> mutex;</span><br><span class="line"><span class="type">sem_t</span> empty, full;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Random sleep time</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">random_sleep</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">return</span> rand() % <span class="number">901</span> + <span class="number">100</span>; <span class="comment">// Random time from 100ms to 1s</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Producer thread function</span></span><br><span class="line"><span class="type">void</span> *<span class="title function_">producer</span><span class="params">(<span class="type">void</span> *param)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> id = *(<span class="type">int</span> *)param;</span><br><span class="line">    <span class="type">int</span> base = id == <span class="number">1</span> ? <span class="number">1000</span> : <span class="number">2000</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="type">int</span> product = base + rand() % <span class="number">1000</span>;</span><br><span class="line">        sem_wait(&amp;empty);</span><br><span class="line">        pthread_mutex_lock(&amp;mutex);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Store product in buffer</span></span><br><span class="line">        buffer[in] = product;</span><br><span class="line">        in = (in + <span class="number">1</span>) % BUFFER_SIZE;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Producer %d produced %d\n&quot;</span>, id, product);</span><br><span class="line"></span><br><span class="line">        pthread_mutex_unlock(&amp;mutex);</span><br><span class="line">        sem_post(&amp;full);</span><br><span class="line"></span><br><span class="line">        usleep(random_sleep() * <span class="number">1000</span>); <span class="comment">// Sleep</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Consumer thread function</span></span><br><span class="line"><span class="type">void</span> *<span class="title function_">consumer</span><span class="params">(<span class="type">void</span> *param)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> id = *(<span class="type">int</span> *)param;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        sem_wait(&amp;full);</span><br><span class="line">        pthread_mutex_lock(&amp;mutex);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Take product from buffer</span></span><br><span class="line">        <span class="type">int</span> product = buffer[out];</span><br><span class="line">        out = (out + <span class="number">1</span>) % BUFFER_SIZE;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Consumer %d consumed %d\n&quot;</span>, id, product);</span><br><span class="line"></span><br><span class="line">        pthread_mutex_unlock(&amp;mutex);</span><br><span class="line">        sem_post(&amp;empty);</span><br><span class="line"></span><br><span class="line">        usleep(random_sleep() * <span class="number">1000</span>); <span class="comment">// Sleep</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">pthread_t</span> producers[<span class="number">2</span>], consumers[<span class="number">3</span>];</span><br><span class="line">    <span class="type">int</span> producer_ids[<span class="number">2</span>] = &#123;<span class="number">1</span>, <span class="number">2</span>&#125;;</span><br><span class="line">    <span class="type">int</span> consumer_ids[<span class="number">3</span>] = &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Initialize mutex with default attributes</span></span><br><span class="line">    pthread_mutex_init(&amp;mutex, <span class="literal">NULL</span>);</span><br><span class="line">    <span class="comment">// Second parameter 0 means semaphore is used for inter-thread synchronization</span></span><br><span class="line">    sem_init(&amp;empty, <span class="number">0</span>, BUFFER_SIZE); <span class="comment">// Start with BUFFER_SIZE empty slots</span></span><br><span class="line">    sem_init(&amp;full, <span class="number">0</span>, <span class="number">0</span>);            <span class="comment">// Start with no products available for consumption</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Create producer and consumer threads</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">2</span>; ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        pthread_create(&amp;producers[i], <span class="literal">NULL</span>, producer, &amp;producer_ids[i]);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">3</span>; ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        pthread_create(&amp;consumers[i], <span class="literal">NULL</span>, consumer, &amp;consumer_ids[i]);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Wait for threads to finish</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">2</span>; ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        pthread_join(producers[i], <span class="literal">NULL</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">3</span>; ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        pthread_join(consumers[i], <span class="literal">NULL</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Destroy mutex and semaphores</span></span><br><span class="line">    pthread_mutex_destroy(&amp;mutex);</span><br><span class="line">    sem_destroy(&amp;empty);</span><br><span class="line">    sem_destroy(&amp;full);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Code Analysis:</p>
+<p>First, we should add a mutex lock to the product area to prevent
+simultaneous access by multiple threads. Then we need to ensure that
+when the product buffer is full, producers stop producing, and when
+there are no products, consumers cannot consume. So we need P-V
+operations to complete the synchronization mechanism. The empty signal
+represents the current empty slots in the buffer. Whenever a producer
+starts producing, empty slots decrease by 1; after a consumer consumes,
+empty slots increase by 1. The full signal represents the current number
+of products in the buffer. When a consumer starts consuming, it
+decreases by 1; when a producer finishes producing, it increases by 1.
+This implements the synchronization mechanism between producers and
+consumers.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*Producer*/</span></span><br><span class="line">sem_wait(&amp;empty);</span><br><span class="line">pthread_mutex_lock(&amp;mutex);</span><br><span class="line"></span><br><span class="line"><span class="comment">// Store product in buffer</span></span><br><span class="line">buffer[in] = product;</span><br><span class="line">in = (in + <span class="number">1</span>) % BUFFER_SIZE;</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;Producer %d produced %d\n&quot;</span>, id, product);</span><br><span class="line"></span><br><span class="line">pthread_mutex_unlock(&amp;mutex);</span><br><span class="line">sem_post(&amp;full);</span><br><span class="line"><span class="comment">/*Producer*/</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*Consumer*/</span></span><br><span class="line">sem_wait(&amp;full);</span><br><span class="line">pthread_mutex_lock(&amp;mutex);</span><br><span class="line"></span><br><span class="line"><span class="comment">// Take product from buffer</span></span><br><span class="line"><span class="type">int</span> product = buffer[out];</span><br><span class="line">out = (out + <span class="number">1</span>) % BUFFER_SIZE;</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;Consumer %d consumed %d\n&quot;</span>, id, product);</span><br><span class="line"></span><br><span class="line">pthread_mutex_unlock(&amp;mutex);</span><br><span class="line">sem_post(&amp;empty);</span><br><span class="line"><span class="comment">/*Consumer*/</span></span><br></pre></td></tr></table></figure>
+<p>Program execution result is as follows:</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/4-result.png"
+alt="Program execution result" />
+<figcaption aria-hidden="true">Program execution result</figcaption>
+</figure>
+<p>Use ps command to view all threads in the current process:</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/4-ps.png"
+alt="Use ps command to view all threads in the current process" />
+<figcaption aria-hidden="true">Use ps command to view all threads in the
+current process</figcaption>
+</figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/WCHAN-explain.png"
+alt="WCHAN explanation" />
+<figcaption aria-hidden="true">WCHAN explanation</figcaption>
+</figure>
+<p>Reference Materials:</p>
+<p><a
+target="_blank" rel="noopener" href="https://blog.csdn.net/star_fighting/article/details/104309371">Thread
+Synchronization Problem - Producer Consumer</a></p>
+<h2
+id="task-5-use-signal-mechanism-signal-to-implement-inter-process-communication-in-linux">Task
+5: Use Signal Mechanism (signal) to Implement Inter-Process
+Communication in Linux</h2>
+<p>Task Requirements:</p>
+<ol type="1">
+<li>Parent process creates (fork) child process and makes child process
+enter infinite loop.</li>
+<li>Child process outputs “I am Child Process, alive !” every 2
+seconds</li>
+<li>Parent process asks user “To terminate Child Process. Yes or No? ”
+requiring user to answer Y or N from keyboard. If user answers N, delay
+2 seconds before asking again.</li>
+<li>If user answers Y, send user signal to child process to make it
+end.</li>
+<li>Before child process ends, print string: “Bye,World !”</li>
+<li>Functions: kill(), signal(), use user signal, write signal handler
+function</li>
+</ol>
+<p>The core of this task is to use the kill function to terminate the
+child process, and pass a signal SIGUSR1 when killing (user-defined
+signal that can be used to report abnormal behavior such as division by
+zero errors, segmentation faults, etc., or to control processes such as
+terminating processes, stopping (pausing) processes, continuing
+(resuming) stopped processes, etc.). The child process receives the
+signal and calls the signalHandler signal processing function to perform
+corresponding operations.</p>
+<p>Source code:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;signal.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Signal handler function</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">signalHandler</span><span class="params">(<span class="type">int</span> sig)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Bye, World!\n&quot;</span>);</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">pid_t</span> pid = fork();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (pid == <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// Child process</span></span><br><span class="line">    </span><br><span class="line">        signal(SIGUSR1, signalHandler); <span class="comment">// Register signal handler function</span></span><br><span class="line">        <span class="keyword">while</span> (<span class="number">1</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;I am Child Process, alive!\n&quot;</span>);</span><br><span class="line">            sleep(<span class="number">2</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (pid &gt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// Parent process</span></span><br><span class="line">        <span class="type">char</span> answer;</span><br><span class="line">        <span class="keyword">do</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;To terminate Child Process. Yes or No?\n&quot;</span>);</span><br><span class="line">            <span class="built_in">scanf</span>(<span class="string">&quot; %c&quot;</span>, &amp;answer);</span><br><span class="line">            <span class="keyword">if</span> (answer == <span class="string">&#x27;N&#x27;</span> || answer == <span class="string">&#x27;n&#x27;</span>)</span><br><span class="line">            &#123;</span><br><span class="line">                sleep(<span class="number">2</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">while</span> (answer != <span class="string">&#x27;Y&#x27;</span> &amp;&amp; answer != <span class="string">&#x27;y&#x27;</span>);</span><br><span class="line"></span><br><span class="line">        kill(pid, SIGUSR1); <span class="comment">// Send SIGUSR1 signal to child process</span></span><br><span class="line">        wait(<span class="literal">NULL</span>); <span class="comment">// Wait for child process to end</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// fork failed</span></span><br><span class="line">        perror(<span class="string">&quot;fork failed&quot;</span>);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Code execution result:</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/5-result.png"
+alt="Code execution result" />
+<figcaption aria-hidden="true">Code execution result</figcaption>
+</figure>
+<p>Reference Materials:</p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/113876980">Linux Inter-Process
+Communication Lecture 3 Signal signal kill</a></p>
+<h2
+id="task-6-simulate-dining-philosophers-in-windows-or-linux-provide-deadlock-and-non-deadlock-solutions">Task
+6: Simulate Dining Philosophers in Windows or Linux, Provide Deadlock
+and Non-Deadlock Solutions</h2>
+<p>Task Requirements:</p>
+<ol type="1">
+<li>Provide both solutions that may cause deadlock and solutions that
+cannot cause deadlock.</li>
+<li>For solutions that may cause deadlock, refer to course materials.
+Windows try using critical section objects (EnterCriticalSection,
+LeaveCriticalSection); Linux try using mutex locks (pthread_mutex_lock,
+pthread_mutex_unlock)</li>
+<li>Solutions that absolutely cannot cause deadlock, for example: try to
+pick up both chopsticks, if both can be picked up then pick them up,
+otherwise don’t pick up either.</li>
+<li>Linux try mutex functions pthread_mutex_lock, pthread_mutex_trylock,
+etc.</li>
+<li>To enhance randomness, maintain random duration of 100ms-500ms
+between states.</li>
+<li>[Optional] Graphical interface showing philosophers picking up
+chopsticks, eating, putting down chopsticks, thinking, etc.</li>
+</ol>
+<h3 id="deadlock-solution">Deadlock Solution</h3>
+<p>The problem with the deadlock solution is that each philosopher picks
+up the left chopstick first, then the right chopstick. When they all
+pick up the left chopstick simultaneously, no philosopher can get the
+right chopstick, creating a deadlock problem.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;pthread.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> PHILOSOPHER_COUNT 5</span></span><br><span class="line"></span><br><span class="line"><span class="type">pthread_mutex_t</span> chopsticks[PHILOSOPHER_COUNT];</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">get_random_sleep_time</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">return</span> rand() % <span class="number">400000</span> + <span class="number">100000</span>; <span class="comment">// 100ms到500ms的随机时间</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> *<span class="title function_">philosopher</span><span class="params">(<span class="type">void</span> *num)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> id = *(<span class="type">int</span> *)num;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Philosopher %d is thinking\n&quot;</span>, id);</span><br><span class="line">        usleep(get_random_sleep_time()); <span class="comment">// Random thinking time</span></span><br><span class="line"></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Philosopher %d is resting\n&quot;</span>, id);</span><br><span class="line">        usleep(get_random_sleep_time()); <span class="comment">// Random rest time</span></span><br><span class="line"></span><br><span class="line">        pthread_mutex_lock(&amp;chopsticks[id]); <span class="comment">// Pick up left chopstick</span></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Philosopher %d picked up left chopstick\n&quot;</span>, id);</span><br><span class="line">        pthread_mutex_lock(&amp;chopsticks[(id + <span class="number">1</span>) % PHILOSOPHER_COUNT]); <span class="comment">// Pick up right chopstick</span></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Philosopher %d picked up right chopstick\n&quot;</span>, id);</span><br><span class="line"></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Philosopher %d is eating\n&quot;</span>, id);</span><br><span class="line">        usleep(get_random_sleep_time()); <span class="comment">// Random eating time</span></span><br><span class="line"></span><br><span class="line">        pthread_mutex_unlock(&amp;chopsticks[(id + <span class="number">1</span>) % PHILOSOPHER_COUNT]); <span class="comment">// Put down right chopstick</span></span><br><span class="line">        pthread_mutex_unlock(&amp;chopsticks[id]);                           <span class="comment">// Put down left chopstick</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">pthread_t</span> philosophers[PHILOSOPHER_COUNT];</span><br><span class="line">    <span class="type">int</span> philosopher_numbers[PHILOSOPHER_COUNT];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; PHILOSOPHER_COUNT; ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        pthread_mutex_init(&amp;chopsticks[i], <span class="literal">NULL</span>);</span><br><span class="line">        philosopher_numbers[i] = i;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; PHILOSOPHER_COUNT; ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        pthread_create(&amp;philosophers[i], <span class="literal">NULL</span>, philosopher, &amp;philosopher_numbers[i]);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; PHILOSOPHER_COUNT; ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        pthread_join(philosophers[i], <span class="literal">NULL</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Deadlock state:</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/6-program1-result.png"
+alt="Deadlock state" />
+<figcaption aria-hidden="true">Deadlock state</figcaption>
+</figure>
+<p>It can be observed that they all picked up the left chopsticks
+simultaneously, creating a deadlock phenomenon.</p>
+<h3 id="non-deadlock-solution">Non-Deadlock Solution</h3>
+<p>My solution to deadlock is that philosophers try to pick up the left
+chopstick first, then the right chopstick. Unlike the above, if
+philosophers cannot get the right chopstick to eat, they put down the
+left chopstick they currently hold, thus avoiding the deadlock
+problem.</p>
+<p>In terms of specific functions: pthread_mutex_trylock function
+replaces pthread_mutex_lock to avoid blocking. If the lock cannot be
+acquired immediately, it won’t enter a waiting state, thus avoiding
+deadlock situations.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;pthread.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> PHILOSOPHER_COUNT 5</span></span><br><span class="line"></span><br><span class="line"><span class="type">pthread_mutex_t</span> chopsticks[PHILOSOPHER_COUNT];</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">get_random_sleep_time</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">return</span> rand() % <span class="number">400000</span> + <span class="number">100000</span>; <span class="comment">// 100ms到500ms的随机时间</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> *<span class="title function_">philosopher</span><span class="params">(<span class="type">void</span> *num)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> id = *(<span class="type">int</span> *)num;</span><br><span class="line">    <span class="type">int</span> left = id;</span><br><span class="line">    <span class="type">int</span> right = (id + <span class="number">1</span>) % PHILOSOPHER_COUNT;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Philosopher %d is thinking\n&quot;</span>, id);</span><br><span class="line">        usleep(get_random_sleep_time()); <span class="comment">// Random thinking time</span></span><br><span class="line"></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Philosopher %d is resting\n&quot;</span>, id);</span><br><span class="line">        usleep(get_random_sleep_time()); <span class="comment">// Random thinking time</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// Each philosopher tries to get the left chopstick first, then the right chopstick. If both chopsticks are successfully acquired, the philosopher starts eating</span></span><br><span class="line">        <span class="comment">// pthread_mutex_trylock function replaces pthread_mutex_lock to avoid blocking. If the lock cannot be acquired immediately, it won&#x27;t enter a waiting state, thus avoiding deadlock situations</span></span><br><span class="line">        <span class="keyword">if</span> (pthread_mutex_trylock(&amp;chopsticks[id]) == <span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;Philosopher %d picked up left chopstick\n&quot;</span>, id);</span><br><span class="line">            sleep(<span class="number">1</span>); <span class="comment">// Added a 1-second delay here to make it easier for philosophers to pick up left chopsticks simultaneously</span></span><br><span class="line">            <span class="keyword">if</span> (pthread_mutex_trylock(&amp;chopsticks[(id + <span class="number">1</span>) % PHILOSOPHER_COUNT]) == <span class="number">0</span>)</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;Philosopher %d picked up right chopstick\n&quot;</span>, id);</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;Philosopher %d is eating\n&quot;</span>, id);</span><br><span class="line">                usleep(get_random_sleep_time()); <span class="comment">// Random eating time</span></span><br><span class="line"></span><br><span class="line">                pthread_mutex_unlock(&amp;chopsticks[(id + <span class="number">1</span>) % PHILOSOPHER_COUNT]);</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;Philosopher %d put down right chopstick\n&quot;</span>, id);</span><br><span class="line">            &#125;</span><br><span class="line">            pthread_mutex_unlock(&amp;chopsticks[id]);</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;Philosopher %d put down left chopstick\n&quot;</span>, id);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">pthread_t</span> philosophers[PHILOSOPHER_COUNT];</span><br><span class="line">    <span class="type">int</span> philosopher_numbers[PHILOSOPHER_COUNT];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; PHILOSOPHER_COUNT; ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        pthread_mutex_init(&amp;chopsticks[i], <span class="literal">NULL</span>);</span><br><span class="line">        philosopher_numbers[i] = i;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; PHILOSOPHER_COUNT; ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        pthread_create(&amp;philosophers[i], <span class="literal">NULL</span>, philosopher, &amp;philosopher_numbers[i]);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; PHILOSOPHER_COUNT; ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        pthread_join(philosophers[i], <span class="literal">NULL</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Non-deadlock program execution result:</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/6-program2-result.png"
+alt="Non-deadlock program execution result" />
+<figcaption aria-hidden="true">Non-deadlock program execution
+result</figcaption>
+</figure>
+<p>Here I intentionally made philosophers sleep for a longer time after
+getting the left chopstick, creating a conflict where they all get the
+left chopstick simultaneously. From the figure, we can see that all 5
+philosophers indeed picked up the left chopsticks simultaneously. Unlike
+the deadlock approach, philosopher 4 actively put down the left
+chopstick and re-entered the thinking state, avoiding the deadlock
+situation.</p>
+<p>Reference Materials:</p>
+<p><a
+target="_blank" rel="noopener" href="https://blog.csdn.net/monologuezjp/article/details/85449544">Dining
+Philosophers Problem</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://blog.csdn.net/low5252/article/details/104800671">Five
+Philosophers Dining Problem</a></p>
+<h2
+id="task-7-study-linux-kernel-and-use-printk-to-debug-process-creation-and-scheduling-policy-related-information">Task
+7: Study Linux Kernel and Use printk to Debug Process Creation and
+Scheduling Policy Related Information</h2>
+<p>Requirements: Write application Hello.c, call fork to create process,
+track the fork process of the newly created child process in the kernel
+and display PCB member variables related to scheduling policy.</p>
+<ol type="1">
+<li>Write application Hello.c, call fork to create child process
+(functionality unlimited), print parent and child process ID
+numbers.</li>
+<li>Use printk in appropriate locations in the kernel (such as somewhere
+in the do_fork function) to output debugging information like “currently
+creating process corresponding cmd, process ID and parent process
+ID”.</li>
+<li>To avoid frequent output of the above debugging information by the
+do_fork function, it must be limited to only output the above debugging
+information when fork is called in the Hello program. Please think about
+how to implement this.</li>
+</ol>
+<blockquote>
+<p>Reference method: Kernel design global variable bool flag and system
+call SetDebug(bool), SetDebug can modify flag value to true or false. In
+the Hello program, call SetDebug(true) before calling fork function and
+SetDebug(false) after calling fork function to modify flag. When printk
+debugging information, check flag to determine whether to use printk to
+output debugging information.</p>
+</blockquote>
+<p>Friendly reminder: The do_fork function has been replaced by the
+kernel_clone function in newer versions of Linux kernel source code.</p>
+<h3 id="modify-.kernelfork.c-file">Modify ./kernel/fork.c file</h3>
+<p>Use printk in kernel_clone to print related information. p is a
+pointer to the task_struct structure, comm is the currently executing
+command, pid is the child process ID, current-&gt;pid is the parent
+process ID, current is a macro pointing to the parent process.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/7-add_code.png"
+alt="Add printk code in kernel_clone" />
+<figcaption aria-hidden="true">Add printk code in
+kernel_clone</figcaption>
+</figure>
+<p>Add new system call setdebug for setting debug_fork_flag. The bool
+value debug_fork_flag is a global variable used to control whether to
+output.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/7-setdebug.png"
+alt="setdebug system call" />
+<figcaption aria-hidden="true">setdebug system call</figcaption>
+</figure>
+<h3 id="add-declarations">Add Declarations</h3>
+<ol type="1">
+<li>System call: ./kernel/fork.c (already modified)</li>
+<li>System call function declaration ./include/linux/syscalls.h</li>
+<li>ID: ./arch/x86/entry/syscalls/syscall_64.tbl</li>
+<li>ID declaration: ./include/uapi/asm-generic/unistd.h</li>
+</ol>
+<p>The modification operations for the remaining 3 files have been
+practiced in the task of adding system calls in experiment 1, so I won’t
+repeat them here.</p>
+<h3 id="compile-kernel">Compile Kernel</h3>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Already practiced in experiment 1 kernel compilation</span></span><br><span class="line">make mrproper</span><br><span class="line">make clean</span><br><span class="line">make -j6</span><br><span class="line">make modules_install</span><br><span class="line">make install</span><br></pre></td></tr></table></figure>
+<h3 id="write-test-code">Write Test Code</h3>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/syscall.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Define SetDebug system call number (needs to be registered in kernel)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SYS_SETDEBUG 447</span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">SetDebug</span><span class="params">(<span class="type">int</span> value)</span> &#123;</span><br><span class="line">    syscall(SYS_SETDEBUG, value);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">    SetDebug(<span class="number">1</span>); <span class="comment">// Enable debug information</span></span><br><span class="line"></span><br><span class="line">    <span class="type">pid_t</span> pid = fork();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (pid == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">// Child process</span></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Child process ID: %d\n&quot;</span>, getpid());</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (pid &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">// Parent process</span></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Parent process ID: %d\n&quot;</span>, getpid());</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// fork failed</span></span><br><span class="line">        perror(<span class="string">&quot;fork&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    SetDebug(<span class="number">0</span>); <span class="comment">// Disable debug information</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>To test the functionality, I commented out the SetDebug function in
+another test code and executed both programs simultaneously. The
+expected effect is that only the program that called the SetDebug
+function will output debug information during fork.</p>
+<p>test1 did not enable print information, test2 enabled print
+information.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/7-result1.png"
+alt="Run test1 and test2" />
+<figcaption aria-hidden="true">Run test1 and test2</figcaption>
+</figure>
+<p>Use dmesg to view information. In the figure below, we can see a line
+in the background information about a process being created, cmd=test2,
+and comparing with the child process and parent process PIDs in the
+above figure, they are also consistent.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/7-result2.png"
+alt="dmesg print background information" />
+<figcaption aria-hidden="true">dmesg print background
+information</figcaption>
+</figure>
+<p>Reference Materials:</p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/617398860">Linux Kernel Process
+- do_fork() Function Implementation Principle</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://blog.csdn.net/liushengxi_root/article/details/81332740">Linux
+Kernel Source Code fork Interpretation</a></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2023/11/29/HUST-Labs/HUST%20Operating%20System%20Lab2:%20Process&amp;Thread%20Synchronization%20Mechanisms%20and%20Application%20Programming/">https://xloverflow.github.io/2023/11/29/HUST-Labs/HUST%20Operating%20System%20Lab2:%20Process&amp;Thread%20Synchronization%20Mechanisms%20and%20Application%20Programming/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/tags/Course-Experiments/">Course Experiments</a><a class="post-meta__tags" href="/tags/Operating-System/">Operating System</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/v2osk-1Z2niiBPg5A-unsplash.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2023/12/05/HUST-Labs/HUST%20Operating%20System%20Lab3:%20Memory%20Management/" title="HUST Operating System Lab3: Memory Management"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/david-marcu-78A265wPiO4-unsplash.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">HUST Operating System Lab3: Memory Management</div></div><div class="info-2"><div class="info-item-1">Operation process record for HUST Operating System Lab3</div></div></div></a><a class="pagination-related" href="/2023/02/17/Tools/Campus%20Network%20Router%20Connection%20with%20Web%20Authentication/" title="Campus Network Router Connection with Web Authentication"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/nasa-Q1p7bh3SHj8-unsplash.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">Campus Network Router Connection with Web Authentication</div></div><div class="info-2"><div class="info-item-1">Recording the process of connecting router to HUST campus network</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2023/12/05/HUST-Labs/HUST%20Operating%20System%20Lab3:%20Memory%20Management/" title="HUST Operating System Lab3: Memory Management"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/david-marcu-78A265wPiO4-unsplash.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-12-05</div><div class="info-item-2">HUST Operating System Lab3: Memory Management</div></div><div class="info-2"><div class="info-item-1">Operation process record for HUST Operating System Lab3</div></div></div></a><a class="pagination-related" href="/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab1-Software%20Security/" title="HUST Information System Security Lab1-Software Security"><img class="cover" src="https://t3.chei.com.cn/zyk/zybk/zyjd/cdn/showImg/ikb2ll7ejr4ufkfj.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-26</div><div class="info-item-2">HUST Information System Security Lab1-Software Security</div></div><div class="info-2"><div class="info-item-1">Operation process record for HUST Information System Security Lab1</div></div></div></a><a class="pagination-related" href="/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab2-System%20Security/" title="HUST Information System Security Lab2-System Security"><img class="cover" src="https://picx.zhimg.com/80/v2-06450eedf96def79a590cec5c6c0ecbd_720w.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-26</div><div class="info-item-2">HUST Information System Security Lab2-System Security</div></div><div class="info-2"><div class="info-item-1">Operation process record for HUST Information System Security Lab2</div></div></div></a><a class="pagination-related" href="/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab3-Web%20Security/" title="HUST Information System Security Lab3-Web Security"><img class="cover" src="https://pic1.zhimg.com/80/v2-416f1b8d4133d67e746a67adbb40f508_720w.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-26</div><div class="info-item-2">HUST Information System Security Lab3-Web Security</div></div><div class="info-2"><div class="info-item-1">Operation process record for HUST Information System Security Lab3</div></div></div></a><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">Notes on RNN architectures, encoder-decoder models, and attention mechanisms from CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-22</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 11-711 Advanced NLP.</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#operating-system-lab2"><span class="toc-number">1.</span> <span class="toc-text">Operating System Lab2</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#experiment-objectives"><span class="toc-number">1.1.</span> <span class="toc-text">Experiment Objectives</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#experiment-content"><span class="toc-number">1.2.</span> <span class="toc-text">Experiment Content</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#task-1-create-2-threads-a-and-b-in-linuxwindows-to-loop-output-data-or-strings"><span class="toc-number">1.3.</span> <span class="toc-text">Task
+1: Create 2 Threads A and B in Linux&#x2F;Windows to Loop Output Data or
+Strings</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#write-code-and-compile"><span class="toc-number">1.3.1.</span> <span class="toc-text">Write Code and Compile</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#view-process-running-status-during-execution"><span class="toc-number">1.3.2.</span> <span class="toc-text">View Process
+Running Status During Execution</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#program-execution-results"><span class="toc-number">1.3.3.</span> <span class="toc-text">Program Execution Results</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#task-2-create-fork-a-child-process-in-linux-experiment-with-waitexit-functions"><span class="toc-number">1.4.</span> <span class="toc-text">Task
+2: Create (fork) a Child Process in Linux, Experiment with wait&#x2F;exit
+Functions</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#effect-one"><span class="toc-number">1.4.1.</span> <span class="toc-text">Effect One</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#effect-two"><span class="toc-number">1.4.2.</span> <span class="toc-text">Effect Two</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#task-3-use-threads-to-implement-concurrent-drawing-of-circles-and-squares-in-windowslinux"><span class="toc-number">1.5.</span> <span class="toc-text">Task
+3: Use Threads to Implement Concurrent Drawing of Circles and Squares in
+Windows&#x2F;Linux</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#task-4-use-threads-to-implement-producer-consumer-synchronization-control-in-windows-or-linux"><span class="toc-number">1.6.</span> <span class="toc-text">Task
+4: Use Threads to Implement “Producer-Consumer” Synchronization Control
+in Windows or Linux</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#task-5-use-signal-mechanism-signal-to-implement-inter-process-communication-in-linux"><span class="toc-number">1.7.</span> <span class="toc-text">Task
+5: Use Signal Mechanism (signal) to Implement Inter-Process
+Communication in Linux</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#task-6-simulate-dining-philosophers-in-windows-or-linux-provide-deadlock-and-non-deadlock-solutions"><span class="toc-number">1.8.</span> <span class="toc-text">Task
+6: Simulate Dining Philosophers in Windows or Linux, Provide Deadlock
+and Non-Deadlock Solutions</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#deadlock-solution"><span class="toc-number">1.8.1.</span> <span class="toc-text">Deadlock Solution</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#non-deadlock-solution"><span class="toc-number">1.8.2.</span> <span class="toc-text">Non-Deadlock Solution</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#task-7-study-linux-kernel-and-use-printk-to-debug-process-creation-and-scheduling-policy-related-information"><span class="toc-number">1.9.</span> <span class="toc-text">Task
+7: Study Linux Kernel and Use printk to Debug Process Creation and
+Scheduling Policy Related Information</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#modify-.kernelfork.c-file"><span class="toc-number">1.9.1.</span> <span class="toc-text">Modify .&#x2F;kernel&#x2F;fork.c file</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#add-declarations"><span class="toc-number">1.9.2.</span> <span class="toc-text">Add Declarations</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#compile-kernel"><span class="toc-number">1.9.3.</span> <span class="toc-text">Compile Kernel</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#write-test-code"><span class="toc-number">1.9.4.</span> <span class="toc-text">Write Test Code</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Retrieval and RAG"/></a><div class="content"><a class="title" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG">11711 Advanced NLP: Retrieval and RAG</a><time datetime="2026-02-14T22:08:21.000Z" title="Created 2026-02-14 17:08:21">2026-02-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Distributed Training and Parallelization"/></a><div class="content"><a class="title" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization">15642 Machine Learning Systems: Distributed Training and Parallelization</a><time datetime="2026-02-13T21:00:00.000Z" title="Created 2026-02-13 16:00:00">2026-02-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Decoding"/></a><div class="content"><a class="title" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding">11868 LLM Sys: Decoding</a><time datetime="2026-02-13T01:00:00.000Z" title="Created 2026-02-12 20:00:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Tokenization and Embedding"/></a><div class="content"><a class="title" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding">11868 LLM Sys: Tokenization and Embedding</a><time datetime="2026-02-12T20:30:00.000Z" title="Created 2026-02-12 15:30:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"/></a><div class="content"><a class="title" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations">15642 Machine Learning Systems: Transformer, Attention, and Optimizations</a><time datetime="2026-02-09T19:30:00.000Z" title="Created 2026-02-09 14:30:00">2026-02-09</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || 'bcb09a885a7403e612c0cab48fa64d8d'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

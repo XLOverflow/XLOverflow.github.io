@@ -1,0 +1,597 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>CNNs - Part 1 | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Notes on Convolutional Neural Networks (CNN)">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CNNs - Part 1">
+<meta property="og:url" content="https://xloverflow.github.io/2025/10/02/Deep-Learning/CNN_P1/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Notes on Convolutional Neural Networks (CNN)">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251002142654568.png">
+<meta property="article:published_time" content="2025-10-02T18:01:45.000Z">
+<meta property="article:modified_time" content="2026-02-15T05:04:17.012Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="CMU 11-785">
+<meta property="article:tag" content="CNN">
+<meta property="article:tag" content="Deep Learning">
+<meta property="article:tag" content="Study Notes">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251002142654568.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "CNNs - Part 1",
+  "url": "https://xloverflow.github.io/2025/10/02/Deep-Learning/CNN_P1/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251002142654568.png",
+  "datePublished": "2025-10-02T18:01:45.000Z",
+  "dateModified": "2026-02-15T05:04:17.012Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2025/10/02/Deep-Learning/CNN_P1/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'CNNs - Part 1',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251002142654568.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">CNNs - Part 1</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">CNNs - Part 1</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2025-10-02T18:01:45.000Z" title="Created 2025-10-02 14:01:45">2025-10-02</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-02-15T05:04:17.012Z" title="Updated 2026-02-15 00:04:17">2026-02-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Deep-Learning/">Deep Learning</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="convolutional-neural-networks-cnn---part-1">Convolutional Neural
+Networks (CNN) - Part 1</h1>
+<p>Firstly, we know some facts about MLPs (Multi-Layer Perceptrons):</p>
+<ul>
+<li>MLPs are universal function approximators. (Boolean functions,
+classifiers, and regressions)</li>
+<li>MLPs can be trained through variations of gradient descent</li>
+</ul>
+<p>But how do we meet the <strong>need of shift invariance</strong>,
+conventional MLPs are sensitive to the location of the pattern,
+resulting in a very large network to cover all possible locations of the
+pattern. So CNNs are introduced.</p>
+<p>There are two scenarios in this lecture:</p>
+<ol type="1">
+<li>1D input (e.g., time series)</li>
+<li>2D input (e.g., images)</li>
+</ol>
+<h2 id="regular-networks-vs.-scanning-networks">Regular networks
+vs. Scanning networks</h2>
+<h3 id="regular-networks">Regular networks</h3>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251002144814402.png"
+alt="Regular networks" />
+<figcaption aria-hidden="true">Regular networks</figcaption>
+</figure>
+<p>In a regular MLP, every neuron in the same layer is connnected by a
+unique weight to every unit in the previous layer.</p>
+<ul>
+<li>All entries in the weight matrix are <strong>unique</strong></li>
+<li>The weight matrix is (generally) full</li>
+</ul>
+<h3 id="scanning-networks">Scanning networks</h3>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/Screenshot%202025-10-02%20at%2014.50.47.png"
+alt="Scanning networks" />
+<figcaption aria-hidden="true">Scanning networks</figcaption>
+</figure>
+<p>In a scanning MLP each neuron is connected to a subset of neurons in
+the previous layer.</p>
+<ul>
+<li>The weight matrix is sparse</li>
+<li>The weights matrix is block structured with <strong>identical
+blocks</strong></li>
+<li>The network is a <strong>shared parameter model</strong></li>
+</ul>
+<div class="note info flat"><p>Scanning Networks are our focus in this lecture.</p>
+</div>
+<h2 id="learning-in-shared-parameter-model">Learning in shared parameter
+model</h2>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251002150101208.png" alt="Shared parameter model" width="30%"/></p>
+<h3 id="shared-parameters">1) Shared Parameters</h3>
+<p>Multiple connections are constrained to have the same parameter:
+<span class="math display">\[
+    w_{ij}^k = w_{mn}^l = w^s
+    \]</span></p>
+<p>For any training instance <span class="math inline">\(X\)</span>, a
+small perturbation of <span class="math inline">\(w^s\)</span> will
+simultaneously perturb both <span
+class="math inline">\(w_{ij}^k\)</span> and <span
+class="math inline">\(w_{mn}^l\)</span>. Each of these perturbations
+will individually influence the final divergence (loss):<br />
+<span class="math display">\[
+    Div(d, y)
+    \]</span></p>
+<p>The gradient with respect to the shared parameter <span
+class="math inline">\(w^s\)</span> equals the sum of the gradients with
+respect to each shared weight:<br />
+<span class="math display">\[
+    \frac{\partial Div}{\partial w^s}
+    = \frac{\partial Div}{\partial w_{ij}^k} \cdot \frac{\partial
+w_{ij}^k}{\partial w^s}
+    + \frac{\partial Div}{\partial w_{mn}^l} \cdot \frac{\partial
+w_{mn}^l}{\partial w^s}
+    \]</span> Since <span class="math inline">\(w_{ij}^k = w_{mn}^l =
+w^s\)</span>, this simplifies to:<br />
+<span class="math display">\[
+    \frac{\partial Div}{\partial w^s}
+    = \frac{\partial Div}{\partial w_{ij}^k}
+    + \frac{\partial Div}{\partial w_{mn}^l}
+    \]</span> z In conclusion, the gradient with respect to a shared
+parameter <strong>is the sum of the gradients with respect to each of
+its instances</strong>.</p>
+<h3 id="gradient-of-shared-parameters">2) Gradient of Shared
+Parameters</h3>
+<p><span class="math inline">\(S = \{e_1, e_2, ..., e_N\}\)</span> is a
+set of shared edges. So the total gradient is the sum over all edges in
+the set:<br />
+<span class="math display">\[
+    \frac{\partial Div}{\partial w^s}
+    = \sum_{e \in S} \frac{\partial Div}{\partial w^e}
+    \]</span></p>
+<p>Then the loss gradient w.r.t. <span
+class="math inline">\(w^s\)</span> is <span class="math display">\[
+\nabla_S \mathrm{Loss}
+= \frac{\partial \mathrm{Loss}}{\partial w^s}
+= \sum_{e \in S} \frac{\partial \mathrm{Loss}}{\partial w^{e}}.
+\]</span></p>
+<h3 id="gradient-descent-update">3) Gradient Descent Update</h3>
+<p>With learning rate <span class="math inline">\(\eta\)</span>, update
+the shared parameter: <span class="math display">\[
+w^s \leftarrow w^s - \eta \ \nabla_S \mathrm{Loss}.
+\]</span></p>
+<p>After updating, write the new shared value back to every tied weight:
+<span class="math display">\[
+\forall (k,i,j)\in S:\quad w^{(k)}_{i,j} \leftarrow w^s.
+\]</span></p>
+<h3 id="training-loop">4) Training Loop</h3>
+<ol type="1">
+<li>Initialize all weights $ _1, _2, , _K $.</li>
+<li>For each tied set <span class="math inline">\(S\)</span>:
+<ul>
+<li>Backprop to get $ $ for each edge <span class="math inline">\(e\in
+S\)</span>.</li>
+<li>Sum to obtain $ _S $.</li>
+<li>Update $ w^s w^s - , _S $.</li>
+<li>Sync the updated $ w^s $ back to all $ w^{(k)}_{i,j} S $.</li>
+</ul></li>
+<li>Repeat until the loss converges.</li>
+</ol>
+<h2 id="distributed-vs-non-distributed-scanning">Distributed vs
+Non-distributed Scanning</h2>
+<h3 id="definition">Definition</h3>
+<ul>
+<li><strong>Distributed scanning</strong>: Parameters (weights) are
+<strong>shared across spatial positions</strong>.<br />
+→ Example: convolution kernels reused at every location.</li>
+<li><strong>Non-distributed scanning</strong>: Parameters are
+<strong>not shared</strong>; each location/block has its own set of
+weights.</li>
+</ul>
+<h3 id="key-differences">Key Differences</h3>
+<ul>
+<li><strong>Parameter sharing</strong>: Distributed ✅ | Non-distributed
+❌</li>
+<li><strong>Parameter count</strong>:
+<ul>
+<li>Distributed: Independent of number of positions; fewer parameters.
+<ul>
+<li>Formula: <span class="math inline">\(K_0 D N_1 + K_1 N_1 N_2 + N_2
+N_3\)</span></li>
+</ul></li>
+<li>Non-distributed: Grows linearly with the number of positions
+(replicated per location).</li>
+</ul></li>
+<li><strong>Inductive bias</strong>:
+<ul>
+<li>Distributed: Enforces <strong>translation
+equivariance/invariance</strong>.<br />
+</li>
+<li>Non-distributed: No such bias; more flexible but prone to
+overfitting.</li>
+</ul></li>
+<li><strong>Output arrangement</strong>:
+<ul>
+<li>Distributed: Naturally produces feature maps aligned with the input
+grid.<br />
+</li>
+<li>Non-distributed: Not required to follow the same shape (can just
+collect outputs).</li>
+</ul></li>
+<li><strong>Efficiency</strong>:
+<ul>
+<li>Distributed: Fewer parameters, better generalization, cheaper in
+memory/compute.<br />
+</li>
+<li>Non-distributed: Many more parameters, expensive, less
+scalable.</li>
+</ul></li>
+<li><strong>Implementation analogy</strong>:
+<ul>
+<li>Distributed ≈ Convolution (shared kernels).<br />
+</li>
+<li>Non-distributed ≈ Independent MLPs applied at each location.</li>
+</ul></li>
+</ul>
+<h3 id="one-liner">One-liner</h3>
+<p>The <strong>essence</strong>: Distributed vs non-distributed scanning
+differs in whether weights are <strong>shared across positions</strong>
+— which directly impacts parameter count, generalization, and
+efficiency.</p>
+<h2 id="terminology-in-cnns">Terminology in CNNs</h2>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251002164429959.png"
+alt="Convolutional Neural Network" />
+<figcaption aria-hidden="true">Convolutional Neural Network</figcaption>
+</figure>
+<p><strong>Filter (Kernel)</strong>: A learned weight tensor <span
+class="math inline">\(W_c \in \mathbb{R}^{K_h \times K_w \times
+C_{\text{in}}}\)</span> reused at every location; output at <span
+class="math inline">\((u,v,c)\)</span>: <span
+class="math inline">\(y(u,v,c)=\sigma(\langle \text{patch}(u,v),
+W_c\rangle + b_c)\)</span>.</p>
+<p><strong>Receptive Field</strong>: The input region that affects a
+neuron’s output; per layer (1D) <span
+class="math inline">\(r_l=r_{l-1}+(k_l-1)\,d_l\,j_{l-1}\)</span>, <span
+class="math inline">\(j_l=j_{l-1}s_l\)</span> with <span
+class="math inline">\(r_0=1, j_0=1\)</span>.</p>
+<p><strong>Stride</strong>: The step size when sliding the filter over
+the input; larger strides reduce output size.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251002165111427.png"
+alt="Flattening" />
+<figcaption aria-hidden="true">Flattening</figcaption>
+</figure>
+<p><strong>Flattening</strong>: reshape the final feature maps from
+shape <span class="math inline">\(H \times W \times C\)</span> into a
+1-D vector of length <span class="math inline">\(HWC\)</span> (per
+sample) before feeding a fully connected/softmax layer.</p>
+<div class="note info flat"><p><strong>With a classification head</strong>: train for
+<strong>classification</strong> by feeding the embedding <span
+class="math inline">\(z\)</span> into a linear layer + softmax
+(cross-entropy), predicting an ID among <span
+class="math inline">\(C\)</span> classes. <strong>Without a
+classification head</strong>: for <strong>verification</strong>, drop
+the linear/softmax and compare two embeddings <span
+class="math inline">\(z_1,z_2\)</span> with a similarity (e.g., cosine)
+to decide <strong>match vs non-match</strong> (threshold/EER).</p>
+</div>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251002170855251.png"
+alt="Pooling" />
+<figcaption aria-hidden="true">Pooling</figcaption>
+</figure>
+<p><strong>Pooling</strong>: downsample local neighborhoods after
+conv;</p>
+<ul>
+<li><strong>max</strong>: <span
+class="math inline">\(y=\max(x_1,\dots,x_K)\)</span> keeps strongest
+response;</li>
+<li><strong>avg</strong>: <span
+class="math inline">\(y=\tfrac{1}{K}\sum_{i=1}^K x_i\)</span>
+smooths;</li>
+</ul>
+<p>both reduce spatial size (stride <span
+class="math inline">\(&gt;1\)</span>) and add small shift/jitter
+invariance.</p>
+<h2 id="summary">Summary</h2>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251002171028845.png"
+alt="Overall CNN Architecture" />
+<figcaption aria-hidden="true">Overall CNN Architecture</figcaption>
+</figure>
+<ul>
+<li>NN learn patterns hierarchically (simple → complex).<br />
+</li>
+<li>Pattern tasks = scan for target with a
+<strong>shared-parameter</strong> net (like CNN).<br />
+</li>
+<li>First layer scans input; higher layers scan previous
+<strong>maps</strong>; final layer makes decision.<br />
+</li>
+<li>Scanning can be distributed across layers; optional
+<strong>pooling</strong> adds small-shift invariance.<br />
+</li>
+<li>2-D scans → <strong>convnet</strong>; 1-D along time →
+<strong>TDNN</strong>.</li>
+</ul>
+<h2 id="appendix">Appendix</h2>
+<ul>
+<li><a
+target="_blank" rel="noopener" href="https://deeplearning.cs.cmu.edu/F25/document/slides/lec9.CNN1.pdf">CNN1
+Slides</a></li>
+<li><a
+target="_blank" rel="noopener" href="https://deeplearning.cs.cmu.edu/F25/document/slides/lec10.CNN2.pdf">CNN2
+Slides</a></li>
+<li><a
+target="_blank" rel="noopener" href="https://deeplearning.cs.cmu.edu/F25/document/slides/lec11.CNN3.pdf">CNN3
+Slides</a></li>
+<li><a
+target="_blank" rel="noopener" href="https://deeplearning.cs.cmu.edu/F25/document/slides/lec12.CNN4.pdf">CNN4
+Slides</a></li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2025/10/02/Deep-Learning/CNN_P1/">https://xloverflow.github.io/2025/10/02/Deep-Learning/CNN_P1/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/tags/Deep-Learning/">Deep Learning</a><a class="post-meta__tags" href="/tags/CNN/">CNN</a><a class="post-meta__tags" href="/tags/CMU-11-785/">CMU 11-785</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251002142654568.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/10/03/Deep-Learning/CNN_P2/" title="CNNs - Part 2"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251002142654568.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">CNNs - Part 2</div></div><div class="info-2"><div class="info-item-1">Notes on Convolutional Neural Networks (CNN)</div></div></div></a><a class="pagination-related" href="/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab3-Web%20Security/" title="HUST Information System Security Lab3-Web Security"><img class="cover" src="https://pic1.zhimg.com/80/v2-416f1b8d4133d67e746a67adbb40f508_720w.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">HUST Information System Security Lab3-Web Security</div></div><div class="info-2"><div class="info-item-1">Operation process record for HUST Information System Security Lab3</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2025/10/03/Deep-Learning/CNN_P2/" title="CNNs - Part 2"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251002142654568.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-10-03</div><div class="info-item-2">CNNs - Part 2</div></div><div class="info-2"><div class="info-item-1">Notes on Convolutional Neural Networks (CNN)</div></div></div></a><a class="pagination-related" href="/2026/01/28/11868-LLM-Sys/11868-LLM-Sys-15642-ML-Sys-DL-Framworks-and-Auto-Differentiation/" title="11868 LLM Sys &amp; 15642 ML Sys: DL Frameworks and Auto Differentiation"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-28</div><div class="info-item-2">11868 LLM Sys &amp; 15642 ML Sys: DL Frameworks and Auto Differentiation</div></div><div class="info-2"><div class="info-item-1">Comprehensive notes on deep learning frameworks and automatic differentiation from CMU 11-868 LLM Systems and 15-642 ML Systems courses.</div></div></div></a><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">Notes on RNN architectures, encoder-decoder models, and attention mechanisms from CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-22</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/" title="11711 Advanced NLP: Learning &amp; Inference"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Learning &amp; Inference</div></div><div class="info-2"><div class="info-item-1">Notes on learning algorithms and inference methods from CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-14</div><div class="info-item-2">11711 Advanced NLP: Retrieval and RAG</div></div><div class="info-2"><div class="info-item-1">Notes on retrieval systems, retrievers, and retrieval-augmented generation (RAG) from CMU 11-711 Advanced NLP.</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#convolutional-neural-networks-cnn---part-1"><span class="toc-number">1.</span> <span class="toc-text">Convolutional Neural
+Networks (CNN) - Part 1</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#regular-networks-vs.-scanning-networks"><span class="toc-number">1.1.</span> <span class="toc-text">Regular networks
+vs. Scanning networks</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#regular-networks"><span class="toc-number">1.1.1.</span> <span class="toc-text">Regular networks</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#scanning-networks"><span class="toc-number">1.1.2.</span> <span class="toc-text">Scanning networks</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#learning-in-shared-parameter-model"><span class="toc-number">1.2.</span> <span class="toc-text">Learning in shared parameter
+model</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#shared-parameters"><span class="toc-number">1.2.1.</span> <span class="toc-text">1) Shared Parameters</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#gradient-of-shared-parameters"><span class="toc-number">1.2.2.</span> <span class="toc-text">2) Gradient of Shared
+Parameters</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#gradient-descent-update"><span class="toc-number">1.2.3.</span> <span class="toc-text">3) Gradient Descent Update</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#training-loop"><span class="toc-number">1.2.4.</span> <span class="toc-text">4) Training Loop</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#distributed-vs-non-distributed-scanning"><span class="toc-number">1.3.</span> <span class="toc-text">Distributed vs
+Non-distributed Scanning</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#definition"><span class="toc-number">1.3.1.</span> <span class="toc-text">Definition</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#key-differences"><span class="toc-number">1.3.2.</span> <span class="toc-text">Key Differences</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#one-liner"><span class="toc-number">1.3.3.</span> <span class="toc-text">One-liner</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#terminology-in-cnns"><span class="toc-number">1.4.</span> <span class="toc-text">Terminology in CNNs</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#summary"><span class="toc-number">1.5.</span> <span class="toc-text">Summary</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#appendix"><span class="toc-number">1.6.</span> <span class="toc-text">Appendix</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Retrieval and RAG"/></a><div class="content"><a class="title" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG">11711 Advanced NLP: Retrieval and RAG</a><time datetime="2026-02-14T22:08:21.000Z" title="Created 2026-02-14 17:08:21">2026-02-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Distributed Training and Parallelization"/></a><div class="content"><a class="title" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization">15642 Machine Learning Systems: Distributed Training and Parallelization</a><time datetime="2026-02-13T21:00:00.000Z" title="Created 2026-02-13 16:00:00">2026-02-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Decoding"/></a><div class="content"><a class="title" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding">11868 LLM Sys: Decoding</a><time datetime="2026-02-13T01:00:00.000Z" title="Created 2026-02-12 20:00:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Tokenization and Embedding"/></a><div class="content"><a class="title" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding">11868 LLM Sys: Tokenization and Embedding</a><time datetime="2026-02-12T20:30:00.000Z" title="Created 2026-02-12 15:30:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"/></a><div class="content"><a class="title" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations">15642 Machine Learning Systems: Transformer, Attention, and Optimizations</a><time datetime="2026-02-09T19:30:00.000Z" title="Created 2026-02-09 14:30:00">2026-02-09</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '7daf689ff0f2f8658cd1fe027c43f296'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

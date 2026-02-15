@@ -1,0 +1,650 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>15642 Machine Learning Systems: Transformer, Attention, and Optimizations | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Notes and summaries for CMU 15-642 Machine Learning Systems on Transformer architecture, attention mechanisms, and GPU optimizations including FlashAttention.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="15642 Machine Learning Systems: Transformer, Attention, and Optimizations">
+<meta property="og:url" content="https://xloverflow.github.io/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Notes and summaries for CMU 15-642 Machine Learning Systems on Transformer architecture, attention mechanisms, and GPU optimizations including FlashAttention.">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png">
+<meta property="article:published_time" content="2026-02-09T19:30:00.000Z">
+<meta property="article:modified_time" content="2026-02-09T19:30:00.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="15642">
+<meta property="article:tag" content="Attention">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="FlashAttention">
+<meta property="article:tag" content="GPU Optimization">
+<meta property="article:tag" content="ML Systems">
+<meta property="article:tag" content="Transformer">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "15642 Machine Learning Systems: Transformer, Attention, and Optimizations",
+  "url": "https://xloverflow.github.io/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png",
+  "datePublished": "2026-02-09T19:30:00.000Z",
+  "dateModified": "2026-02-09T19:30:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '15642 Machine Learning Systems: Transformer, Attention, and Optimizations',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">15642 Machine Learning Systems: Transformer, Attention, and Optimizations</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">15642 Machine Learning Systems: Transformer, Attention, and Optimizations</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-02-09T19:30:00.000Z" title="Created 2026-02-09 14:30:00">2026-02-09</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-02-09T19:30:00.000Z" title="Updated 2026-02-09 14:30:00">2026-02-09</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CMU-15-642-ML-Systems/">CMU 15-642 ML Systems</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="transformer-attention-and-optimizations">Transformer, Attention,
+and Optimizations</h1>
+<p>Course: 15-442/15-642 Machine Learning Systems Instructors: Tianqi
+Chen and Zhihao Jia Carnegie Mellon University</p>
+<h2 id="attention-mechanism">Attention Mechanism</h2>
+<p>The attention mechanism is an approach where individual states are
+combined using weights.</p>
+<h3 id="basic-concept">Basic Concept</h3>
+<p>For hidden states <span class="math inline">\(h_1, h_2, h_3,
+h_4\)</span> from previous layer inputs <span class="math inline">\(x_1,
+x_2, x_3, x_4\)</span>:</p>
+<p><span class="math display">\[
+h_t = \sum_{i=1}^{t} s_i x_t
+\]</span></p>
+<p>where <span class="math inline">\(s_i\)</span> is the “attention
+score” that computes how relevant position <span
+class="math inline">\(i\)</span>’s input is to the current hidden
+output.</p>
+<h2 id="self-attention">Self-Attention</h2>
+<p>Self-attention maps a query and a set of key-value pairs to an
+output.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260209181943450.png" alt="image-20260209181943450" style="zoom:50%;" /></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260209182022983.png" alt="image-20260209182022983" style="zoom:30%;" /></p>
+<h3 id="mathematical-formulation">Mathematical Formulation</h3>
+<p><span class="math display">\[
+A(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d}}\right)V
+\]</span></p>
+<p>Where: - <strong>Q (Query)</strong>: <span class="math inline">\(N
+\times d\)</span> matrix - <strong>K (Keys)</strong>: <span
+class="math inline">\(N \times d\)</span> matrix - <strong>V
+(Values)</strong>: <span class="math inline">\(N \times d\)</span>
+matrix - <strong>d</strong>: dimension of key/query/value vectors -
+<strong>N</strong>: sequence length</p>
+<h3 id="computation-steps">Computation Steps</h3>
+<ol type="1">
+<li><p>Compute <strong>queries</strong>, <strong>keys</strong>, and
+<strong>values</strong> from input embeddings:</p>
+<ul>
+<li><span class="math inline">\(Q = X W^Q\)</span></li>
+<li><span class="math inline">\(K = X W^K\)</span></li>
+<li><span class="math inline">\(V = X W^V\)</span></li>
+</ul></li>
+<li><p>Calculate attention scores: <span class="math inline">\(S =
+QK^T\)</span> (size: <span class="math inline">\(N \times
+N\)</span>)</p></li>
+<li><p>Scale by <span class="math inline">\(\sqrt{d}\)</span>: <span
+class="math inline">\(S&#39; = S / \sqrt{d}\)</span></p></li>
+<li><p>Apply softmax: <span class="math inline">\(A =
+\text{softmax}(S&#39;)\)</span></p></li>
+<li><p>Multiply by values: <span class="math inline">\(O =
+AV\)</span></p></li>
+</ol>
+<h2 id="multi-head-self-attention">Multi-Head Self-Attention</h2>
+<p>Multi-head attention parallelizes attention layers with different
+linear transformations on input and output.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260209182102524.png" alt="image-20260209182102524" style="zoom:40%;" /></p>
+<h3 id="benefits">Benefits</h3>
+<ul>
+<li><strong>More parallelism</strong>: Can process multiple
+representation subspaces simultaneously</li>
+<li><strong>Reduced computation cost per head</strong>: Each head works
+with smaller dimensions</li>
+</ul>
+<h3 id="formulation">Formulation</h3>
+<p>For each head <span class="math inline">\(i\)</span>: <span
+class="math display">\[
+Z_i = A(Q_i, K_i, V_i) = \text{softmax}\left(\frac{Q_i
+K_i^T}{\sqrt{d}}\right)V_i
+\]</span></p>
+<p>Final output: <span class="math display">\[
+Z = \text{MultiHead}(Q, K, V) = \text{Concat}(Z_0, \ldots, Z_7)W^O
+\]</span></p>
+<p>where typically 8 heads are used, each processing a <span
+class="math inline">\(d/8\)</span> dimensional subspace.</p>
+<h2 id="computing-attention-on-gpus---challenges">Computing Attention on
+GPUs - Challenges</h2>
+<h3 id="standard-attention-computation">Standard Attention
+Computation</h3>
+<p>The naive approach: <span class="math inline">\(O =
+\text{Softmax}(QK^T)V\)</span></p>
+<p><strong>Workflow:</strong> 1. <span class="math inline">\(A =
+QK^T\)</span> : <span class="math inline">\(N \times N\)</span> matrix
+2. <span class="math inline">\(A = \text{mask}(A)\)</span> (for causal
+attention) 3. <span class="math inline">\(A = \text{softmax}(A)\)</span>
+: <span class="math inline">\(N \times N\)</span> matrix 4. <span
+class="math inline">\(O = AV\)</span> : <span class="math inline">\(N
+\times d\)</span> matrix</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260209182126065.png" alt="image-20260209182126065" style="zoom:50%;" /></p>
+<h3 id="key-challenges">Key Challenges</h3>
+<ol type="1">
+<li><strong>Large intermediate results</strong>: <span
+class="math inline">\(O(N^2)\)</span> attention matrix</li>
+<li><strong>Repeated reads/writes from GPU device memory</strong>:
+Memory bandwidth bottleneck</li>
+<li><strong>Cannot scale to long sequences</strong>: Quadratic memory
+requirement</li>
+</ol>
+<h2 id="gpu-memory-hierarchy">GPU Memory Hierarchy</h2>
+<p><strong>NVIDIA A100 GPU:</strong></p>
+<ul>
+<li><strong>Per-block shared memory (SRAM)</strong>: 19 TB/s bandwidth,
+20 MB capacity
+<ul>
+<li>Readable/writable by all threads in a block</li>
+<li>Fast but small</li>
+</ul></li>
+<li><strong>Device global memory (HBM - High Bandwidth Memory)</strong>:
+1.5 TB/s bandwidth, 80 GB capacity
+<ul>
+<li>Readable/writable by all threads</li>
+<li><strong>~12.6x slower than SRAM</strong></li>
+<li>Large capacity but slower access</li>
+</ul></li>
+</ul>
+<p><strong>HBM (High Bandwidth Memory)</strong> is the GPU’s main memory
+- it has large capacity but is much slower than on-chip SRAM.
+FlashAttention’s core optimization is to <strong>minimize HBM
+accesses</strong> by doing as much computation as possible in fast
+SRAM.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260209182214092.png" alt="image-20260209182214092" style="zoom:50%;" /></p>
+<h2 id="flashattention-io-aware-exact-attention">FlashAttention:
+IO-Aware Exact Attention</h2>
+<h3 id="key-idea">Key Idea</h3>
+<p>Compute attention by blocks to reduce global memory access</p>
+<h3 id="two-main-techniques">Two Main Techniques</h3>
+<h4 id="tiling">1. Tiling</h4>
+<p>Restructure algorithm to load query/key/value block by block from
+global to shared memory:</p>
+<ol type="1">
+<li>Load inputs by blocks from HBM to SRAM</li>
+<li>On-chip, compute attention output w.r.t. the block</li>
+<li>Update output in device memory by scaling</li>
+</ol>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260209182250362.png" alt="image-20260209182250362" style="zoom:50%;" /></p>
+<h4 id="recomputation">2. Recomputation</h4>
+<p>Don’t store attention matrix from forward pass, recompute it in
+backward pass</p>
+<p><strong>Tradeoff</strong>: Increases FLOPs but reduces memory I/O</p>
+<blockquote>
+<p>In the GPU, the bandwidth is the bottleneck</p>
+</blockquote>
+<table>
+<thead>
+<tr class="header">
+<th>Metric</th>
+<th>Standard</th>
+<th>FlashAttention</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GFLOPs</td>
+<td>66.6</td>
+<td>75.2 (+13%)</td>
+</tr>
+<tr class="even">
+<td>Global mem access</td>
+<td>40.3 GB</td>
+<td>4.4 GB (-89%)</td>
+</tr>
+<tr class="odd">
+<td>Runtime</td>
+<td>41.7 ms</td>
+<td>7.3 ms (<strong>5.7x faster</strong>)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="safe-softmax-and-online-softmax">Safe Softmax and Online
+Softmax</h3>
+<p><strong>Problem</strong>: Maximum value for 16-bit floating point is
+65504 (&lt; <span class="math inline">\(e^{12}\)</span>)</p>
+<p><strong>Solution</strong>: Compute softmax of vector <span
+class="math inline">\(x\)</span> as:</p>
+<p><span class="math display">\[
+m(x) := \max_i x_i
+\]</span> <span class="math display">\[
+f(x) := [e^{x_1-m(x)}, \ldots, e^{x_n-m(x)}]
+\]</span> <span class="math display">\[
+\ell(x) := \sum_i f(x)_i
+\]</span> <span class="math display">\[
+\text{softmax}(x) := \frac{f(x)}{\ell(x)}
+\]</span></p>
+<p>For two vectors <span class="math inline">\(x^{(1)}\)</span> and
+<span class="math inline">\(x^{(2)}\)</span>:</p>
+<p><span class="math display">\[
+m(x) = m([x^{(1)} \, x^{(2)}]) = \max(m(x^{(1)}), m(x^{(2)}))
+\]</span></p>
+<p><span class="math display">\[
+f(x) = [e^{m(x^{(1)})-m(x)} f(x^{(1)}), \, e^{m(x^{(2)})-m(x)}
+f(x^{(2)})]
+\]</span></p>
+<p><span class="math display">\[
+\ell(x) = e^{m(x^{(1)})-m(x)} \ell(x^{(1)}) + e^{m(x^{(2)})-m(x)}
+\ell(x^{(2)})
+\]</span></p>
+<h3 id="flashattention-2-algorithm">FlashAttention-2 Algorithm</h3>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260209182344432.png" alt="image-20260209182344432" style="zoom:50%;" /></p>
+<h3 id="parallelization-strategy">Parallelization Strategy</h3>
+<p><strong>Thread Block Level:</strong> - Step 1: Assign different
+<strong>heads</strong> to different thread blocks (16-64 heads) - Step
+2: Assign different <strong>queries</strong> to different thread blocks
+- <strong>Why not partition keys/values?</strong> Thread blocks cannot
+communicate; cannot perform softmax when partitioning keys/values</p>
+<p><strong>Warp Level:</strong> - FlashAttention: Split across K/V
+requires communication to add results ❌ - FlashAttention-2: Split
+across Q avoids communication ✅</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260209182623284.png" alt="image-20260209182623284" style="zoom:50%;" /></p>
+<h4 id="why-different-parallelization-for-forward-vs-backward-pass">Why
+Different Parallelization for Forward vs Backward Pass?</h4>
+<p><strong>Forward Pass (Parallelize by Rows/Queries):</strong> -
+Computing <span class="math inline">\(O = \text{softmax}(QK^T)V\)</span>
+- Each thread block processes different query rows independently -
+<strong>No communication needed</strong> - different rows are completely
+independent - Like students working on different problems
+independently</p>
+<p><strong>Backward Pass (Parallelize by Columns/Keys-Values):</strong>
+- Computing gradients requires updating <span
+class="math inline">\(dQ\)</span>: <span class="math display">\[dQ_i =
+dQ_i + dS^{(j)} K_j\]</span> - This update requires
+<strong>accumulation</strong> across different K/V blocks - Each column
+block contributes to the same <span class="math inline">\(dQ\)</span>
+row - Requires <strong>atomic operations</strong> through HBM to
+coordinate updates - Like students working on different parts of the
+same problem - results must be combined</p>
+<p><strong>Key Difference:</strong> Forward pass has independent row
+computations, but backward pass needs to accumulate contributions from
+different blocks, requiring synchronization through HBM with atomic
+adds.</p>
+<h3 id="performance">Performance</h3>
+<p><strong>FlashAttention achieves:</strong> - <strong>2-4x
+speedup</strong> over PyTorch and other baselines - <strong>10-20x
+memory reduction</strong> - <strong>Linear memory</strong> scaling with
+sequence length (vs quadratic)</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260209182708246.png" alt="image-20260209182708246" style="zoom:50%;" /></p>
+<h2 id="generative-llm-inference-autoregressive-decoding">Generative LLM
+Inference: Autoregressive Decoding</h2>
+<h3 id="two-phases">Two Phases</h3>
+<h4 id="pre-filling-phase-iteration-0">1. Pre-filling Phase (Iteration
+0)</h4>
+<ul>
+<li>Process <strong>all</strong> input tokens at once</li>
+<li>Compute attention for entire prompt</li>
+<li>Example: <code>[Accelerating LLM requires machine]</code> → output:
+<code>learning</code></li>
+</ul>
+<h4 id="decoding-phase-iterations-1">2. Decoding Phase (Iterations
+1+)</h4>
+<ul>
+<li>Process a <strong>single</strong> token generated from previous
+iteration</li>
+<li>Use attention keys &amp; values of all previous tokens</li>
+<li>Example iterations:
+<ul>
+<li>Iter 1: <code>learning</code> → <code>systems</code></li>
+<li>Iter 2: <code>systems</code> → <code>optimizations</code></li>
+<li>Iter 3: <code>optimizations</code> → <code>[EOS]</code></li>
+</ul></li>
+</ul>
+<h3 id="key-value-cache">Key-Value Cache</h3>
+<p><strong>Purpose</strong>: Save attention keys and values for
+following iterations to avoid recomputation</p>
+<p><strong>Memory</strong>: Grows linearly with sequence length</p>
+<p><strong>Attention computation in decoding:</strong></p>
+<ul>
+<li>Query: single new token</li>
+<li>Keys/Values: all previous tokens (from cache)</li>
+</ul>
+<h2 id="flashattention-for-llm-inference">FlashAttention for LLM
+Inference</h2>
+<h3 id="applicability">Applicability</h3>
+<p><strong>Pre-filling phase:</strong> ✅ <strong>Yes</strong> - Can
+compute different queries using different thread blocks/warps</p>
+<p><strong>Decoding phase:</strong> ❌ <strong>No</strong> - There is
+only a single query in the decoding phase - FlashAttention processes K/V
+<strong>sequentially</strong> - <strong>Inefficient for requests with
+long context</strong> (many keys/values)</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260209182830017.png" alt="image-20260209182830017" style="zoom:30%;" /></p>
+<h2 id="flash-decoding-parallel-attention-for-decoding">Flash-Decoding:
+Parallel Attention for Decoding</h2>
+<h3 id="key-insight">Key Insight</h3>
+<p>Attention is <strong>associative</strong> and
+<strong>commutative</strong> - can be split and reduced</p>
+<h3 id="approach">Approach</h3>
+<ol type="1">
+<li><strong>Split</strong> keys/values into small chunks</li>
+<li><strong>Compute</strong> attention with these splits using
+FlashAttention (in parallel)</li>
+<li><strong>Reduce</strong> results across all splits</li>
+</ol>
+<h3 id="performance-1">Performance</h3>
+<p><strong>Flash-Decoding is up to 8x faster</strong> than prior work
+for long contexts</p>
+<p><strong>Example (CodeLlama-34b, bs=1, MP=4):</strong> - Sequence
+length 1K: ~47 tok/s (similar to others) - Sequence length 16K: ~38
+tok/s vs ~5 tok/s (FlashAttention) - <strong>Maintains high
+throughput</strong> even for very long sequences</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260209182919673.png" alt="image-20260209182919673" style="zoom:30%;" /></p>
+<h2 id="summary">Summary</h2>
+<ol type="1">
+<li><strong>Attention mechanism</strong> is core to Transformer models,
+with <span class="math inline">\(O(N^2)\)</span> complexity</li>
+<li><strong>Multi-head attention</strong> provides parallelism and
+representation diversity</li>
+<li><strong>FlashAttention</strong> uses tiling and recomputation to
+achieve IO-efficiency:
+<ul>
+<li>2-4x speedup, 10-20x memory reduction</li>
+<li>Enables longer sequence lengths</li>
+</ul></li>
+<li><strong>LLM inference</strong> has two phases with different
+computation patterns:
+<ul>
+<li>Pre-filling: many queries (batched)</li>
+<li>Decoding: single query (sequential)</li>
+</ul></li>
+<li><strong>Flash-Decoding</strong> parallelizes across keys/values for
+efficient long-context decoding:
+<ul>
+<li>Up to 8x faster for long sequences</li>
+<li>Critical for applications requiring large context windows</li>
+</ul></li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/">https://xloverflow.github.io/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/CMU/">CMU</a><a class="post-meta__tags" href="/tags/ML-Systems/">ML Systems</a><a class="post-meta__tags" href="/tags/15642/">15642</a><a class="post-meta__tags" href="/tags/Transformer/">Transformer</a><a class="post-meta__tags" href="/tags/Attention/">Attention</a><a class="post-meta__tags" href="/tags/FlashAttention/">FlashAttention</a><a class="post-meta__tags" href="/tags/GPU-Optimization/">GPU Optimization</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">11868 LLM Sys: Tokenization and Embedding</div></div><div class="info-2"><div class="info-item-1">Comprehensive notes on tokenization techniques and vocabulary learning for Large Language Models, covering BPE, VOLT, and practical considerations in multilingual LLMs.</div></div></div></a><a class="pagination-related" href="/2026/02/09/CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch/" title="CS336 Assignment 1: Building a Transformer Language Model from Scratch"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">CS336 Assignment 1: Building a Transformer Language Model from Scratch</div></div><div class="info-2"><div class="info-item-1">A comprehensive reflection on implementing a complete Transformer language model pipeline from scratch — including BPE tokenizer with parallel pre-tokenization, decoder-only Transformer with RMSNorm/RoPE/SwiGLU, AdamW optimizer, and autoregressive text generation. Trained on TinyStories and OpenWebText with extensive experiments on learning rate sweeps, batch size studies, and architectural ablations.</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/01/28/11868-LLM-Sys/11868-LLM-Sys-15642-ML-Sys-DL-Framworks-and-Auto-Differentiation/" title="11868 LLM Sys &amp; 15642 ML Sys: DL Frameworks and Auto Differentiation"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-28</div><div class="info-item-2">11868 LLM Sys &amp; 15642 ML Sys: DL Frameworks and Auto Differentiation</div></div><div class="info-2"><div class="info-item-1">Comprehensive notes on deep learning frameworks and automatic differentiation from CMU 11-868 LLM Systems and 15-642 ML Systems courses.</div></div></div></a><a class="pagination-related" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-13</div><div class="info-item-2">15642 Machine Learning Systems: Distributed Training and Parallelization</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-642 Machine Learning Systems on distributed training techniques including data parallelism, model parallelism, pipeline parallelism, and optimization strategies like ZeRO for training large-scale models.</div></div></div></a><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">Notes on RNN architectures, encoder-decoder models, and attention mechanisms from CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-22</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/" title="11711 Advanced NLP: Learning &amp; Inference"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Learning &amp; Inference</div></div><div class="info-2"><div class="info-item-1">Notes on learning algorithms and inference methods from CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-14</div><div class="info-item-2">11711 Advanced NLP: Retrieval and RAG</div></div><div class="info-2"><div class="info-item-1">Notes on retrieval systems, retrievers, and retrieval-augmented generation (RAG) from CMU 11-711 Advanced NLP.</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#transformer-attention-and-optimizations"><span class="toc-number">1.</span> <span class="toc-text">Transformer, Attention,
+and Optimizations</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#attention-mechanism"><span class="toc-number">1.1.</span> <span class="toc-text">Attention Mechanism</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#basic-concept"><span class="toc-number">1.1.1.</span> <span class="toc-text">Basic Concept</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#self-attention"><span class="toc-number">1.2.</span> <span class="toc-text">Self-Attention</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#mathematical-formulation"><span class="toc-number">1.2.1.</span> <span class="toc-text">Mathematical Formulation</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#computation-steps"><span class="toc-number">1.2.2.</span> <span class="toc-text">Computation Steps</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#multi-head-self-attention"><span class="toc-number">1.3.</span> <span class="toc-text">Multi-Head Self-Attention</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#benefits"><span class="toc-number">1.3.1.</span> <span class="toc-text">Benefits</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#formulation"><span class="toc-number">1.3.2.</span> <span class="toc-text">Formulation</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#computing-attention-on-gpus---challenges"><span class="toc-number">1.4.</span> <span class="toc-text">Computing Attention on
+GPUs - Challenges</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#standard-attention-computation"><span class="toc-number">1.4.1.</span> <span class="toc-text">Standard Attention
+Computation</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#key-challenges"><span class="toc-number">1.4.2.</span> <span class="toc-text">Key Challenges</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#gpu-memory-hierarchy"><span class="toc-number">1.5.</span> <span class="toc-text">GPU Memory Hierarchy</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#flashattention-io-aware-exact-attention"><span class="toc-number">1.6.</span> <span class="toc-text">FlashAttention:
+IO-Aware Exact Attention</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#key-idea"><span class="toc-number">1.6.1.</span> <span class="toc-text">Key Idea</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#two-main-techniques"><span class="toc-number">1.6.2.</span> <span class="toc-text">Two Main Techniques</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#tiling"><span class="toc-number">1.6.2.1.</span> <span class="toc-text">1. Tiling</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#recomputation"><span class="toc-number">1.6.2.2.</span> <span class="toc-text">2. Recomputation</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#safe-softmax-and-online-softmax"><span class="toc-number">1.6.3.</span> <span class="toc-text">Safe Softmax and Online
+Softmax</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#flashattention-2-algorithm"><span class="toc-number">1.6.4.</span> <span class="toc-text">FlashAttention-2 Algorithm</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#parallelization-strategy"><span class="toc-number">1.6.5.</span> <span class="toc-text">Parallelization Strategy</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#why-different-parallelization-for-forward-vs-backward-pass"><span class="toc-number">1.6.5.1.</span> <span class="toc-text">Why
+Different Parallelization for Forward vs Backward Pass?</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#performance"><span class="toc-number">1.6.6.</span> <span class="toc-text">Performance</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#generative-llm-inference-autoregressive-decoding"><span class="toc-number">1.7.</span> <span class="toc-text">Generative LLM
+Inference: Autoregressive Decoding</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#two-phases"><span class="toc-number">1.7.1.</span> <span class="toc-text">Two Phases</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#pre-filling-phase-iteration-0"><span class="toc-number">1.7.1.1.</span> <span class="toc-text">1. Pre-filling Phase (Iteration
+0)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#decoding-phase-iterations-1"><span class="toc-number">1.7.1.2.</span> <span class="toc-text">2. Decoding Phase (Iterations
+1+)</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#key-value-cache"><span class="toc-number">1.7.2.</span> <span class="toc-text">Key-Value Cache</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#flashattention-for-llm-inference"><span class="toc-number">1.8.</span> <span class="toc-text">FlashAttention for LLM
+Inference</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#applicability"><span class="toc-number">1.8.1.</span> <span class="toc-text">Applicability</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#flash-decoding-parallel-attention-for-decoding"><span class="toc-number">1.9.</span> <span class="toc-text">Flash-Decoding:
+Parallel Attention for Decoding</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#key-insight"><span class="toc-number">1.9.1.</span> <span class="toc-text">Key Insight</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#approach"><span class="toc-number">1.9.2.</span> <span class="toc-text">Approach</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#performance-1"><span class="toc-number">1.9.3.</span> <span class="toc-text">Performance</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#summary"><span class="toc-number">1.10.</span> <span class="toc-text">Summary</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Retrieval and RAG"/></a><div class="content"><a class="title" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG">11711 Advanced NLP: Retrieval and RAG</a><time datetime="2026-02-14T22:08:21.000Z" title="Created 2026-02-14 17:08:21">2026-02-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Distributed Training and Parallelization"/></a><div class="content"><a class="title" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization">15642 Machine Learning Systems: Distributed Training and Parallelization</a><time datetime="2026-02-13T21:00:00.000Z" title="Created 2026-02-13 16:00:00">2026-02-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Decoding"/></a><div class="content"><a class="title" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding">11868 LLM Sys: Decoding</a><time datetime="2026-02-13T01:00:00.000Z" title="Created 2026-02-12 20:00:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Tokenization and Embedding"/></a><div class="content"><a class="title" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding">11868 LLM Sys: Tokenization and Embedding</a><time datetime="2026-02-12T20:30:00.000Z" title="Created 2026-02-12 15:30:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"/></a><div class="content"><a class="title" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations">15642 Machine Learning Systems: Transformer, Attention, and Optimizations</a><time datetime="2026-02-09T19:30:00.000Z" title="Created 2026-02-09 14:30:00">2026-02-09</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '3bfb3b6ddd3a2d3f4bf3448822cc6c25'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

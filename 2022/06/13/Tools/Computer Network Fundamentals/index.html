@@ -1,0 +1,681 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Computer Network Fundamentals | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Note: This is all preliminary understanding, not in-depth. Will discuss more when we get to computer networks. # Basic Concepts ## Endpoints and Sessions An endpoint refers to a device on the network">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Computer Network Fundamentals">
+<meta property="og:url" content="https://xloverflow.github.io/2022/06/13/Tools/Computer%20Network%20Fundamentals/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Note: This is all preliminary understanding, not in-depth. Will discuss more when we get to computer networks. # Basic Concepts ## Endpoints and Sessions An endpoint refers to a device on the network">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/nasa-Q1p7bh3SHj8-unsplash.jpg">
+<meta property="article:published_time" content="2022-06-13T15:41:01.000Z">
+<meta property="article:modified_time" content="2026-02-15T05:04:17.013Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="Computer Networks">
+<meta property="article:tag" content="Study">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/nasa-Q1p7bh3SHj8-unsplash.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Computer Network Fundamentals",
+  "url": "https://xloverflow.github.io/2022/06/13/Tools/Computer%20Network%20Fundamentals/",
+  "image": "https://raw.githubusercontent.com/hustlixiang21/blog-image/main/nasa-Q1p7bh3SHj8-unsplash.jpg",
+  "datePublished": "2022-06-13T15:41:01.000Z",
+  "dateModified": "2026-02-15T05:04:17.013Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2022/06/13/Tools/Computer%20Network%20Fundamentals/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Computer Network Fundamentals',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/hustlixiang21/blog-image/main/nasa-Q1p7bh3SHj8-unsplash.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">Computer Network Fundamentals</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Computer Network Fundamentals</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2022-06-13T15:41:01.000Z" title="Created 2022-06-13 11:41:01">2022-06-13</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-02-15T05:04:17.013Z" title="Updated 2026-02-15 00:04:17">2026-02-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Tools-Workflow/">Tools &amp; Workflow</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>Note: This is all preliminary understanding, not in-depth. Will
+discuss more when we get to computer networks. # Basic Concepts ##
+Endpoints and Sessions An endpoint refers to a device on the network
+that can send or receive data. Communication between two endpoints is
+called a conversation. ## IP Address 32-bit binary number, commonly
+represented in dotted decimal notation, changes as devices connect to
+different local area networks. Part consists of network number, another
+part is host number, determined by subnet mask. ## Subnet Mask 32-bit
+binary number, in the form of 1111…0000. Performing AND operation with
+IP address directly gives the network number, performing AND operation
+with inverted mask and IP address gives the host number. ## MAC Address
+48-bit binary number Unique identifier for each host (constant after
+leaving factory), physical address of network card, has mapping
+relationship with IP address in local area network. Network card
+directly determines whether to send to operating system by comparing the
+target MAC address in data packets.</p>
+<p><strong>The relationship between IP and MAC is similar to mailing
+address and ID number - mailing address may change, but ID number never
+changes.</strong></p>
+<span id="more"></span>
+<h2
+id="question-why-do-we-need-mac-addresses-when-we-have-ip-addresses">Question:
+Why do we need MAC addresses when we have IP addresses?</h2>
+<p>IP address is equivalent to the recipient address on a package. The
+courier connects a line from origin to destination through the recipient
+address, then delivers the package to the recipient through logistics
+transfers between different regions. MAC address is equivalent to the
+recipient name on a package. MAC address exists more for confirming the
+other party’s information. Just like when a package crosses several
+cities to reach you, the courier needs to confirm with you whether the
+recipient is correct before handing over the package. For example,
+students in the same class (abstracted as local area network) all know
+each other, so communication doesn’t need to rely on student numbers
+(abstracted as IP address here), just call names (MAC address)
+directly.</p>
+<p>Although there are IP addresses, they don’t work in local area
+networks because ARP protocol (Address Resolution Protocol) is used for
+network addressing, and in local area networks all hosts are visible to
+each other. (Besides, IP addresses in local area networks are at most
+used as criteria for hosts receiving packets to determine whether they
+are the target host when unpacking during ARP broadcasts, thus choosing
+whether to respond to ARP replies).</p>
+<h2 id="gateway">Gateway</h2>
+<p>A gateway is a “gateway” that connects one network to another
+network. It’s a network checkpoint. Examples include switches and
+routers. Gateway is also called network connector and protocol
+converter. Default gateway implements network interconnection above the
+network layer, it’s the most complex network interconnection device,
+only used for interconnecting networks with different high-level
+protocols. Gateway structure is similar to routers, the difference is
+the interconnection layer. Gateways can be used for both WAN and LAN
+interconnection.</p>
+<p>==Note: Due to historical reasons, many TCP/IP literature used to
+call routers used at the network layer as gateways. Today many local
+area networks use routers for network access, so gateway usually refers
+to the router’s IP== ## TCP and UDP ### UDP Internet protocol suite
+supports a connectionless transport protocol called User Datagram
+Protocol (UDP). UDP provides applications with a method to send
+encapsulated IP data packets without establishing a connection. RFC 768
+describes UDP. Internet transport layer has two main protocols that
+complement each other. The connectionless one is UDP, which does almost
+nothing special except providing applications with data packet sending
+functionality and allowing them to structure their own protocols at
+required levels. The <strong>connection-oriented</strong> one is TCP,
+which does almost everything.</p>
+<h3 id="tcp-more-powerful-but-also-more-difficult">TCP (More powerful
+but also more difficult)</h3>
+<p>Transmission Control Protocol (TCP) is a connection-oriented,
+reliable, byte-stream-based transport layer communication protocol,
+defined by IETF RFC 793. TCP is designed to adapt to layered protocol
+hierarchies that support multi-network applications. Paired processes in
+host computers connected to different but interconnected computer
+communication networks rely on TCP to provide reliable communication
+services. TCP assumes it can obtain simple, possibly unreliable datagram
+services from lower-level protocols. In principle, TCP should be able to
+operate over various communication systems from hard-wired connections
+to packet-switched or circuit-switched networks.</p>
+<h4 id="connection-establishment-and-termination">Connection
+Establishment and Termination</h4>
+<p><strong>Connection Establishment:</strong> <img
+src="https://pic2.zhimg.com/80/v2-58989b47296d51404a93456e33fb8bce_1440w.png"
+alt="image" /> <strong>Connection Termination:</strong> <img
+src="https://pica.zhimg.com/80/v2-ef569f7a16193c4f5ec462900790a730_1440w.png"
+alt="image" /></p>
+<h4 id="main-features">Main Features</h4>
+<p>TCP is a wide area network-oriented communication protocol designed
+to provide a communication method between two communication endpoints
+with the following characteristics when communicating across multiple
+networks: * Stream-based approach; * Connection-oriented; * Reliable
+communication method; * Minimize system bandwidth overhead due to
+retransmission when network conditions are poor; * Communication
+connection maintenance is oriented to the two endpoints of
+communication, without considering intermediate network segments and
+nodes.</p>
+<p>To meet these characteristics of the TCP protocol, TCP protocol makes
+the following provisions: ①Data fragmentation: Fragment user data at the
+sender, reassemble at the receiver, TCP determines fragment size and
+controls fragmentation and reassembly; ②Arrival confirmation: When the
+receiver receives fragmented data, send a confirmation to the sender
+based on the fragment data sequence number; ③Timeout retransmission: The
+sender starts a timeout timer when sending fragments, if no
+corresponding confirmation is received after the timer expires,
+retransmit the fragment; ④Sliding window: The receive buffer space size
+of each party in a TCP connection is fixed, the receiver only allows the
+other end to send data that the receiver buffer can accommodate, TCP
+provides flow control based on sliding window to prevent faster hosts
+from causing buffer overflow in slower hosts; ⑤Out-of-order handling:
+TCP fragments transmitted as IP datagrams may arrive out of order, TCP
+will reorder the received data and deliver the received data to the
+application layer in the correct order; ⑥Duplicate handling: TCP
+fragments transmitted as IP datagrams will have duplicates, the TCP
+receiver must discard duplicate data; ⑦Data checksum: TCP maintains
+checksums of its header and data, this is an end-to-end checksum
+designed to detect any changes in data during transmission. If the
+checksum of a received fragment has errors, TCP will discard this
+fragment and not confirm receipt of this segment, causing the peer to
+timeout and retransmit.</p>
+<h3 id="simple-distinction">Simple Distinction</h3>
+<p>Internet transport layer has two main protocols that complement each
+other. The <strong>connectionless</strong> one is UDP, which does almost
+nothing special except providing applications with data packet sending
+functionality and allowing them to structure their own protocols at
+required levels. The <strong>connection-oriented</strong> one is TCP,
+which does almost everything.</p>
+<h2 id="dhcp-service">DHCP Service</h2>
+<h3 id="dhcp-introduction">DHCP Introduction</h3>
+<p><strong>DHCP</strong> (Dynamic Host Configuration Protocol) is a
+local area network protocol. It refers to a server controlling a range
+of IP addresses, where client machines can automatically obtain
+server-assigned IP addresses and subnet masks when logging into the
+server. Usually applied in large local area network environments, its
+main function is to centrally manage and allocate IP addresses, enabling
+hosts in the network environment to dynamically obtain IP addresses,
+Gateway addresses, DNS server addresses and other information, and
+improve address utilization.</p>
+<p>DHCP protocol uses a client/server model, where dynamic host address
+allocation tasks are driven by network hosts. When the DHCP server
+receives address application information from network hosts, it sends
+relevant address configuration information to network hosts to achieve
+dynamic configuration of network host address information.</p>
+<h3 id="dhcp-functions">DHCP Functions</h3>
+<p>DHCP has the following functions: 1. Ensure that any IP address can
+only be used by one DHCP client at the same time. 2. DHCP should be able
+to assign permanent fixed IP addresses to users. 3. DHCP should be able
+to coexist with hosts that obtain IP addresses by other methods (such as
+hosts with manually configured IP addresses). 4. DHCP servers should
+provide services to existing BOOTP clients.</p>
+<h3 id="address-allocation-methods">Address Allocation Methods</h3>
+<p>DHCP has three mechanisms for allocating IP addresses: 1) Automatic
+Allocation: DHCP server assigns a permanent IP address to the host. Once
+the DHCP client successfully leases an IP address from the DHCP server
+for the first time, it can use that address permanently. 2) Dynamic
+Allocation: DHCP server assigns a time-limited IP address to the host.
+When the time expires or the host explicitly abandons the address, the
+address can be used by other hosts. 3) Manual Allocation: The client’s
+IP address is specified by the network administrator, and the DHCP
+server only tells the client host the specified IP address. Among the
+three address allocation methods, only dynamic allocation can reuse
+addresses that clients no longer need.</p>
+<h2 id="ftp">FTP</h2>
+<h3 id="ftp-introduction">FTP Introduction</h3>
+<p>File Transfer Protocol (FTP) is a set of standard protocols for file
+transfer over networks. It works at the seventh layer of the OSI model,
+the fourth layer of the TCP model, i.e., the application layer, using
+<strong>TCP transmission instead of UDP</strong>. Clients must go
+through a “three-way handshake” process before establishing a connection
+with the server, ensuring that the connection between client and server
+is reliable, and it’s connection-oriented, providing reliable guarantee
+for data transmission. FTP allows users to communicate with another host
+through file operations (such as file addition, deletion, modification,
+query, transfer, etc.). However, users don’t actually log into the
+computer they want to access to become full users. FTP programs can be
+used to access remote resources, implement user round-trip file
+transfer, directory management, and email access, etc., even if both
+computers may have different operating systems and file storage methods.
+### Transmission Methods FTP has two transmission methods: ASCII and
+binary. #### ASCII Transmission Method Assuming the file being copied
+contains simple ASCII text, if the remote machine is not running UNIX,
+ftp usually automatically adjusts the file content during file transfer
+to interpret the file in the format that the other computer stores text
+files. But often there are cases where the file being transmitted
+doesn’t contain text files, they might be programs, databases, word
+processing files, or compressed files. Before copying any non-text
+files, use the binary command to tell ftp to copy character by
+character. #### Binary Transmission Mode In binary transmission, the bit
+order of the file is preserved so that the original and copy are
+bit-by-bit corresponding. Even if the file containing the bit sequence
+on the destination machine is meaningless. For example, Macintosh
+transmits executable files to Windows systems in binary mode, and this
+file cannot be executed on the other system. If binary files are
+transmitted in ASCII mode, translation will still occur even if not
+needed. This will corrupt data. (ASCII mode generally assumes the first
+significant bit of each character is meaningless because ASCII character
+combinations don’t use it. If transmitting binary files, all bits are
+important.)</p>
+<h3 id="ftp-supports-two-modes">FTP Supports Two Modes</h3>
+<p>FTP client initiates FTP session and establishes corresponding
+connection with FTP server. During FTP session, two connections need to
+be established: control information process and data process. Control
+connection cannot complete data transmission tasks, only used to
+transmit internal commands executed by FTP and command responses and
+other control information; data connection is the connection for file
+transmission between server and client, it’s full-duplex, allowing
+simultaneous bidirectional data transmission. When data transmission is
+complete, the data connection is revoked, returning to FTP session state
+until the control connection is revoked and the session exits. FTP
+supports two modes: Standard (PORT mode, active mode), Passive (PASV,
+passive mode). #### Port Mode (Active Mode) FTP client first establishes
+connection with server’s TCP port 21 for sending commands. When the
+client needs to receive data, it sends PORT command on this channel.
+PORT command contains which port the client uses to receive data. When
+transmitting data, the server connects to the client’s specified port
+through its own TCP port 20 to send data. FTP server must establish a
+new connection with the client for data transmission. #### Passive Mode
+Control channel establishment is similar to Standard mode, but sends
+Pasv command after establishing connection. After the server receives
+the Pasv command, it opens a temporary port (port number greater than
+1023 and less than 65535) and notifies the client of the request to
+transmit data on this port. The client connects to this port of the FTP
+server, then the FTP server transmits data through this port.</p>
+<h4 id="note">Note</h4>
+<p>Many firewalls are configured to not allow external connections, so
+many FTP servers behind firewalls or on internal networks don’t support
+PASV mode because clients cannot open high ports of FTP servers through
+firewalls; while many internal network clients cannot use PORT mode to
+log into FTP servers because TCP 20 from the server cannot establish a
+new connection with clients on the internal network, causing it to not
+work. ## HTTP Hyper Text Transfer Protocol (HTTP) is a simple
+request-response protocol that usually runs on top of TCP. Request and
+response message headers are given in ASCII form. ### Application
+Scenarios When HTTP was first born, it was mainly used for WEB content
+retrieval. At that time, content wasn’t as rich as it is now, layout
+wasn’t as beautiful, and user interaction scenarios were almost
+non-existent. For this simple scenario of retrieving web content, HTTP
+performed quite well. But with the development of the internet and the
+birth of WEB2.0, more content began to be displayed (more image files),
+layout became more beautiful (more CSS), and more complex interactions
+were introduced (more JS). The total amount of data loaded and the
+number of requests when users open a website homepage are also
+constantly increasing. ### Message Format HTTP messages consist of
+requests from client to server and responses from server to client.</p>
+<h4 id="request-message">Request Message</h4>
+<p>Request message format is as follows:</p>
+<p>Request line - General information header - Request header - Entity
+header - Message body</p>
+<p>Request line starts with method field, followed by URL field and HTTP
+protocol version field, ending with CRLF. SP is the separator. Except
+for CF and LF being required in the final CRLF sequence, others are
+optional. For specific content about general information headers,
+request headers, and entity headers, refer to related documents.</p>
+<h4 id="response-message">Response Message</h4>
+<p>Response message format is as follows:</p>
+<p>Status line - General information header - Response header - Entity
+header - Message body</p>
+<p>Status code consists of 3 digits, indicating whether the request was
+understood or satisfied. Reason analysis is a brief description of the
+original status code. Status codes are used to support automatic
+operations, while reason analysis is for user use. Clients don’t need to
+check or display syntax. For specific content about general information
+headers, response headers, and entity headers, refer to related
+documents.</p>
+<p><strong><a
+target="_blank" rel="noopener" href="https://blog.csdn.net/m0_45861545/article/details/120835738">Detailed
+HTTP Message Explanation Click Here</a></strong> ### Status Codes After
+the server receives an HTTP request, it sends response information to
+the client, placed in the first line. The most important part is the
+status code</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">HTTP/1.1 200 OK</span><br></pre></td></tr></table></figure>
+<h4 id="status-code-types---first-digit">Status Code Types - First
+Digit</h4>
+<ul>
+<li>1**: Request successfully received, continue processing; range
+100~101</li>
+<li>2**: Server successfully processed request; range 200~206</li>
+<li>3**: Accessed resource was moved, inform client to resend new
+request; range 300~305</li>
+<li>4**: Client error, server cannot process request, such as accessed
+resource doesn’t exist; range 400~415</li>
+<li>5**: Server error; range 500~505</li>
+</ul>
+<h4 id="common-http-status-codes">Common HTTP Status Codes</h4>
+<ul>
+<li>200: Client request successful (common)</li>
+<li>302: Redirect</li>
+<li>404: Requested resource doesn’t exist (common)</li>
+<li>400: Client request syntax error, cannot be understood by
+server</li>
+<li>401: Access unauthorized</li>
+<li>403: Server received request but refused service</li>
+<li>500: Server internal error (common)</li>
+<li>503: Server currently cannot process, may be able to after some
+time</li>
+</ul>
+<p>For specific details, see “<strong>Illustrated HTTP</strong>”</p>
+<h1 id="communication">Communication</h1>
+<h2 id="internal-network-communication-local-area-network">Internal
+Network Communication (Local Area Network)</h2>
+<h3 id="ethernet">Ethernet</h3>
+<p>Ethernet is a computer <strong>local area network</strong>
+technology.</p>
+<h3 id="internal-network-communication-process">Internal Network
+Communication Process</h3>
+<p>The internal network mentioned here generally refers to Local Area
+Network (LAN). When we say two terminals are in the same internal
+network, it essentially means the network numbers of the two terminals
+are the same. If two terminals are in the same internal network, their
+communication method is as follows</p>
+<figure>
+<img
+src="https://pic3.zhimg.com/80/v2-28645c18e711eac7b6a3262f94556ecc_1440w.png"
+alt="image" />
+<figcaption aria-hidden="true">image</figcaption>
+</figure>
+<h3 id="arp-introduction">ARP Introduction</h3>
+<h4 id="arp-protocol">ARP Protocol</h4>
+<p>Address Resolution Protocol (ARP) is a TCP/IP protocol for obtaining
+physical addresses based on IP addresses. When a host sends information,
+it broadcasts ARP requests containing the target IP address to all hosts
+on the local area network and receives return messages to determine the
+target’s physical address; after receiving return messages, it stores
+the IP address and physical address in the local ARP cache and retains
+them for a certain time, directly querying the <strong>ARP
+cache</strong> for the next request to save resources. Address
+Resolution Protocol is based on mutual trust between hosts in the
+network. Hosts on the local area network can autonomously send ARP reply
+messages, and other hosts will record them in the local ARP cache
+without detecting the authenticity of the reply messages when received;
+thus attackers can send fake ARP reply messages to a certain host,
+making the information sent unable to reach the expected host or reach
+the wrong host, constituting ARP spoofing. ARP commands can be used to
+query the correspondence between IP addresses and MAC addresses in the
+local ARP cache, add or delete static correspondences, etc. Related
+protocols include RARP and proxy ARP. NDP is used to replace Address
+Resolution Protocol in IPv6.</p>
+<h4 id="arp-spoofing">ARP Spoofing</h4>
+<p>ARP spoofing, also known as ARP poisoning (often translated as ARP
+virus on the network) or ARP attack, is an attack technique targeting
+the Ethernet Address Resolution Protocol (ARP). By spoofing the gateway
+MAC address of visitor PCs in the local area network, it makes visitor
+PCs mistakenly think that the attacker’s changed MAC address is the
+gateway’s MAC, causing network failure. This attack allows attackers to
+obtain data packets on the local area network and even tamper with data
+packets, and can make specific computers or all computers on the network
+unable to connect normally.</p>
+<h4 id="free-arp">Free ARP</h4>
+<ol type="1">
+<li>Check for address conflicts</li>
+<li>Update own ARP cache</li>
+</ol>
+<h2 id="internet-communication-process">Internet Communication
+Process</h2>
+<p>If the host is on the Internet, the target address and source address
+are not in the same internal network, meaning the network number parts
+of their IP addresses are not consistent. At this time, data packets
+need to be sent to the “default gateway” for routing. The specific
+communication process is as follows:</p>
+<figure>
+<img
+src="https://pic4.zhimg.com/80/v2-5188517210eac6afb96e4046cbbe65c6_1440w.png"
+alt="image" />
+<figcaption aria-hidden="true">image</figcaption>
+</figure>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2022/06/13/Tools/Computer%20Network%20Fundamentals/">https://xloverflow.github.io/2022/06/13/Tools/Computer%20Network%20Fundamentals/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Study/">Study</a><a class="post-meta__tags" href="/tags/Computer-Networks/">Computer Networks</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/nasa-Q1p7bh3SHj8-unsplash.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2022/06/20/Tools/Makefile%20Introduction/" title="Makefile Introduction"><img class="cover" src="https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">Makefile Introduction</div></div><div class="info-2"><div class="info-item-1">Basic concepts of makefile</div></div></div></a><a class="pagination-related" href="/2022/05/25/Blog/useful-links/" title="useful_links"><img class="cover" src="https://pic3.zhimg.com/80/v2-5a46a5d9fa0a1a69a99846b5efc689f8_1440w.jpeg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">useful_links</div></div><div class="info-2"><div class="info-item-1">Book Resources: https://github.com/frankcbliu/CS-Books-PDF Algorithm Knowledge Explanation: https://oi-wiki.org/graph/ CS Self-Study Guide: https://csdiy.wiki XuetangX (similar to MOOC course website): https://www.xuetangx.com (Highly recommend Tsinghua University Professor Zheng Li’s C++ Programming course)  Computer Practical Technology (XuetangX): https://www.xuetangx.com/learn/THUSAST08091234567890/THUSAST08091234567890/8571842/video/13167559 Data Structures by Deng Junhui (XuetangX): htt...</div></div></div></a></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#question-why-do-we-need-mac-addresses-when-we-have-ip-addresses"><span class="toc-number">1.</span> <span class="toc-text">Question:
+Why do we need MAC addresses when we have IP addresses?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#gateway"><span class="toc-number">2.</span> <span class="toc-text">Gateway</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#tcp-more-powerful-but-also-more-difficult"><span class="toc-number">2.1.</span> <span class="toc-text">TCP (More powerful
+but also more difficult)</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#connection-establishment-and-termination"><span class="toc-number">2.1.1.</span> <span class="toc-text">Connection
+Establishment and Termination</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#main-features"><span class="toc-number">2.1.2.</span> <span class="toc-text">Main Features</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#simple-distinction"><span class="toc-number">2.2.</span> <span class="toc-text">Simple Distinction</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#dhcp-service"><span class="toc-number">3.</span> <span class="toc-text">DHCP Service</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#dhcp-introduction"><span class="toc-number">3.1.</span> <span class="toc-text">DHCP Introduction</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#dhcp-functions"><span class="toc-number">3.2.</span> <span class="toc-text">DHCP Functions</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#address-allocation-methods"><span class="toc-number">3.3.</span> <span class="toc-text">Address Allocation Methods</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ftp"><span class="toc-number">4.</span> <span class="toc-text">FTP</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#ftp-introduction"><span class="toc-number">4.1.</span> <span class="toc-text">FTP Introduction</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ftp-supports-two-modes"><span class="toc-number">4.2.</span> <span class="toc-text">FTP Supports Two Modes</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#note"><span class="toc-number">4.2.1.</span> <span class="toc-text">Note</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#request-message"><span class="toc-number">4.2.2.</span> <span class="toc-text">Request Message</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#response-message"><span class="toc-number">4.2.3.</span> <span class="toc-text">Response Message</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#status-code-types---first-digit"><span class="toc-number">4.2.4.</span> <span class="toc-text">Status Code Types - First
+Digit</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#common-http-status-codes"><span class="toc-number">4.2.5.</span> <span class="toc-text">Common HTTP Status Codes</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#communication"><span class="toc-number">5.</span> <span class="toc-text">Communication</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#internal-network-communication-local-area-network"><span class="toc-number">5.1.</span> <span class="toc-text">Internal
+Network Communication (Local Area Network)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#ethernet"><span class="toc-number">5.1.1.</span> <span class="toc-text">Ethernet</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#internal-network-communication-process"><span class="toc-number">5.1.2.</span> <span class="toc-text">Internal Network
+Communication Process</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#arp-introduction"><span class="toc-number">5.1.3.</span> <span class="toc-text">ARP Introduction</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#arp-protocol"><span class="toc-number">5.1.3.1.</span> <span class="toc-text">ARP Protocol</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#arp-spoofing"><span class="toc-number">5.1.3.2.</span> <span class="toc-text">ARP Spoofing</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#free-arp"><span class="toc-number">5.1.3.3.</span> <span class="toc-text">Free ARP</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#internet-communication-process"><span class="toc-number">5.2.</span> <span class="toc-text">Internet Communication
+Process</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Retrieval and RAG"/></a><div class="content"><a class="title" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG">11711 Advanced NLP: Retrieval and RAG</a><time datetime="2026-02-14T22:08:21.000Z" title="Created 2026-02-14 17:08:21">2026-02-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Distributed Training and Parallelization"/></a><div class="content"><a class="title" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization">15642 Machine Learning Systems: Distributed Training and Parallelization</a><time datetime="2026-02-13T21:00:00.000Z" title="Created 2026-02-13 16:00:00">2026-02-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Decoding"/></a><div class="content"><a class="title" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding">11868 LLM Sys: Decoding</a><time datetime="2026-02-13T01:00:00.000Z" title="Created 2026-02-12 20:00:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Tokenization and Embedding"/></a><div class="content"><a class="title" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding">11868 LLM Sys: Tokenization and Embedding</a><time datetime="2026-02-12T20:30:00.000Z" title="Created 2026-02-12 15:30:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"/></a><div class="content"><a class="title" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations">15642 Machine Learning Systems: Transformer, Attention, and Optimizations</a><time datetime="2026-02-09T19:30:00.000Z" title="Created 2026-02-09 14:30:00">2026-02-09</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '56551370f022452b1cbe201dd71d6498'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

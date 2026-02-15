@@ -1,0 +1,881 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>CS336-Lec3 Architectures &amp; Hyperparameters | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="本文总结了CS336课程第三讲的内容，重点介绍了Transformer架构的演变及其超参数选择，包括归一化方法、激活函数、位置编码等方面的最新进展。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CS336-Lec3 Architectures &amp; Hyperparameters">
+<meta property="og:url" content="https://xloverflow.github.io/zh/2025/12/16/CS336/CS336-Lec3-Architectures-Hyperparameters/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="本文总结了CS336课程第三讲的内容，重点介绍了Transformer架构的演变及其超参数选择，包括归一化方法、激活函数、位置编码等方面的最新进展。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png">
+<meta property="article:published_time" content="2025-12-16T18:50:52.000Z">
+<meta property="article:modified_time" content="2026-02-15T05:04:17.031Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="Study Notes">
+<meta property="article:tag" content="AI">
+<meta property="article:tag" content="Transformer">
+<meta property="article:tag" content="LLM">
+<meta property="article:tag" content="CS336">
+<meta property="article:tag" content="Stanford">
+<meta property="article:tag" content="Architectures">
+<meta property="article:tag" content="Hyperparameters">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "CS336-Lec3 Architectures & Hyperparameters",
+  "url": "https://xloverflow.github.io/zh/2025/12/16/CS336/CS336-Lec3-Architectures-Hyperparameters/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png",
+  "datePublished": "2025-12-16T18:50:52.000Z",
+  "dateModified": "2026-02-15T05:04:17.031Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io/zh"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/zh/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/zh/2025/12/16/CS336/CS336-Lec3-Architectures-Hyperparameters/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/zh/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/zh/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'CS336-Lec3 Architectures & Hyperparameters',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">47</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">62</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">18</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/zh/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/zh/"><span class="site-name">CS336-Lec3 Architectures &amp; Hyperparameters</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/"><i class="fas fa-language fa-fw"></i><span> English</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">CS336-Lec3 Architectures &amp; Hyperparameters</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-12-16T18:50:52.000Z" title="发表于 2025-12-16 13:50:52">2025-12-16</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-15T05:04:17.031Z" title="更新于 2026-02-15 00:04:17">2026-02-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/zh/categories/Stanford-CS336/">Stanford CS336</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="cs336-lec3-architectures-hyperparameters">CS336-Lec3
+Architectures &amp; Hyperparameters</h1>
+<h2 id="overview-of-original-vs.-modern-transformer">Overview of
+Original vs. Modern Transformer</h2>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20251216141431763.png" style="zoom:33%;" /></p>
+<table>
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 29%" />
+<col style="width: 29%" />
+<col style="width: 29%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>特征</strong></th>
+<th><strong>原始 Transformer</strong></th>
+<th><strong>现代变体</strong></th>
+<th><strong>优化目标/优势</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>层归一化 (LayerNorm)</strong></td>
+<td><strong>Post-Norm</strong>: 位于每个子层（Attention/FFN）之后
+。</td>
+<td><strong>Pre-Norm</strong>: 位于每个子层之前。</td>
+<td>提高深层模型的<strong>训练稳定性</strong>，加速收敛。</td>
+</tr>
+<tr class="even">
+<td><strong>归一化类型</strong></td>
+<td>LayerNorm: 归一化均值和方差</td>
+<td><strong>RMSNorm</strong>: 仅归一化方差，不减去均值，不使用偏置项
+。</td>
+<td>计算更快，参数更少，性能无明显下降。</td>
+</tr>
+<tr class="odd">
+<td><strong>偏置项 (Bias)</strong></td>
+<td>FFN 和线性层<strong>有</strong>偏置项 <span
+class="math inline">\(\boldsymbol{b}\)</span>。</td>
+<td>线性层（包括归一化层）<strong>无</strong>偏置项。</td>
+<td>减少内存占用，提高优化稳定性。</td>
+</tr>
+<tr class="even">
+<td><strong>位置编码 (PE)</strong></td>
+<td><strong>正弦余弦编码 (Sine/Cosine)</strong>:
+将位置信息<strong>相加</strong>到词嵌入中。</td>
+<td><strong>旋转位置编码 (RoPE)</strong>:
+将位置信息编码到查询和键（Q/K）向量的<strong>旋转</strong>操作中。</td>
+<td>更好地捕捉<strong>相对位置信息</strong>，已成为 2024 年后大多数 SOTA
+模型（如 LLaMA）的标准。</td>
+</tr>
+<tr class="odd">
+<td><strong>FFN 激活函数</strong></td>
+<td><strong>ReLU</strong></td>
+<td><strong>SwiGLU/GeGLU</strong>:
+一种<strong>门控激活函数</strong>（Gated Activation。</td>
+<td>通常比 ReLU 和 GeLU <strong>性能更优</strong>，有更一致的增益。</td>
+</tr>
+<tr class="even">
+<td><strong>层连接</strong></td>
+<td><strong>Serial (串行)</strong>: 先计算 Attention，再计算 MLP。</td>
+<td><strong>Serial 或 Parallel (并行)</strong>: Attention 和 MLP
+并行计算。</td>
+<td><strong>Parallel</strong>
+结构可以在大规模训练时通过矩阵乘法融合，实现约 <strong>15%
+的训练速度提升</strong>。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="normalization">Normalization</h2>
+<p>在Transformer架构中，归一化层的位置对模型训练的稳定性和效率至关重要。现代LLM几乎一致的抛弃了原始的归一化位置，采取了一些更稳定的策略。</p>
+<h3 id="pre-norm-vs.-post-norm">Pre-Norm vs. Post-Norm</h3>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20251216142424625.png" alt="image-20251216142424625" style="zoom:40%;" /></p>
+<ul>
+<li><strong>Post-Norm (原始 Transformer)：</strong>
+归一化操作位于每个子层（如 Multi-Head Attention 或
+FFN）计算后的残差连接之后。这种结构在训练深层模型时容易导致<strong>梯度消失</strong>或<strong>梯度爆炸</strong>，影响训练稳定性。</li>
+<li><strong>Pre-Norm (现代 LLM)：</strong>
+归一化操作位于每个子层<strong>之前</strong>。这种放置方式能确保残差连接的主路径信号保持良好的尺度，从而极大地改善<strong>梯度传播</strong>，提高深层网络的训练稳定性。</li>
+</ul>
+<p>It worth noting that <strong>almost all modern LMs use pre-norm (but
+BERT was post-norm)</strong></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20251216142618552.png" alt="image-20251216142618552" style="zoom:30%;" /></p>
+<h3 id="layernorm-vs.-rmsnorm">LayerNorm vs. RMSNorm</h3>
+<p>原始 Transformer 采用 LayerNorm，而现代 LLM 则倾向于使用
+RMSNorm。这两种方法在数学和工程效率上存在核心区别。</p>
+<p><strong>LayerNorm</strong>: <span class="math display">\[
+y=\frac{\boldsymbol{x}-E[\boldsymbol{x}]}{\sqrt{\text{Var}[\boldsymbol{x}]+\epsilon}}
+\cdot \gamma+\beta
+\]</span></p>
+<ul>
+<li>前面那一堆是为了把神经网络某一层的输入<span
+class="math inline">\(\boldsymbol{x}\)</span>（例如，一个 Token 的 <span
+class="math inline">\(d_{model}\)</span>
+维特征向量）进行<strong>中心化</strong>和<strong>归一化</strong>，使其均值为0，方差为1。</li>
+<li><span class="math inline">\(\gamma\)</span>和<span
+class="math inline">\(\beta\)</span>分别是<strong>缩放参数</strong>和<strong>偏移参数</strong>，<strong>可学习</strong>，为了<strong>恢复模型的表达能力</strong>。</li>
+</ul>
+<p><strong>RMSNorm</strong>: <span class="math display">\[
+y=\frac{\boldsymbol{x}}{\sqrt{\frac{1}{D}\sum_{i=1}^{D}\boldsymbol{x}_i^2+\epsilon}}
+\cdot \gamma
+\]</span></p>
+<ul>
+<li>均方根RMS<span
+class="math inline">\(\sqrt{\frac{1}{D}\sum_{i=1}^{D}\boldsymbol{x}_i^2+\epsilon}\)</span>
+:
+均方加一个极小值后的<strong>平方根</strong>，作为归一化的因子。它近似于向量的
+<span class="math inline">\(\ell_2\)</span> 范数。</li>
+<li><span
+class="math inline">\(\gamma\)</span>仅剩缩放参数，去掉了偏移参数。</li>
+</ul>
+<p>核心区别：RMSNorm是对LayerNorm的简化：他放弃了计算和减去均值（中心化）的操作，只保留了<strong>尺度缩放</strong>。且得到了实践证明。</p>
+<p><strong>工程效率和训练优势的分析</strong></p>
+<p>RMSNorm 之所以被现代 LLM
+广泛采用，主要是基于工程效率和实践效果的权衡：</p>
+<ul>
+<li><strong>更快的运行时</strong>（wallclock time）
+<ul>
+<li><strong>计算优势</strong>：RMSNorm <strong>没有均值计算</strong>，比
+LayerNorm 的操作更少。</li>
+<li><strong>参数优势</strong>: RMSNorm <strong>没有偏置项</strong> <span
+class="math inline">\(\beta\)</span> ，需要存储的参数更少 。</li>
+<li><strong>数据移动</strong>: 归一化操作虽然 FLOPs 占比小 (约
+0.17%)，但运行时占比很高 (约 25.5%)
+。减少参数和计算，可以减少数据移动，从而节省实际的训练时间 。</li>
+</ul></li>
+<li><strong>性能相当</strong>: 实践证明，<strong>RMSNorm</strong>
+在性能上通常<strong>与 LayerNorm
+同样有效</strong>，表格数据也显示，RMSNorm 相比 Vanilla Transformer 在
+Early Loss 和 Final Loss 上甚至略有提升 。</li>
+</ul>
+<p><img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20251216152549044.png" /></p>
+<div class="note info flat"><p>事实上，现代的FFN结构中甚至drop掉了偏置项bias： <span
+class="math display">\[
+\underbrace{\text{FFN}(\boldsymbol{x}) = \max(0, \boldsymbol{x}
+\boldsymbol{W}_1 + \boldsymbol{b}_1) \boldsymbol{W}_2 +
+\boldsymbol{b}_2}_{\text{原始 Transformer (ReLU, 含偏置项)}} \quad
+\longrightarrow \quad \underbrace{\text{FFN}(\boldsymbol{x}) =
+\sigma(\boldsymbol{x} \boldsymbol{W}_1)
+\boldsymbol{W}_2}_{\text{现代简化 (}\sigma\text{, 无偏置项)}}
+\]</span></p>
+</div>
+<h2 id="激活函数-activation">激活函数 Activation</h2>
+<p>激活函数是神经网络中引入的<strong>非线性</strong>的核心机制。在Transformer架构中，FFN对激活函数的选择经历了从ReLU到复杂的门控（Gated）机制的演变。</p>
+<h3 id="relu-整流线性单元-rectified-linear-unit">ReLU 整流线性单元
+(Rectified Linear Unit)</h3>
+<p><span class="math display">\[
+\text{FFN}(\boldsymbol{x}) = \max(0, \boldsymbol{x} \boldsymbol{W}_1)
+\boldsymbol{W}_2
+\]</span></p>
+<p>计算量小，当<span class="math inline">\(x \le 0\)</span>时输出为0</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20251216161501051.png" alt="image-20251216161501051" style="zoom:80%;" /></p>
+<h3 id="gelu-高斯误差线性单元-gaussian-error-linear-unit">GeLU
+高斯误差线性单元 (Gaussian Error Linear Unit)</h3>
+<p>GeLU是在ReLU基础上引入统计学思想的平滑激活函数。 <span
+class="math display">\[
+\text{FFN}(\boldsymbol{x}) = \text{GeLU}(\boldsymbol{x}
+\boldsymbol{W}_1) \boldsymbol{W}_2
+\]</span></p>
+<p><span class="math display">\[
+\text{GeLU}(\boldsymbol{x}) = \boldsymbol{x} \cdot \Phi(\boldsymbol{x})
+\]</span></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20251216161522871.png" style="zoom:80%;" /></p>
+<p>核心概念：<span class="math inline">\(\Phi(\boldsymbol{x})\)</span>
+累积分布函数 (CDF)</p>
+<p><span class="math inline">\(\Phi(\boldsymbol{x})\)</span>
+特指<strong>标准正态分布</strong>的累积分布函数（CDF）。</p>
+<ul>
+<li><strong>CDF 的定义：</strong> 对于一个随机变量 <span
+class="math inline">\(X\)</span>，其 CDF <span
+class="math inline">\(\boldsymbol{F}(\boldsymbol{x})\)</span> 定义为
+<span class="math inline">\(P(X \le
+\boldsymbol{x})\)</span>，即随机变量取值<strong>小于或等于</strong>
+<span class="math inline">\(\boldsymbol{x}\)</span> 的概率。CDF
+的值域始终在 <span class="math inline">\([0, 1]\)</span> 之间。</li>
+<li><strong><span class="math inline">\(\Phi(\boldsymbol{x})\)</span>
+的作用：</strong> 在 GeLU 中，<span
+class="math inline">\(\Phi(\boldsymbol{x})\)</span>
+充当了一个<strong>平滑的“门”</strong>或<strong>权重因子</strong>：
+<ul>
+<li>当 <span class="math inline">\(\boldsymbol{x}\)</span>
+为大正数时，<span class="math inline">\(\Phi(\boldsymbol{x}) \approx
+1\)</span> (信号被完全保留)。</li>
+<li>当 <span class="math inline">\(\boldsymbol{x}\)</span>
+为负数时，<span class="math inline">\(\Phi(\boldsymbol{x})\)</span>
+逐渐趋近于 <span class="math inline">\(0\)</span>
+(信号被平滑抑制)。</li>
+</ul></li>
+<li><strong>图形优势：</strong> 这种基于 CDF 的乘法操作，消除了 ReLU 在
+<span class="math inline">\(\boldsymbol{x}=0\)</span> 处的不可导尖点，使
+GeLU <strong>处处平滑</strong>，从而提高了深层网络的训练稳定性。</li>
+</ul>
+<h3 id="glu-门控线性单元-gated-linear-unit">GLU 门控线性单元 (Gated
+Linear Unit)</h3>
+<p>GLU 家族引入了更复杂的门控机制，被认为是目前性能最强大的 FFN
+激活机制。</p>
+<p>GLU是所有门控激活的基础，它不仅仅是对输入进行简单的非线性变换，而是使用两个独立的<strong>线性投影</strong>来控制信息流。</p>
+<ul>
+<li><strong>核心结构：</strong> 相比于 <span
+class="math inline">\(\text{FF}(\boldsymbol{x}) = \max(0,
+\boldsymbol{x}\boldsymbol{W}_1)\boldsymbol{W}_2\)</span>：GLU
+引入了一个额外的参数矩阵 <span
+class="math inline">\(\boldsymbol{V}\)</span>。将 <span
+class="math inline">\(\max(0, \boldsymbol{x}\boldsymbol{W}_1)\)</span>
+替换为 <span class="math inline">\(\max(0,
+\boldsymbol{x}\boldsymbol{W}_1) \otimes
+(\boldsymbol{x}\boldsymbol{V})\)</span> (ReGLU)。</li>
+<li><strong>门控机制：</strong> (<span
+class="math inline">\(\boldsymbol{x}\boldsymbol{V}\)</span>)
+作为<strong>门控信号</strong>，通过<strong>逐元素相乘</strong> (<span
+class="math inline">\(\otimes\)</span>)
+来控制另一路经过激活函数的信息流的通过量。</li>
+<li><strong>优势：</strong>
+增强了模型的非线性表达能力，已被证明能带来一致的性能增益。</li>
+</ul>
+<h3 id="geglu-门控-gelu-gated-gelu">GeGLU 门控 GeLU (Gated GeLU)</h3>
+<ul>
+<li><p><strong>公式</strong>： <span
+class="math inline">\(\text{FFN}_{\text{GeGLU}}(\boldsymbol{x},
+\boldsymbol{W}, \boldsymbol{V}, \boldsymbol{W}_2) =
+(\text{GeLU}(\boldsymbol{x} \boldsymbol{W}) \otimes \boldsymbol{x}
+\boldsymbol{V}) \boldsymbol{W}_2\)</span></p></li>
+<li><p><strong>特性</strong>： 结合了 GeLU 的平滑性和门控机制。</p></li>
+</ul>
+<h3 id="swiglu-门控-swish-gated-swish">SwiGLU 门控 Swish (Gated
+Swish)</h3>
+<ul>
+<li><strong>公式</strong>：<span
+class="math inline">\(\text{FFN}_{\text{SwiGLU}}(\boldsymbol{x},
+\boldsymbol{W}, \boldsymbol{V}, \boldsymbol{W}_2) =
+(\text{Swish}_1(\boldsymbol{x} \boldsymbol{W}) \otimes \boldsymbol{x}
+\boldsymbol{V}) \boldsymbol{W}_2\)</span>，其中 <span
+class="math inline">\(\text{Swish}(\boldsymbol{x}) = \boldsymbol{x}
+\cdot \text{sigmoid}(\boldsymbol{x})\)</span>。</li>
+<li><strong>地位：</strong>
+是目前<strong>最受欢迎且性能最强</strong>的激活函数之一。</li>
+</ul>
+<p>Swish 函数： <span class="math display">\[
+\text{Swish}(\boldsymbol{x}) = \boldsymbol{x} \cdot
+\text{sigmoid}(\boldsymbol{x})
+\]</span> 其中，<span
+class="math inline">\(\text{sigmoid}(\boldsymbol{x}) = \frac{1}{1 +
+e^{-\boldsymbol{x}}}\)</span>。</p>
+<p>Swish 激活函数的特性使其在实践中通常优于 ReLU：</p>
+<ul>
+<li><strong>平滑性 (Smoothness):</strong> Swish
+是一个<strong>处处可导的平滑函数</strong> 。这与 GeLU 相似，避免了 ReLU
+在 <span class="math inline">\(x=0\)</span>
+处的尖锐拐点，有助于优化过程更加稳定。</li>
+<li><strong>非单调性 (Non-monotonicity):</strong> Swish
+在负半轴上具有<strong>非单调性</strong>（即它的曲线在 <span
+class="math inline">\(x &lt; 0\)</span>
+的区域会先下降，达到一个极小值后，再逐渐趋于零）允许模型在一定程度上保留或赋予一些<strong>负值信息</strong>的权重，增强模型的表达能力。</li>
+</ul>
+<h3 id="总结">总结</h3>
+<p>现代的LLM首选的激活函数是<strong>SwiGLU</strong>或者<strong>GeGLU</strong>，引入门控结构，简化实现移除偏置项，来提供一致的性能增益，从而增强模型的表达能力，不过仍需注意<strong>GLU</strong>并非构建优秀模型的唯一必要条件（如GPT-3仍使用GeLU）。</p>
+<h2 id="串行-vs.-并行">串行 vs. 并行</h2>
+<p>传统的<strong>串行计算</strong>方式是先计算Attention及其残差链接，然后将Attention的结果作为FFN的输入，再计算FFN及其残差链接。这样的话，Attention和FFN必须依次等待前一个计算的完成。</p>
+<p>为了提高训练的效率，以 GPT-J、PaLM 和 GPT-NeoX
+为代表的一些现代模型引入了
+<strong>并行结构</strong>。其核心在于：<strong>Attention 和 FFN
+共享相同的输入，并同时计算</strong>。</p>
+<ul>
+<li><strong>输入共享</strong>：Attention Block 和 MLP Block 都接收
+<strong>LayerNorm 后的原始输入</strong> <span
+class="math inline">\(\boldsymbol{x}\)</span> 作为它们的输入信号。</li>
+<li><strong>并行计算：</strong> 两个子层独立、同时地计算其结果。</li>
+<li><strong>残差汇合：</strong> 两个子层的输出（Attention 增益和 MLP
+增益）通过一个<strong>单一的残差连接</strong>，一起加回到原始输入 <span
+class="math inline">\(\boldsymbol{x}\)</span> 上，形成最终输出 <span
+class="math inline">\(\boldsymbol{y}\)</span>。</li>
+</ul>
+<p><span class="math display">\[
+\boldsymbol{y} = \boldsymbol{x} +
+\text{MLP}(\text{LayerNorm}(\boldsymbol{x})) +
+\text{Attention}(\text{LayerNorm}(\boldsymbol{x}))
+\]</span></p>
+<p>并行结构之所以被采用，主要是因为显著的<strong>训练加速</strong>：</p>
+<ul>
+<li><strong>速度提升：</strong> 并行结构在大规模训练时，可以实现大约
+<strong>15% 的训练速度提升</strong>。</li>
+<li><strong>矩阵融合：</strong> 这种加速主要得益于
+<strong>矩阵乘法融合（Matrix Multiplies Fusion）</strong>。由于
+Attention 和 MLP
+的输入矩阵乘法可以合并处理，减少了内存访问和计算开销。</li>
+<li><strong>性能保证：</strong>
+实验证明，如果实现得当，并行化对模型质量的退化很小，甚至可以忽略不计。</li>
+</ul>
+<h2 id="embedding">Embedding</h2>
+<p>由于Transfomer的Self-Attention机制本质上是置换不变（Permutation
+Invariant）的，所以我们必须显式注入位置信息。现代的LLM位置编码的演变主要围绕“如何更好的捕捉相对位置”展开。</p>
+<h3 id="sine-embeddings-正弦编码">Sine Embeddings (正弦编码)</h3>
+<p><span class="math display">\[
+Embed(x, i) = v_x + PE_{pos} \\
+PE_{(pos, 2i)} = \sin(pos/10000^{2i/d_{\text{model}}}) \\
+PE_{(pos, 2i+1)} = \cos(pos/10000^{2i/d_{\text{model}}})
+\]</span></p>
+<p>虽然其具备相对位置的数学性质，但是在Attention的计算中展开后的项 <span
+class="math inline">\(\langle v_x + p_i, v_y + p_j \rangle\)</span>
+会包含杂乱的 <strong>交叉项 (cross-terms)</strong>，例如 <span
+class="math inline">\(\langle v_x, PE_j
+\rangle\)</span>。这些项混合了内容和位置信息，被认为是噪声。</p>
+<h3 id="absolute-embeddings-绝对位置编码">Absolute Embeddings
+(绝对位置编码)</h3>
+<p><span class="math display">\[
+Embed(x, i) = v_x + u_i
+\]</span></p>
+<p>直接为每个位置 <span class="math inline">\(i\)</span>
+学习一个可训练的向量。</p>
+<p><strong>局限</strong>: 显然不是相对的 (obviously not
+relative)，且外推性（Extrapolation）较差，难以处理超过训练长度的序列。</p>
+<h3 id="relative-embeddings-相对位置编码">Relative Embeddings
+(相对位置编码)</h3>
+<p>直接在 Attention 计算中加入偏置项 <span
+class="math inline">\(a_{ij}\)</span>。公式为 <span
+class="math display">\[
+e_{ij} = \frac{x_i W^Q (x_j W^K + a_{ij}^K)^T}{\sqrt{d_z}}
+\]</span> 虽然解决了相对位置问题，但不再是标准的内积形式 (not an inner
+product)，增加了计算实现的复杂度</p>
+<h3 id="rope-rotary-position-embeddings-旋转位置编码">RoPE: Rotary
+Position Embeddings (旋转位置编码)</h3>
+<p>RoPE 是目前 SOTA 模型（如 LLaMA, PaLM,
+GPT-J）的标准配置。它的设计初衷是为了满足一个核心数学目标<strong>High
+level thought process</strong>: 寻找一个编码函数 <span
+class="math inline">\(f(x,
+i)\)</span>，使得两个向量的内积只取决于它们的相对距离 <span
+class="math inline">\(i-j\)</span>。即： <span class="math display">\[
+\langle f(x, i), f(y, j) \rangle = g(x, y, i - j)
+\]</span> RoPE 利用了向量内积对旋转保持不变的性质。</p>
+<ul>
+<li><strong>机制</strong>: RoPE 不在 Input Layer 进行，而是在 Attention
+层对 <span class="math inline">\(Q\)</span> 和 <span
+class="math inline">\(K\)</span> 进行<strong>旋转操作</strong>。</li>
+<li><strong>做法</strong>: 将向量切分为二维平面上的对子
+(Pairs)。对于位置 <span
+class="math inline">\(m\)</span>，将向量在平面上旋转 <span
+class="math inline">\(m\theta\)</span>
+角度。无论绝对位置在哪里，只要两个 Token
+的相对距离固定，它们旋转后的相对夹角就是固定的，从而完美地通过内积捕捉相对位置信息。</li>
+</ul>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20251216194036939.png"
+alt="image-20251216194036939" />
+<figcaption aria-hidden="true">image-20251216194036939</figcaption>
+</figure>
+<h2 id="hyperparameters-dimensions-超参数与维度">Hyperparameters &amp;
+Dimensions 超参数与维度</h2>
+<h3 id="attention-dimensions-the-1-1-ratio">Attention Dimensions: The
+“1-1 Ratio”</h3>
+<p>在标准 Transformer 设计中，通常保持 <strong>Head_Dim <span
+class="math inline">\(\times\)</span> Head_Num = Model_Dim</strong> (即
+<span class="math inline">\(d_p \cdot h = d_{model}\)</span>)。</p>
+<p><strong>低秩瓶颈 (Low-Rank Bottleneck) 争议</strong>:</p>
+<ul>
+<li>理论研究 [Bhojanapalli et al 2020] 认为，如果 Head_Dim (<span
+class="math inline">\(d_p\)</span>) 太小，Attention
+矩阵的秩会受限，导致模型无法表达某些复杂的关注模式。</li>
+<li>理论建议：应该增加 Head 维度，打破 1-1 比例。</li>
+</ul>
+<p><strong>实践结论</strong>: 实验数据显示（如 Perplexity vs Parameters
+曲线），尽管有理论争议，但在实际工程实践中，<strong>并没有观察到显著的低秩瓶颈</strong>。因此，保持标准的
+1-1 比例仍然是最高效的选择。</p>
+<h3 id="ffn-dimension-scaling-glu-变体缩放">FFN Dimension Scaling (GLU
+变体缩放)</h3>
+<p>当使用 SwiGLU 等 GLU 变体时，由于引入了额外的门控矩阵 <span
+class="math inline">\(\boldsymbol{V}\)</span>（参数量增加），为了保持总参数量与标准
+Transformer 一致，需要缩小隐藏层维度 <span
+class="math inline">\(d_{ff}\)</span>。</p>
+<p><strong>缩放规则</strong>: Scale down by <span
+class="math inline">\(2/3\)</span>。 <span class="math display">\[
+d_{ff} = \frac{8}{3} d_{model}
+\]</span> 这就是为什么 LLaMA 等模型的中间层维度通常是 <span
+class="math inline">\(d_{model}\)</span> 的 2.67 倍左右，而不是传统的 4
+倍。</p>
+<h2 id="regularization-正则化">Regularization 正则化</h2>
+<p>在训练超大规模模型时，正则化策略经历了从“防止过拟合”到“追求训练效率与稳定性”的理念转变，最显著的变化发生在
+<strong>Dropout</strong> 的使用上。</p>
+<h3 id="dropout">Dropout</h3>
+<p><strong>Dropout</strong>
+曾是深度学习中标配的正则化手段，通过在训练过程中随机将神经元的输出置零，来防止神经元之间的共适应（Co-adaptation），从而减少过拟合。</p>
+<p><strong>现代趋势 (LLaMA / PaLM / Modern LLMs)</strong>:
+<strong>完全弃用 Dropout (Dropout rate = 0)</strong>。
+目前的主流大模型（如 LLaMA
+系列、PaLM）在预训练阶段通常<strong>不使用任何 Dropout</strong>。</p>
+<p><strong>弃用的原因</strong>:</p>
+<ol type="1">
+<li><strong>数据量级 (Data Scale)</strong>: 现代 LLM 在数万亿 Token
+上训练，模型往往处于“欠拟合”状态（Underfitting），而不是过拟合。数据本身就是最好的正则化。</li>
+<li><strong>训练效率 (Memory &amp; Speed)</strong>: Dropout
+需要存储随机掩码（Mask）以用于反向传播，这增加了显存开销（Memory
+Bandwidth）。在 FlashAttention 等算子优化中，移除 Dropout
+可以显著提升计算吞吐量。</li>
+<li><strong>训练稳定性</strong>: 在极深的网络中，Dropout
+引入的随机性有时会影响梯度的稳定性。</li>
+</ol>
+<h3 id="weight-decay">Weight Decay</h3>
+<p>虽然 Dropout 被抛弃了，但 <strong>Weight Decay</strong>
+依然是优化器（如 AdamW）中不可或缺的一部分。</p>
+<p>在 Loss
+函数中增加一项惩罚，抑制权重矩阵的范数过大。把权重矩阵往回拉，避免过拟合。我们实际上是在对模型说：“<strong>除非这个特征真的特别重要，否则不要给它那么大的权重。</strong>”
+<span class="math display">\[
+\mathcal{L}_{total} = \mathcal{L}_{task} + \frac{\lambda}{2}
+\|\theta\|^2
+\]</span> <strong>通用设置</strong>: 通常设置为 <span
+class="math inline">\(0.1\)</span> (如 GPT-3, LLaMA, PaLM)。</p>
+<p><strong>选择性应用 (Selective Decay)</strong>: 并不是所有参数都使用
+Weight Decay。</p>
+<ul>
+<li><strong>Apply</strong>: Linear Layers (Attention projections, FFN
+weights)。</li>
+<li><strong>Skip</strong>: Bias 项、LayerNorm/RMSNorm 的缩放因子 <span
+class="math inline">\(\gamma\)</span>、Embedding
+层（有时）。对这些参数使用 Weight Decay
+可能会破坏数值稳定性或模型对分布的适应能力。</li>
+</ul>
+<h3 id="gradient-clipping">Gradient Clipping</h3>
+<p>为了防止梯度爆炸（Exploding Gradients），这是现代 Transformer
+训练的<strong>必须项</strong>。</p>
+<ul>
+<li><p><strong>机制</strong>: 监控全局梯度的 <span
+class="math inline">\(L_2\)</span> 范数 (<span
+class="math inline">\(|g|\)</span>)。如果超过阈值 <span
+class="math inline">\(C\)</span>（通常为 1.0），则对梯度进行缩放： <span
+class="math display">\[
+\text{if } \|g\| &gt; C, \quad g \leftarrow g \cdot \frac{C}{\|g\|}
+\]</span></p></li>
+<li><p><strong>作用</strong>: 即使使用了 RMSNorm 和
+QK-Norm，在训练初期或遇到“坏数据”时，Gradient Clipping
+依然是保证训练不崩溃的最后一道防线。</p></li>
+</ul>
+<h2 id="training-stability-训练稳定性">Training Stability
+训练稳定性</h2>
+<h3 id="gradient-norm-attention-optimizations">Gradient Norm &amp;
+Attention Optimizations</h3>
+<p><strong>现象</strong>: 未优化的模型（如 OLMo
+0424）在训练中会出现频繁且剧烈的<strong>梯度尖峰 (Spikes)</strong>，导致
+Loss 曲线毛刺严重，训练甚至可能发散。</p>
+<p><strong>优化</strong>: 通过改进 Attention 计算（如
+<strong>QK-Norm</strong> 或 <strong>Logit
+Softcapping</strong>），可以将梯度范数（L2
+norm）压得非常低且平滑，从而实现极其稳定的训练过程。</p>
+<p><strong>QK-Norm (Query-Key Normalization)</strong></p>
+<p>在标准的 Attention 计算中，<span class="math inline">\(Q\)</span> 和
+<span class="math inline">\(K\)</span> 是直接相乘的： <span
+class="math display">\[
+\text{Score} = \frac{Q K^T}{\sqrt{d}}
+\]</span> 如果模型在训练过程中让 <span class="math inline">\(Q\)</span>
+或 <span class="math inline">\(K\)</span>
+的向量模长变得很大，那么它们的内积（点积）就会变得巨大。即使除以 <span
+class="math inline">\(\sqrt{d}\)</span> 也无法抵消这种增长。</p>
+<p><strong>QK-Norm</strong>
+的做法是在做矩阵乘法<strong>之前</strong>，先对 <span
+class="math inline">\(Q\)</span> 和 <span
+class="math inline">\(K\)</span> 分别应用 LayerNorm（或 RMSNorm）：
+<span class="math display">\[
+Q&#39; = \text{LayerNorm}(Q) \\ K&#39; = \text{LayerNorm}(K) \\
+\text{Score} = \frac{Q&#39; (K&#39;)^T}{\sqrt{d}}
+\]</span> <strong>为什么它能稳定训练？</strong></p>
+<ol type="1">
+<li><strong>解耦模长与方向</strong>：Attention
+的本质是计算向量的“相似度”（方向的一致性）。QK-Norm
+强制将向量投影到一个固定的超球面上，消除了模长带来的干扰，让模型专注于学习向量的方向。</li>
+<li><strong>防止数值爆炸</strong>：由于 LayerNorm
+将输出限制在特定的统计分布内（通常方差为1），<span
+class="math inline">\(Q \cdot K^T\)</span>
+的结果就被天然地限制在了一个合理的数值范围内，不会出现几千甚至上万的
+Logits 值。</li>
+</ol>
+<p><strong>Logit Softcapping</strong></p>
+<p>这是 <strong>Gemma 2</strong> 和 <strong>OLMo
+2</strong>用的关键技术。相比于 QK-Norm 对输入的归一化，Logit Softcapping
+是对输出结果进行<strong>非线性截断</strong>。这个和下文的z-loss同属于对softmax稳定性的优化。</p>
+<p>它的做法是利用 <span class="math inline">\(\tanh\)</span> 函数将
+Logits 限制在一个固定区间内（例如 <span class="math inline">\([-C,
+C]\)</span>）。 <span class="math display">\[
+\text{Logits}_{\text{capped}} = C \cdot \tanh\left(\frac{q^T k}{C \cdot
+\sqrt{d}}\right)
+\]</span> 其中，<span class="math inline">\(C\)</span> 是一个超参数（Cap
+value），通常设置为 30 或 50。</p>
+<p><strong>为什么它能稳定训练？</strong></p>
+<ol type="1">
+<li><strong>强制有界 (Hard Bound)</strong>：<span
+class="math inline">\(\tanh(x)\)</span> 的值域是 <span
+class="math inline">\((-1, 1)\)</span>。当x趋于0时，<span
+class="math inline">\(\tanh(u) \approx u\)</span>,
+能在数值小的时候保持线性， 此时该方法几乎不起作用，但当x很大时，<span
+class="math inline">\(\tanh\)</span> 会趋于1或-1， 此时被限制在了 <span
+class="math inline">\([-C, C]\)</span> 区间内。因此，无论 <span
+class="math inline">\(q^T k\)</span> 算出来多大，最终的 Logits
+绝对值永远不会超过 <span class="math inline">\(C\)</span>。</li>
+<li><strong>防止 Softmax 熵崩溃</strong>：如果某个 Logit 值极大（比如
+1000），经过 Softmax 后概率会变成 1（one-hot），其他的变成
+0。导致梯度消失。Softcapping 保证了 Softmax
+输出的概率分布保留了一定的熵（不确定性），让梯度能持续回传。</li>
+</ol>
+<h3 id="output-softmax-stability-the-z-loss">Output Softmax Stability:
+The “z-loss”</h3>
+<p>为了解决输出层 Softmax 的数值溢出问题（Logits 过大导致配分函数 <span
+class="math inline">\(Z(x)\)</span> 爆炸），PaLM 引入了
+<strong>z-loss</strong> trick。</p>
+<p><strong>原理</strong>: 在总 Loss 中增加一项辅助惩罚，鼓励配分函数
+<span class="math inline">\(\log Z\)</span> 接近 0，此时<span
+class="math inline">\(Z\)</span> 接近 1。 <span class="math display">\[
+Z(x) = \sum_{i} e^{z_i} \\
+L_{\text{total}} = L_{\text{original}} + 10^{-4} \cdot \log^2 Z
+\]</span> <strong>应用</strong>: 该技巧主要用于 TPU/GPU 低精度
+(<code>bfloat16</code>) 训练时的数值稳定性，已被 Baichuan 2, DCLM, OLMo
+2 等模型广泛采用。</p>
+<h2 id="attention-efficiency">Attention Efficiency</h2>
+<p>随着模型上下文窗口的增大，推理时的显存占用和带宽成为了主要瓶颈。虽然
+Transformer 的核心架构变动不大，但 Attention Heads
+的设计为了效率做出了显著调整。</p>
+<h3 id="推理瓶颈incremental-generation-kv-cache">推理瓶颈：Incremental
+Generation &amp; KV Cache</h3>
+<p>在文本生成阶段，模型是逐步生成 (Step-by-step) 的，无法并行。</p>
+<p><strong>KV Cache</strong>: 为了避免每次生成新 Token
+时重复计算历史所有 Token 的 Attention，我们必须缓存之前所有 Token 的 Key
+和 Value 矩阵。</p>
+<p><strong>显存压力</strong>: 随着序列变长，KV Cache
+的体积会线性增长，甚至超过模型权重的显存占用。这限制了最大 Batch Size
+和上下文长度。</p>
+<h3 id="优化方案gqa-mqa">优化方案：GQA / MQA</h3>
+<p>为了解决 KV Cache 过大的问题，现代模型通过减少 Key/Value Head
+的数量来降低推理成本。</p>
+<ul>
+<li><strong>MQA (Multi-Query Attention)</strong>:
+<ul>
+<li><strong>机制</strong>: 所有 Query Heads <strong>共享同一个</strong>
+Key Head 和 Value Head。</li>
+<li><strong>优势</strong>: 极致的显存节省和推理加速。</li>
+</ul></li>
+<li><strong>GQA (Grouped Query Attention)</strong>:
+<ul>
+<li><strong>机制</strong>: 将 Query Heads 分组，每组共享一个 KV
+Head。例如 LLaMA 2/3。</li>
+<li><strong>定位</strong>:
+这是一个折中方案，平衡了推理效率和模型性能。</li>
+</ul></li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20251216194519072.png" style="zoom:40%;" /></p>
+<h3 id="其他-attention-变体">其他 Attention 变体</h3>
+<p><strong>Sparse / Sliding Window Attention</strong>: 如 Mistral 和
+GPT-4，通过限制 Attention 只看最近的窗口或稀疏点，将复杂度从 <span
+class="math inline">\(O(N^2)\)</span> 降低，以处理超长文本。</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20251216194550997.png" alt="image-20251216194550997" style="zoom:35%;" /></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh/2025/12/16/CS336/CS336-Lec3-Architectures-Hyperparameters/">https://xloverflow.github.io/zh/2025/12/16/CS336/CS336-Lec3-Architectures-Hyperparameters/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://xloverflow.github.io/zh" target="_blank">Life is not a race, but a journey</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/zh/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/zh/tags/AI/">AI</a><a class="post-meta__tags" href="/zh/tags/Transformer/">Transformer</a><a class="post-meta__tags" href="/zh/tags/LLM/">LLM</a><a class="post-meta__tags" href="/zh/tags/CS336/">CS336</a><a class="post-meta__tags" href="/zh/tags/Stanford/">Stanford</a><a class="post-meta__tags" href="/zh/tags/Architectures/">Architectures</a><a class="post-meta__tags" href="/zh/tags/Hyperparameters/">Hyperparameters</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/zh/2025/12/17/CS336/CS336-Lec4-Mixture-of-Experts/" title="CS336-Lec4 Mixture of Experts"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">CS336-Lec4 Mixture of Experts</div></div><div class="info-2"><div class="info-item-1">本文总结了CS336课程第四讲的内容，重点介绍了Mixture of Experts模型的原理、实现方法及其在Transformer架构中的应用，包括专家选择机制、路由策略和训练技巧等方面的最新进展。</div></div></div></a><a class="pagination-related" href="/zh/2025/12/15/CS336/CS336-Lec2-PyTorch-Resource-accounting/" title="CS336-Lec2 PyTorch &amp; Resource accounting"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">CS336-Lec2 PyTorch & Resource accounting</div></div><div class="info-2"><div class="info-item-1">本节主要围绕模型训练背后的“算力黑盒”展开，从微观的浮点数格式讲起，深入到FLOPs的计算公式，剖析了现代硬件的特性，最后给出从数学原理到PyTorch代码实现的完整优化指南”</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/zh/2026/02/09/CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch/" title="CS336 Assignment 1: Building a Transformer Language Model from Scratch"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-08</div><div class="info-item-2">CS336 Assignment 1: Building a Transformer Language Model from Scratch</div></div><div class="info-2"><div class="info-item-1">从头开始实现完整的Transformer语言模型管道的全面反思——包括带并行预标记的BPE分词器、仅解码的Transformer（使用RMSNorm/RoPE/SwiGLU）、AdamW优化器和自回归文本生成。使用TinyStories和OpenWebText进行训练，并进行了学习率扫描、批量大小研究和架构消融的广泛实验。</div></div></div></a><a class="pagination-related" href="/zh/2025/12/17/CS336/CS336-Lec4-Mixture-of-Experts/" title="CS336-Lec4 Mixture of Experts"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-12-17</div><div class="info-item-2">CS336-Lec4 Mixture of Experts</div></div><div class="info-2"><div class="info-item-1">本文总结了CS336课程第四讲的内容，重点介绍了Mixture of Experts模型的原理、实现方法及其在Transformer架构中的应用，包括专家选择机制、路由策略和训练技巧等方面的最新进展。</div></div></div></a><a class="pagination-related" href="/zh/2025/12/14/CS336/CS336-Lec1-Tokenization/" title="CS336-Lec1 Tokenization"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-12-14</div><div class="info-item-2">CS336-Lec1 Tokenization</div></div><div class="info-2"><div class="info-item-1">Lec1主要介绍了Tokenization的基本概念和几种常见的Tokenizer方法，包括Character Tokenizer、Byte Tokenizer、Word Tokenizer和BPE Tokenizer，分析了它们的优缺点及适用场景。</div></div></div></a><a class="pagination-related" href="/zh/2025/12/15/CS336/CS336-Lec2-PyTorch-Resource-accounting/" title="CS336-Lec2 PyTorch &amp; Resource accounting"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-12-14</div><div class="info-item-2">CS336-Lec2 PyTorch &amp; Resource accounting</div></div><div class="info-2"><div class="info-item-1">本节主要围绕模型训练背后的“算力黑盒”展开，从微观的浮点数格式讲起，深入到FLOPs的计算公式，剖析了现代硬件的特性，最后给出从数学原理到PyTorch代码实现的完整优化指南”</div></div></div></a><a class="pagination-related" href="/zh/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">关于CMU 11-711高级自然语言处理的RNN架构、编码器-解码器模型和注意力机制的笔记。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-22</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理的笔记和总结。</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li 的中文博客</div><div class="site-data"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">47</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">62</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">18</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#cs336-lec3-architectures-hyperparameters"><span class="toc-number">1.</span> <span class="toc-text">CS336-Lec3
+Architectures &amp; Hyperparameters</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#overview-of-original-vs.-modern-transformer"><span class="toc-number">1.1.</span> <span class="toc-text">Overview of
+Original vs. Modern Transformer</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#normalization"><span class="toc-number">1.2.</span> <span class="toc-text">Normalization</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#pre-norm-vs.-post-norm"><span class="toc-number">1.2.1.</span> <span class="toc-text">Pre-Norm vs. Post-Norm</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#layernorm-vs.-rmsnorm"><span class="toc-number">1.2.2.</span> <span class="toc-text">LayerNorm vs. RMSNorm</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BF%80%E6%B4%BB%E5%87%BD%E6%95%B0-activation"><span class="toc-number">1.3.</span> <span class="toc-text">激活函数 Activation</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#relu-%E6%95%B4%E6%B5%81%E7%BA%BF%E6%80%A7%E5%8D%95%E5%85%83-rectified-linear-unit"><span class="toc-number">1.3.1.</span> <span class="toc-text">ReLU 整流线性单元
+(Rectified Linear Unit)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#gelu-%E9%AB%98%E6%96%AF%E8%AF%AF%E5%B7%AE%E7%BA%BF%E6%80%A7%E5%8D%95%E5%85%83-gaussian-error-linear-unit"><span class="toc-number">1.3.2.</span> <span class="toc-text">GeLU
+高斯误差线性单元 (Gaussian Error Linear Unit)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#glu-%E9%97%A8%E6%8E%A7%E7%BA%BF%E6%80%A7%E5%8D%95%E5%85%83-gated-linear-unit"><span class="toc-number">1.3.3.</span> <span class="toc-text">GLU 门控线性单元 (Gated
+Linear Unit)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#geglu-%E9%97%A8%E6%8E%A7-gelu-gated-gelu"><span class="toc-number">1.3.4.</span> <span class="toc-text">GeGLU 门控 GeLU (Gated GeLU)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#swiglu-%E9%97%A8%E6%8E%A7-swish-gated-swish"><span class="toc-number">1.3.5.</span> <span class="toc-text">SwiGLU 门控 Swish (Gated
+Swish)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.3.6.</span> <span class="toc-text">总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%B2%E8%A1%8C-vs.-%E5%B9%B6%E8%A1%8C"><span class="toc-number">1.4.</span> <span class="toc-text">串行 vs. 并行</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#embedding"><span class="toc-number">1.5.</span> <span class="toc-text">Embedding</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#sine-embeddings-%E6%AD%A3%E5%BC%A6%E7%BC%96%E7%A0%81"><span class="toc-number">1.5.1.</span> <span class="toc-text">Sine Embeddings (正弦编码)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#absolute-embeddings-%E7%BB%9D%E5%AF%B9%E4%BD%8D%E7%BD%AE%E7%BC%96%E7%A0%81"><span class="toc-number">1.5.2.</span> <span class="toc-text">Absolute Embeddings
+(绝对位置编码)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#relative-embeddings-%E7%9B%B8%E5%AF%B9%E4%BD%8D%E7%BD%AE%E7%BC%96%E7%A0%81"><span class="toc-number">1.5.3.</span> <span class="toc-text">Relative Embeddings
+(相对位置编码)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#rope-rotary-position-embeddings-%E6%97%8B%E8%BD%AC%E4%BD%8D%E7%BD%AE%E7%BC%96%E7%A0%81"><span class="toc-number">1.5.4.</span> <span class="toc-text">RoPE: Rotary
+Position Embeddings (旋转位置编码)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#hyperparameters-dimensions-%E8%B6%85%E5%8F%82%E6%95%B0%E4%B8%8E%E7%BB%B4%E5%BA%A6"><span class="toc-number">1.6.</span> <span class="toc-text">Hyperparameters &amp;
+Dimensions 超参数与维度</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#attention-dimensions-the-1-1-ratio"><span class="toc-number">1.6.1.</span> <span class="toc-text">Attention Dimensions: The
+“1-1 Ratio”</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ffn-dimension-scaling-glu-%E5%8F%98%E4%BD%93%E7%BC%A9%E6%94%BE"><span class="toc-number">1.6.2.</span> <span class="toc-text">FFN Dimension Scaling (GLU
+变体缩放)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#regularization-%E6%AD%A3%E5%88%99%E5%8C%96"><span class="toc-number">1.7.</span> <span class="toc-text">Regularization 正则化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#dropout"><span class="toc-number">1.7.1.</span> <span class="toc-text">Dropout</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#weight-decay"><span class="toc-number">1.7.2.</span> <span class="toc-text">Weight Decay</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#gradient-clipping"><span class="toc-number">1.7.3.</span> <span class="toc-text">Gradient Clipping</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#training-stability-%E8%AE%AD%E7%BB%83%E7%A8%B3%E5%AE%9A%E6%80%A7"><span class="toc-number">1.8.</span> <span class="toc-text">Training Stability
+训练稳定性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#gradient-norm-attention-optimizations"><span class="toc-number">1.8.1.</span> <span class="toc-text">Gradient Norm &amp;
+Attention Optimizations</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#output-softmax-stability-the-z-loss"><span class="toc-number">1.8.2.</span> <span class="toc-text">Output Softmax Stability:
+The “z-loss”</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#attention-efficiency"><span class="toc-number">1.9.</span> <span class="toc-text">Attention Efficiency</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8E%A8%E7%90%86%E7%93%B6%E9%A2%88incremental-generation-kv-cache"><span class="toc-number">1.9.1.</span> <span class="toc-text">推理瓶颈：Incremental
+Generation &amp; KV Cache</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88gqa-mqa"><span class="toc-number">1.9.2.</span> <span class="toc-text">优化方案：GQA &#x2F; MQA</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B6%E4%BB%96-attention-%E5%8F%98%E4%BD%93"><span class="toc-number">1.9.3.</span> <span class="toc-text">其他 Attention 变体</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11711 Advanced NLP: Retrieval and RAG"/></a><div class="content"><a class="title" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG">11711 Advanced NLP: Retrieval and RAG</a><time datetime="2026-02-14T22:08:21.000Z" title="发表于 2026-02-14 17:08:21">2026-02-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM系统：解码"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11868 LLM系统：解码"/></a><div class="content"><a class="title" href="/zh/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM系统：解码">11868 LLM系统：解码</a><time datetime="2026-02-13T01:00:00.000Z" title="发表于 2026-02-12 20:00:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11868 LLM Sys: Tokenization and Embedding"/></a><div class="content"><a class="title" href="/zh/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding">11868 LLM Sys: Tokenization and Embedding</a><time datetime="2026-02-12T20:30:00.000Z" title="发表于 2026-02-12 15:30:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 机器学习系统：Transformer、注意力机制与优化"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="15642 机器学习系统：Transformer、注意力机制与优化"/></a><div class="content"><a class="title" href="/zh/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 机器学习系统：Transformer、注意力机制与优化">15642 机器学习系统：Transformer、注意力机制与优化</a><time datetime="2026-02-09T19:30:00.000Z" title="发表于 2026-02-09 14:30:00">2026-02-09</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/09/CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch/" title="CS336 Assignment 1: Building a Transformer Language Model from Scratch"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="CS336 Assignment 1: Building a Transformer Language Model from Scratch"/></a><div class="content"><a class="title" href="/zh/2026/02/09/CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch/" title="CS336 Assignment 1: Building a Transformer Language Model from Scratch">CS336 Assignment 1: Building a Transformer Language Model from Scratch</a><time datetime="2026-02-09T04:05:02.000Z" title="发表于 2026-02-08 23:05:02">2026-02-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/zh/js/utils.js"></script><script src="/zh/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || 'e4b92b1ea8b3642ce3beb7ef9ff07f02'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/zh/404.html') : window.location.href = '/zh/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

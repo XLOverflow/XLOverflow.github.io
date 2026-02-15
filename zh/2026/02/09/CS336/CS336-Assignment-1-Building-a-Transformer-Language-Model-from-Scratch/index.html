@@ -1,0 +1,1659 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>CS336 Assignment 1: Building a Transformer Language Model from Scratch | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="从头开始实现完整的Transformer语言模型管道的全面反思——包括带并行预标记的BPE分词器、仅解码的Transformer（使用RMSNorm&#x2F;RoPE&#x2F;SwiGLU）、AdamW优化器和自回归文本生成。使用TinyStories和OpenWebText进行训练，并进行了学习率扫描、批量大小研究和架构消融的广泛实验。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CS336 Assignment 1: Building a Transformer Language Model from Scratch">
+<meta property="og:url" content="https://xloverflow.github.io/zh/2026/02/09/CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="从头开始实现完整的Transformer语言模型管道的全面反思——包括带并行预标记的BPE分词器、仅解码的Transformer（使用RMSNorm&#x2F;RoPE&#x2F;SwiGLU）、AdamW优化器和自回归文本生成。使用TinyStories和OpenWebText进行训练，并进行了学习率扫描、批量大小研究和架构消融的广泛实验。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png">
+<meta property="article:published_time" content="2026-02-09T04:05:02.000Z">
+<meta property="article:modified_time" content="2026-02-15T05:04:17.031Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="Study Notes">
+<meta property="article:tag" content="AI">
+<meta property="article:tag" content="Transformer">
+<meta property="article:tag" content="Assignment">
+<meta property="article:tag" content="LLM">
+<meta property="article:tag" content="CS336">
+<meta property="article:tag" content="Stanford">
+<meta property="article:tag" content="PyTorch">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "CS336 Assignment 1: Building a Transformer Language Model from Scratch",
+  "url": "https://xloverflow.github.io/zh/2026/02/09/CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png",
+  "datePublished": "2026-02-09T04:05:02.000Z",
+  "dateModified": "2026-02-15T05:04:17.031Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io/zh"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/zh/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/zh/2026/02/09/CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/zh/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/zh/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'CS336 Assignment 1: Building a Transformer Language Model from Scratch',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">47</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">62</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">18</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/zh/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/zh/"><span class="site-name">CS336 Assignment 1: Building a Transformer Language Model from Scratch</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/"><i class="fas fa-language fa-fw"></i><span> English</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">CS336 Assignment 1: Building a Transformer Language Model from Scratch</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-02-09T04:05:02.000Z" title="发表于 2026-02-08 23:05:02">2026-02-08</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-15T05:04:17.031Z" title="更新于 2026-02-15 00:04:17">2026-02-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/zh/categories/Stanford-CS336/">Stanford CS336</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="cs336-作业-1从头构建-transformer-语言模型">CS336 作业
+1：从头构建 Transformer 语言模型</h1>
+<blockquote>
+<p>对实现完整 Transformer 语言模型管道的全面反思——从 BPE
+分词器到文本生成——在 TinyStories 和 OpenWebText 上进行训练。</p>
+</blockquote>
+<hr />
+<h2 id="目录">目录</h2>
+<ol type="1">
+<li><a href="#1-概述">概述</a></li>
+<li><a href="#2-bpe-分词器">BPE 分词器</a></li>
+<li><a href="#3-transformer-架构">Transformer 架构</a></li>
+<li><a href="#4-训练基础设施">训练基础设施</a></li>
+<li><a href="#5-训练循环">训练循环</a></li>
+<li><a href="#6-文本生成">文本生成</a></li>
+<li><a href="#7-实验">实验</a></li>
+<li><a href="#8-反思">反思</a></li>
+</ol>
+<hr />
+<h2 id="概述">1. 概述</h2>
+<p>本作业从头实现了一个完整的 Transformer 语言模型管道，未依赖于
+<code>torch.nn.Linear</code> 或 <code>torch.nn.Embedding</code>
+等高级库。代码库涵盖：</p>
+<ul>
+<li><strong>字节对编码 (BPE) 分词器</strong>，具有并行预分词</li>
+<li><strong>仅解码器 Transformer</strong>，使用 RMSNorm、RoPE、SwiGLU
+和因果多头注意力</li>
+<li><strong>训练基础设施</strong>：AdamW
+优化器、余弦学习率调度、梯度裁剪、数据加载、检查点</li>
+<li><strong>自回归文本生成</strong>，带温度和核（top-p）采样</li>
+<li><strong>实验</strong>：学习率扫描、批量大小研究、架构消融和
+OpenWebText 训练</li>
+</ul>
+<p><strong>完整代码已发布在 GitHub</strong>: <a
+target="_blank" rel="noopener" href="https://github.com/XLOverflow/CS336_Transformer_from_Scratch">https://github.com/XLOverflow/CS336_Transformer_from_Scratch</a></p>
+<h3 id="项目结构">项目结构</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">cs336_basics/</span><br><span class="line">├── model/</span><br><span class="line">│   ├── linear.py              # 线性层（无偏置）</span><br><span class="line">│   ├── embedding.py           # 令牌嵌入</span><br><span class="line">│   ├── normalization.py       # RMSNorm</span><br><span class="line">│   ├── positional_encoding.py # RoPE</span><br><span class="line">│   ├── attention.py           # Softmax、缩放点积注意力、多头自注意力</span><br><span class="line">│   ├── feedforward.py         # SwiGLU、SiLUFFN</span><br><span class="line">│   ├── transformer_block.py   # 预归一化 / 后归一化 Transformer 块</span><br><span class="line">│   ├── transformer_lm.py      # 完整的 Transformer LM，带有 generate()</span><br><span class="line">│   └── config.py              # 模型配置（TinyStories、GPT-2 系列）</span><br><span class="line">├── tokenizers/</span><br><span class="line">│   ├── bpe.py                 # 带并行预分词的 BPE 训练器</span><br><span class="line">│   └── tokenizer.py           # 带并行编码的 BPE 编码/解码</span><br><span class="line">└── training/</span><br><span class="line">    ├── cross_entropy.py       # 数值稳定的交叉熵</span><br><span class="line">    ├── adamw.py               # AdamW 优化器（从头开始）</span><br><span class="line">    ├── lr_schedule.py         # 余弦退火与线性预热</span><br><span class="line">    ├── gradient_clipping.py   # L2 范数梯度裁剪</span><br><span class="line">    ├── data_loader.py         # 随机批量采样</span><br><span class="line">    └── checkpointing.py       # 保存/加载模型检查点</span><br></pre></td></tr></table></figure>
+<hr />
+<h2 id="bpe-分词器">2. BPE 分词器</h2>
+<h3 id="unicode-基础">2.1 Unicode 基础</h3>
+<p><strong>问：Unicode 代码点与 UTF-8 编码之间有什么关系？</strong></p>
+<p>Unicode 为每个字符分配一个唯一的
+<strong>代码点</strong>（例如，<code>U+0041</code> 表示 ‘A’）。UTF-8
+是一种 <strong>可变长度编码</strong>，将代码点映射到 1–4 字节：</p>
+<table>
+<thead>
+<tr class="header">
+<th>代码点范围</th>
+<th>UTF-8 字节</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>U+0000 – U+007F</td>
+<td>1 字节</td>
+<td>ASCII 字符</td>
+</tr>
+<tr class="even">
+<td>U+0080 – U+07FF</td>
+<td>2 字节</td>
+<td>拉丁文、希腊文、斯拉夫文</td>
+</tr>
+<tr class="odd">
+<td>U+0800 – U+FFFF</td>
+<td>3 字节</td>
+<td>CJK 字符，大多数表情符号</td>
+</tr>
+<tr class="even">
+<td>U+10000 – U+10FFFF</td>
+<td>4 字节</td>
+<td>稀有表情符号、历史脚本</td>
+</tr>
+</tbody>
+</table>
+<p>UTF-8 向后兼容
+ASCII，并且是自同步的：你总是可以判断一个字节是字符的开始还是继续字节。</p>
+<p><strong>问：为什么使用字节级分词而不是字符级分词？</strong></p>
+<p>字节级分词以 256 个字节值的基本词汇表开始，可以表示
+<strong>任何</strong>
+语言中的文本，而无需未知标记。字符级分词需要处理完整的 Unicode
+范围（143,000+ 字符）作为基本词汇表。</p>
+<h3 id="bpe-训练算法">2.2 BPE 训练算法</h3>
+<p>核心 BPE 训练过程：</p>
+<ol type="1">
+<li><strong>初始化词汇表</strong>，包含 256 个字节值 +
+特殊标记（例如，<code>&lt;|endoftext|&gt;</code>）</li>
+<li><strong>预分词</strong>，使用 GPT-2
+正则表达式模式将文本拆分为“单词”</li>
+<li><strong>迭代合并</strong>
+最频繁的相邻字节对，将合并的标记添加到词汇表中</li>
+<li>重复直到达到目标词汇表大小</li>
+</ol>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">PAT = <span class="string">r&quot;&quot;&quot;&#x27;(?:[sdmt]|ll|ve|re)| ?\p&#123;L&#125;+| ?\p&#123;N&#125;+| ?[^\s\p&#123;L&#125;\p&#123;N&#125;]+|\s+(?!\S)|\s+&quot;&quot;&quot;</span></span><br></pre></td></tr></table></figure>
+<p>此正则表达式模式处理英语缩写（<code>'s</code>、<code>'t</code>、<code>'ll</code>
+等）、可选前导空格的单词、数字、标点符号和空白。</p>
+<h3 id="并行化策略">2.3 并行化策略</h3>
+<p>在大型语料库（例如，OpenWebText）上训练 BPE
+分词器计算开销大。我的实现使用 <strong>并行预分词</strong>
+和多进程：</p>
+<ol type="1">
+<li><strong>查找与 <code>&lt;|endoftext|&gt;</code>
+标记对齐的块边界，以避免拆分文档</strong></li>
+<li><strong>将块分配给工作进程</strong>，使用
+<code>multiprocessing.Pool</code></li>
+<li>每个工作进程应用正则表达式预分词并返回
+<strong>频率计数</strong>（<code>Counter</code>）</li>
+<li><strong>在主进程中逐步合并频率计数</strong>，以控制内存使用</li>
+<li>BPE 合并顺序进行（因为每次合并依赖于前一次）</li>
+</ol>
+<p>关键优化：</p>
+<ul>
+<li><strong>内存管理</strong>：定期进行垃圾回收和每 5000
+次合并重建索引，以减少内存碎片</li>
+<li><strong>增量对更新</strong>：在每次合并后，不必从头重新计算所有对的频率，而是维护
+<code>pair_to_tuples</code> 和 <code>pair_freq</code>
+索引，仅更新受影响的条目</li>
+<li><strong>批处理</strong>：工作进程以 16
+的批量处理块，以控制并发内存使用</li>
+</ul>
+<h3 id="分词器实验">2.4 分词器实验</h3>
+<p><strong>在 TinyStories 上的词汇表大小比较：</strong></p>
+<p>对于 TinyStories 数据集，我训练了词汇表大小为 10,000
+的分词器。分词器成功学习了常见的英语单词和子词模式。例如：</p>
+<ul>
+<li>常见单词如 “the”、“and”、“once” 成为单个标记</li>
+<li>不太常见的单词被拆分为学习到的子词单元</li>
+<li><code>&lt;|endoftext|&gt;</code> 被处理为一个特殊标记，不参与 BPE
+合并</li>
+</ul>
+<p><strong>编码</strong>：编码器贪婪地应用 BPE
+合并——对于每个预分词的单词，它从单个字节开始，并重复合并优先级最高的对（在合并列表中最早的）直到没有更多合并适用。</p>
+<p><strong>解码</strong>：简单地连接每个标记 ID 的字节值，并将结果解码为
+UTF-8。</p>
+<hr />
+<h2 id="transformer-架构">3. Transformer 架构</h2>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260208223722664.png" alt="image-20260208223722664" style="zoom:50%;" /></p>
+<h3 id="线性层无偏置">3.1 线性层（无偏置）</h3>
+<p>遵循现代 LLM 实践（PaLM、LLaMA），所有线性层省略偏置项：</p>
+<p><span class="math display">\[
+y = xW^T
+\]</span></p>
+<p><strong>初始化</strong>：截断正态分布 <span
+class="math inline">\(\mathcal{N}(0, \sigma^2)\)</span>，其中 <span
+class="math inline">\(\sigma = \sqrt{2 / (d_{in} +
+d_{out})}\)</span>，截断在 <span class="math inline">\([-3\sigma,
+3\sigma]\)</span>。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Linear</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, in_features, out_features, device=<span class="literal">None</span>, dtype=<span class="literal">None</span></span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        <span class="variable language_">self</span>.weight = nn.Parameter(torch.empty(out_features, in_features, device=device, dtype=dtype))</span><br><span class="line">        std = (<span class="number">2</span> / (in_features + out_features)) ** <span class="number">0.5</span></span><br><span class="line">        nn.init.trunc_normal_(<span class="variable language_">self</span>.weight, mean=<span class="number">0.0</span>, std=std, a=-<span class="number">3</span>*std, b=<span class="number">3</span>*std)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        <span class="keyword">return</span> einsum(x, <span class="variable language_">self</span>.weight, <span class="string">&quot;... i, o i -&gt; ... o&quot;</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="令牌嵌入">3.2 令牌嵌入</h3>
+<p>简单的查找表，将令牌 ID 映射到密集向量：</p>
+<p><span class="math display">\[
+\text{embed}(x) = E[x]
+\]</span></p>
+<p>其中 <span class="math inline">\(E \in \mathbb{R}^{V \times
+d_{model}}\)</span> 使用截断正态 <span
+class="math inline">\(\mathcal{N}(0, 1)\)</span> 初始化。</p>
+<h3 id="rmsnorm">3.3 RMSNorm</h3>
+<p>均方根层归一化（Zhang &amp; Sennrich, 2019），在 LLaMA 中使用，而不是
+LayerNorm：</p>
+<p><span class="math display">\[
+\text{RMSNorm}(x) = \frac{x}{\text{RMS}(x)} \cdot \gamma, \quad
+\text{RMS}(x) = \sqrt{\frac{1}{d}\sum_{i=1}^d x_i^2 + \epsilon}
+\]</span></p>
+<p>关键实现细节：<strong>在计算 RMS 之前转换为 float32</strong>
+以确保数值稳定性，然后再转换回原始数据类型。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">    original_dtype = x.dtype</span><br><span class="line">    x = x.to(torch.float32)</span><br><span class="line">    rms = torch.sqrt(torch.mean(x ** <span class="number">2</span>, dim=-<span class="number">1</span>, keepdim=<span class="literal">True</span>) + <span class="variable language_">self</span>.eps)</span><br><span class="line">    normalized = x / rms</span><br><span class="line">    <span class="keyword">return</span> (normalized * <span class="variable language_">self</span>.weight).to(original_dtype)</span><br></pre></td></tr></table></figure>
+<h3 id="旋转位置嵌入-rope">3.4 旋转位置嵌入 (RoPE)</h3>
+<p>RoPE（Su et al., 2021）通过对查询和键向量应用旋转来编码
+<strong>相对</strong> 位置信息：</p>
+<p><span class="math display">\[
+\text{RoPE}(x, m) = \begin{pmatrix} x_0 \cos(m\theta_0) - x_1
+\sin(m\theta_0) \\ x_0 \sin(m\theta_0) + x_1 \cos(m\theta_0) \\ \vdots
+\\ x_{d-2} \cos(m\theta_{d/2-1}) - x_{d-1} \sin(m\theta_{d/2-1}) \\
+x_{d-2} \sin(m\theta_{d/2-1}) + x_{d-1} \cos(m\theta_{d/2-1})
+\end{pmatrix}
+\]</span></p>
+<p>其中 <span class="math inline">\(\theta_k =
+\theta_{\text{base}}^{-2k/d_k}\)</span>，对于 <span
+class="math inline">\(k = 0, \ldots, d_k/2 - 1\)</span>。</p>
+<p>关键特性：</p>
+<ul>
+<li><strong>无可学习参数</strong>：RoPE 完全由位置和频率计算得出</li>
+<li>仅应用于 Q 和 K（不适用于 V）</li>
+<li>捕获 <strong>相对</strong> 位置：<span class="math inline">\(q_m^T
+k_n\)</span> 仅依赖于 <span class="math inline">\(m - n\)</span></li>
+<li>在所有层中共享（一个 RoPE 模块实例）</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">RotaryPositionalEmbedding</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, theta, d_k, max_seq_len, device=<span class="literal">None</span></span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        theta_k = theta ** (-<span class="number">2</span> * torch.arange(d_k // <span class="number">2</span>, device=device) / d_k)</span><br><span class="line">        positions = torch.arange(max_seq_len, device=device).unsqueeze(<span class="number">1</span>)</span><br><span class="line">        angles = positions * theta_k.unsqueeze(<span class="number">0</span>)</span><br><span class="line">        <span class="variable language_">self</span>.register_buffer(<span class="string">&quot;sin&quot;</span>, torch.sin(angles), persistent=<span class="literal">False</span>)</span><br><span class="line">        <span class="variable language_">self</span>.register_buffer(<span class="string">&quot;cos&quot;</span>, torch.cos(angles), persistent=<span class="literal">False</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x, token_positions</span>):</span><br><span class="line">        sin, cos = <span class="variable language_">self</span>.sin[token_positions], <span class="variable language_">self</span>.cos[token_positions]</span><br><span class="line">        x1, x2 = x[..., ::<span class="number">2</span>], x[..., <span class="number">1</span>::<span class="number">2</span>]</span><br><span class="line">        <span class="keyword">return</span> torch.stack((x1 * cos - x2 * sin, x1 * sin + x2 * cos), dim=-<span class="number">1</span>).flatten(-<span class="number">2</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="softmax">3.5 Softmax</h3>
+<p>使用最大减法技巧的数值稳定 softmax：</p>
+<p><span class="math display">\[
+\text{softmax}(x)_i = \frac{e^{x_i - \max(x)}}{\sum_j e^{x_j - \max(x)}}
+\]</span></p>
+<h3 id="缩放点积注意力">3.6 缩放点积注意力</h3>
+<p><span class="math display">\[
+\text{Attention}(Q, K, V) =
+\text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
+\]</span></p>
+<p><span class="math inline">\(\sqrt{d_k}\)</span>
+的缩放防止点积的大小过大，这会将 softmax 推入极小梯度的区域。</p>
+<p>实现使用 <code>einops.einsum</code>
+提高可读性，并支持任意批量维度：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">attn_scores = einsum(q, k, <span class="string">&quot;b ... q d_k, b ... k d_k -&gt; b ... q k&quot;</span>) / (d_k ** <span class="number">0.5</span>)</span><br><span class="line">attn_scores = attn_scores.masked_fill(~mask, <span class="built_in">float</span>(<span class="string">&quot;-inf&quot;</span>))  <span class="comment"># 因果掩码</span></span><br><span class="line">attn_weights = softmax(attn_scores, dim=-<span class="number">1</span>)</span><br><span class="line"><span class="keyword">return</span> einsum(attn_weights, v, <span class="string">&quot;b ... q k, b ... k d_v -&gt; b ... q d_v&quot;</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="多头自注意力">3.7 多头自注意力</h3>
+<p>将模型维度拆分为多个头以实现并行注意力：</p>
+<p><span class="math display">\[
+\text{MultiHead}(x) = W_O \cdot \text{Concat}(\text{head}_1, \ldots,
+\text{head}_h)
+\]</span></p>
+<p><span class="math display">\[
+\text{head}_i = \text{Attention}(xW_Q^i, xW_K^i, xW_V^i)
+\]</span></p>
+<p>处理流程：</p>
+<ol type="1">
+<li>使用单独的线性层将输入投影到 Q、K、V</li>
+<li>重塑为单独的头部：<code>(batch, seq_len, d_model) → (batch, num_heads, seq_len, d_k)</code></li>
+<li>对 Q 和 K 应用 RoPE</li>
+<li>使用因果掩码（下三角）应用缩放点积注意力</li>
+<li>连接头部并重新投影</li>
+</ol>
+<h3 id="前馈网络">3.8 前馈网络</h3>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260208223809903.png" alt="image-20260208223809903" style="zoom: 50%;" /></p>
+<p><strong>SwiGLU</strong>（Shazeer, 2020）：带有 SiLU 激活的门控 FFN
+<span class="math display">\[
+\text{SwiGLU}(x) = W_2 \cdot (\text{SiLU}(W_1 x) \odot W_3 x)
+\]</span></p>
+<p>其中 <span class="math inline">\(\text{SiLU}(x) = x \cdot
+\sigma(x)\)</span>，<span class="math inline">\(\odot\)</span>
+是逐元素乘法。</p>
+<p>SwiGLU 使用 <span class="math inline">\(d_{ff} \approx \frac{8}{3}
+d_{model}\)</span>（四舍五入为 64 的倍数），具有 3
+个权重矩阵，总参数量约为 <span class="math inline">\(\approx 3 \times
+d_{model} \times \frac{8}{3} d_{model} = 8 d_{model}^2\)</span>。</p>
+<p><strong>SiLU FFN</strong>（用于消融）：标准的 2 层 FFN</p>
+<p><span class="math display">\[
+\text{SiLUFFN}(x) = W_2 \cdot \text{SiLU}(W_1 x)
+\]</span></p>
+<p>使用 <span class="math inline">\(d_{ff} = 4 \times
+d_{model}\)</span>，具有 2 个权重矩阵，总参数量约为 <span
+class="math inline">\(\approx 2 \times d_{model} \times 4 d_{model} = 8
+d_{model}^2\)</span>。这与 SwiGLU
+的参数计数相匹配，以便进行公平的消融比较。</p>
+<h3 id="transformer-块">3.9 Transformer 块</h3>
+<p><strong>预归一化</strong>（默认）： <span class="math display">\[
+z = x + \text{Attention}(\text{RMSNorm}(x))
+\]</span></p>
+<p><span class="math display">\[
+y = z + \text{FFN}(\text{RMSNorm}(z))
+\]</span></p>
+<p><strong>后归一化</strong>（消融）： <span class="math display">\[
+z = \text{RMSNorm}(x + \text{Attention}(x))
+\]</span></p>
+<p><span class="math display">\[
+y = \text{RMSNorm}(z + \text{FFN}(z))
+\]</span></p>
+<p>预归一化在现代 LLM
+中更受欢迎，因为它稳定了训练——残差连接保留了输入的大小，而在子层之前进行归一化可以防止激活无限增长。</p>
+<h3 id="完整的-transformer-lm">3.10 完整的 Transformer LM</h3>
+<p>完整的仅解码器架构：</p>
+<ol type="1">
+<li><strong>令牌嵌入</strong>：<code>token_ids → (batch, seq_len, d_model)</code></li>
+<li><strong>N 个 Transformer 块</strong>：应用自注意力 +
+FFN，带有残差连接</li>
+<li><strong>最终 RMSNorm</strong>：对输出进行归一化</li>
+<li><strong>LM 头</strong>：线性投影到词汇对数
+<code>(batch, seq_len, vocab_size)</code></li>
+</ol>
+<h3 id="transformer-计算参数内存flops-和训练时间">3.11 Transformer
+计算：参数、内存、FLOPs 和训练时间</h3>
+<blockquote>
+<p>设 <span class="math inline">\(B\)</span> = batch_size，<span
+class="math inline">\(T\)</span> = context_length，<span
+class="math inline">\(d\)</span> = d_model，<span
+class="math inline">\(L\)</span> = num_layers，<span
+class="math inline">\(H\)</span> = num_heads，<span
+class="math inline">\(V\)</span> = vocab_size，<span
+class="math inline">\(d_{ff} = 4d\)</span></p>
+</blockquote>
+<h4 id="参数计数-p">3.11.1 参数计数 <span
+class="math inline">\(P\)</span></h4>
+<table>
+<colgroup>
+<col style="width: 56%" />
+<col style="width: 43%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>组件</th>
+<th>参数</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>每层注意力（<span class="math inline">\(W_Q, W_K, W_V,
+W_O\)</span>）</td>
+<td><span class="math inline">\(4d^2\)</span></td>
+</tr>
+<tr class="even">
+<td>每层 FFN（SwiGLU: <span class="math inline">\(W_1, W_2,
+W_3\)</span>）</td>
+<td><span class="math inline">\(3 \times d \times d_{ff} =
+12d^2\)</span></td>
+</tr>
+<tr class="odd">
+<td>每层 RMSNorm ×2</td>
+<td><span class="math inline">\(2d\)</span></td>
+</tr>
+<tr class="even">
+<td>令牌嵌入</td>
+<td><span class="math inline">\(Vd\)</span></td>
+</tr>
+<tr class="odd">
+<td>LM 头</td>
+<td><span class="math inline">\(Vd\)</span></td>
+</tr>
+<tr class="even">
+<td>最终 RMSNorm</td>
+<td><span class="math inline">\(d\)</span></td>
+</tr>
+</tbody>
+</table>
+<p><span class="math display">\[
+\boxed{P = L(16d^2 + 2d) + 2Vd + d}
+\]</span></p>
+<h4 id="训练内存分析">3.11.2 训练内存分析</h4>
+<p>在训练期间，GPU 内存由四部分组成（float32 = 4 字节）：</p>
+<table>
+<colgroup>
+<col style="width: 18%" />
+<col style="width: 12%" />
+<col style="width: 69%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>组件</th>
+<th>公式</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>参数</td>
+<td><span class="math inline">\(4P\)</span></td>
+<td>每个参数 4 字节</td>
+</tr>
+<tr class="even">
+<td>梯度</td>
+<td><span class="math inline">\(4P\)</span></td>
+<td>与参数大小相同</td>
+</tr>
+<tr class="odd">
+<td>优化器 (m+v)</td>
+<td><span class="math inline">\(8P\)</span></td>
+<td>AdamW 存储 2 个与参数形状相同的张量</td>
+</tr>
+<tr class="even">
+<td>激活</td>
+<td>见下文</td>
+<td>与 batch_size 成正比</td>
+</tr>
+</tbody>
+</table>
+<p><strong>每层激活内存</strong>（为反向传播保存的中间结果）：</p>
+<table>
+<thead>
+<tr class="header">
+<th>组件</th>
+<th>形状</th>
+<th>元素计数</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>RMSNorm 输入 ×2</td>
+<td><span class="math inline">\((B,T,d)\)</span> ×2</td>
+<td><span class="math inline">\(2BTd\)</span></td>
+</tr>
+<tr class="even">
+<td>Q, K, V</td>
+<td><span class="math inline">\((B,T,d)\)</span> ×3</td>
+<td><span class="math inline">\(3BTd\)</span></td>
+</tr>
+<tr class="odd">
+<td>Softmax 输出</td>
+<td><span class="math inline">\((B,H,T,T)\)</span></td>
+<td><span class="math inline">\(BHT^2\)</span></td>
+</tr>
+<tr class="even">
+<td>注意力输出</td>
+<td><span class="math inline">\((B,T,d)\)</span></td>
+<td><span class="math inline">\(BTd\)</span></td>
+</tr>
+<tr class="odd">
+<td>W1 输出（用于 SiLU 反向传播）</td>
+<td><span class="math inline">\((B,T,d_{ff})\)</span></td>
+<td><span class="math inline">\(4BTd\)</span></td>
+</tr>
+<tr class="even">
+<td>W3 输出</td>
+<td><span class="math inline">\((B,T,d_{ff})\)</span></td>
+<td><span class="math inline">\(4BTd\)</span></td>
+</tr>
+<tr class="odd">
+<td>SiLU 输出</td>
+<td><span class="math inline">\((B,T,d_{ff})\)</span></td>
+<td><span class="math inline">\(4BTd\)</span></td>
+</tr>
+<tr class="even">
+<td>Gate⊙Value = W2 输入</td>
+<td><span class="math inline">\((B,T,d_{ff})\)</span></td>
+<td><span class="math inline">\(4BTd\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>每层激活 ≈ <span class="math inline">\(22BTd + BHT^2\)</span></p>
+<p>加上非层组件：嵌入输出 (<span class="math inline">\(BTd\)</span>) +
+对数 (<span class="math inline">\(BTV\)</span>) + 交叉熵 softmax (<span
+class="math inline">\(BTV\)</span>) ≈ <span class="math inline">\(BTd +
+2BTV\)</span></p>
+<p><span class="math display">\[
+\text{总激活内存} = 4 \times \left[L(22BTd + BHT^2) + BTd + 2BTV\right]
+\text{ 字节}
+\]</span></p>
+<p><span class="math display">\[
+\boxed{\text{峰值内存} = 16P + 4BT\left[L(22d + HT) + d + 2V\right]}
+\]</span></p>
+<h4 id="gpt-2-xl-具体示例">3.11.3 GPT-2 XL 具体示例</h4>
+<p><span class="math inline">\(d=1600, L=48, H=25, T=1024,
+V=50257\)</span></p>
+<p><strong>(a) 详细参数计数：</strong></p>
+<p>每层参数：</p>
+<table>
+<colgroup>
+<col style="width: 27%" />
+<col style="width: 72%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>组件</th>
+<th>参数</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">\(W_Q, W_K, W_V, W_O\)</span></td>
+<td><span class="math inline">\(4 \times d^2 = 4 \times 2{,}560{,}000 =
+10{,}240{,}000\)</span></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(W_1, W_2, W_3\)</span> (FFN)</td>
+<td><span class="math inline">\(3 \times d \times d_{ff} = 3 \times
+10{,}240{,}000 = 30{,}720{,}000\)</span></td>
+</tr>
+<tr class="odd">
+<td>2 × RMSNorm</td>
+<td><span class="math inline">\(2 \times 1{,}600 = 3{,}200\)</span></td>
+</tr>
+<tr class="even">
+<td><strong>每层总计</strong></td>
+<td><strong>40,963,200</strong></td>
+</tr>
+</tbody>
+</table>
+<p>完整模型：</p>
+<table>
+<colgroup>
+<col style="width: 37%" />
+<col style="width: 62%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>组件</th>
+<th>参数</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>48 层</td>
+<td><span class="math inline">\(48 \times 40{,}963{,}200 =
+1{,}966{,}233{,}600\)</span></td>
+</tr>
+<tr class="even">
+<td>令牌嵌入 (<span class="math inline">\(V \times d\)</span>)</td>
+<td><span class="math inline">\(80{,}411{,}200\)</span></td>
+</tr>
+<tr class="odd">
+<td>LM 头</td>
+<td><span class="math inline">\(80{,}411{,}200\)</span></td>
+</tr>
+<tr class="even">
+<td>最终 RMSNorm</td>
+<td><span class="math inline">\(1{,}600\)</span></td>
+</tr>
+<tr class="odd">
+<td><strong>总计</strong></td>
+<td><strong>≈ 2.13B</strong></td>
+</tr>
+</tbody>
+</table>
+<p>参数内存：<span class="math inline">\(2.13\text{B} \times 4 \text{
+字节} \approx 8.51 \text{ GB}\)</span></p>
+<p><strong>(b) 内存分析：</strong></p>
+<p><strong>模型相关内存（固定）</strong>：<span
+class="math inline">\(16P = 16 \times 2.13 \times 10^9 \approx 34.0
+\text{ GB}\)</span></p>
+<p><strong>每个批量元素的激活内存</strong>： <span
+class="math display">\[
+L(22d + HT) + d + 2V = 48(22 \times 1600 + 25 \times 1024) + 1600 + 2
+\times 50257
+\]</span></p>
+<p><span class="math display">\[
+= 48(35200 + 25600) + 102114 = 48 \times 60800 + 102114 = 2{,}920{,}514
+\]</span></p>
+<p><span class="math display">\[
+\text{每个批量元素}: 4 \times 1024 \times 2{,}920{,}514 \approx 12.0
+\text{ GB}
+\]</span></p>
+<p><strong>在 80GB A100 上的最大批量大小</strong>： <span
+class="math display">\[
+\text{总内存}: 34.0 + 12.0 \times B \leq 80 \text{ GB}
+\]</span></p>
+<p><span class="math display">\[
+B \leq (80 - 34) / 12 \approx 3.8 \rightarrow \boxed{B_{\max} = 3}
+\]</span></p>
+<h4 id="为什么前向传播-2-参数-flops标记">3.11.4 为什么前向传播 ≈ 2 ×
+参数 FLOPs/标记？</h4>
+<p>Transformer 计算主要由矩阵乘法主导。对于矩阵乘法 <span
+class="math inline">\(Y = X \times W\)</span>，其中 <span
+class="math inline">\(W\)</span> 的形状为 <span
+class="math inline">\((d_{in}, d_{out})\)</span>：</p>
+<ul>
+<li>每个输出元素需要 <span class="math inline">\(d_{in}\)</span> 次乘法
++ <span class="math inline">\(d_{in}\)</span> 次加法 = <span
+class="math inline">\(2d_{in}\)</span> FLOPs</li>
+<li>每个标记有 <span class="math inline">\(d_{out}\)</span>
+个输出元素</li>
+<li>总 FLOPs = <span class="math inline">\(2 \times d_{in} \times
+d_{out}\)</span> = <strong>2 × 参数计数</strong></li>
+</ul>
+<p><strong>每层矩阵乘法细分</strong>（×<span
+class="math inline">\(L\)</span> 层），使用 GPT-2 XL 数字（<span
+class="math inline">\(d=1600, T=1024, H=25, d_k=64,
+d_{ff}=6400\)</span>）：</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 40%" />
+<col style="width: 21%" />
+<col style="width: 13%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>操作</th>
+<th>维度</th>
+<th>FLOPs 公式</th>
+<th>FLOPs</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Q 投影</td>
+<td><span class="math inline">\((T,d) \times (d,d)\)</span></td>
+<td><span class="math inline">\(2Td^2\)</span></td>
+<td>5.24B</td>
+</tr>
+<tr class="even">
+<td>K 投影</td>
+<td>同上</td>
+<td><span class="math inline">\(2Td^2\)</span></td>
+<td>5.24B</td>
+</tr>
+<tr class="odd">
+<td>V 投影</td>
+<td>同上</td>
+<td><span class="math inline">\(2Td^2\)</span></td>
+<td>5.24B</td>
+</tr>
+<tr class="even">
+<td>O 投影</td>
+<td>同上</td>
+<td><span class="math inline">\(2Td^2\)</span></td>
+<td>5.24B</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(QK^T\)</span>（<span
+class="math inline">\(H\)</span> 头）</td>
+<td><span class="math inline">\(H \times (T,d_k) \times
+(d_k,T)\)</span></td>
+<td><span class="math inline">\(2T^2d\)</span></td>
+<td>3.36B</td>
+</tr>
+<tr class="even">
+<td>attn_weights × V</td>
+<td><span class="math inline">\(H \times (T,T) \times
+(T,d_k)\)</span></td>
+<td><span class="math inline">\(2T^2d\)</span></td>
+<td>3.36B</td>
+</tr>
+<tr class="odd">
+<td>FFN W1</td>
+<td><span class="math inline">\((T,d) \times (d,d_{ff})\)</span></td>
+<td><span class="math inline">\(2Td \cdot d_{ff}\)</span></td>
+<td>20.97B</td>
+</tr>
+<tr class="even">
+<td>FFN W3</td>
+<td>同上</td>
+<td><span class="math inline">\(2Td \cdot d_{ff}\)</span></td>
+<td>20.97B</td>
+</tr>
+<tr class="odd">
+<td>FFN W2</td>
+<td><span class="math inline">\((T,d_{ff}) \times
+(d_{ff},d)\)</span></td>
+<td><span class="math inline">\(2Td \cdot d_{ff}\)</span></td>
+<td>20.97B</td>
+</tr>
+<tr class="even">
+<td><strong>每层总计</strong></td>
+<td></td>
+<td></td>
+<td><strong>90.60B</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>模型级 FLOPs：</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th>组件</th>
+<th>FLOPs</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>48 层</td>
+<td>4,348.7B</td>
+</tr>
+<tr class="even">
+<td>LM 头: <span class="math inline">\((T,d) \times (d,V)\)</span></td>
+<td>164.7B</td>
+</tr>
+<tr class="odd">
+<td><strong>总计</strong></td>
+<td><strong>≈ 4.51 TFLOPs</strong></td>
+</tr>
+</tbody>
+</table>
+<h4 id="flops-在模型大小之间的细分">3.11.5 FLOPs
+在模型大小之间的细分</h4>
+<p><strong>(c)</strong> 每层，FFN 占 ~69.5%（62.91B /
+90.60B），使其成为计算最密集的组件。注意力投影占
+23.1%，而注意力分数（<span class="math inline">\(QK^T\)</span> +
+attn×V）仅占 7.4%。</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 18%" />
+<col style="width: 20%" />
+<col style="width: 19%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>组件</th>
+<th>小型 (12L, 768)</th>
+<th>中型 (24L, 1024)</th>
+<th>大型 (36L, 1280)</th>
+<th>XL (48L, 1600)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>注意力投影</td>
+<td>16.6%</td>
+<td>20.0%</td>
+<td>21.4%</td>
+<td>22.3%</td>
+</tr>
+<tr class="even">
+<td>注意力分数 (<span class="math inline">\(QK^T\)</span> 等)</td>
+<td>11.1%</td>
+<td>10.0%</td>
+<td>8.6%</td>
+<td><strong>7.1%</strong></td>
+</tr>
+<tr class="odd">
+<td>FFN</td>
+<td>49.7%</td>
+<td>59.9%</td>
+<td>64.2%</td>
+<td><strong>66.9%</strong></td>
+</tr>
+<tr class="even">
+<td>LM 头</td>
+<td>22.6%</td>
+<td>10.2%</td>
+<td>5.8%</td>
+<td>3.7%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>(d) 趋势</strong>：随着模型变大，FFN 的比例增加（50% →
+67%），而 LM 头的比例显著下降（23% → 4%）。这是因为 LM
+头在每层的大小是固定的（与 vocab_size 相关），而 FFN 随着层数和 d_model
+的增加而增长。</p>
+<h4 id="上下文长度缩放为什么-flashattention-重要">3.11.6
+上下文长度缩放：为什么 FlashAttention 重要</h4>
+<p><strong>(e)</strong> 将上下文长度从 1024 增加到 16384：</p>
+<table>
+<thead>
+<tr class="header">
+<th>组件</th>
+<th>T=1024</th>
+<th>T=16384</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>注意力投影</td>
+<td>22.3%</td>
+<td>10.8%</td>
+</tr>
+<tr class="even">
+<td>注意力分数</td>
+<td><strong>7.1%</strong></td>
+<td><strong>55.2%</strong></td>
+</tr>
+<tr class="odd">
+<td>FFN</td>
+<td>66.9%</td>
+<td>32.3%</td>
+</tr>
+<tr class="even">
+<td>LM 头</td>
+<td>3.7%</td>
+<td>1.8%</td>
+</tr>
+<tr class="odd">
+<td><strong>总 FLOPs</strong></td>
+<td><strong>4.51T</strong></td>
+<td><strong>≈ 149.5T (33×)</strong></td>
+</tr>
+</tbody>
+</table>
+<p>总 FLOPs 增加约 33×（而不是 16×！），因为注意力分数的缩放为 <span
+class="math inline">\(O(T^2)\)</span>。当上下文长度增长 16×
+时，注意力分数从 7.1% 跃升至
+55.2%，成为主导成本。这正是为什么长上下文模型需要
+<strong>FlashAttention</strong> 和其他 IO
+感知的注意力优化——二次注意力成本在长序列中压倒了线性 FFN 成本。</p>
+<h4 id="为什么反向传播-2-前向">3.11.7 为什么反向传播 ≈ 2× 前向？</h4>
+<p>对于每个矩阵乘法 <span class="math inline">\(Y =
+XW\)</span>，反向传播需要计算两个梯度：</p>
+<ul>
+<li><span class="math inline">\(\frac{\partial L}{\partial X} =
+\frac{\partial L}{\partial Y} \times W^T\)</span>（一个矩阵乘法）</li>
+<li><span class="math inline">\(\frac{\partial L}{\partial W} = X^T
+\times \frac{\partial L}{\partial Y}\)</span>（一个矩阵乘法）</li>
+</ul>
+<p>这就是反向传播需要 <strong>2 次矩阵乘法</strong>，而前向传播只需要 1
+次。因此：</p>
+<p><span class="math display">\[
+\boxed{\text{反向} \approx 2 \times \text{前向}}
+\]</span></p>
+<p><span class="math display">\[
+\text{总计 = 前向 + 反向} \approx 3 \times \text{前向} = 6PBT
+\]</span></p>
+<h4 id="adamw-每步-flops">3.11.8 AdamW 每步 FLOPs</h4>
+<p>每个参数执行的操作：</p>
+<table>
+<colgroup>
+<col style="width: 13%" />
+<col style="width: 48%" />
+<col style="width: 37%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>操作</th>
+<th>公式</th>
+<th>每个参数的 FLOPs</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>更新 m</td>
+<td><span class="math inline">\(m = \beta_1 m +
+(1-\beta_1)g\)</span></td>
+<td>3（2 次乘法 + 1 次加法）</td>
+</tr>
+<tr class="even">
+<td>更新 v</td>
+<td><span class="math inline">\(v = \beta_2 v +
+(1-\beta_2)g^2\)</span></td>
+<td>4（3 次乘法 + 1 次加法）</td>
+</tr>
+<tr class="odd">
+<td>参数更新</td>
+<td><span class="math inline">\(p = \alpha_t \cdot
+m/(\sqrt{v}+\epsilon)\)</span></td>
+<td>5（平方根、加法、除法、乘法、减法）</td>
+</tr>
+<tr class="even">
+<td>权重衰减</td>
+<td><span class="math inline">\(p -= lr \times \lambda \times
+p\)</span></td>
+<td>2（乘法 + 减法）</td>
+</tr>
+</tbody>
+</table>
+<p><span class="math display">\[
+\text{AdamW FLOPs} = 14P
+\]</span></p>
+<p>（偏差校正 <span class="math inline">\(\alpha_t\)</span>
+是标量计算，可以忽略。远小于前向/反向 FLOPs。）</p>
+<h4 id="gpt-2-xl-训练时间估计">3.11.9 GPT-2 XL 训练时间估计</h4>
+<p><strong>每步 FLOPs</strong>：</p>
+<ul>
+<li>前向 ≈ <span class="math inline">\(2P \times B \times
+T\)</span>（每个参数每个标记大约执行 ~2 次操作）</li>
+<li>反向 ≈ <span class="math inline">\(2 \times\)</span> 前向</li>
+<li>总计 ≈ <span class="math inline">\(3 \times\)</span> 前向 = <span
+class="math inline">\(6PBT\)</span></li>
+</ul>
+<p>替换 GPT-2 XL（<span class="math inline">\(B=1024,
+T=1024\)</span>）： <span class="math display">\[
+\text{每步} = 6 \times 2.13 \times 10^9 \times 1024 \times 1024 = 1.34
+\times 10^{16} \text{ FLOPs/步}
+\]</span></p>
+<p><strong>总计 400K 步</strong>：<span class="math inline">\(400{,}000
+\times 1.34 \times 10^{16} = 5.36 \times 10^{21}\)</span> FLOPs</p>
+<p><strong>有效吞吐量</strong>：50% × 19.5 TFLOP/s = <span
+class="math inline">\(9.75 \times 10^{12}\)</span> FLOP/s</p>
+<p><span class="math display">\[
+\text{时间} = \frac{5.36 \times 10^{21}}{9.75 \times 10^{12}} \approx
+5.5 \times 10^8 \text{ 秒} \approx 6{,}360 \text{ 天} \approx
+\boxed{17.4 \text{ 年}}
+\]</span></p>
+<p>这解释了为什么大规模模型训练需要大量 GPU 并行性——在单个 A100 上训练
+GPT-2 XL 将需要 17 年！</p>
+<hr />
+<h2 id="训练基础设施">4. 训练基础设施</h2>
+<h3 id="交叉熵损失">4.1 交叉熵损失</h3>
+<p>使用对数和指数技巧的数值稳定实现：</p>
+<p><span class="math display">\[
+\ell_i = -\log \text{softmax}(o_i)[x_{i+1}] = \log\left(\sum_j e^{o_j -
+o_{\max}}\right) - (o_{x_{i+1}} - o_{\max})
+\]</span></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">cross_entropy</span>(<span class="params">inputs, targets</span>):</span><br><span class="line">    shifted = inputs - inputs.<span class="built_in">max</span>(dim=-<span class="number">1</span>, keepdim=<span class="literal">True</span>).values</span><br><span class="line">    log_sum_exp = torch.log(torch.<span class="built_in">sum</span>(torch.exp(shifted), dim=-<span class="number">1</span>))</span><br><span class="line">    target_logits = shifted.gather(dim=-<span class="number">1</span>, index=targets.unsqueeze(-<span class="number">1</span>)).squeeze(-<span class="number">1</span>)</span><br><span class="line">    <span class="keyword">return</span> (log_sum_exp - target_logits).mean()</span><br></pre></td></tr></table></figure>
+<h3 id="adamw-优化器">4.2 AdamW 优化器</h3>
+<p>实现 AdamW（Loshchilov &amp; Hutter, 2019）与
+<strong>解耦权重衰减</strong>：</p>
+<p><span class="math display">\[
+m_t = \beta_1 m_{t-1} + (1 - \beta_1) g_t
+\]</span></p>
+<p><span class="math display">\[
+v_t = \beta_2 v_{t-1} + (1 - \beta_2) g_t^2
+\]</span></p>
+<p><span class="math display">\[
+\hat{\alpha}_t = \alpha \cdot \frac{\sqrt{1 - \beta_2^t}}{1 - \beta_1^t}
+\]</span></p>
+<p><span class="math display">\[
+\theta_t = \theta_{t-1} - \hat{\alpha}_t \cdot \frac{m_t}{\sqrt{v_t} +
+\epsilon} - \alpha \lambda \theta_{t-1}
+\]</span></p>
+<p>与 L2 正则化的关键区别：权重衰减作为单独步骤应用，使用
+<strong>基础学习率</strong> <span
+class="math inline">\(\alpha\)</span>，而不是偏差校正率。这是 AdamW
+的“解耦”部分。</p>
+<p><strong>AdamW 内存计算</strong>：对于每个参数，AdamW 维护 2
+个附加张量（<span class="math inline">\(m\)</span> 和 <span
+class="math inline">\(v\)</span>），因此优化器状态在内存中需要
+<strong>2× 模型参数</strong>。加上模型权重，总计为 <strong>3×
+模型大小</strong>（不包括梯度）。包括梯度后，内存需求为 <strong>4×
+模型大小</strong>，以 float32 计。</p>
+<h3 id="余弦学习率调度与预热">4.3 余弦学习率调度与预热</h3>
+<p>三个阶段（遵循 LLaMA）：</p>
+<ol type="1">
+<li><strong>线性预热</strong>（<span class="math inline">\(t &lt;
+T_w\)</span>）：<span class="math inline">\(\alpha_t = \frac{t}{T_w}
+\cdot \alpha_{\max}\)</span></li>
+<li><strong>余弦退火</strong>（<span class="math inline">\(T_w \leq t
+\leq T_c\)</span>）：<span class="math inline">\(\alpha_t =
+\alpha_{\min} + \frac{1}{2}(1 + \cos(\frac{t - T_w}{T_c - T_w} \cdot
+\pi)) \cdot (\alpha_{\max} - \alpha_{\min})\)</span></li>
+<li><strong>恒定最小值</strong>（<span class="math inline">\(t &gt;
+T_c\)</span>）：<span class="math inline">\(\alpha_t =
+\alpha_{\min}\)</span></li>
+</ol>
+<p><strong>预热的目的</strong>：在训练的早期阶段，模型参数是随机初始化的，梯度可能非常嘈杂且大。学习率预热可以防止优化器采取过大的步骤，从而可能导致训练不稳定或发散。它为
+Adam
+的动量估计提供了时间，以便在使用完整学习率之前积累有意义的统计数据。</p>
+<h3 id="梯度裁剪">4.4 梯度裁剪</h3>
+<p>L2 范数梯度裁剪以确保训练稳定性：</p>
+<p><span class="math display">\[
+\text{如果 } \|g\|_2 &gt; M: \quad g \leftarrow g \cdot \frac{M}{\|g\|_2
++ \epsilon}
+\]</span></p>
+<p>其中 <span class="math inline">\(M\)</span> 是最大允许范数（通常为
+1.0），<span class="math inline">\(\epsilon = 10^{-6}\)</span>。</p>
+<hr />
+<h2 id="训练循环">5. 训练循环</h2>
+<h3 id="数据加载">5.1 数据加载</h3>
+<p>对于包含 <span class="math inline">\(n\)</span>
+个标记的数据集，每个批次随机采样 <span class="math inline">\(B\)</span>
+个起始位置并创建：</p>
+<ul>
+<li><strong>输入</strong>：<code>dataset[i : i + context_length]</code></li>
+<li><strong>目标</strong>：<code>dataset[i+1 : i+1 + context_length]</code></li>
+</ul>
+<p>数据存储为内存映射的 uint16 numpy
+数组，以便高效随机访问，而无需将整个数据集加载到 RAM 中。</p>
+<h3 id="检查点">5.2 检查点</h3>
+<p>检查点保存：</p>
+<ul>
+<li><code>model_state_dict</code>：所有模型参数</li>
+<li><code>optimizer_state_dict</code>：优化器状态（动量、步数）</li>
+<li><code>iteration</code>：当前训练步骤</li>
+</ul>
+<p>这使得可以从任何检查点恢复训练，并完全恢复优化器状态。</p>
+<h3 id="训练配置">5.3 训练配置</h3>
+<p><strong>TinyStories（默认实验）：</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th>参数</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>词汇表大小</td>
+<td>10,000</td>
+</tr>
+<tr class="even">
+<td>上下文长度</td>
+<td>256</td>
+</tr>
+<tr class="odd">
+<td>d_model</td>
+<td>512</td>
+</tr>
+<tr class="even">
+<td>层数</td>
+<td>4</td>
+</tr>
+<tr class="odd">
+<td>头数</td>
+<td>16</td>
+</tr>
+<tr class="even">
+<td>d_ff</td>
+<td>1,344</td>
+</tr>
+<tr class="odd">
+<td>学习率</td>
+<td>1e-3（变化）</td>
+</tr>
+<tr class="even">
+<td>批量大小</td>
+<td>256（变化）</td>
+</tr>
+<tr class="odd">
+<td>最大步骤</td>
+<td>5,000</td>
+</tr>
+<tr class="even">
+<td>预热步骤</td>
+<td>500</td>
+</tr>
+<tr class="odd">
+<td>权重衰减</td>
+<td>0.1</td>
+</tr>
+<tr class="even">
+<td>梯度裁剪</td>
+<td>1.0</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="文本生成">6. 文本生成</h2>
+<h3 id="自回归生成">6.1 自回归生成</h3>
+<p>模型一次生成一个标记的文本：</p>
+<ol type="1">
+<li>将提示编码为令牌 ID</li>
+<li>通过模型获取下一个标记的对数</li>
+<li>应用
+<strong>温度缩放</strong>：<code>logits / temperature</code></li>
+<li>（可选）应用 <strong>top-p / 核采样</strong>：仅保留累积概率 ≤ p
+的标记</li>
+<li>从结果分布中采样</li>
+<li>附加采样的标记并重复</li>
+</ol>
+<p><strong>温度</strong> 控制随机性：</p>
+<ul>
+<li><code>T → 0</code>：贪婪（argmax），确定性但重复</li>
+<li><code>T = 1.0</code>：从模型的分布中标准采样</li>
+<li><code>T &gt; 1.0</code>：更随机，更多样但可能不连贯</li>
+</ul>
+<p><strong>Top-p（核）采样</strong>（Holtzman et al.,
+2019）：与从完整分布中采样不同，仅保留累积概率超过 <span
+class="math inline">\(p\)</span>
+的最小标记集，然后重新归一化。这根据模型的置信度动态调整候选标记的数量。</p>
+<h3 id="生成样本">6.2 生成样本</h3>
+<p>来自 TinyStories 模型的示例生成（温度=0.8，top_p=0.9）：</p>
+<blockquote>
+<p><strong>提示</strong>：“从前有一个”</p>
+<p>从前有一个小女孩，名叫
+Lily。她喜欢在公园外面玩耍。一天，她在地上看到一个大红球。她捡起它，开始弹跳。
+“看，妈妈！”她说。“我找到一个球了！”
+她的妈妈微笑着说：“那是个好发现，Lily……”</p>
+</blockquote>
+<p>模型成功学习到：</p>
+<ul>
+<li><strong>连贯的叙事结构</strong>，具有开头、中间和结尾</li>
+<li><strong>正确的语法</strong>和对话格式</li>
+<li><strong>角色一致性</strong>（名称、代词）</li>
+<li><strong>儿童故事的典型故事惯例</strong>（道德、简单冲突）</li>
+</ul>
+<p>注意：<code>&lt;|endoftext|&gt;</code>
+标记有时会出现在生成中。这不是一个错误——它是训练数据中使用的
+<strong>文档分隔符</strong>。模型学习到这个标记标记故事之间的边界，并可能在其后生成新故事。</p>
+<hr />
+<h2 id="实验">7. 实验</h2>
+<p>除非另有说明，所有实验均使用 TinyStories 数据集，配置如第 5.3
+节所述。结果通过 Weights &amp; Biases 记录。</p>
+<h3 id="学习率扫描">7.1 学习率扫描</h3>
+<p><strong>设置</strong>：固定
+batch_size=256，max_steps=5000，warmup=500。扫描 lr ∈ {5e-4, 1e-3, 2e-3,
+5e-3, 1e-2}。</p>
+<table>
+<thead>
+<tr class="header">
+<th>学习率</th>
+<th>最终验证损失</th>
+<th>验证困惑度</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1e-2</td>
+<td><strong>1.3004</strong></td>
+<td><strong>3.671</strong></td>
+</tr>
+<tr class="even">
+<td>5e-3</td>
+<td>1.3171</td>
+<td>3.733</td>
+</tr>
+<tr class="odd">
+<td>2e-3</td>
+<td>1.3567</td>
+<td>3.883</td>
+</tr>
+<tr class="even">
+<td>1e-3</td>
+<td>1.3974</td>
+<td>4.045</td>
+</tr>
+<tr class="odd">
+<td>5e-4</td>
+<td>1.4930</td>
+<td>4.450</td>
+</tr>
+</tbody>
+</table>
+<p><strong>分析</strong>：较高的学习率在 5000
+步内始终实现较低的损失。最佳学习率为 lr=1e-2，验证损失为
+1.3004，困惑度为
+3.671。这有些令人惊讶——人们可能会期望如此高的学习率会导致不稳定，但预热、余弦退火、梯度裁剪和
+RMSNorm 的组合提供了足够的正则化。</p>
+<p>在这个范围内的趋势是单调的：更高的 LR →
+更低的损失。这表明模型仍处于受益于更激进优化的状态，可能是因为 5000
+步对于这个模型大小来说相对较少。</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260208225124153.png" alt="image-20260208225124153" style="zoom:50%;" /></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260208224958480.png" alt="image-20260208224958480" style="zoom:80%;" /></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260208225043193.png" alt="image-20260208225043193" style="zoom:80%;" /></p>
+<h3 id="批量大小实验">7.2 批量大小实验</h3>
+<p><strong>设置</strong>：固定
+lr=1e-3，变化批量大小，并相应调整步骤，以保持大致相同的标记更新数量。</p>
+<table>
+<thead>
+<tr class="header">
+<th>批量大小</th>
+<th>步数</th>
+<th>最终验证损失</th>
+<th>验证困惑度</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>16</td>
+<td>80,000</td>
+<td><strong>1.3264</strong></td>
+<td><strong>3.768</strong></td>
+</tr>
+<tr class="even">
+<td>64</td>
+<td>20,000</td>
+<td>1.3318</td>
+<td>3.788</td>
+</tr>
+<tr class="odd">
+<td>128</td>
+<td>10,000</td>
+<td>1.3560</td>
+<td>3.881</td>
+</tr>
+<tr class="even">
+<td>512</td>
+<td>2,500</td>
+<td>1.4805</td>
+<td>4.395</td>
+</tr>
+</tbody>
+</table>
+<p><strong>分析</strong>：较小的批量大小在相同的总标记数量下实现了更好的最终损失。最佳结果是批量大小为
+16，验证损失为 1.3264。</p>
+<p>这与“泛化差距”理论一致：较小的批量引入了更多的梯度估计噪声，这作为隐式正则化，可以导致更平坦的最小值，从而实现更好的泛化。然而，较小的批量由于较低的硬件利用率而计算成本更高。</p>
+<p>在实践中，批量大小的选择涉及以下权衡：</p>
+<ul>
+<li><strong>计算效率</strong>：较大的批量更好地利用 GPU 并行性</li>
+<li><strong>泛化</strong>：较小的批量通常具有更好的泛化能力</li>
+<li><strong>收敛速度</strong>：较小的批量需要更多的步骤，但看到相同数量的标记</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260208225239934.png" alt="image-20260208225239934" style="zoom:80%;" /></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260208225353926.png" alt="image-20260208225353926" style="zoom:80%;" /></p>
+<h3 id="消融研究">7.3 消融研究</h3>
+<p><strong>设置</strong>：固定
+lr=1e-3，batch_size=256，max_steps=5000。每个消融修改基线架构的一个方面。</p>
+<table>
+<colgroup>
+<col style="width: 55%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 8%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>配置</th>
+<th>最终验证损失</th>
+<th>验证困惑度</th>
+<th>Δ 损失</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>基线</strong>（预归一化 + RMSNorm + RoPE + SwiGLU）</td>
+<td><strong>1.3974</strong></td>
+<td><strong>4.045</strong></td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td>后归一化（而不是预归一化）</td>
+<td>1.4095</td>
+<td>4.094</td>
+<td>+0.0121</td>
+</tr>
+<tr class="odd">
+<td>无 RMSNorm（恒等归一化）</td>
+<td>1.4400</td>
+<td>4.221</td>
+<td>+0.0426</td>
+</tr>
+<tr class="even">
+<td>SiLU FFN（而不是 SwiGLU）</td>
+<td>1.4649</td>
+<td>4.327</td>
+<td>+0.0675</td>
+</tr>
+<tr class="odd">
+<td>无 RoPE（NoPE — 无位置编码）</td>
+<td>1.4712</td>
+<td>4.354</td>
+<td>+0.0738</td>
+</tr>
+</tbody>
+</table>
+<p><strong>按组件重要性分析</strong>（从最重要到最不重要）：</p>
+<ol type="1">
+<li><p><strong>RoPE</strong>（Δ =
++0.074）：影响最大的组件。没有位置编码，模型无法区分标记顺序。值得注意的是，NoPE
+仍然可以达到合理的困惑度（4.354），这表明模型可以部分通过语义上下文和因果掩码推断顺序。但位置信息显然提供了显著的提升。</p></li>
+<li><p><strong>SwiGLU</strong>（Δ = +0.068）：用 SiLU FFN 替换
+SwiGLU（匹配参数计数）使损失增加 0.068。SwiGLU
+中的门控机制提供了更细致的信息流控制，从而导致更好的表示学习。</p></li>
+<li><p><strong>RMSNorm</strong>（Δ =
++0.043）：完全去除归一化会降低性能，确认了归一化对训练稳定性和表示质量的重要性。没有它，激活可能通过残差连接无限增长。</p></li>
+<li><p><strong>预归一化与后归一化</strong>（Δ =
++0.012）：差异最小。后归一化略微表现不如预归一化，与文献中显示的预归一化更稳定的训练一致。然而，对于这个模型大小和训练时长，差距很小。</p></li>
+</ol>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260208230125952.png" alt="image-20260208230125952" style="zoom:80%;" /></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260208230058900.png" alt="image-20260208230146528" style="zoom:100%;" /></p>
+<h3 id="openwebtext-owt-训练">7.4 OpenWebText (OWT) 训练</h3>
+<p><strong>设置</strong>：GPT-2 小型架构（117M 参数）在 OpenWebText
+上训练。</p>
+<table>
+<thead>
+<tr class="header">
+<th>参数</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>配置</td>
+<td>GPT-2 小型</td>
+</tr>
+<tr class="even">
+<td>词汇表大小</td>
+<td>50,257</td>
+</tr>
+<tr class="odd">
+<td>上下文长度</td>
+<td>1,024</td>
+</tr>
+<tr class="even">
+<td>d_model</td>
+<td>768</td>
+</tr>
+<tr class="odd">
+<td>层数</td>
+<td>12</td>
+</tr>
+<tr class="even">
+<td>头数</td>
+<td>12</td>
+</tr>
+<tr class="odd">
+<td>d_ff</td>
+<td>2,048</td>
+</tr>
+<tr class="even">
+<td>批量大小</td>
+<td>8</td>
+</tr>
+<tr class="odd">
+<td>最大步骤</td>
+<td>10,000</td>
+</tr>
+<tr class="even">
+<td>学习率</td>
+<td>1e-3</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr class="header">
+<th>指标</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>最终验证损失</td>
+<td>3.9364</td>
+</tr>
+<tr class="even">
+<td>最终验证困惑度</td>
+<td>51.236</td>
+</tr>
+</tbody>
+</table>
+<p><strong>分析</strong>：OWT 训练在 10K 步的训练中实现了约 51
+的验证困惑度，这对于 117M 参数模型来说是合理的。作为参考：</p>
+<ul>
+<li>GPT-2（117M）训练 300K 步在 WebText 上实现了约 30 的困惑度</li>
+<li>我们的模型看到的标记数量远少于此，但在训练过程中显示出明显的学习（损失持续下降）</li>
+</ul>
+<p>主要瓶颈是 <strong>GPU 内存</strong>：batch_size=64 和上下文长度=1024
+在单个 80GB A100 上导致 OOM。减少到 batch_size=8
+解决了这个问题，但这意味着每步处理的标记更少。可以使用梯度累积来模拟更大的有效批量大小，而无需额外的内存成本。</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260208230235210.png" alt="image-20260208230235210" style="zoom:80%;" /></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260208230218497.png" alt="image-20260208230218497" style="zoom:80%;" /></p>
+<hr />
+<h2 id="反思">8. 反思</h2>
+<h3 id="我学到了什么">8.1 我学到了什么</h3>
+<p><strong>从头实现很重要。</strong> 从 <code>nn.Parameter</code> 和
+<code>torch.empty</code>
+构建每个组件迫使你理解每一步的确切数据流、形状和数值考虑。例如：</p>
+<ul>
+<li><p><strong>RMSNorm 精度</strong>：如果不转换为
+float32，均方根计算可能在 float16/bfloat16 中溢出，导致 NaN
+损失。这是一个微妙的错误，在 float32 的单元测试中无法捕获。</p></li>
+<li><p><strong>权重初始化</strong>：截断正态初始化对训练稳定性有显著影响。过宽
+→ 梯度爆炸；过窄 → 梯度消失。公式 <span class="math inline">\(\sigma =
+\sqrt{2/(d_{in} + d_{out})}\)</span>（类似
+Glorot）保持各层之间的方差大致恒定。</p></li>
+<li><p><strong>因果掩码效率</strong>：将因果掩码预计算为缓冲区并在每次前向传递时切片，比每次都新建它要高效得多，尤其是对于长序列。</p></li>
+</ul>
+<p><strong>分词器训练是隐藏的瓶颈。</strong> 在大型语料库上进行 BPE
+训练需要仔细的内存管理：</p>
+<ul>
+<li>预分词可能生成数百万个唯一字节序列</li>
+<li>对频率表可能增长到数十 GB</li>
+<li>如果没有增量索引更新，每次合并迭代的复杂度将是 O(corpus_size)</li>
+<li>并行预分词提供了接近线性的加速，但 BPE 合并仍然是顺序的</li>
+</ul>
+<p><strong>超参数敏感性因组件而异。</strong>
+学习率对训练动态的影响最大，而架构选择（预归一化与后归一化）对小模型的影响可能出乎意料地小。这表明，对于快速实验，花时间调整学习率比架构变化更有价值。</p>
+<h3 id="设计决策">8.2 设计决策</h3>
+<ol type="1">
+<li><p><strong>共享 RoPE 模块</strong>：而不是每个注意力层创建自己的
+RoPE，而是所有层共享一个实例。这节省了内存并确保一致的位置编码。</p></li>
+<li><p><strong>通过构造函数参数支持消融</strong>：而不是为每个消融创建单独的模型类，<code>TransformerBlock</code>
+和 <code>TransformerLM</code>
+接受配置标志（<code>norm_type</code>、<code>use_post_norm</code>、<code>use_rope</code>、<code>ffn_type</code>）。这保持了代码库的
+DRY，同时支持所有实验变体。</p></li>
+<li><p><strong>内存映射数据加载</strong>：使用 <code>np.memmap</code>
+处理训练数据，避免将整个数据集加载到 RAM
+中。随机批量采样仅读取所需的切片，使得在比可用内存更大的数据集上进行训练成为可能。</p></li>
+<li><p><strong>并行分词器编码</strong>：<code>encode_parallel</code>
+方法在 <code>&lt;|endoftext|&gt;</code>
+边界处拆分文本，并行编码块，将中间结果保存到磁盘并合并。这支持恢复并避免在大型文本上出现
+OOM。</p></li>
+</ol>
+<h3 id="我会做的不同的事情">8.3 我会做的不同的事情</h3>
+<ul>
+<li><strong>学习率预热调整</strong>：我在所有实验中使用了固定的 500
+预热步骤。根据配置调整这个值（例如，与总步骤成比例）可能会改善结果。</li>
+<li><strong>梯度累积</strong>：对于 OWT 实验，实施梯度累积将允许在保持
+GPU 内存限制的情况下使用有效批量大小为 64+，每步为 8。</li>
+<li><strong>混合精度训练</strong>：使用 <code>torch.cuda.amp</code> 和
+bfloat16
+将减少内存使用并提高吞吐量，可能使更大的批量大小或更多步骤成为可能。</li>
+<li><strong>生成的 KV
+缓存</strong>：当前的生成实现为每个新标记重新计算所有注意力分数。KV
+缓存将存储过去的键值对，从而将生成成本从 O(n²) 降低到 O(n)。</li>
+</ul>
+<hr />
+<p><em>这篇博客文章记录了 CS336 作业 1（2025
+年春季）的实现。所有代码均在 PyTorch
+中从头编写，实验在匹兹堡超级计算中心（PSC）的 NVIDIA H100 GPU
+上运行。</em></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh/2026/02/09/CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch/">https://xloverflow.github.io/zh/2026/02/09/CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://xloverflow.github.io/zh" target="_blank">Life is not a race, but a journey</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/zh/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/zh/tags/AI/">AI</a><a class="post-meta__tags" href="/zh/tags/Transformer/">Transformer</a><a class="post-meta__tags" href="/zh/tags/Assignment/">Assignment</a><a class="post-meta__tags" href="/zh/tags/LLM/">LLM</a><a class="post-meta__tags" href="/zh/tags/CS336/">CS336</a><a class="post-meta__tags" href="/zh/tags/Stanford/">Stanford</a><a class="post-meta__tags" href="/zh/tags/PyTorch/">PyTorch</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/zh/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 机器学习系统：Transformer、注意力机制与优化"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">15642 机器学习系统：Transformer、注意力机制与优化</div></div><div class="info-2"><div class="info-item-1">CMU 15-642 机器学习系统课程笔记：Transformer架构、注意力机制以及包括FlashAttention在内的GPU优化技术。</div></div></div></a><a class="pagination-related" href="/zh/2026/02/07/15645-Database-Systems/15645-Database-systems-Hash-Tables/" title="15645 Database systems: Hash Tables"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">15645 Database systems: Hash Tables</div></div><div class="info-2"><div class="info-item-1">CMU 15-645 数据库系统的笔记和总结。</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/zh/2025/12/15/CS336/CS336-Lec2-PyTorch-Resource-accounting/" title="CS336-Lec2 PyTorch &amp; Resource accounting"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-12-14</div><div class="info-item-2">CS336-Lec2 PyTorch &amp; Resource accounting</div></div><div class="info-2"><div class="info-item-1">本节主要围绕模型训练背后的“算力黑盒”展开，从微观的浮点数格式讲起，深入到FLOPs的计算公式，剖析了现代硬件的特性，最后给出从数学原理到PyTorch代码实现的完整优化指南”</div></div></div></a><a class="pagination-related" href="/zh/2025/12/16/CS336/CS336-Lec3-Architectures-Hyperparameters/" title="CS336-Lec3 Architectures &amp; Hyperparameters"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-12-16</div><div class="info-item-2">CS336-Lec3 Architectures &amp; Hyperparameters</div></div><div class="info-2"><div class="info-item-1">本文总结了CS336课程第三讲的内容，重点介绍了Transformer架构的演变及其超参数选择，包括归一化方法、激活函数、位置编码等方面的最新进展。</div></div></div></a><a class="pagination-related" href="/zh/2025/12/17/CS336/CS336-Lec4-Mixture-of-Experts/" title="CS336-Lec4 Mixture of Experts"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-12-17</div><div class="info-item-2">CS336-Lec4 Mixture of Experts</div></div><div class="info-2"><div class="info-item-1">本文总结了CS336课程第四讲的内容，重点介绍了Mixture of Experts模型的原理、实现方法及其在Transformer架构中的应用，包括专家选择机制、路由策略和训练技巧等方面的最新进展。</div></div></div></a><a class="pagination-related" href="/zh/2025/12/14/CS336/CS336-Lec1-Tokenization/" title="CS336-Lec1 Tokenization"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-12-14</div><div class="info-item-2">CS336-Lec1 Tokenization</div></div><div class="info-2"><div class="info-item-1">Lec1主要介绍了Tokenization的基本概念和几种常见的Tokenizer方法，包括Character Tokenizer、Byte Tokenizer、Word Tokenizer和BPE Tokenizer，分析了它们的优缺点及适用场景。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">关于CMU 11-711高级自然语言处理的RNN架构、编码器-解码器模型和注意力机制的笔记。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-22</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理的笔记和总结。</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li 的中文博客</div><div class="site-data"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">47</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">62</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">18</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#cs336-%E4%BD%9C%E4%B8%9A-1%E4%BB%8E%E5%A4%B4%E6%9E%84%E5%BB%BA-transformer-%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.</span> <span class="toc-text">CS336 作业
+1：从头构建 Transformer 语言模型</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A6%82%E8%BF%B0"><span class="toc-number">1.2.</span> <span class="toc-text">1. 概述</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84"><span class="toc-number">1.2.1.</span> <span class="toc-text">项目结构</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#bpe-%E5%88%86%E8%AF%8D%E5%99%A8"><span class="toc-number">1.3.</span> <span class="toc-text">2. BPE 分词器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#unicode-%E5%9F%BA%E7%A1%80"><span class="toc-number">1.3.1.</span> <span class="toc-text">2.1 Unicode 基础</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#bpe-%E8%AE%AD%E7%BB%83%E7%AE%97%E6%B3%95"><span class="toc-number">1.3.2.</span> <span class="toc-text">2.2 BPE 训练算法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B9%B6%E8%A1%8C%E5%8C%96%E7%AD%96%E7%95%A5"><span class="toc-number">1.3.3.</span> <span class="toc-text">2.3 并行化策略</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%86%E8%AF%8D%E5%99%A8%E5%AE%9E%E9%AA%8C"><span class="toc-number">1.3.4.</span> <span class="toc-text">2.4 分词器实验</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#transformer-%E6%9E%B6%E6%9E%84"><span class="toc-number">1.4.</span> <span class="toc-text">3. Transformer 架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BA%BF%E6%80%A7%E5%B1%82%E6%97%A0%E5%81%8F%E7%BD%AE"><span class="toc-number">1.4.1.</span> <span class="toc-text">3.1 线性层（无偏置）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%A4%E7%89%8C%E5%B5%8C%E5%85%A5"><span class="toc-number">1.4.2.</span> <span class="toc-text">3.2 令牌嵌入</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#rmsnorm"><span class="toc-number">1.4.3.</span> <span class="toc-text">3.3 RMSNorm</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%97%8B%E8%BD%AC%E4%BD%8D%E7%BD%AE%E5%B5%8C%E5%85%A5-rope"><span class="toc-number">1.4.4.</span> <span class="toc-text">3.4 旋转位置嵌入 (RoPE)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#softmax"><span class="toc-number">1.4.5.</span> <span class="toc-text">3.5 Softmax</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%A9%E6%94%BE%E7%82%B9%E7%A7%AF%E6%B3%A8%E6%84%8F%E5%8A%9B"><span class="toc-number">1.4.6.</span> <span class="toc-text">3.6 缩放点积注意力</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%9A%E5%A4%B4%E8%87%AA%E6%B3%A8%E6%84%8F%E5%8A%9B"><span class="toc-number">1.4.7.</span> <span class="toc-text">3.7 多头自注意力</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%89%8D%E9%A6%88%E7%BD%91%E7%BB%9C"><span class="toc-number">1.4.8.</span> <span class="toc-text">3.8 前馈网络</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#transformer-%E5%9D%97"><span class="toc-number">1.4.9.</span> <span class="toc-text">3.9 Transformer 块</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E7%9A%84-transformer-lm"><span class="toc-number">1.4.10.</span> <span class="toc-text">3.10 完整的 Transformer LM</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#transformer-%E8%AE%A1%E7%AE%97%E5%8F%82%E6%95%B0%E5%86%85%E5%AD%98flops-%E5%92%8C%E8%AE%AD%E7%BB%83%E6%97%B6%E9%97%B4"><span class="toc-number">1.4.11.</span> <span class="toc-text">3.11 Transformer
+计算：参数、内存、FLOPs 和训练时间</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8F%82%E6%95%B0%E8%AE%A1%E6%95%B0-p"><span class="toc-number">1.4.11.1.</span> <span class="toc-text">3.11.1 参数计数 \(P\)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%AE%AD%E7%BB%83%E5%86%85%E5%AD%98%E5%88%86%E6%9E%90"><span class="toc-number">1.4.11.2.</span> <span class="toc-text">3.11.2 训练内存分析</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#gpt-2-xl-%E5%85%B7%E4%BD%93%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.4.11.3.</span> <span class="toc-text">3.11.3 GPT-2 XL 具体示例</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E5%89%8D%E5%90%91%E4%BC%A0%E6%92%AD-2-%E5%8F%82%E6%95%B0-flops%E6%A0%87%E8%AE%B0"><span class="toc-number">1.4.11.4.</span> <span class="toc-text">3.11.4 为什么前向传播 ≈ 2 ×
+参数 FLOPs&#x2F;标记？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#flops-%E5%9C%A8%E6%A8%A1%E5%9E%8B%E5%A4%A7%E5%B0%8F%E4%B9%8B%E9%97%B4%E7%9A%84%E7%BB%86%E5%88%86"><span class="toc-number">1.4.11.5.</span> <span class="toc-text">3.11.5 FLOPs
+在模型大小之间的细分</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%8A%E4%B8%8B%E6%96%87%E9%95%BF%E5%BA%A6%E7%BC%A9%E6%94%BE%E4%B8%BA%E4%BB%80%E4%B9%88-flashattention-%E9%87%8D%E8%A6%81"><span class="toc-number">1.4.11.6.</span> <span class="toc-text">3.11.6
+上下文长度缩放：为什么 FlashAttention 重要</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8F%8D%E5%90%91%E4%BC%A0%E6%92%AD-2-%E5%89%8D%E5%90%91"><span class="toc-number">1.4.11.7.</span> <span class="toc-text">3.11.7 为什么反向传播 ≈ 2× 前向？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#adamw-%E6%AF%8F%E6%AD%A5-flops"><span class="toc-number">1.4.11.8.</span> <span class="toc-text">3.11.8 AdamW 每步 FLOPs</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#gpt-2-xl-%E8%AE%AD%E7%BB%83%E6%97%B6%E9%97%B4%E4%BC%B0%E8%AE%A1"><span class="toc-number">1.4.11.9.</span> <span class="toc-text">3.11.9 GPT-2 XL 训练时间估计</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%AD%E7%BB%83%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD"><span class="toc-number">1.5.</span> <span class="toc-text">4. 训练基础设施</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%A4%E5%8F%89%E7%86%B5%E6%8D%9F%E5%A4%B1"><span class="toc-number">1.5.1.</span> <span class="toc-text">4.1 交叉熵损失</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#adamw-%E4%BC%98%E5%8C%96%E5%99%A8"><span class="toc-number">1.5.2.</span> <span class="toc-text">4.2 AdamW 优化器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%99%E5%BC%A6%E5%AD%A6%E4%B9%A0%E7%8E%87%E8%B0%83%E5%BA%A6%E4%B8%8E%E9%A2%84%E7%83%AD"><span class="toc-number">1.5.3.</span> <span class="toc-text">4.3 余弦学习率调度与预热</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A2%AF%E5%BA%A6%E8%A3%81%E5%89%AA"><span class="toc-number">1.5.4.</span> <span class="toc-text">4.4 梯度裁剪</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%AD%E7%BB%83%E5%BE%AA%E7%8E%AF"><span class="toc-number">1.6.</span> <span class="toc-text">5. 训练循环</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%8A%A0%E8%BD%BD"><span class="toc-number">1.6.1.</span> <span class="toc-text">5.1 数据加载</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A3%80%E6%9F%A5%E7%82%B9"><span class="toc-number">1.6.2.</span> <span class="toc-text">5.2 检查点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%AD%E7%BB%83%E9%85%8D%E7%BD%AE"><span class="toc-number">1.6.3.</span> <span class="toc-text">5.3 训练配置</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%87%E6%9C%AC%E7%94%9F%E6%88%90"><span class="toc-number">1.7.</span> <span class="toc-text">6. 文本生成</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%87%AA%E5%9B%9E%E5%BD%92%E7%94%9F%E6%88%90"><span class="toc-number">1.7.1.</span> <span class="toc-text">6.1 自回归生成</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%9F%E6%88%90%E6%A0%B7%E6%9C%AC"><span class="toc-number">1.7.2.</span> <span class="toc-text">6.2 生成样本</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C"><span class="toc-number">1.8.</span> <span class="toc-text">7. 实验</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%A6%E4%B9%A0%E7%8E%87%E6%89%AB%E6%8F%8F"><span class="toc-number">1.8.1.</span> <span class="toc-text">7.1 学习率扫描</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%B9%E9%87%8F%E5%A4%A7%E5%B0%8F%E5%AE%9E%E9%AA%8C"><span class="toc-number">1.8.2.</span> <span class="toc-text">7.2 批量大小实验</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B6%88%E8%9E%8D%E7%A0%94%E7%A9%B6"><span class="toc-number">1.8.3.</span> <span class="toc-text">7.3 消融研究</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#openwebtext-owt-%E8%AE%AD%E7%BB%83"><span class="toc-number">1.8.4.</span> <span class="toc-text">7.4 OpenWebText (OWT) 训练</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%8D%E6%80%9D"><span class="toc-number">1.9.</span> <span class="toc-text">8. 反思</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%88%91%E5%AD%A6%E5%88%B0%E4%BA%86%E4%BB%80%E4%B9%88"><span class="toc-number">1.9.1.</span> <span class="toc-text">8.1 我学到了什么</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BE%E8%AE%A1%E5%86%B3%E7%AD%96"><span class="toc-number">1.9.2.</span> <span class="toc-text">8.2 设计决策</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%88%91%E4%BC%9A%E5%81%9A%E7%9A%84%E4%B8%8D%E5%90%8C%E7%9A%84%E4%BA%8B%E6%83%85"><span class="toc-number">1.9.3.</span> <span class="toc-text">8.3 我会做的不同的事情</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11711 Advanced NLP: Retrieval and RAG"/></a><div class="content"><a class="title" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG">11711 Advanced NLP: Retrieval and RAG</a><time datetime="2026-02-14T22:08:21.000Z" title="发表于 2026-02-14 17:08:21">2026-02-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM系统：解码"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11868 LLM系统：解码"/></a><div class="content"><a class="title" href="/zh/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM系统：解码">11868 LLM系统：解码</a><time datetime="2026-02-13T01:00:00.000Z" title="发表于 2026-02-12 20:00:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11868 LLM Sys: Tokenization and Embedding"/></a><div class="content"><a class="title" href="/zh/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding">11868 LLM Sys: Tokenization and Embedding</a><time datetime="2026-02-12T20:30:00.000Z" title="发表于 2026-02-12 15:30:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 机器学习系统：Transformer、注意力机制与优化"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="15642 机器学习系统：Transformer、注意力机制与优化"/></a><div class="content"><a class="title" href="/zh/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 机器学习系统：Transformer、注意力机制与优化">15642 机器学习系统：Transformer、注意力机制与优化</a><time datetime="2026-02-09T19:30:00.000Z" title="发表于 2026-02-09 14:30:00">2026-02-09</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/09/CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch/" title="CS336 Assignment 1: Building a Transformer Language Model from Scratch"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="CS336 Assignment 1: Building a Transformer Language Model from Scratch"/></a><div class="content"><a class="title" href="/zh/2026/02/09/CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch/" title="CS336 Assignment 1: Building a Transformer Language Model from Scratch">CS336 Assignment 1: Building a Transformer Language Model from Scratch</a><time datetime="2026-02-09T04:05:02.000Z" title="发表于 2026-02-08 23:05:02">2026-02-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/zh/js/utils.js"></script><script src="/zh/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '9737784c2317d5ed4ac69e3fb385b0ad'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/zh/404.html') : window.location.href = '/zh/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

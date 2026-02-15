@@ -1,0 +1,543 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Stream Library and Input/Output | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Focus on streams and input&#x2F;output">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Stream Library and Input&#x2F;Output">
+<meta property="og:url" content="https://xloverflow.github.io/2022/08/04/CPP/Stream%20Library%20and%20Input&Output/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Focus on streams and input&#x2F;output">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pic2.zhimg.com/80/v2-19acd9758c049d0f5b91788ed9dc37c7_1440w.jpeg">
+<meta property="article:published_time" content="2022-08-04T18:32:13.000Z">
+<meta property="article:modified_time" content="2026-02-15T05:04:17.011Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="C++ Language">
+<meta property="article:tag" content="C++ Programming">
+<meta property="article:tag" content="Study Notes">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pic2.zhimg.com/80/v2-19acd9758c049d0f5b91788ed9dc37c7_1440w.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Stream Library and Input/Output",
+  "url": "https://xloverflow.github.io/2022/08/04/CPP/Stream%20Library%20and%20Input&Output/",
+  "image": "https://pic2.zhimg.com/80/v2-19acd9758c049d0f5b91788ed9dc37c7_1440w.jpeg",
+  "datePublished": "2022-08-04T18:32:13.000Z",
+  "dateModified": "2026-02-15T05:04:17.011Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2022/08/04/CPP/Stream%20Library%20and%20Input&amp;Output/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Stream Library and Input/Output',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://pic2.zhimg.com/80/v2-19acd9758c049d0f5b91788ed9dc37c7_1440w.jpeg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">Stream Library and Input/Output</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Stream Library and Input/Output</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2022-08-04T18:32:13.000Z" title="Created 2022-08-04 14:32:13">2022-08-04</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-02-15T05:04:17.011Z" title="Updated 2026-02-15 00:04:17">2026-02-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/C-C-Programming/">C/C++ Programming</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="io-stream-concepts-and-stream-library-structure">I/O Stream
+Concepts and Stream Library Structure</h1>
+<p>A program creates a <strong>stream object</strong>: * When a program
+exchanges information with the external environment, there are two
+objects: one is the <strong>object in the program</strong>, and the
+other is the <strong>file object</strong>. * A stream is an abstraction
+that is responsible for establishing connections between <strong>data
+producers</strong> and <strong>data consumers</strong> and managing data
+flow.</p>
+<p>Specify that this stream object establishes a connection with a
+certain file object. The program operates the stream object, and the
+object acts on the connected file object through the file system.</p>
+<blockquote>
+<p>Operating systems treat keyboards, screens, printers, and
+communication ports as extended files, and this processing is
+implemented through the operating system’s device drivers. These devices
+are equivalent to disk files.</p>
+</blockquote>
+<p>Read operations in the general sense are called
+<strong>extraction</strong> (from the stream) in stream data objects,
+and write operations are called <strong>insertion</strong> (into the
+stream).</p>
+<p style="text-align:center;">
+I/O Stream Class List
+</p>
+<p><img
+src="https://pic3.zhimg.com/80/v2-4544fd2b14037c1638862690c745edc2_1440w.png" /></p>
+<h1 id="output-streams">Output Streams</h1>
+<p>The three most important output streams: * ostream * ofstream *
+ostringstream</p>
+<p>Predefined output stream objects: * cout standard output * cerr
+standard error output, no buffering, content sent to it is immediately
+output. * clog similar to cerr, but with buffering, output when buffer
+is full.</p>
+<h2 id="constructing-output-stream-objects">Constructing Output Stream
+Objects</h2>
+<p>Common methods for constructing file output streams: 1. Use default
+constructor, then call open member function. <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ofstream myFile; <span class="comment">//Define a static file output stream object</span></span><br><span class="line">myFile.<span class="built_in">open</span>(<span class="string">&quot;filename&quot;</span>); <span class="comment">//Open file, establish connection between stream object and file</span></span><br></pre></td></tr></table></figure> 2. Specify
+filename when calling constructor: <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">ofstream <span class="title">myFile</span><span class="params">(<span class="string">&quot;filename&quot;</span>)</span></span>;</span><br></pre></td></tr></table></figure> 3. Can specify mode
+when constructing object or opening file with open <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">ofstream <span class="title">myFile</span><span class="params">(<span class="string">&quot;filename&quot;</span>, ios_base::out | ios_base::binary)</span></span>;</span><br></pre></td></tr></table></figure> 4. Can
+also use the same stream object to open different files sequentially
+(only one is open at a time)</p>
+<h2 id="file-output-stream-member-functions">File Output Stream Member
+Functions</h2>
+<p>Three types: * Member functions equivalent to manipulators. * Member
+functions that perform unformatted write operations. * Other member
+functions that modify stream state and are different from manipulators
+or insertion operators.</p>
+<p>File output stream member functions * open function * Associates the
+stream with a specific disk file. * Need to specify opening mode. * put
+function * Writes a character to the output stream. * write function *
+Writes a block of content from memory to a file output stream * seekp
+and tellp functions * Operate the internal pointer of the file stream *
+close function * Closes the disk file associated with a file output
+stream * Error handling functions * Error handling when writing to a
+stream</p>
+<h2 id="output-to-text-files">Output to Text Files</h2>
+<p>Standard output device display is treated as a text file by the
+system, so we use output to standard device as an example to introduce
+text file output format control.</p>
+<h3 id="insertion-operator">Insertion Operator</h3>
+<p>Insertion (&lt;&lt;) operator: Pre-designed for all standard C++ data
+types, used to transfer bytes to an output stream object.</p>
+<h3 id="manipulators">Manipulators</h3>
+<p>Insertion operators work with manipulators to control output format.
+* Many manipulators are defined in the ios_base class (such as hex())
+and &lt;iomanip&gt; header file (such as setprecision()). * Control
+output width: Place setw manipulator in the stream or call width member
+function to specify output width for each item. &gt;setw and width only
+affect the immediately following output item, but other stream format
+manipulators remain effective until changed. * dec, oct and hex
+manipulators set the default base for input and output</p>
+<h4 id="setting-width">Setting Width</h4>
+<p><a
+target="_blank" rel="noopener" href="https://github.com/hustlixiang21/cpp-practice/blob/main/%E4%BD%BF%E7%94%A8width%E6%8E%A7%E5%88%B6%E8%BE%93%E5%87%BA%E5%AE%BD%E5%BA%A6/main.cpp">width
+source code</a> <a
+target="_blank" rel="noopener" href="https://github.com/hustlixiang21/cpp-practice/blob/main/%E4%BD%BF%E7%94%A8setw%E6%93%8D%E7%BA%B5%E7%AC%A6%E6%8C%87%E5%AE%9A%E5%AE%BD%E5%BA%A6/main.cpp">setw
+source code</a></p>
+<blockquote>
+<p>width member function is declared in iostream. If using setw or any
+other manipulator with parameters, must include
+<strong>iomanip</strong></p>
+</blockquote>
+<h4 id="alignment">Alignment</h4>
+<p><a
+target="_blank" rel="noopener" href="https://github.com/hustlixiang21/cpp-practice/blob/main/%E8%AE%BE%E7%BD%AE%E5%AF%B9%E9%BD%90%E6%96%B9%E5%BC%8F/main.cpp">Set
+alignment source code</a></p>
+<h4 id="setiosflags-manipulator">setiosflags Manipulator</h4>
+<p>In this program, left alignment is set by using the setiosflags
+manipulator with parameters. setiosflags is defined in the iomanip
+header file. * Parameter ios_base::left is a static constant of
+ios_base, so the ios_base:: prefix must be included when referencing. *
+Here we need to use the resetiosflags manipulator to <strong>turn off
+the left alignment flag</strong>. setiosflags is different from width
+and setw, its <strong>effect is persistent</strong> until resetiosflags
+is used to restore the default value. * The parameter of setiosflags is
+the format flag value of the stream, which can be
+<strong>combined</strong> using the bitwise OR (|) operator.</p>
+<p><img
+src="https://pic4.zhimg.com/80/v2-aebc935a529984f183707440dd181431_1440w.png" /></p>
+<h4 id="precision">Precision</h4>
+<p>The default value for floating-point output precision is 6, for
+example: 3466.98. * To change precision: setprecision manipulator
+(defined in iomanip header file) * If fixed or scientific is not
+specified, the precision value represents the number of significant
+digits. * If ios_base::fixed or ios_base::scientific is set, the
+precision value represents the number of digits after the decimal
+point.</p>
+<p><a
+target="_blank" rel="noopener" href="https://github.com/hustlixiang21/cpp-practice/blob/main/%E6%8E%A7%E5%88%B6%E8%BE%93%E5%87%BA%E7%B2%BE%E5%BA%A6/main.cpp">Control
+output precision - without specifying fixed or scientific</a> <a
+target="_blank" rel="noopener" href="https://github.com/hustlixiang21/cpp-practice/blob/main/%E6%8E%A7%E5%88%B6%E8%BE%93%E5%87%BA%E7%B2%BE%E5%BA%A6%E2%80%94%E6%8C%87%E5%AE%9Afixed/main.cpp">Control
+output precision - specifying fixed</a> <a
+target="_blank" rel="noopener" href="https://github.com/hustlixiang21/cpp-practice/tree/main/%E6%8E%A7%E5%88%B6%E8%BE%93%E5%87%BA%E7%B2%BE%E5%BA%A6%E2%80%94%E6%8C%87%E5%AE%9Ascientific">Control
+output precision - specifying scientific</a></p>
+<h2 id="output-to-binary-files">Output to Binary Files</h2>
+<h3 id="binary-file-stream">Binary File Stream</h3>
+<p>Use the mode parameter in the ofstream constructor to specify binary
+output mode; construct a stream in the usual way, then use the setmode
+member function to change the mode after the file is opened; complete
+output through the binary file output stream object.</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;fstream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Date</span> &#123; </span><br><span class="line"><span class="type">int</span> mon, day, year; </span><br><span class="line">&#125;;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	Date dt = &#123; <span class="number">6</span>, <span class="number">10</span>, <span class="number">92</span> &#125;;</span><br><span class="line">	<span class="function">ofstream <span class="title">file</span><span class="params">(<span class="string">&quot;date.dat&quot;</span>, ios_base::binary)</span></span>;</span><br><span class="line">	file.<span class="built_in">write</span>(<span class="built_in">reinterpret_cast</span>&lt;<span class="type">char</span> *&gt;(&amp;dt),<span class="built_in">sizeof</span>(dt));</span><br><span class="line">	file.<span class="built_in">close</span>();</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>The write function does not stop when encountering null characters,
+so it can write complete class structures. This function takes two
+parameters: a char pointer (actual address) and the number of bytes to
+write. <strong>Note that reinterpret_cast is needed to explicitly
+convert the object’s address to char * type.</strong></p>
+</blockquote>
+<h2 id="output-to-strings">Output to Strings</h2>
+<p>Using strings as the target of output streams can achieve the
+function of converting other data types to strings.</p>
+<h3 id="string-output-stream-ostringstream">String Output Stream
+(ostringstream)</h3>
+<p>Used to construct strings</p>
+<p>Functions: * Supports all operations of ofstream class except open
+and close * str function can return the currently constructed string</p>
+<p>Typical applications * Convert numerical values to strings</p>
+<p><a
+target="_blank" rel="noopener" href="https://github.com/hustlixiang21/cpp-practice/blob/main/%E6%95%B0%E5%80%BC%E8%BD%AC%E5%8C%96%E6%88%90%E5%AD%97%E7%AC%A6%E4%B8%B2/main.cpp">Using
+ostringstream to convert numerical values to strings</a></p>
+<h1 id="input-streams">Input Streams</h1>
+<p>Important input stream classes: * istream class is most suitable for
+sequential text mode input. cin is its instance. * ifstream class
+supports disk file input. * istringstream</p>
+<h2 id="constructing-input-stream-objects">Constructing Input Stream
+Objects</h2>
+<ul>
+<li>If a filename is specified in the constructor, the file is
+automatically opened when constructing the object. <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">ifstream <span class="title">myFile</span><span class="params">(<span class="string">&quot;filename&quot;</span>)</span></span>;</span><br></pre></td></tr></table></figure></li>
+<li>Use the open function to open the file after calling the default
+constructor. <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ifstream myFile;<span class="comment">//Create a file stream object</span></span><br><span class="line">myFile.<span class="built_in">open</span>(<span class="string">&quot;filename&quot;</span>); <span class="comment">//Open file &quot;filename&quot;</span></span><br></pre></td></tr></table></figure></li>
+<li>Can specify mode when opening file <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">ifstream <span class="title">myFile</span><span class="params">(<span class="string">&quot;filename&quot;</span>, ios_base::in | ios_base::binary)</span></span>;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h2 id="using-extraction-operator-for-input-from-text-files">Using
+Extraction Operator for Input from Text Files</h2>
+<p>Extraction operator (&gt;&gt;) is pre-designed for all standard C++
+data types. It is the easiest way to get bytes from an input stream
+object. Many manipulators in the ios class can be applied to input
+streams. But only a few have actual impact on input stream objects, the
+most important being the base manipulators dec, oct and hex.</p>
+<h2 id="input-stream-related-functions">Input Stream Related
+Functions</h2>
+<ul>
+<li>open function associates the stream with a specific disk file.</li>
+<li>get function is very similar to the extraction operator (&gt;&gt;),
+the main difference is that get function includes whitespace characters
+when reading data. (Introduced in Chapter 6)</li>
+<li>getline function reads multiple characters from the input stream and
+allows specifying input termination characters. After reading is
+complete, the termination character is removed from the read content.
+(Introduced in Chapter 6)</li>
+<li>read member function reads bytes from a file to a specified memory
+area, with the length parameter determining the number of bytes to read.
+Reading ends when encountering end of file or end of file marker
+character in text mode files.</li>
+<li>seekg function is used to set the pointer for reading data position
+in file input stream.</li>
+<li>tellg function returns the current position of the file read
+pointer.</li>
+<li>close function closes the disk file associated with a file input
+stream.</li>
+</ul>
+<h2 id="examples">Examples</h2>
+<p><a
+target="_blank" rel="noopener" href="https://github.com/hustlixiang21/cpp-practice/blob/main/%E4%BB%8E%E6%96%87%E4%BB%B6%E8%AF%BB%E4%B8%80%E4%B8%AA%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%AE%B0%E5%BD%95%E5%88%B0%E4%B8%80%E4%B8%AA%E7%BB%93%E6%9E%84%E4%B8%AD/main.cpp">Read
+a binary record from file to a structure</a> <a
+target="_blank" rel="noopener" href="https://github.com/hustlixiang21/cpp-practice/blob/main/%E7%94%A8seekg%E5%87%BD%E6%95%B0%E8%AE%BE%E7%BD%AE%E4%BD%8D%E7%BD%AE%E6%8C%87%E9%92%88/main.cpp">Use
+seekg function to set position pointer</a> <a
+target="_blank" rel="noopener" href="https://github.com/hustlixiang21/cpp-practice/blob/main/%E8%AF%BB%E4%B8%80%E4%B8%AA%E6%96%87%E4%BB%B6%E5%B9%B6%E6%98%BE%E7%A4%BA%E5%87%BA%E5%85%B6%E4%B8%AD0%E5%85%83%E7%B4%A0%E7%9A%84%E4%BD%8D%E7%BD%AE/main.cpp">Read
+a file and display positions of 0 elements in it</a></p>
+<h2 id="input-from-strings-istringstream">Input from Strings
+(istringstream)</h2>
+<p>Used to read data from strings, set the string to read in the
+constructor.</p>
+<p>Functions * Supports all operations of ifstream class except open and
+close</p>
+<p>Typical applications * Convert strings to numerical values</p>
+<h1 id="inputoutput-streams">Input/Output Streams</h1>
+<h2 id="two-important-inputoutput-streams">Two Important Input/Output
+Streams</h2>
+<p>An iostream object can be a source or destination of data. * Two
+important I/O stream classes are derived from iostream: fstream and
+stringstream * These classes inherit the functionality of the istream
+and ostream classes described earlier.</p>
+<h2 id="fstream-class">fstream Class</h2>
+<p>fstream class supports disk file input and output. * If you need to
+read from and write to a specific disk file in the same program, you can
+construct an fstream object. * An fstream object is a single stream with
+two logical sub-streams, one for input and the other for output.</p>
+<h2 id="stringstream-class">stringstream Class</h2>
+<p>stringstream class supports string-oriented input and output * Can be
+used for alternating read and write operations on the same string
+content, also composed of two logical sub-streams.</p>
+<h1
+id="comprehensive-example---personal-bank-account-management">Comprehensive
+Example - Personal Bank Account Management</h1>
+<p><a
+target="_blank" rel="noopener" href="https://github.com/hustlixiang21/cpp-practice/tree/main/Personal_bank_management_update5">Click
+to view source code</a></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2022/08/04/CPP/Stream%20Library%20and%20Input&amp;Output/">https://xloverflow.github.io/2022/08/04/CPP/Stream%20Library%20and%20Input&amp;Output/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/tags/C-Programming/">C++ Programming</a><a class="post-meta__tags" href="/tags/C-Language/">C++ Language</a></div><div class="post-share"><div class="social-share" data-image="https://pic2.zhimg.com/80/v2-19acd9758c049d0f5b91788ed9dc37c7_1440w.jpeg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2022/08/04/Personal/%E5%A4%A7%E4%B8%80%E5%AD%A6%E5%B9%B4%E6%80%BB%E7%BB%93/" title="大一学年总结"><img class="cover" src="https://pic2.zhimg.com/80/v2-4d380ad206fdba720bbf2bc330d23f6c_1440w.jpeg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">大一学年总结</div></div><div class="info-2"><div class="info-item-1">I am a slow walker，but I never walk backwards.</div></div></div></a><a class="pagination-related" href="/2022/08/04/CPP/Generic%20Programming%20and%20C++%20Standard%20Template%20Library%20(STL)/" title="Generic Programming and C++ Standard Template Library (STL)"><img class="cover" src="https://pic1.zhimg.com/80/v2-b3235667ca289c4b127e5448bed79144_1440w.jpeg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">Generic Programming and C++ Standard Template Library (STL)</div></div><div class="info-2"><div class="info-item-1">Introduction to C++ Standard Template Library (STL)</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2022/07/23/CPP/C++%20Arrays,%20Pointers%20and%20Strings/" title="C++ Arrays, Pointers and Strings"><img class="cover" src="https://pica.zhimg.com/80/v2-bb5f6ef138cca79e736aa26bb4bdc2e4_1440w.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-23</div><div class="info-item-2">C++ Arrays, Pointers and Strings</div></div><div class="info-2"><div class="info-item-1">Notes on C++ arrays, pointers, and strings. Some content may be abbreviated due to prior C language knowledge.</div></div></div></a><a class="pagination-related" href="/2022/07/20/CPP/C++%20Classes%20and%20Objects/" title="C++ Classes and Objects"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/larm-rmah-1cvEeuJKYto-unsplash.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-20</div><div class="info-item-2">C++ Classes and Objects</div></div><div class="info-2"><div class="info-item-1">Notes on C++ classes and objects</div></div></div></a><a class="pagination-related" href="/2022/07/21/CPP/C++%20Data%20Sharing%20and%20Protection/" title="C++ Data Sharing and Protection"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/romain-briaux-P-O6B62iWgA-unsplash.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-21</div><div class="info-item-2">C++ Data Sharing and Protection</div></div><div class="info-2"><div class="info-item-1">Notes on data sharing and protection in C++ learning</div></div></div></a><a class="pagination-related" href="/2022/07/20/CPP/C++%20Functions/" title="C++ Functions"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/jason-blackeye-GPPAjJicemU-unsplash.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-20</div><div class="info-item-2">C++ Functions</div></div><div class="info-2"><div class="info-item-1">Notes on C++ Functions chapter</div></div></div></a><a class="pagination-related" href="/2022/08/04/CPP/Generic%20Programming%20and%20C++%20Standard%20Template%20Library%20(STL)/" title="Generic Programming and C++ Standard Template Library (STL)"><img class="cover" src="https://pic1.zhimg.com/80/v2-b3235667ca289c4b127e5448bed79144_1440w.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-04</div><div class="info-item-2">Generic Programming and C++ Standard Template Library (STL)</div></div><div class="info-2"><div class="info-item-1">Introduction to C++ Standard Template Library (STL)</div></div></div></a><a class="pagination-related" href="/2022/07/31/CPP/CPP%20Inheritance%20and%20Derivation/" title="CPP Inheritance and Derivation"><img class="cover" src="https://picx.zhimg.com/80/v2-198d4af1c9c6939cf37223aae9e7102f_1440w.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-31</div><div class="info-item-2">CPP Inheritance and Derivation</div></div><div class="info-2"><div class="info-item-1">This note mainly records related concepts and code examples in CPP inheritance and derivation.</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#io-stream-concepts-and-stream-library-structure"><span class="toc-number">1.</span> <span class="toc-text">I&#x2F;O Stream
+Concepts and Stream Library Structure</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#output-streams"><span class="toc-number">2.</span> <span class="toc-text">Output Streams</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#constructing-output-stream-objects"><span class="toc-number">2.1.</span> <span class="toc-text">Constructing Output Stream
+Objects</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#file-output-stream-member-functions"><span class="toc-number">2.2.</span> <span class="toc-text">File Output Stream Member
+Functions</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#output-to-text-files"><span class="toc-number">2.3.</span> <span class="toc-text">Output to Text Files</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#insertion-operator"><span class="toc-number">2.3.1.</span> <span class="toc-text">Insertion Operator</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#manipulators"><span class="toc-number">2.3.2.</span> <span class="toc-text">Manipulators</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#setting-width"><span class="toc-number">2.3.2.1.</span> <span class="toc-text">Setting Width</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#alignment"><span class="toc-number">2.3.2.2.</span> <span class="toc-text">Alignment</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#setiosflags-manipulator"><span class="toc-number">2.3.2.3.</span> <span class="toc-text">setiosflags Manipulator</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#precision"><span class="toc-number">2.3.2.4.</span> <span class="toc-text">Precision</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#output-to-binary-files"><span class="toc-number">2.4.</span> <span class="toc-text">Output to Binary Files</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#binary-file-stream"><span class="toc-number">2.4.1.</span> <span class="toc-text">Binary File Stream</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#output-to-strings"><span class="toc-number">2.5.</span> <span class="toc-text">Output to Strings</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#string-output-stream-ostringstream"><span class="toc-number">2.5.1.</span> <span class="toc-text">String Output Stream
+(ostringstream)</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#input-streams"><span class="toc-number">3.</span> <span class="toc-text">Input Streams</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#constructing-input-stream-objects"><span class="toc-number">3.1.</span> <span class="toc-text">Constructing Input Stream
+Objects</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#using-extraction-operator-for-input-from-text-files"><span class="toc-number">3.2.</span> <span class="toc-text">Using
+Extraction Operator for Input from Text Files</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#input-stream-related-functions"><span class="toc-number">3.3.</span> <span class="toc-text">Input Stream Related
+Functions</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#examples"><span class="toc-number">3.4.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#input-from-strings-istringstream"><span class="toc-number">3.5.</span> <span class="toc-text">Input from Strings
+(istringstream)</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#inputoutput-streams"><span class="toc-number">4.</span> <span class="toc-text">Input&#x2F;Output Streams</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#two-important-inputoutput-streams"><span class="toc-number">4.1.</span> <span class="toc-text">Two Important Input&#x2F;Output
+Streams</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#fstream-class"><span class="toc-number">4.2.</span> <span class="toc-text">fstream Class</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#stringstream-class"><span class="toc-number">4.3.</span> <span class="toc-text">stringstream Class</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#comprehensive-example---personal-bank-account-management"><span class="toc-number">5.</span> <span class="toc-text">Comprehensive
+Example - Personal Bank Account Management</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Retrieval and RAG"/></a><div class="content"><a class="title" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG">11711 Advanced NLP: Retrieval and RAG</a><time datetime="2026-02-14T22:08:21.000Z" title="Created 2026-02-14 17:08:21">2026-02-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Distributed Training and Parallelization"/></a><div class="content"><a class="title" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization">15642 Machine Learning Systems: Distributed Training and Parallelization</a><time datetime="2026-02-13T21:00:00.000Z" title="Created 2026-02-13 16:00:00">2026-02-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Decoding"/></a><div class="content"><a class="title" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding">11868 LLM Sys: Decoding</a><time datetime="2026-02-13T01:00:00.000Z" title="Created 2026-02-12 20:00:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Tokenization and Embedding"/></a><div class="content"><a class="title" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding">11868 LLM Sys: Tokenization and Embedding</a><time datetime="2026-02-12T20:30:00.000Z" title="Created 2026-02-12 15:30:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"/></a><div class="content"><a class="title" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations">15642 Machine Learning Systems: Transformer, Attention, and Optimizations</a><time datetime="2026-02-09T19:30:00.000Z" title="Created 2026-02-09 14:30:00">2026-02-09</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '8a9d8c0390fc21737f6341c1c95b8db1'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

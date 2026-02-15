@@ -1,0 +1,577 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Polymorphism | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="C++ Polymorphism">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Polymorphism">
+<meta property="og:url" content="https://xloverflow.github.io/2022/07/31/CPP/Polymorphism/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="C++ Polymorphism">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-aa2b0445c8d4db32c0e021608da2a7fc_1440w.jpeg">
+<meta property="article:published_time" content="2022-07-31T19:33:50.000Z">
+<meta property="article:modified_time" content="2026-02-15T05:04:17.011Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="C++ Language">
+<meta property="article:tag" content="C++ Programming">
+<meta property="article:tag" content="Study Notes">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pic1.zhimg.com/80/v2-aa2b0445c8d4db32c0e021608da2a7fc_1440w.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Polymorphism",
+  "url": "https://xloverflow.github.io/2022/07/31/CPP/Polymorphism/",
+  "image": "https://pic1.zhimg.com/80/v2-aa2b0445c8d4db32c0e021608da2a7fc_1440w.jpeg",
+  "datePublished": "2022-07-31T19:33:50.000Z",
+  "dateModified": "2026-02-15T05:04:17.011Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2022/07/31/CPP/Polymorphism/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Polymorphism',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://pic1.zhimg.com/80/v2-aa2b0445c8d4db32c0e021608da2a7fc_1440w.jpeg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">Polymorphism</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Polymorphism</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2022-07-31T19:33:50.000Z" title="Created 2022-07-31 15:33:50">2022-07-31</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-02-15T05:04:17.011Z" title="Updated 2026-02-15 00:04:17">2026-02-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/C-C-Programming/">C/C++ Programming</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="polymorphism-overview">Polymorphism Overview</h1>
+<p>Polymorphism refers to different behaviors when the same message is
+received by different types of objects. A message refers to
+<strong>calls to class member functions</strong>, and different
+behaviors refer to different implementations, which is <strong>calling
+different functions</strong>.</p>
+<p>The simplest example is the <strong>“+”</strong> operator, which can
+implement addition between integers, floating-point numbers, and
+double-precision floating-point numbers, including mixed-type addition.
+The same “+” message, when received by different types of objects, uses
+different methods for addition operations. This is polymorphism.</p>
+<h2 id="types-of-polymorphism">Types of Polymorphism</h2>
+<p>Object-oriented polymorphism can be divided into four categories:</p>
+<ul>
+<li>Overloading Polymorphism</li>
+<li>Coercion Polymorphism</li>
+<li>Inclusion Polymorphism</li>
+<li>Parametric Polymorphism</li>
+</ul>
+<p>The first two are called <strong>ad-hoc polymorphism</strong>, and
+the latter two are called <strong>universal polymorphism</strong>.</p>
+<ol type="1">
+<li>Overloading polymorphism refers to the overloading of ordinary
+functions and class member functions learned before, and of course
+includes <strong>operator overloading</strong>.</li>
+<li>Coercion polymorphism, simply put, is when <strong>+</strong>
+involves mixed types, it will perform type coercion, which is an
+instance of coercion polymorphism.</li>
+<li>Inclusion polymorphism mainly refers to the polymorphic behavior of
+member functions with the same name defined in different classes in a
+class hierarchy, implemented through <strong>virtual
+functions</strong>.</li>
+<li>Parametric polymorphism is associated with class templates and must
+be given actual types when used to be instantiated.</li>
+</ol>
+<p>This article will introduce operator overloading and virtual
+functions.</p>
+<h2 id="implementation-of-polymorphism">Implementation of
+Polymorphism</h2>
+<p>Polymorphism can be divided into two categories from an
+implementation perspective: <strong>compile-time polymorphism and
+runtime polymorphism</strong>. The former, as the name suggests,
+determines the specific operation object of the same-named operation
+during compilation. This process of determining the specific object of
+an operation is called <strong>binding</strong>.</p>
+<p>Binding refers to the process of associating computer programs with
+each other, the process of <strong>connecting an identifier with a
+storage address</strong>. In object-oriented terms, it is the process of
+combining a message with an object’s method.</p>
+<p>Binding is also divided into two types: <strong>static
+binding</strong> and <strong>dynamic binding</strong>.</p>
+<p>When binding is completed during the compilation and linking phase,
+it is called <strong>static binding</strong>. Also known as early
+binding.</p>
+<p>With static binding, <strong>dynamic binding</strong>, as the name
+suggests, is binding completed during program execution. Also known as
+late binding. It corresponds to runtime polymorphism.</p>
+<h1 id="operator-overloading">Operator Overloading</h1>
+<p>Operator overloading is giving multiple meanings to existing
+operators, where the same operator causes different behaviors when
+acting on different types of data.</p>
+<h2 id="rules-for-operator-overloading">Rules for Operator
+Overloading</h2>
+<ol type="1">
+<li>In C++, except for a few operators, all operators can be overloaded,
+and <strong>only existing operators can be overloaded</strong>.</li>
+<li>After overloading, the precedence and associativity of operators
+will not change.</li>
+<li>Operators are appropriately modified for the actual needs of new
+type data. The overloaded functionality should be similar to the
+original functionality, cannot change the number of operands, and at
+least one must be a custom type (otherwise it’s not called
+overloading).</li>
+</ol>
+<div class="note danger flat"><p>Several operators that cannot be overloaded: class membership
+operator <strong>“.”</strong>, member function pointer operator “.*“,
+scope resolution operator”::“, and ternary operator”?:”</p>
+</div>
+<hr />
+<p>There are two forms of overloading: <strong>overloading as non-static
+member functions of a class</strong> and <strong>overloading as
+non-member functions</strong>.</p>
+<p>General form for overloading as non-static member functions and
+non-member functions of a class:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">返回类型 <span class="keyword">operator</span> 运算符(形参表)</span><br><span class="line">&#123;</span><br><span class="line">  函数体</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<div class="note info flat"><p>When overloading as a non-member function, sometimes you need to
+access members in the class, in which case it can be declared as a
+friend function.</p>
+</div>
+<p><strong>Note</strong>:</p>
+<p>When an operator is overloaded as a member function of a class, the
+number of function parameters is one less than the original number of
+operands (except for postfix “++” and “–”); when overloaded as a
+non-member function, the number of parameters equals the number of
+original operands. The reason is that when overloaded as a member
+function of a class, the first operand becomes the target object of the
+function call, so it doesn’t need to appear in the parameter list, and
+the function body can directly access the members of the first operand.
+When overloaded as a non-member function, all operands of the operator
+must be explicitly passed through parameters.</p>
+<h2 id="operator-overloading-as-member-functions">Operator Overloading
+as Member Functions</h2>
+<p>Mainly the difference between unary and binary operators.</p>
+<p>For binary operators, the data type of the preceding class should be
+a member function of that class, and the data type of the following
+class should be placed in the formal parameters.</p>
+<p>Unary operators are divided into two types: <strong>prefix unary
+operators</strong> and <strong>postfix unary operators</strong>. (++, –
+are unary operators, different names depending on placement)</p>
+<ul>
+<li><p>For prefix unary operators, the overloaded member function has no
+formal parameters;</p></li>
+<li><p>For postfix unary operators, the function must have an int formal
+parameter. This int parameter serves no purpose in the operation, it’s
+only used to distinguish between prefix and postfix.</p></li>
+</ul>
+<h2 id="operator-overloading-as-non-member-functions">Operator
+Overloading as Non-Member Functions</h2>
+<p>For binary operators, of the two data types before and after, only
+one needs to be a custom data type to enable operator overloading, and
+both data types need to be function formal parameters.</p>
+<p>For prefix unary operators, the formal parameter is the data type
+being operated on.</p>
+<p>For postfix unary operators, there are two formal parameters: one is
+the data type being operated on, and the other is an int data type.</p>
+<div class="note success flat"><p>It’s not hard to see that the main difference between member
+functions and non-member functions is that member functions implicitly
+treat the previous operand as the object of the function call, while
+non-member functions do not.</p>
+</div>
+<hr />
+<p>This section uses a Complex (complex number class) to illustrate</p>
+<p><a
+target="_blank" rel="noopener" href="https://raw.githubusercontent.com/hustlixiang21/cpp-practice/main/%E5%AE%9D%E8%B4%9D%E6%96%87%E4%BB%B6/3.4.bmp">Click
+to view problem image</a> (CUG experiment problem)</p>
+<p><a
+target="_blank" rel="noopener" href="https://github.com/hustlixiang21/cpp-practice/blob/main/Complex/main.cpp">Source
+code on github</a></p>
+<h1 id="virtual-functions">Virtual Functions</h1>
+<p>Virtual functions are the foundation of dynamic binding. Virtual
+functions must be non-static member functions. After virtual functions
+are derived, polymorphism during runtime can be implemented in the class
+hierarchy.</p>
+<h2 id="general-virtual-function-members">General Virtual Function
+Members</h2>
+<p>Declaration syntax</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">virtual</span> 函数类型 函数名(形参表)；</span><br></pre></td></tr></table></figure>
+<div class="note danger flat"><p>Virtual function declarations can only appear in function prototype
+declarations in class definitions, not in member function
+implementations.</p>
+</div>
+<p>Conditions required for polymorphism during runtime:</p>
+<pre><code>1. Assignment compatibility rules
+1. Declare virtual functions
+1. Call through member functions or access virtual functions through pointers or references</code></pre>
+<p>If the derived class does not explicitly declare virtual functions,
+the system will follow these rules to determine whether a function
+member in the derived class is a virtual function:</p>
+<ol type="1">
+<li>Whether the function has the same name as the base class virtual
+function.</li>
+<li>Whether the function has the same number of parameters and
+corresponding parameter types as the base class virtual function.</li>
+<li>Whether the function has the same return type as the base class
+virtual function or satisfies assignment compatibility rules for pointer
+and reference type return values.</li>
+</ol>
+<p>If the above conditions are met, the virtual function in the derived
+class will <strong>override</strong> all functions with the same name in
+the base class, which is scope hiding. Of course, it can also be
+distinguished through the scope resolution operator “::”.</p>
+<p>It should be emphasized that dynamic binding only occurs when virtual
+functions are called through base class pointers or references.</p>
+<div class="note success flat"><p>Actually, it doesn’t matter whether you add the virtual keyword
+before virtual functions in derived classes, but it’s recommended to add
+it to make it clearer that they are virtual functions.</p>
+</div>
+<p><strong>Object slicing</strong> refers to using an instance of a
+derived class to initialize a base class object, which calls the base
+class copy constructor. That is, only the data members of the derived
+class that are the same as the base class will be copied, and the rest
+will be ignored. At this point, this base class object has no
+relationship with the derived class object, which is very consistent
+with type compatibility rules.</p>
+<h2 id="virtual-destructors">Virtual Destructors</h2>
+<p>Virtual constructors cannot be declared, but virtual destructors can
+be declared. The syntax is to add a virtual keyword before the normal
+destructor.</p>
+<p>So when do you need to use virtual destructors?</p>
+<p>When a base class pointer points to a derived class object, if
+<code>delete(base class pointer)</code> is performed at this time, it
+will call the base class destructor instead of the derived class
+destructor, causing memory leaks. (I actually think this situation is
+almost never encountered, just understand it) The difference from
+polymorphism of ordinary member functions is not much.</p>
+<h1 id="pure-virtual-functions-and-abstract-classes">Pure Virtual
+Functions and Abstract Classes</h1>
+<h2 id="pure-virtual-functions">Pure Virtual Functions</h2>
+<p>Pure virtual functions are virtual functions declared in the base
+class that have no definition in the base class but require any derived
+class to define its own implementation. The method to implement pure
+virtual functions in the base class is to add “=0” after the function
+prototype, for example:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">func</span><span class="params">()</span> </span>= <span class="number">0</span></span><br></pre></td></tr></table></figure>
+<p>My big question is why introduce pure virtual functions?</p>
+<ol type="1">
+<li>To facilitate the use of polymorphism features, we often need to
+define virtual functions in the base class.</li>
+<li>In many cases, it is unreasonable for the base class itself to
+generate objects.</li>
+</ol>
+<p>For example, animals as a base class can derive subclasses like
+tigers and peacocks, but animals themselves generating objects is
+obviously unreasonable.</p>
+<p>To solve the above problems, the concept of pure virtual functions
+was introduced. When a function is defined as a pure virtual function,
+the compiler requires that it must be overridden in derived classes to
+achieve polymorphism. Classes containing pure virtual functions are
+called abstract classes and cannot generate objects. This solves the
+above two problems well. Classes that declare pure virtual functions are
+abstract classes. Therefore, <strong>users cannot create instances of
+abstract classes</strong>, only instances of their derived classes
+(which implement the definitions of pure virtual functions in the base
+class). The most significant feature of pure virtual functions is: they
+<strong>must redeclare the function in inherited classes</strong>
+(without the =0 at the end, otherwise the derived class cannot be
+instantiated), and they <strong>often have no definition in abstract
+classes</strong>. The purpose of defining pure virtual functions is to
+<strong>make derived classes only inherit the function
+interface</strong>. The meaning of pure virtual functions is to allow
+all class objects (mainly derived class objects) to execute the actions
+of pure virtual functions, but the class cannot provide a reasonable
+default implementation for pure virtual functions. So the declaration of
+pure virtual functions in a class is telling the designer of the
+subclass, “You must provide an implementation of the pure virtual
+function, but I don’t know how you will implement it.”</p>
+<h2 id="abstract-classes">Abstract Classes</h2>
+<p>Very simple, classes with pure virtual functions are abstract classes
+and <strong>cannot be instantiated</strong></p>
+<p>If you want to learn more, <a
+target="_blank" rel="noopener" href="https://blog.csdn.net/LY_ysys629/article/details/76904129">see the
+blog</a>.</p>
+<h1
+id="program-example---variable-step-size-trapezoidal-integration-algorithm-for-solving-function-definite-integrals">Program
+Example - Variable Step Size Trapezoidal Integration Algorithm for
+Solving Function Definite Integrals</h1>
+<p><a
+target="_blank" rel="noopener" href="https://github.com/hustlixiang21/cpp-practice/tree/main/%E5%8F%98%E6%AD%A5%E9%95%BF%E6%A2%AF%E5%BD%A2%E7%A7%AF%E5%88%86%E7%AE%97%E6%B3%95%E6%B1%82%E8%A7%A3%E5%87%BD%E6%95%B0%E7%9A%84%E5%AE%9A%E7%A7%AF%E5%88%86.cpp">See
+github</a></p>
+<h1
+id="comprehensive-example---improvement-of-personal-bank-account-management-program">Comprehensive
+Example - Improvement of Personal Bank Account Management Program</h1>
+<p><a
+target="_blank" rel="noopener" href="https://github.com/hustlixiang21/cpp-practice/tree/main/Personal_bank_management_update_2">See
+github</a></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2022/07/31/CPP/Polymorphism/">https://xloverflow.github.io/2022/07/31/CPP/Polymorphism/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/tags/C-Programming/">C++ Programming</a><a class="post-meta__tags" href="/tags/C-Language/">C++ Language</a></div><div class="post-share"><div class="social-share" data-image="https://pic1.zhimg.com/80/v2-aa2b0445c8d4db32c0e021608da2a7fc_1440w.jpeg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2022/08/04/CPP/Templates%20and%20Data%20Organization/" title="Templates and Data Organization"><img class="cover" src="https://pic1.zhimg.com/80/v2-4d8dbc5f894427d430bdf29ad9ee3d04_1440w.jpeg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">Templates and Data Organization</div></div><div class="info-2"><div class="info-item-1">Function Templates and Class Templates</div></div></div></a><a class="pagination-related" href="/2022/07/31/CPP/CPP%20Inheritance%20and%20Derivation/" title="CPP Inheritance and Derivation"><img class="cover" src="https://picx.zhimg.com/80/v2-198d4af1c9c6939cf37223aae9e7102f_1440w.jpeg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">CPP Inheritance and Derivation</div></div><div class="info-2"><div class="info-item-1">This note mainly records related concepts and code examples in CPP inheritance and derivation.</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2022/07/23/CPP/C++%20Arrays,%20Pointers%20and%20Strings/" title="C++ Arrays, Pointers and Strings"><img class="cover" src="https://pica.zhimg.com/80/v2-bb5f6ef138cca79e736aa26bb4bdc2e4_1440w.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-23</div><div class="info-item-2">C++ Arrays, Pointers and Strings</div></div><div class="info-2"><div class="info-item-1">Notes on C++ arrays, pointers, and strings. Some content may be abbreviated due to prior C language knowledge.</div></div></div></a><a class="pagination-related" href="/2022/07/20/CPP/C++%20Classes%20and%20Objects/" title="C++ Classes and Objects"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/larm-rmah-1cvEeuJKYto-unsplash.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-20</div><div class="info-item-2">C++ Classes and Objects</div></div><div class="info-2"><div class="info-item-1">Notes on C++ classes and objects</div></div></div></a><a class="pagination-related" href="/2022/07/21/CPP/C++%20Data%20Sharing%20and%20Protection/" title="C++ Data Sharing and Protection"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/romain-briaux-P-O6B62iWgA-unsplash.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-21</div><div class="info-item-2">C++ Data Sharing and Protection</div></div><div class="info-2"><div class="info-item-1">Notes on data sharing and protection in C++ learning</div></div></div></a><a class="pagination-related" href="/2022/07/20/CPP/C++%20Functions/" title="C++ Functions"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/jason-blackeye-GPPAjJicemU-unsplash.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-20</div><div class="info-item-2">C++ Functions</div></div><div class="info-2"><div class="info-item-1">Notes on C++ Functions chapter</div></div></div></a><a class="pagination-related" href="/2022/08/04/CPP/Generic%20Programming%20and%20C++%20Standard%20Template%20Library%20(STL)/" title="Generic Programming and C++ Standard Template Library (STL)"><img class="cover" src="https://pic1.zhimg.com/80/v2-b3235667ca289c4b127e5448bed79144_1440w.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-04</div><div class="info-item-2">Generic Programming and C++ Standard Template Library (STL)</div></div><div class="info-2"><div class="info-item-1">Introduction to C++ Standard Template Library (STL)</div></div></div></a><a class="pagination-related" href="/2022/07/31/CPP/CPP%20Inheritance%20and%20Derivation/" title="CPP Inheritance and Derivation"><img class="cover" src="https://picx.zhimg.com/80/v2-198d4af1c9c6939cf37223aae9e7102f_1440w.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-31</div><div class="info-item-2">CPP Inheritance and Derivation</div></div><div class="info-2"><div class="info-item-1">This note mainly records related concepts and code examples in CPP inheritance and derivation.</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#polymorphism-overview"><span class="toc-number">1.</span> <span class="toc-text">Polymorphism Overview</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#types-of-polymorphism"><span class="toc-number">1.1.</span> <span class="toc-text">Types of Polymorphism</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#implementation-of-polymorphism"><span class="toc-number">1.2.</span> <span class="toc-text">Implementation of
+Polymorphism</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#operator-overloading"><span class="toc-number">2.</span> <span class="toc-text">Operator Overloading</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#rules-for-operator-overloading"><span class="toc-number">2.1.</span> <span class="toc-text">Rules for Operator
+Overloading</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#operator-overloading-as-member-functions"><span class="toc-number">2.2.</span> <span class="toc-text">Operator Overloading
+as Member Functions</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#operator-overloading-as-non-member-functions"><span class="toc-number">2.3.</span> <span class="toc-text">Operator
+Overloading as Non-Member Functions</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#virtual-functions"><span class="toc-number">3.</span> <span class="toc-text">Virtual Functions</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#general-virtual-function-members"><span class="toc-number">3.1.</span> <span class="toc-text">General Virtual Function
+Members</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#virtual-destructors"><span class="toc-number">3.2.</span> <span class="toc-text">Virtual Destructors</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#pure-virtual-functions-and-abstract-classes"><span class="toc-number">4.</span> <span class="toc-text">Pure Virtual
+Functions and Abstract Classes</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#pure-virtual-functions"><span class="toc-number">4.1.</span> <span class="toc-text">Pure Virtual Functions</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#abstract-classes"><span class="toc-number">4.2.</span> <span class="toc-text">Abstract Classes</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#program-example---variable-step-size-trapezoidal-integration-algorithm-for-solving-function-definite-integrals"><span class="toc-number">5.</span> <span class="toc-text">Program
+Example - Variable Step Size Trapezoidal Integration Algorithm for
+Solving Function Definite Integrals</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#comprehensive-example---improvement-of-personal-bank-account-management-program"><span class="toc-number">6.</span> <span class="toc-text">Comprehensive
+Example - Improvement of Personal Bank Account Management Program</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Retrieval and RAG"/></a><div class="content"><a class="title" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG">11711 Advanced NLP: Retrieval and RAG</a><time datetime="2026-02-14T22:08:21.000Z" title="Created 2026-02-14 17:08:21">2026-02-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Distributed Training and Parallelization"/></a><div class="content"><a class="title" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization">15642 Machine Learning Systems: Distributed Training and Parallelization</a><time datetime="2026-02-13T21:00:00.000Z" title="Created 2026-02-13 16:00:00">2026-02-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Decoding"/></a><div class="content"><a class="title" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding">11868 LLM Sys: Decoding</a><time datetime="2026-02-13T01:00:00.000Z" title="Created 2026-02-12 20:00:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Tokenization and Embedding"/></a><div class="content"><a class="title" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding">11868 LLM Sys: Tokenization and Embedding</a><time datetime="2026-02-12T20:30:00.000Z" title="Created 2026-02-12 15:30:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"/></a><div class="content"><a class="title" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations">15642 Machine Learning Systems: Transformer, Attention, and Optimizations</a><time datetime="2026-02-09T19:30:00.000Z" title="Created 2026-02-09 14:30:00">2026-02-09</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || 'eaa03286bfc9986344bcb065651ea657'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

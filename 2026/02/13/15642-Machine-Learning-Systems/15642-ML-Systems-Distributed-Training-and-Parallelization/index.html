@@ -1,0 +1,1293 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>15642 Machine Learning Systems: Distributed Training and Parallelization | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Notes and summaries for CMU 15-642 Machine Learning Systems on distributed training techniques including data parallelism, model parallelism, pipeline parallelism, and optimization strategies like ZeR">
+<meta property="og:type" content="article">
+<meta property="og:title" content="15642 Machine Learning Systems: Distributed Training and Parallelization">
+<meta property="og:url" content="https://xloverflow.github.io/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Notes and summaries for CMU 15-642 Machine Learning Systems on distributed training techniques including data parallelism, model parallelism, pipeline parallelism, and optimization strategies like ZeR">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png">
+<meta property="article:published_time" content="2026-02-13T21:00:00.000Z">
+<meta property="article:modified_time" content="2026-02-13T21:00:00.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="15642">
+<meta property="article:tag" content="AllReduce">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="Data Parallelism">
+<meta property="article:tag" content="Distributed Training">
+<meta property="article:tag" content="ML Systems">
+<meta property="article:tag" content="Model Parallelism">
+<meta property="article:tag" content="Pipeline Parallelism">
+<meta property="article:tag" content="ZeRO">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "15642 Machine Learning Systems: Distributed Training and Parallelization",
+  "url": "https://xloverflow.github.io/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png",
+  "datePublished": "2026-02-13T21:00:00.000Z",
+  "dateModified": "2026-02-13T21:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '15642 Machine Learning Systems: Distributed Training and Parallelization',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">15642 Machine Learning Systems: Distributed Training and Parallelization</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">15642 Machine Learning Systems: Distributed Training and Parallelization</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-02-13T21:00:00.000Z" title="Created 2026-02-13 16:00:00">2026-02-13</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-02-13T21:00:00.000Z" title="Updated 2026-02-13 16:00:00">2026-02-13</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CMU-15-642-ML-Systems/">CMU 15-642 ML Systems</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="data-parallelism-and-zero-redundancy">Data Parallelism and Zero
+Redundancy</h1>
+<p>Course: 15-442/15-642 Machine Learning Systems Instructors: Tianqi
+Chen and Zhihao Jia Carnegie Mellon University</p>
+<h2 id="dnn-training-overview">DNN Training Overview</h2>
+<p>DNN training iterates three phases: <strong>forward
+propagation</strong> computes layer outputs <span
+class="math inline">\(h^{(l+1)} = f^{(l)}(W^{(l)} h^{(l)} +
+b^{(l)})\)</span>, <strong>backward propagation</strong> computes
+gradients via chain rule <span class="math inline">\(\frac{\partial
+L}{\partial W^{(l)}}\)</span>, and <strong>weight update</strong>
+applies <span class="math inline">\(W^{(l)} \leftarrow W^{(l)} - \eta
+\frac{\partial L}{\partial W^{(l)}}\)</span>.</p>
+<p>Each GPU must store <strong>parameters</strong>,
+<strong>activations</strong> (saved for backward),
+<strong>gradients</strong>, and <strong>optimizer states</strong> (e.g.,
+momentum and variance for Adam). For large models, this memory footprint
+becomes the primary bottleneck.</p>
+<h2 id="data-parallelism-basics">Data Parallelism Basics</h2>
+<p>Data parallelism splits training data across multiple workers (GPUs),
+each holding a <strong>full copy of the model</strong>. The training
+loop per iteration:</p>
+<ol type="1">
+<li><strong>Scatter data</strong>: Distribute different mini-batches to
+each worker</li>
+<li><strong>Forward &amp; Backward</strong>: Each worker independently
+computes gradients on its local data</li>
+<li><strong>Synchronize gradients</strong>: Aggregate gradients across
+all workers (AllReduce)</li>
+<li><strong>Update parameters</strong>: Each worker applies the
+optimizer step with aggregated gradients</li>
+</ol>
+<p>All workers maintain identical parameters through synchronized
+gradient updates. With 4 workers and batch size 32, each processes 8
+samples — ideally 4x speedup.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260213203324202.png" alt="image-20260213203324202" style="zoom:40%;" /></p>
+<h2 id="gradient-aggregation-strategies">Gradient Aggregation
+Strategies</h2>
+<h3 id="parameter-server-architecture">Parameter Server
+Architecture</h3>
+<p>The <strong>Parameter Server</strong> is a centralized approach:
+workers push gradients to a central server (<span
+class="math inline">\(N \times M\)</span> communication), the server
+aggregates and updates parameters, then workers pull the updated weights
+(<span class="math inline">\(N \times M\)</span> communication). Total
+communication: <span class="math inline">\(2NM\)</span> per
+iteration.</p>
+<p><strong>Limitations</strong>: All traffic funnels through the server,
+creating a <strong>bandwidth bottleneck</strong> that worsens with more
+workers. It is also a single point of failure with uneven load
+distribution. This architecture does <strong>not scale</strong>
+well.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260213203343033.png" alt="image-20260213203343033" style="zoom:50%;" /></p>
+<h3 id="allreduce-communication-patterns">AllReduce Communication
+Patterns</h3>
+<p><strong>AllReduce</strong> is a decentralized collective operation:
+all workers contribute local gradients and receive the aggregated
+result. No single bottleneck node.</p>
+<h4 id="naive-allreduce">Naive AllReduce</h4>
+<p>Every worker broadcasts its <span class="math inline">\(M\)</span>
+parameters to all <span class="math inline">\((N-1)\)</span> others.
+Total communication: <span class="math inline">\(N(N-1)M = O(N^2
+M)\)</span> — quadratic scaling, not efficient.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260213203414047.png" alt="image-20260213203414047" style="zoom:50%;" /></p>
+<h4 id="ring-allreduce">Ring AllReduce</h4>
+<p>Ring AllReduce achieves optimal communication complexity by
+organizing workers in a logical ring.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260213203518118.png"
+alt="image-20260213203518118" />
+<figcaption aria-hidden="true">image-20260213203518118</figcaption>
+</figure>
+<h5 id="aggregation-phase">Aggregation Phase</h5>
+<p><strong>Setup</strong>: Arrange N workers in a ring: <span
+class="math inline">\(W_0 \leftrightarrow W_1 \leftrightarrow \cdots
+\leftrightarrow W_{N-1} \leftrightarrow W_0\)</span></p>
+<p><strong>Strategy</strong>: Partition parameters into N chunks,
+process one chunk per step.</p>
+<p><strong>Process</strong> (N-1 steps):</p>
+<ol type="1">
+<li>Each worker starts with one chunk as “responsible chunk”</li>
+<li><strong>Step k</strong> <span class="math inline">\((k = 0, 1,
+\ldots, N-2)\)</span>:
+<ul>
+<li>Worker <span class="math inline">\(i\)</span> sends chunk <span
+class="math inline">\(j\)</span> to worker <span
+class="math inline">\((i+1) \mod N\)</span></li>
+<li>Worker <span class="math inline">\(i\)</span> receives chunk <span
+class="math inline">\(j&#39;\)</span> from worker <span
+class="math inline">\((i-1) \mod N\)</span></li>
+<li>Worker <span class="math inline">\(i\)</span>
+<strong>accumulates</strong> received chunk: <span
+class="math inline">\(\text{chunk}_{j&#39;} \leftarrow
+\text{chunk}_{j&#39;} + \text{received}\)</span></li>
+</ul></li>
+</ol>
+<p><strong>Result</strong>: After N-1 steps, each worker has the
+<strong>fully aggregated</strong> result for one chunk.</p>
+<h5 id="broadcast-phase">Broadcast Phase</h5>
+<p><strong>Goal</strong>: Distribute the aggregated chunks so every
+worker has all chunks.</p>
+<p><strong>Process</strong> (N-1 steps):</p>
+<ol type="1">
+<li><strong>Step k</strong> <span class="math inline">\((k = 0, 1,
+\ldots, N-2)\)</span>:
+<ul>
+<li>Worker <span class="math inline">\(i\)</span> sends its completed
+chunk to worker <span class="math inline">\((i+1) \mod N\)</span></li>
+<li>Worker <span class="math inline">\(i\)</span> receives a completed
+chunk from worker <span class="math inline">\((i-1) \mod N\)</span></li>
+</ul></li>
+</ol>
+<p><strong>Result</strong>: After N-1 steps, all workers have all
+aggregated chunks.</p>
+<h5 id="communication-cost-analysis">Communication Cost Analysis</h5>
+<p>Each step transfers <span class="math inline">\(M/N\)</span> per
+worker. Total steps: <span class="math inline">\(2(N-1)\)</span> (N-1
+aggregation + N-1 broadcast).</p>
+<p><strong>Total per worker</strong>: <span class="math inline">\(2(N-1)
+\times \frac{M}{N} \approx 2M\)</span> — <strong>independent of
+N</strong>, optimal scaling.</p>
+<p><strong>Total network communication</strong>: <span
+class="math inline">\(2(N-1)M \approx 2NM\)</span>.</p>
+<h4 id="tree-allreduce">Tree AllReduce</h4>
+<p>Workers form a binary tree with depth <span
+class="math inline">\(\log_2 N\)</span>. The <strong>Reduce
+phase</strong> (bottom-up) aggregates gradients from leaves to root; the
+<strong>Broadcast phase</strong> (top-down) distributes the result
+back.</p>
+<p><strong>Communication</strong>: Reduce phase <span
+class="math inline">\(\sum_{i=1}^{\log_2 N} \frac{N}{2^i} \times M =
+(N-1)M\)</span>, broadcast phase <span
+class="math inline">\((N-1)M\)</span>. Total: <span
+class="math inline">\(2(N-1)M \approx 2NM\)</span> in only <span
+class="math inline">\(2\log_2 N\)</span> iterations (fewer than ring’s
+<span class="math inline">\(2(N-1)\)</span>). Trade-off: potential
+bandwidth bottleneck at the root.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260213203539472.png" alt="image-20260213203539472" style="zoom:50%;" /></p>
+<h4 id="butterfly-allreduce">Butterfly AllReduce</h4>
+<p>Uses a hypercube-based pattern: in iteration <span
+class="math inline">\(k\)</span>, worker <span
+class="math inline">\(i\)</span> communicates with worker <span
+class="math inline">\(i \oplus 2^k\)</span> (XOR). For 8 workers:
+iteration 0 pairs 0↔︎1, 2↔︎3, 4↔︎5, 6↔︎7; iteration 1 pairs 0↔︎2, 1↔︎3, 4↔︎6,
+5↔︎7; iteration 2 pairs 0↔︎4, 1↔︎5, 2↔︎6, 3↔︎7.</p>
+<p>Each iteration, workers exchange <span
+class="math inline">\(M/2\)</span> parameters with their partner and
+aggregate locally. All workers operate in parallel with balanced
+load.</p>
+<p><strong>Communication</strong>: <span
+class="math inline">\(M\)</span> per worker per iteration × <span
+class="math inline">\(\log_2 N\)</span> iterations = <span
+class="math inline">\(NM\log_2 N\)</span> total. Slightly more than
+Ring/Tree (<span class="math inline">\(2NM\)</span>), but only <span
+class="math inline">\(\log_2 N\)</span> iterations — best when latency
+matters more than total bandwidth. Requires power-of-2 worker count.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260213203552267.png" alt="image-20260213203552267" style="zoom:33%;" /></p>
+<h3 id="performance-comparison">Performance Comparison</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Algorithm</th>
+<th>Total Communication</th>
+<th>Iterations</th>
+<th>Bandwidth Bottleneck</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Parameter Server</td>
+<td><span class="math inline">\(2NM\)</span></td>
+<td>2</td>
+<td>Server bottleneck</td>
+</tr>
+<tr class="even">
+<td>Naive AllReduce</td>
+<td><span class="math inline">\(N(N-1)M\)</span></td>
+<td>1</td>
+<td>Quadratic scaling</td>
+</tr>
+<tr class="odd">
+<td>Ring AllReduce</td>
+<td><span class="math inline">\(2NM\)</span></td>
+<td><span class="math inline">\(2(N-1)\)</span></td>
+<td>Balanced</td>
+</tr>
+<tr class="even">
+<td>Tree AllReduce</td>
+<td><span class="math inline">\(2NM\)</span></td>
+<td><span class="math inline">\(2\log_2 N\)</span></td>
+<td>Root bottleneck</td>
+</tr>
+<tr class="odd">
+<td>Butterfly AllReduce</td>
+<td><span class="math inline">\(NM\log_2 N\)</span></td>
+<td><span class="math inline">\(\log_2 N\)</span></td>
+<td>Balanced</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ring AllReduce</strong> is the most commonly used in practice
+(PyTorch DDP, Horovod) — optimal <span
+class="math inline">\(2NM\)</span> communication with balanced
+bandwidth. <strong>Tree AllReduce</strong> trades root bottleneck risk
+for fewer iterations (<span class="math inline">\(2\log_2 N\)</span>).
+<strong>Butterfly</strong> minimizes iterations (<span
+class="math inline">\(\log_2 N\)</span>) at the cost of slightly higher
+total communication.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260213203638515.png" alt="image-20260213203638515" style="zoom:50%;" /></p>
+<h2 id="large-model-training-challenges">Large Model Training
+Challenges</h2>
+<p>As models scale to billions of parameters, memory becomes the
+critical bottleneck.</p>
+<h3 id="memory-breakdown">Memory Breakdown</h3>
+<p>For a model with <strong>M parameters</strong> using mixed-precision
+training with Adam:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Component</th>
+<th>Precision</th>
+<th>Memory</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Parameters</td>
+<td>FP16</td>
+<td><span class="math inline">\(2M\)</span> bytes</td>
+</tr>
+<tr class="even">
+<td>Gradients</td>
+<td>FP16</td>
+<td><span class="math inline">\(2M\)</span> bytes</td>
+</tr>
+<tr class="odd">
+<td>Optimizer: FP32 master copy</td>
+<td>FP32</td>
+<td><span class="math inline">\(4M\)</span> bytes</td>
+</tr>
+<tr class="even">
+<td>Optimizer: Momentum (1st moment)</td>
+<td>FP32</td>
+<td><span class="math inline">\(4M\)</span> bytes</td>
+</tr>
+<tr class="odd">
+<td>Optimizer: Variance (2nd moment)</td>
+<td>FP32</td>
+<td><span class="math inline">\(4M\)</span> bytes</td>
+</tr>
+<tr class="even">
+<td><strong>Total</strong></td>
+<td></td>
+<td><strong><span class="math inline">\(16M\)</span> bytes</strong></td>
+</tr>
+</tbody>
+</table>
+<p>FP16 is used for forward/backward computation (faster, less memory).
+FP32 is required for optimizer updates to prevent numerical errors
+during accumulation.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260213203727232.png" alt="image-20260213203727232" style="zoom:67%;" /></p>
+<h3 id="scaling-examples">Scaling Examples</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Model</th>
+<th>Parameters</th>
+<th>Training Memory</th>
+<th>Hardware</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>BERT-Large (2018)</td>
+<td>340M</td>
+<td>5.4 GB</td>
+<td>Fits on single V100 (16GB)</td>
+</tr>
+<tr class="even">
+<td>GPT-2 (2019)</td>
+<td>1.5B</td>
+<td>24 GB</td>
+<td>Requires multi-GPU</td>
+</tr>
+<tr class="odd">
+<td>GPT-3 (2020)</td>
+<td>175B</td>
+<td>2.8 TB</td>
+<td>35+ A100-80GB GPUs</td>
+</tr>
+</tbody>
+</table>
+<p>Standard data parallelism replicates the full model on each GPU —
+massive memory redundancy.</p>
+<h2 id="zero-zero-redundancy-optimizer">ZeRO: Zero Redundancy
+Optimizer</h2>
+<h3 id="overview">Overview</h3>
+<p><strong>ZeRO</strong> (Zero Redundancy Optimizer) eliminates memory
+redundancy in data-parallel training. Standard DP replicates parameters,
+gradients, and optimizer states on every GPU — for N GPUs, that is N
+copies of everything, wasting <span class="math inline">\((N-1) \times
+16M\)</span> bytes.</p>
+<p>ZeRO’s idea: <strong>partition</strong> these components across GPUs
+instead of replicating them, reducing per-GPU memory from <span
+class="math inline">\(16M\)</span> to <span
+class="math inline">\(\frac{16M}{N}\)</span> at the cost of additional
+communication.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260213203743083.png" alt="image-20260213203743083" style="zoom:50%;" /></p>
+<h3 id="zero-stage-1-partitioning-optimizer-states">ZeRO Stage 1:
+Partitioning Optimizer States</h3>
+<p>ZeRO-1 partitions only the optimizer states across GPUs. Parameters
+and gradients remain fully replicated. Each GPU is responsible for
+updating only its assigned <span
+class="math inline">\(\frac{1}{N}\)</span> partition.</p>
+<p><strong>Training iteration</strong>: 1. <strong>Forward</strong>:
+Normal computation using full local parameters (no communication) 2.
+<strong>Backward</strong>: Compute full gradients →
+<strong>AllReduce</strong> to synchronize (<span
+class="math inline">\(2M\)</span> communication) 3. <strong>Weight
+Update</strong>: Each GPU updates only its partition using local
+optimizer states 4. <strong>Parameter Sync</strong>:
+<strong>AllGather</strong> to reconstruct full parameters on every GPU
+(<span class="math inline">\(2M\)</span> communication)</p>
+<p><strong>Memory per GPU</strong>: <span class="math inline">\(4M +
+\frac{12M}{N}\)</span> (parameters <span
+class="math inline">\(2M\)</span> + gradients <span
+class="math inline">\(2M\)</span> + partitioned optimizer <span
+class="math inline">\(\frac{12M}{N}\)</span>)</p>
+<p><strong>Communication</strong>: <span
+class="math inline">\(4M\)</span> per iteration. For N=4: memory = <span
+class="math inline">\(7M\)</span> vs baseline <span
+class="math inline">\(16M\)</span> — <strong>2.3x</strong>
+reduction.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260213203833244.png" alt="image-20260213203833244" style="zoom:60%;" /></p>
+<h3 id="zero-stage-2-partitioning-gradients">ZeRO Stage 2: Partitioning
+Gradients</h3>
+<p>ZeRO-2 additionally partitions <strong>gradients</strong> — since
+each GPU only needs gradients for the parameters it updates, there is no
+need for a full gradient buffer.</p>
+<p>The key change: replace <strong>AllReduce</strong> with
+<strong>Reduce-Scatter</strong> during backward. Reduce-Scatter
+aggregates gradients but only delivers each GPU the partition it owns
+(no broadcast phase needed). This can happen layer-by-layer during
+backpropagation, overlapping communication with computation.</p>
+<p><strong>Training iteration</strong>: 1. <strong>Forward</strong>:
+Normal computation (no communication) 2. <strong>Backward</strong>:
+Compute gradients → <strong>Reduce-Scatter</strong> per layer, each GPU
+keeps only its partition 3. <strong>Weight Update</strong>: Each GPU
+updates its partition 4. <strong>Parameter Sync</strong>:
+<strong>AllGather</strong> to reconstruct full parameters (<span
+class="math inline">\(2M\)</span>)</p>
+<p><strong>Memory per GPU</strong>: <span class="math inline">\(2M +
+\frac{14M}{N}\)</span> (parameters <span
+class="math inline">\(2M\)</span> + partitioned gradients <span
+class="math inline">\(\frac{2M}{N}\)</span> + partitioned optimizer
+<span class="math inline">\(\frac{12M}{N}\)</span>)</p>
+<p><strong>Communication</strong>: <span
+class="math inline">\(4M\)</span> per iteration (same as ZeRO-1). For
+N=4: memory = <span class="math inline">\(5.5M\)</span> —
+<strong>2.9x</strong> reduction.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260213203941968.png" alt="image-20260213203941968" style="zoom:67%;" /></p>
+<h3 id="zero-stage-3-partitioning-parameters">ZeRO Stage 3: Partitioning
+Parameters</h3>
+<p>ZeRO-3 partitions <strong>everything</strong> — no component is
+replicated. Each GPU stores only <span
+class="math inline">\(\frac{1}{N}\)</span> of parameters, gradients, and
+optimizer states. The challenge: how to compute forward/backward without
+full parameters? Solution: <strong>AllGather</strong> parameters on
+demand, then discard.</p>
+<p><strong>Forward</strong> (layer-by-layer): AllGather <span
+class="math inline">\(W^{(l)}\)</span> → compute layer → discard
+gathered parameters (keep only own partition and activations).</p>
+<p><strong>Backward</strong> (layer-by-layer): AllGather <span
+class="math inline">\(W^{(l)}\)</span> again → compute gradients →
+Reduce-Scatter gradients → discard gathered parameters → update own
+partition immediately.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260213204010120.png" alt="image-20260213204010120" style="zoom:67%;" /></p>
+<p>No separate parameter sync step needed — updated parameters are
+already correctly partitioned.</p>
+<p><strong>Memory per GPU</strong>: <span
+class="math inline">\(\frac{16M}{N}\)</span> — perfect linear scaling
+(<span class="math inline">\(O(M/N)\)</span>).</p>
+<p><strong>Communication</strong>: <span
+class="math inline">\(4M\)</span> per iteration (AllGather in forward
+<span class="math inline">\(+\)</span> AllGather in backward <span
+class="math inline">\(+\)</span> Reduce-Scatter gradients). This is 2x
+the baseline, but enables training models that otherwise cannot fit in
+memory. Use when ZeRO-2 is insufficient.</p>
+<h3 id="performance-analysis">Performance Analysis</h3>
+<h4 id="memory-comparison-m-parameters-n-gpus">Memory Comparison (M
+parameters, N GPUs)</h4>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 27%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Component</th>
+<th>Baseline DP</th>
+<th>ZeRO-1</th>
+<th>ZeRO-2</th>
+<th>ZeRO-3</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Parameters</td>
+<td><span class="math inline">\(2M\)</span></td>
+<td><span class="math inline">\(2M\)</span></td>
+<td><span class="math inline">\(2M\)</span></td>
+<td><span class="math inline">\(\frac{2M}{N}\)</span></td>
+</tr>
+<tr class="even">
+<td>Gradients</td>
+<td><span class="math inline">\(2M\)</span></td>
+<td><span class="math inline">\(2M\)</span></td>
+<td><span class="math inline">\(\frac{2M}{N}\)</span></td>
+<td><span class="math inline">\(\frac{2M}{N}\)</span></td>
+</tr>
+<tr class="odd">
+<td>Optimizer States</td>
+<td><span class="math inline">\(12M\)</span></td>
+<td><span class="math inline">\(\frac{12M}{N}\)</span></td>
+<td><span class="math inline">\(\frac{12M}{N}\)</span></td>
+<td><span class="math inline">\(\frac{12M}{N}\)</span></td>
+</tr>
+<tr class="even">
+<td><strong>Total</strong></td>
+<td><span class="math inline">\(16M\)</span></td>
+<td><span class="math inline">\(4M + \frac{12M}{N}\)</span></td>
+<td><span class="math inline">\(2M + \frac{14M}{N}\)</span></td>
+<td><span class="math inline">\(\frac{16M}{N}\)</span></td>
+</tr>
+</tbody>
+</table>
+<p><strong>GPT-3 (175B, 64 GPUs)</strong>: Baseline = 2.8 TB/GPU
+(impossible), ZeRO-1 = 750 GB, ZeRO-2 = 481 GB, <strong>ZeRO-3 = 44
+GB</strong> (fits on A100-80GB).</p>
+<h4 id="communication-comparison">Communication Comparison</h4>
+<table>
+<thead>
+<tr class="header">
+<th>Stage</th>
+<th>Forward</th>
+<th>Backward</th>
+<th>Update</th>
+<th>Total</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Baseline DP</td>
+<td>-</td>
+<td><span class="math inline">\(2M\)</span> (AllReduce)</td>
+<td>-</td>
+<td><span class="math inline">\(2M\)</span></td>
+</tr>
+<tr class="even">
+<td>ZeRO-1</td>
+<td>-</td>
+<td><span class="math inline">\(2M\)</span> (AllReduce)</td>
+<td><span class="math inline">\(2M\)</span> (AllGather)</td>
+<td><span class="math inline">\(4M\)</span></td>
+</tr>
+<tr class="odd">
+<td>ZeRO-2</td>
+<td>-</td>
+<td><span class="math inline">\(2M\)</span> (Reduce-Scatter)</td>
+<td><span class="math inline">\(2M\)</span> (AllGather)</td>
+<td><span class="math inline">\(4M\)</span></td>
+</tr>
+<tr class="even">
+<td>ZeRO-3</td>
+<td><span class="math inline">\(2M\)</span> (AllGather)</td>
+<td><span class="math inline">\(2M\)</span> (Reduce-Scatter)</td>
+<td>-</td>
+<td><span class="math inline">\(4M\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>All ZeRO stages have 2x communication vs baseline. ZeRO-3 has higher
+latency due to layer-by-layer synchronization but enables the largest
+models. High-speed interconnects (NVLink, InfiniBand) are essential, and
+communication can be overlapped with computation to hide latency.</p>
+<h2 id="summary">Summary</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Stage</th>
+<th>Partitioned</th>
+<th>Memory per GPU</th>
+<th>Communication</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Baseline DP</strong></td>
+<td>Nothing</td>
+<td><span class="math inline">\(16M\)</span></td>
+<td><span class="math inline">\(2M\)</span></td>
+</tr>
+<tr class="even">
+<td><strong>ZeRO-1</strong></td>
+<td>Optimizer states</td>
+<td><span class="math inline">\(4M + \frac{12M}{N}\)</span></td>
+<td><span class="math inline">\(4M\)</span></td>
+</tr>
+<tr class="odd">
+<td><strong>ZeRO-2</strong></td>
+<td>Optimizer + Gradients</td>
+<td><span class="math inline">\(2M + \frac{14M}{N}\)</span></td>
+<td><span class="math inline">\(4M\)</span></td>
+</tr>
+<tr class="even">
+<td><strong>ZeRO-3</strong></td>
+<td>Everything</td>
+<td><span class="math inline">\(\frac{16M}{N}\)</span></td>
+<td><span class="math inline">\(4M\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>ZeRO enables <strong>linear memory scaling</strong> (<span
+class="math inline">\(O(M/N)\)</span>) at a modest 2x communication
+overhead. Used in practice by DeepSpeed and PyTorch FSDP.</p>
+<p><strong>Choosing a strategy</strong>: Standard DP when the model fits
+on one GPU; ZeRO-1 when optimizer memory is limiting; ZeRO-2 when
+gradients also need reduction; ZeRO-3 when even parameters don’t
+fit.</p>
+<blockquote>
+<p><strong>Note on Memory Model</strong>: The notes above use a 16M
+model (optimizer states = 12M). The Q&amp;A section below uses the
+<strong>20Ψ model</strong> from the ZeRO paper, which explicitly counts
+the FP32 gradient copy as part of optimizer states (optimizer states =
+16Ψ). The 20Ψ model is more precise for mixed-precision training with
+Adam.</p>
+</blockquote>
+<h2 id="interview-review-qa">Interview Review Q&amp;A</h2>
+<h3 id="part-1-core-concepts-high-frequency-interview-questions">Part 1:
+Core Concepts (High-Frequency Interview Questions)</h3>
+<h4
+id="q1-explain-the-workflow-of-data-parallelism.-what-does-each-gpu-do-during-one-training-iteration-how-are-gradients-synchronized">Q1:
+Explain the workflow of Data Parallelism. What does each GPU do during
+one training iteration? How are gradients synchronized?</h4>
+<p>In data parallelism, each mini-batch of data is distributed to
+different GPUs, where <strong>every GPU holds a full copy of the model
+parameters</strong>. Each GPU independently performs forward and
+backward passes to compute local gradients. The gradients are then
+synchronized across all GPUs via <strong>AllReduce</strong>, so every
+GPU obtains the same aggregated gradient. Finally, each GPU performs a
+local parameter update, keeping all model copies identical.</p>
+<p><strong>One iteration workflow</strong>:</p>
+<ol type="1">
+<li><strong>Forward</strong>: Each GPU computes predictions on its local
+mini-batch using the full model</li>
+<li><strong>Backward</strong>: Each GPU computes gradients for all
+parameters based on its local loss</li>
+<li><strong>Gradient Sync (AllReduce)</strong>: Aggregate gradients
+across all GPUs so every GPU has the same result</li>
+<li><strong>Local Weight Update</strong>: Each GPU independently applies
+the optimizer step with the aggregated gradient</li>
+</ol>
+<p><strong>Key invariant</strong>: All GPUs maintain identical
+parameters at all times (after each sync).</p>
+<h4
+id="q2-what-are-the-main-allreduce-implementations-compare-the-total-communication-of-ring-allreduce-vs.-naive-allreduce-and-explain-why-ring-allreduce-is-more-scalable.">Q2:
+What are the main AllReduce implementations? Compare the total
+communication of Ring AllReduce vs. Naive AllReduce, and explain why
+Ring AllReduce is more scalable.</h4>
+<p><strong>Main implementations</strong>: Naive AllReduce, Ring
+AllReduce, Tree AllReduce, Butterfly AllReduce.</p>
+<p><strong>Communication comparison</strong> (M = parameter size, N =
+number of workers):</p>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 35%" />
+<col style="width: 44%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Algorithm</th>
+<th>Total Communication</th>
+<th>Per-Worker Communication</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Naive AllReduce</td>
+<td><span class="math inline">\(N(N-1)M = O(N^2 M)\)</span></td>
+<td><span class="math inline">\((N-1)M\)</span></td>
+</tr>
+<tr class="even">
+<td>Ring AllReduce</td>
+<td><span class="math inline">\(2(N-1)M \approx 2NM\)</span></td>
+<td><span class="math inline">\(2 \cdot \frac{N-1}{N} \cdot M \approx
+2M\)</span></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why Ring AllReduce is more scalable</strong>:</p>
+<ol type="1">
+<li><strong>Per-worker communication is constant</strong>: Each worker
+sends/receives approximately <span class="math inline">\(2M\)</span>
+regardless of N. Adding more GPUs does <strong>not</strong> increase any
+individual worker’s communication burden.</li>
+<li><strong>Full bandwidth utilization</strong>: All links on the ring
+transmit data in parallel, maximizing aggregate bandwidth.</li>
+<li><strong>No bottleneck node</strong>: Unlike parameter server or tree
+root, no single worker handles disproportionate traffic.</li>
+</ol>
+<p>In contrast, Naive AllReduce has <span
+class="math inline">\(O(N)\)</span> per-worker communication, which
+degrades linearly as workers are added.</p>
+<h4
+id="q3-in-mixed-precision-training-with-adam-optimizer-for-a-model-with-ψ-parameters-what-does-each-gpu-need-to-store-and-how-much-memory-does-each-component-take">Q3:
+In mixed-precision training with Adam optimizer, for a model with Ψ
+parameters, what does each GPU need to store and how much memory does
+each component take?</h4>
+<table>
+<thead>
+<tr class="header">
+<th>Component</th>
+<th>Precision</th>
+<th>Size</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>FP16 Parameters</td>
+<td>FP16</td>
+<td><span class="math inline">\(2\Psi\)</span> bytes</td>
+</tr>
+<tr class="even">
+<td>FP16 Gradients</td>
+<td>FP16</td>
+<td><span class="math inline">\(2\Psi\)</span> bytes</td>
+</tr>
+<tr class="odd">
+<td>FP32 Parameter Copy (master weights)</td>
+<td>FP32</td>
+<td><span class="math inline">\(4\Psi\)</span> bytes</td>
+</tr>
+<tr class="even">
+<td>FP32 Gradient Copy</td>
+<td>FP32</td>
+<td><span class="math inline">\(4\Psi\)</span> bytes</td>
+</tr>
+<tr class="odd">
+<td>FP32 First Moment (momentum)</td>
+<td>FP32</td>
+<td><span class="math inline">\(4\Psi\)</span> bytes</td>
+</tr>
+<tr class="even">
+<td>FP32 Second Moment (variance)</td>
+<td>FP32</td>
+<td><span class="math inline">\(4\Psi\)</span> bytes</td>
+</tr>
+<tr class="odd">
+<td><strong>Total</strong></td>
+<td></td>
+<td><strong><span class="math inline">\(20\Psi\)</span>
+bytes</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Explanation</strong>:</p>
+<ul>
+<li><strong>FP16 parameters and gradients</strong> (<span
+class="math inline">\(2\Psi + 2\Psi = 4\Psi\)</span>): Used for the
+actual forward/backward computation (faster, less memory).</li>
+<li><strong>FP32 optimizer states</strong> (<span
+class="math inline">\(4\Psi + 4\Psi + 4\Psi + 4\Psi = 16\Psi\)</span>):
+The Adam optimizer requires FP32 precision for numerical stability. This
+includes the master weight copy, gradient copy, first moment (momentum),
+and second moment (variance).</li>
+</ul>
+<p>This <span class="math inline">\(4\Psi + 16\Psi = 20\Psi\)</span>
+decomposition is the foundation for understanding ZeRO Stage 1/2/3
+memory partitioning.</p>
+<h3 id="part-2-zero-deep-dive">Part 2: ZeRO Deep Dive</h3>
+<h4
+id="q4-explain-zero-stage-123-in-your-own-words.-what-does-each-stage-partition-and-what-does-it-keep-replicated">Q4:
+Explain ZeRO Stage 1/2/3 in your own words. What does each stage
+partition, and what does it keep replicated?</h4>
+<p><strong>ZeRO Stage 1</strong>: Partitions <strong>optimizer
+states</strong> (FP32 parameter copy, momentum, variance, and FP32
+gradient copy) across N GPUs. Each GPU stores only <span
+class="math inline">\(\frac{1}{N}\)</span> of the optimizer states.
+<strong>Keeps replicated</strong>: full FP16 parameters and full FP16
+gradients on every GPU.</p>
+<p><strong>ZeRO Stage 2</strong>: Builds on Stage 1 by additionally
+partitioning <strong>gradients</strong>. Each GPU stores only <span
+class="math inline">\(\frac{1}{N}\)</span> of both optimizer states and
+gradients. <strong>Keeps replicated</strong>: full FP16 parameters on
+every GPU.</p>
+<p><strong>ZeRO Stage 3</strong>: Partitions <strong>everything</strong>
+— optimizer states, gradients, AND parameters. Each GPU stores only
+<span class="math inline">\(\frac{1}{N}\)</span> of all model state.
+<strong>Nothing is replicated</strong>; parameters are gathered
+on-demand during forward/backward and discarded afterward.</p>
+<p><strong>Progressive partitioning summary</strong>:</p>
+<table>
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 38%" />
+<col style="width: 38%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Stage</th>
+<th>Partitioned</th>
+<th>Replicated</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>ZeRO-1</td>
+<td>Optimizer states (<span class="math inline">\(16\Psi\)</span>)</td>
+<td>FP16 params (<span class="math inline">\(2\Psi\)</span>) + FP16
+grads (<span class="math inline">\(2\Psi\)</span>)</td>
+</tr>
+<tr class="even">
+<td>ZeRO-2</td>
+<td>Optimizer states + Gradients (<span
+class="math inline">\(18\Psi\)</span>)</td>
+<td>FP16 params (<span class="math inline">\(2\Psi\)</span>)</td>
+</tr>
+<tr class="odd">
+<td>ZeRO-3</td>
+<td>Everything (<span class="math inline">\(20\Psi\)</span>)</td>
+<td>Nothing</td>
+</tr>
+</tbody>
+</table>
+<h4
+id="q5-walk-through-zero-stage-1-during-one-complete-training-iteration.-what-happens-during-forward-backward-weight-update-and-parameter-sync-what-communication-operations-are-involved">Q5:
+Walk through ZeRO Stage 1 during one complete training iteration. What
+happens during forward, backward, weight update, and parameter sync?
+What communication operations are involved?</h4>
+<p><strong>Forward</strong>: Each GPU uses its local <strong>complete
+FP16 parameters</strong> to compute the forward pass normally.
+<strong>No communication needed.</strong></p>
+<p><strong>Backward</strong>: Each GPU computes <strong>full FP16
+gradients</strong> for all parameters on its local mini-batch. Then, an
+<strong>AllReduce</strong> is performed so every GPU obtains the same
+aggregated gradient across all workers.</p>
+<p><strong>Weight Update</strong>: Each GPU uses the aggregated gradient
+<strong>only for the partition it owns</strong> to update its local
+<span class="math inline">\(\frac{1}{N}\)</span> of the optimizer states
+(apply Adam step). This produces updated FP16 parameter values for that
+partition only.</p>
+<p><strong>Parameter Sync</strong>: An <strong>AllGather</strong>
+operation collects the updated FP16 parameter partitions from all GPUs,
+so every GPU reconstructs the complete updated FP16 parameter set.</p>
+<p><strong>Communication operations</strong>: -
+<strong>AllReduce</strong> (gradient synchronization): <span
+class="math inline">\(\approx 2M\)</span> communication -
+<strong>AllGather</strong> (parameter reassembly): <span
+class="math inline">\(\approx M\)</span> communication</p>
+<h4
+id="q6-how-does-zero-stage-2s-backward-phase-differ-from-stage-1-why-can-gradients-be-partitioned-during-the-backward-pass">Q6:
+How does ZeRO Stage 2’s backward phase differ from Stage 1? Why can
+gradients be partitioned during the backward pass?</h4>
+<p><strong>Stage 1</strong>: Performs a full <strong>AllReduce</strong>
+on gradients after backward is complete — every GPU ends up with the
+complete aggregated gradient.</p>
+<p><strong>Stage 2</strong>: Replaces AllReduce with
+<strong>Reduce-Scatter</strong> — each GPU only receives the aggregated
+gradient for <strong>its own partition</strong>. Gradients for other
+partitions are not stored.</p>
+<p><strong>Why gradients can be partitioned during
+backward</strong>:</p>
+<p>Backward propagation proceeds <strong>layer by layer</strong>. Once
+all GPUs have computed the gradient for a given layer, the
+Reduce-Scatter for that layer can execute <strong>immediately</strong> —
+there is no need to wait for all layers to finish. After Reduce-Scatter
+completes for a layer, each GPU <strong>discards</strong> the gradient
+portions that belong to other GPUs’ partitions, freeing memory on the
+spot.</p>
+<p>This is possible because each GPU only needs the gradients for the
+parameters it is responsible for updating. The layer-by-layer nature of
+backpropagation enables <strong>overlapping</strong> gradient
+computation with gradient communication, hiding latency.</p>
+<h4
+id="q7-zero-stage-3-requires-allgather-during-both-forward-and-backward-to-retrieve-full-parameters.-why-is-the-total-communication-1.5x-baseline-rather-than-2x-or-3x-provide-a-quantitative-analysis.">Q7:
+ZeRO Stage 3 requires AllGather during both forward and backward to
+retrieve full parameters. Why is the total communication 1.5x baseline
+rather than 2x or 3x? Provide a quantitative analysis.</h4>
+<p><strong>Baseline (standard data parallelism)</strong>: One AllReduce
+per iteration = <span class="math inline">\(2M\)</span> communication
+per worker (AllReduce = Reduce-Scatter + AllGather, each <span
+class="math inline">\(\approx M\)</span>).</p>
+<p><strong>ZeRO Stage 3 per worker</strong>:</p>
+<table>
+<colgroup>
+<col style="width: 21%" />
+<col style="width: 33%" />
+<col style="width: 45%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Phase</th>
+<th>Operation</th>
+<th>Communication</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Forward</td>
+<td>AllGather parameters (gather before each layer, discard after)</td>
+<td><span class="math inline">\(M\)</span></td>
+</tr>
+<tr class="even">
+<td>Backward</td>
+<td>AllGather parameters (need them again since discarded after
+forward)</td>
+<td><span class="math inline">\(M\)</span></td>
+</tr>
+<tr class="odd">
+<td>Backward</td>
+<td>Reduce-Scatter gradients (partition aggregated gradients)</td>
+<td><span class="math inline">\(M\)</span></td>
+</tr>
+<tr class="even">
+<td><strong>Total</strong></td>
+<td></td>
+<td><strong><span class="math inline">\(3M\)</span></strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ratio</strong>: <span class="math inline">\(\frac{3M}{2M} =
+1.5\times\)</span> baseline.</p>
+<p><strong>Why not 2x or 3x?</strong> - It is NOT 2x because the
+backward Reduce-Scatter replaces the baseline’s AllReduce — it’s the
+same gradient sync, just in partitioned form. - It is NOT 3x because the
+two AllGathers (forward + backward) each cost only <span
+class="math inline">\(M\)</span>, not <span
+class="math inline">\(2M\)</span>. Together they add <span
+class="math inline">\(2M\)</span>, replacing the baseline’s implicit
+parameter access (which had zero communication cost since parameters
+were replicated). - Net additional cost over baseline: <span
+class="math inline">\(+M\)</span> (one extra AllGather for forward pass
+parameters), giving <span class="math inline">\(3M\)</span> vs <span
+class="math inline">\(2M\)</span> = 1.5x.</p>
+<h3 id="part-3-concrete-calculation-7b-model-memory">Part 3: Concrete
+Calculation — 7B Model Memory</h3>
+<h4
+id="q8-calculate-the-per-gpu-memory-for-a-7b-parameter-model-across-all-zero-stages-with-n-64-gpus.">Q8:
+Calculate the per-GPU memory for a 7B parameter model across all ZeRO
+stages with N = 64 GPUs.</h4>
+<p><strong>Given</strong>: <span class="math inline">\(\Psi =
+7\text{B}\)</span>, <span class="math inline">\(N = 64\)</span></p>
+<p><strong>Baseline (no partitioning)</strong>: <span
+class="math display">\[20 \times 7\text{B} = 140\text{ GB}\]</span> This
+<strong>exceeds A100-80GB</strong> — baseline data parallelism cannot
+even load the model!</p>
+<p><strong>Detailed calculation for each stage</strong>:</p>
+<table>
+<colgroup>
+<col style="width: 18%" />
+<col style="width: 24%" />
+<col style="width: 35%" />
+<col style="width: 21%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Stage</th>
+<th>Formula</th>
+<th>Calculation</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Baseline DP</td>
+<td><span class="math inline">\(20\Psi\)</span></td>
+<td><span class="math inline">\(20 \times 7\text{B}\)</span></td>
+<td><strong>140 GB (OOM!)</strong></td>
+</tr>
+<tr class="even">
+<td>ZeRO-1</td>
+<td><span class="math inline">\(4\Psi + \frac{16\Psi}{N}\)</span></td>
+<td><span class="math inline">\(28\text{ GB} + 1.75\text{
+GB}\)</span></td>
+<td><strong>29.75 GB</strong></td>
+</tr>
+<tr class="odd">
+<td>ZeRO-2</td>
+<td><span class="math inline">\(2\Psi + \frac{18\Psi}{N}\)</span></td>
+<td><span class="math inline">\(14\text{ GB} + 1.97\text{
+GB}\)</span></td>
+<td><strong>15.97 GB</strong></td>
+</tr>
+<tr class="even">
+<td>ZeRO-3</td>
+<td><span class="math inline">\(\frac{20\Psi}{N}\)</span></td>
+<td><span class="math inline">\(\frac{140}{64}\)</span></td>
+<td><strong>2.19 GB</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Formula breakdown</strong>:</p>
+<ul>
+<li><strong>Baseline</strong>: FP16 params (<span
+class="math inline">\(2\Psi\)</span>) + FP16 grads (<span
+class="math inline">\(2\Psi\)</span>) + FP32 optimizer states (<span
+class="math inline">\(16\Psi\)</span>) = <span
+class="math inline">\(20\Psi\)</span></li>
+<li><strong>ZeRO-1</strong>: FP16 params (<span
+class="math inline">\(2\Psi\)</span>) + FP16 grads (<span
+class="math inline">\(2\Psi\)</span>) + partitioned optimizer states
+(<span class="math inline">\(\frac{16\Psi}{N}\)</span>) = <span
+class="math inline">\(4\Psi + \frac{16\Psi}{N}\)</span></li>
+<li><strong>ZeRO-2</strong>: FP16 params (<span
+class="math inline">\(2\Psi\)</span>) + partitioned grads (<span
+class="math inline">\(\frac{2\Psi}{N}\)</span>) + partitioned optimizer
+states (<span class="math inline">\(\frac{16\Psi}{N}\)</span>) = <span
+class="math inline">\(2\Psi + \frac{18\Psi}{N}\)</span></li>
+<li><strong>ZeRO-3</strong>: Everything partitioned = <span
+class="math inline">\(\frac{(2+2+16)\Psi}{N} =
+\frac{20\Psi}{N}\)</span></li>
+</ul>
+<p><strong>Key interview takeaways</strong>:</p>
+<ol type="1">
+<li>A 7B model with baseline DP <strong>cannot fit on a single
+A100-80GB</strong> — the 140 GB memory footprint is the dominant
+constraint</li>
+<li><strong>ZeRO-1</strong> brings it down to ~30 GB — comfortably fits
+on A100-80GB</li>
+<li><strong>ZeRO-3</strong> reduces model state to only ~2.2 GB — but
+note that <strong>activation memory</strong> is additional and can be
+substantial depending on batch size and sequence length</li>
+<li>The jump from baseline to ZeRO-1 provides the <strong>largest
+absolute savings</strong> (140 GB → 30 GB), while ZeRO-2 and ZeRO-3
+provide further reductions at the cost of more communication
+complexity</li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/">https://xloverflow.github.io/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/CMU/">CMU</a><a class="post-meta__tags" href="/tags/ML-Systems/">ML Systems</a><a class="post-meta__tags" href="/tags/15642/">15642</a><a class="post-meta__tags" href="/tags/Data-Parallelism/">Data Parallelism</a><a class="post-meta__tags" href="/tags/Model-Parallelism/">Model Parallelism</a><a class="post-meta__tags" href="/tags/Pipeline-Parallelism/">Pipeline Parallelism</a><a class="post-meta__tags" href="/tags/ZeRO/">ZeRO</a><a class="post-meta__tags" href="/tags/AllReduce/">AllReduce</a><a class="post-meta__tags" href="/tags/Distributed-Training/">Distributed Training</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">11711 Advanced NLP: Retrieval and RAG</div></div><div class="info-2"><div class="info-item-1">Notes on retrieval systems, retrievers, and retrieval-augmented generation (RAG) from CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">11868 LLM Sys: Decoding</div></div><div class="info-2"><div class="info-item-1">Notes on decoding strategies for LLM inference from CMU 11-868, covering efficient sampling, beam search algorithms, speculative decoding, and EAGLE.</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/01/28/11868-LLM-Sys/11868-LLM-Sys-15642-ML-Sys-DL-Framworks-and-Auto-Differentiation/" title="11868 LLM Sys &amp; 15642 ML Sys: DL Frameworks and Auto Differentiation"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-28</div><div class="info-item-2">11868 LLM Sys &amp; 15642 ML Sys: DL Frameworks and Auto Differentiation</div></div><div class="info-2"><div class="info-item-1">Comprehensive notes on deep learning frameworks and automatic differentiation from CMU 11-868 LLM Systems and 15-642 ML Systems courses.</div></div></div></a><a class="pagination-related" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-09</div><div class="info-item-2">15642 Machine Learning Systems: Transformer, Attention, and Optimizations</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-642 Machine Learning Systems on Transformer architecture, attention mechanisms, and GPU optimizations including FlashAttention.</div></div></div></a><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">Notes on RNN architectures, encoder-decoder models, and attention mechanisms from CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-22</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/" title="11711 Advanced NLP: Learning &amp; Inference"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Learning &amp; Inference</div></div><div class="info-2"><div class="info-item-1">Notes on learning algorithms and inference methods from CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-14</div><div class="info-item-2">11711 Advanced NLP: Retrieval and RAG</div></div><div class="info-2"><div class="info-item-1">Notes on retrieval systems, retrievers, and retrieval-augmented generation (RAG) from CMU 11-711 Advanced NLP.</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#data-parallelism-and-zero-redundancy"><span class="toc-number">1.</span> <span class="toc-text">Data Parallelism and Zero
+Redundancy</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#dnn-training-overview"><span class="toc-number">1.1.</span> <span class="toc-text">DNN Training Overview</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#data-parallelism-basics"><span class="toc-number">1.2.</span> <span class="toc-text">Data Parallelism Basics</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#gradient-aggregation-strategies"><span class="toc-number">1.3.</span> <span class="toc-text">Gradient Aggregation
+Strategies</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#parameter-server-architecture"><span class="toc-number">1.3.1.</span> <span class="toc-text">Parameter Server
+Architecture</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#allreduce-communication-patterns"><span class="toc-number">1.3.2.</span> <span class="toc-text">AllReduce Communication
+Patterns</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#naive-allreduce"><span class="toc-number">1.3.2.1.</span> <span class="toc-text">Naive AllReduce</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ring-allreduce"><span class="toc-number">1.3.2.2.</span> <span class="toc-text">Ring AllReduce</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#aggregation-phase"><span class="toc-number">1.3.2.2.1.</span> <span class="toc-text">Aggregation Phase</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#broadcast-phase"><span class="toc-number">1.3.2.2.2.</span> <span class="toc-text">Broadcast Phase</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#communication-cost-analysis"><span class="toc-number">1.3.2.2.3.</span> <span class="toc-text">Communication Cost Analysis</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#tree-allreduce"><span class="toc-number">1.3.2.3.</span> <span class="toc-text">Tree AllReduce</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#butterfly-allreduce"><span class="toc-number">1.3.2.4.</span> <span class="toc-text">Butterfly AllReduce</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#performance-comparison"><span class="toc-number">1.3.3.</span> <span class="toc-text">Performance Comparison</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#large-model-training-challenges"><span class="toc-number">1.4.</span> <span class="toc-text">Large Model Training
+Challenges</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#memory-breakdown"><span class="toc-number">1.4.1.</span> <span class="toc-text">Memory Breakdown</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#scaling-examples"><span class="toc-number">1.4.2.</span> <span class="toc-text">Scaling Examples</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#zero-zero-redundancy-optimizer"><span class="toc-number">1.5.</span> <span class="toc-text">ZeRO: Zero Redundancy
+Optimizer</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#overview"><span class="toc-number">1.5.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#zero-stage-1-partitioning-optimizer-states"><span class="toc-number">1.5.2.</span> <span class="toc-text">ZeRO Stage 1:
+Partitioning Optimizer States</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#zero-stage-2-partitioning-gradients"><span class="toc-number">1.5.3.</span> <span class="toc-text">ZeRO Stage 2: Partitioning
+Gradients</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#zero-stage-3-partitioning-parameters"><span class="toc-number">1.5.4.</span> <span class="toc-text">ZeRO Stage 3: Partitioning
+Parameters</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#performance-analysis"><span class="toc-number">1.5.5.</span> <span class="toc-text">Performance Analysis</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#memory-comparison-m-parameters-n-gpus"><span class="toc-number">1.5.5.1.</span> <span class="toc-text">Memory Comparison (M
+parameters, N GPUs)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#communication-comparison"><span class="toc-number">1.5.5.2.</span> <span class="toc-text">Communication Comparison</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#summary"><span class="toc-number">1.6.</span> <span class="toc-text">Summary</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#interview-review-qa"><span class="toc-number">1.7.</span> <span class="toc-text">Interview Review Q&amp;A</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#part-1-core-concepts-high-frequency-interview-questions"><span class="toc-number">1.7.1.</span> <span class="toc-text">Part 1:
+Core Concepts (High-Frequency Interview Questions)</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#q1-explain-the-workflow-of-data-parallelism.-what-does-each-gpu-do-during-one-training-iteration-how-are-gradients-synchronized"><span class="toc-number">1.7.1.1.</span> <span class="toc-text">Q1:
+Explain the workflow of Data Parallelism. What does each GPU do during
+one training iteration? How are gradients synchronized?</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#q2-what-are-the-main-allreduce-implementations-compare-the-total-communication-of-ring-allreduce-vs.-naive-allreduce-and-explain-why-ring-allreduce-is-more-scalable."><span class="toc-number">1.7.1.2.</span> <span class="toc-text">Q2:
+What are the main AllReduce implementations? Compare the total
+communication of Ring AllReduce vs. Naive AllReduce, and explain why
+Ring AllReduce is more scalable.</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#q3-in-mixed-precision-training-with-adam-optimizer-for-a-model-with-%CF%88-parameters-what-does-each-gpu-need-to-store-and-how-much-memory-does-each-component-take"><span class="toc-number">1.7.1.3.</span> <span class="toc-text">Q3:
+In mixed-precision training with Adam optimizer, for a model with Ψ
+parameters, what does each GPU need to store and how much memory does
+each component take?</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#part-2-zero-deep-dive"><span class="toc-number">1.7.2.</span> <span class="toc-text">Part 2: ZeRO Deep Dive</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#q4-explain-zero-stage-123-in-your-own-words.-what-does-each-stage-partition-and-what-does-it-keep-replicated"><span class="toc-number">1.7.2.1.</span> <span class="toc-text">Q4:
+Explain ZeRO Stage 1&#x2F;2&#x2F;3 in your own words. What does each stage
+partition, and what does it keep replicated?</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#q5-walk-through-zero-stage-1-during-one-complete-training-iteration.-what-happens-during-forward-backward-weight-update-and-parameter-sync-what-communication-operations-are-involved"><span class="toc-number">1.7.2.2.</span> <span class="toc-text">Q5:
+Walk through ZeRO Stage 1 during one complete training iteration. What
+happens during forward, backward, weight update, and parameter sync?
+What communication operations are involved?</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#q6-how-does-zero-stage-2s-backward-phase-differ-from-stage-1-why-can-gradients-be-partitioned-during-the-backward-pass"><span class="toc-number">1.7.2.3.</span> <span class="toc-text">Q6:
+How does ZeRO Stage 2’s backward phase differ from Stage 1? Why can
+gradients be partitioned during the backward pass?</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#q7-zero-stage-3-requires-allgather-during-both-forward-and-backward-to-retrieve-full-parameters.-why-is-the-total-communication-1.5x-baseline-rather-than-2x-or-3x-provide-a-quantitative-analysis."><span class="toc-number">1.7.2.4.</span> <span class="toc-text">Q7:
+ZeRO Stage 3 requires AllGather during both forward and backward to
+retrieve full parameters. Why is the total communication 1.5x baseline
+rather than 2x or 3x? Provide a quantitative analysis.</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#part-3-concrete-calculation-7b-model-memory"><span class="toc-number">1.7.3.</span> <span class="toc-text">Part 3: Concrete
+Calculation — 7B Model Memory</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#q8-calculate-the-per-gpu-memory-for-a-7b-parameter-model-across-all-zero-stages-with-n-64-gpus."><span class="toc-number">1.7.3.1.</span> <span class="toc-text">Q8:
+Calculate the per-GPU memory for a 7B parameter model across all ZeRO
+stages with N &#x3D; 64 GPUs.</span></a></li></ol></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Retrieval and RAG"/></a><div class="content"><a class="title" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG">11711 Advanced NLP: Retrieval and RAG</a><time datetime="2026-02-14T22:08:21.000Z" title="Created 2026-02-14 17:08:21">2026-02-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Distributed Training and Parallelization"/></a><div class="content"><a class="title" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization">15642 Machine Learning Systems: Distributed Training and Parallelization</a><time datetime="2026-02-13T21:00:00.000Z" title="Created 2026-02-13 16:00:00">2026-02-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Decoding"/></a><div class="content"><a class="title" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding">11868 LLM Sys: Decoding</a><time datetime="2026-02-13T01:00:00.000Z" title="Created 2026-02-12 20:00:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Tokenization and Embedding"/></a><div class="content"><a class="title" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding">11868 LLM Sys: Tokenization and Embedding</a><time datetime="2026-02-12T20:30:00.000Z" title="Created 2026-02-12 15:30:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"/></a><div class="content"><a class="title" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations">15642 Machine Learning Systems: Transformer, Attention, and Optimizations</a><time datetime="2026-02-09T19:30:00.000Z" title="Created 2026-02-09 14:30:00">2026-02-09</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '9eff7a1c6a7abc0ea76c6f3db988816a'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

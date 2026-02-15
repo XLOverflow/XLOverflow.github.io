@@ -1,0 +1,583 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>CS336-Lec2 PyTorch &amp; Resource accounting | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="This section focuses on the &#39;compute black box&#39; behind model training. Starting from the microscopic details of floating-point formats, it delves into FLOPs calculation formulas, analyzes the characte">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CS336-Lec2 PyTorch &amp; Resource accounting">
+<meta property="og:url" content="https://xloverflow.github.io/2025/12/15/CS336/CS336-Lec2-PyTorch-Resource-accounting/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="This section focuses on the &#39;compute black box&#39; behind model training. Starting from the microscopic details of floating-point formats, it delves into FLOPs calculation formulas, analyzes the characte">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png">
+<meta property="article:published_time" content="2025-12-15T01:44:34.000Z">
+<meta property="article:modified_time" content="2026-02-15T05:04:17.011Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="AI">
+<meta property="article:tag" content="CS336">
+<meta property="article:tag" content="LLM">
+<meta property="article:tag" content="PyTorch">
+<meta property="article:tag" content="Stanford">
+<meta property="article:tag" content="Study Notes">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "CS336-Lec2 PyTorch & Resource accounting",
+  "url": "https://xloverflow.github.io/2025/12/15/CS336/CS336-Lec2-PyTorch-Resource-accounting/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png",
+  "datePublished": "2025-12-15T01:44:34.000Z",
+  "dateModified": "2026-02-15T05:04:17.011Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2025/12/15/CS336/CS336-Lec2-PyTorch-Resource-accounting/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'CS336-Lec2 PyTorch & Resource accounting',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">CS336-Lec2 PyTorch &amp; Resource accounting</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">CS336-Lec2 PyTorch &amp; Resource accounting</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2025-12-15T01:44:34.000Z" title="Created 2025-12-14 20:44:34">2025-12-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-02-15T05:04:17.011Z" title="Updated 2026-02-15 00:04:17">2026-02-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Stanford-CS336/">Stanford CS336</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="lec-2-pytorch-resource-accounting">Lec 2: PyTorch &amp; Resource
+accounting</h1>
+<h2 id="numeric-formats-float-pointing-formats">Numeric Formats (Float
+Pointing Formats)</h2>
+<p>Before diving into computations, we need to understand what we are
+calculating. This involves many trade-offs between <strong>computational
+efficiency</strong> and <strong>numerical precision</strong>.</p>
+<p>Any floating-point number in a computer consists of three parts: the
+sign bit (Sign), the exponent (Exponent), and the fraction (Fraction).
+The calculation formula is <span class="math display">\[
+(-1)^S \times 1.M \times 2^{E-Bias}
+\]</span></p>
+<ul>
+<li>S determines the sign</li>
+<li>M determines precision; the more digits after the decimal point, the
+denser the number</li>
+<li>E determines the dynamic range; the more bits, the larger the range
+represented</li>
+<li>Bias is a fixed constant that allows the exponent to be negative,
+balancing the positive and negative ranges</li>
+</ul>
+<h3 id="why-not-use-fp32-exclusively">Why Not Use FP32 Exclusively</h3>
+<p>Standard FP32 (Single Precision) has 1 sign bit, 8 exponent bits, and
+23 fraction bits.</p>
+<ul>
+<li>Advantages: High precision, large range, stable training</li>
+<li>Disadvantages: Slow, consumes a lot of memory</li>
+<li>In modern large model training, FP32 is mainly used for backup
+during optimizer updates, rather than core computations.</li>
+</ul>
+<h3 id="fp16-and-bf16">FP16 and BF16</h3>
+<p>To seek faster computational efficiency, the industry mainly uses
+16-bit formats, primarily FP16 and BF16.</p>
+<ol type="1">
+<li><p>FP16 (Half Precision):</p>
+<ul>
+<li><p>Structure: 5 bits for exponent + 10 bits for fraction</p></li>
+<li><p>Drawback: The small number of exponent bits means a <strong>small
+dynamic range</strong>; if the value is too small, it can lead to
+underflow, such as <span
+class="math inline">\(1e^{-8}\)</span>.</p></li>
+</ul></li>
+<li><p>BF16 (Brain Float 16):</p>
+<ul>
+<li>Structure: 8 bits for exponent + 7 bits for fraction</li>
+<li>Core advantage: The exponent bits are the same as FP32, meaning it
+has the <strong>same dynamic range as FP32</strong>, with slightly lower
+precision.</li>
+<li>Conclusion: Deep learning is sensitive to “range” and not sensitive
+to “precision”; neural networks are inherently fuzzy approximations,
+making BF16 the <strong>standard format for training large models
+today</strong>.</li>
+</ul></li>
+</ol>
+<hr />
+<h2 id="measuring-computational-power-flops">Measuring Computational
+Power: FLOPs</h2>
+<h3 id="matrix-multiplication-matmul">Matrix Multiplication
+(MatMul)</h3>
+<p>The core of deep learning is matrix multiplication <span
+class="math inline">\(Y = X \times W\)</span>, and the computational
+cost formula is as follows: <span class="math display">\[
+FLOPs = 2 \cdot B \cdot D \cdot K
+\]</span></p>
+<ul>
+<li>B: Batch Size</li>
+<li>D: Input Dimension</li>
+<li>K: Output Dimension</li>
+<li>Origin of 2: A single FMA (Fused Multiply-Add) instruction at the
+computer level typically counts as 2 FLOPs, one multiplication and one
+addition.</li>
+</ul>
+<h3 id="training-cost-law-126">Training Cost Law: 1:2:6</h3>
+<p>This is the most important Rule of Thumb for this lesson: Why is
+training so much more expensive than inference?</p>
+<p>The entire training process is divided into <strong>forward and
+backward propagation</strong>, each with its own computational cost.</p>
+<ul>
+<li>Forward Pass: Computes <span class="math inline">\(H = XW\)</span>.
+Consumes 1 unit of computational power.</li>
+<li>Backward Pass: Requires calculating two gradients, the first is the
+weight gradient <span class="math inline">\(dW\)</span>, and the input
+gradient <span class="math inline">\(dX\)</span>. The former is used to
+update parameters, while the latter is propagated to the previous
+layer.</li>
+</ul>
+<p>For a model with P parameters trained with N tokens, the total
+floating-point operation volume is approximately: <span
+class="math display">\[
+C \approx 6 \cdot N \cdot P
+\]</span> The forward pass accounts for 2 FLOPs, the backward pass for 4
+FLOPs, resulting in a total of 6, which gives us the above ratio.</p>
+<p>The parameter count we discuss here always refers to the
+<strong>total number of physically independent variables (excluding
+shared parameters) that need to be updated by the
+optimizer</strong>.</p>
+<p>For shared parameters, they indeed <strong>reduce the parameter
+count</strong>, but in terms of computation, the <strong>FLOPs do not
+decrease</strong> because you still need to traverse the network
+structure through these layers to perform the corresponding
+calculations.</p>
+<p>The reason we use <span class="math inline">\(\approx\)</span> here
+is that we ignore two things:</p>
+<ul>
+<li><strong>Embedding layers and Softmax layers</strong>: These two
+layers have a considerable number of parameters P, and the vocabulary is
+large, but they do not fully adhere to the 2P computational logic.
+However, compared to the dozens of intermediate Transformer Blocks, the
+error is acceptable.</li>
+<li><strong>Attention’s <span class="math inline">\(N^2\)</span>
+computation</strong>: We previously assumed that computational power is
+related to the parameter count P, but due to Attention, the
+multiplication of Query and Key has a computational volume of <span
+class="math inline">\(N^2\)</span>. This part does not consume
+parameters, but as long as N (sequence length) is much smaller than P,
+this term can be ignored.</li>
+</ul>
+<p>You might wonder why Attention is <span
+class="math inline">\(N^2\)</span>?</p>
+<p>Actually, this is more like a simplification of time complexity; the
+precise computational formula is:</p>
+<p><span class="math display">\[
+12N^2LH = \underbrace{L}_{\text{number of layers}} \times
+\underbrace{(4N^2H)}_{\text{forward propagation}} \times
+\underbrace{3}_{\text{training coefficient}}
+\]</span></p>
+<ul>
+<li>L is the number of layers in the Transformer, and the model is
+stacked with L identical blocks.</li>
+<li>The forward propagation part involves the multiplication of QKV
+matrices.</li>
+<li>The training coefficient follows forward propagation 1, backward
+propagation 2, totaling 3.</li>
+</ul>
+<p>We are comparing: <strong>“huge parameter count P”</strong> vs
+<strong>“sequence length N”</strong>. In current standard model
+configurations, the former is much larger than the latter.</p>
+<h3 id="hardware-h100-and-tensor-cores">Hardware: H100 and Tensor
+Cores</h3>
+<p>GPUs have general cores and specialized cores:</p>
+<ul>
+<li>CUDA Cores: <strong>General, flexible but slow</strong>, handling
+FP32/FP64</li>
+<li>Tensor Cores: <strong>Designed specifically for matrix
+multiplication</strong>, H100’s Tensor Core can execute <span
+class="math inline">\(4 \times 4\)</span> matrix operations every clock
+cycle, supporting <strong>mixed precision</strong>; inputs can be
+FP16/BF16, while internal accumulation uses FP32, balancing speed and
+numerical stability.</li>
+</ul>
+<p>Sparsity:</p>
+<p>NVIDIA promotes that the H100 has 1979 TFLOPs of FP16 computational
+power. However, the truth is that this is the theoretical value after
+enabling (Structured Sparsity (2:4)), which requires that every 4
+elements must have 2 zeros to skip zero calculations.</p>
+<p>In reality, most training is dense training, so <strong>computational
+power is effectively halved</strong>.</p>
+<h2 id="engineering-practice-code-and-dimension-management">Engineering
+Practice: Code and Dimension Management</h2>
+<h3 id="dimensionality-hell">Dimensionality Hell</h3>
+<p>In Transformer code, manually handling dimensions (like
+<code>view</code>, <code>transpose</code>) is prone to errors and hard
+to debug:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">x = x.view(B, N, H, D).permute(<span class="number">0</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">3</span>) <span class="comment"># Who are 0, 2, 1, 3?</span></span><br></pre></td></tr></table></figure>
+<h3 id="einops-library">Einops Library</h3>
+<p>The course strongly recommends using the <code>einops</code> library,
+which makes dimension transformations “declarative” and
+“self-documenting”:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> einops <span class="keyword">import</span> rearrange</span><br><span class="line"></span><br><span class="line"><span class="comment"># Clear semantics: Extract the Head dimension and place it before the sequence length</span></span><br><span class="line">q = rearrange(x, <span class="string">&#x27;b s (h d) -&gt; b h s d&#x27;</span>, h=<span class="number">8</span>)</span><br></pre></td></tr></table></figure>
+<p><strong>Principle</strong>: Code is not just for machines to run; it
+is also for people to read. Explicit is better than implicit.</p>
+<hr />
+<h2 id="optimizer">Optimizer</h2>
+<h3 id="origin-of-adamw">Origin of AdamW</h3>
+<p>The mainstream optimizer we use now is AdamW, but how did it
+evolve?</p>
+<ul>
+<li><strong>SGD</strong>: Simple gradient descent, moving based on the
+direct gradient.</li>
+<li><strong>Momentum</strong>: Adds “inertia,” physical momentum used to
+accumulate momentum on steep slopes, pushing through flat areas, as flat
+areas may be saddle points or local optima where regular SGD might
+stop.</li>
+<li><strong>RMSProp</strong>: Adds an adaptive step size (second-order
+momentum), <strong>small steps on steep paths, large steps on flat
+paths</strong>.</li>
+<li><strong>Adam</strong>: Momentum + RMSProp. Integrates the advantages
+of the first two.</li>
+</ul>
+<h3 id="what-is-momentum">What is Momentum</h3>
+<p>In deep learning optimizers, momentum is mainly divided into
+first-order and second-order momentum:</p>
+<ul>
+<li><strong>First-order momentum</strong> (Momentum) is the average of
+gradients, retaining the sign, determining whether to move forward or
+backward. It considers the new speed based on historical velocity and
+current acceleration (gradient).</li>
+<li><strong>Second-order momentum</strong> (Second Moment) is the
+average of squared gradients; since it is squared, the sign disappears,
+indicating it only cares about the magnitude and not the direction,
+measuring how steep the gradient is.</li>
+</ul>
+<p><strong>RMSProp</strong> (Root Mean Square Propagation): <span
+class="math display">\[
+\text{Parameter Update} = \frac{\text{Learning
+Rate}}{\sqrt{\text{Second-order Momentum}}} \times \text{Gradient}
+\]</span> It can reduce the step size when the gradient is large (small
+steps on steep paths) and amplify it when small (large steps on flat
+paths), addressing the <strong>oscillation problem in valleys</strong>
+and convergence issues at saddle points.</p>
+<h3 id="adam-adaptive-moment-estimation">Adam (Adaptive Moment
+Estimation)</h3>
+<p><span class="math display">\[
+\begin{aligned}
+\text{1. Compute Gradient:} &amp;\quad g_t = \nabla_\theta
+J(\theta_{t-1}) \\
+\text{2. Update First-order Momentum (Momentum):} &amp;\quad m_t =
+\beta_1 m_{t-1} + (1-\beta_1) g_t \\
+\text{3. Update Second-order Momentum (RMSProp):} &amp;\quad v_t =
+\beta_2 v_{t-1} + (1-\beta_2) g_t^2 \\
+\text{4. Bias Correction:} &amp;\quad \hat{m}_t =
+\frac{m_t}{1-\beta_1^t}, \quad \hat{v}_t = \frac{v_t}{1-\beta_2^t} \\
+\text{5. Parameter Update (Final Update):} &amp;\quad \theta_t =
+\theta_{t-1} - \eta \cdot \frac{\hat{m}_t}{\sqrt{\hat{v}_t}+\epsilon}
+\end{aligned}
+\]</span></p>
+<p><span class="math display">\[
+\theta_t = \theta_{t-1} - \eta \cdot \frac{\overbrace{\left(
+\frac{\beta_1 m_{t-1} + (1-\beta_1)g_t}{1-\beta_1^t}
+\right)}^{\text{Corrected First-order Momentum (Direction +
+Inertia)}}}{\underbrace{\sqrt{\frac{\beta_2 v_{t-1} +
+(1-\beta_2)g_t^2}{1-\beta_2^t}}}_{\text{Corrected Second-order Momentum
+(Adaptive Step Size)}} + \epsilon}
+\]</span> A simple analysis shows that the numerator represents inertia,
+while the denominator represents resistance, or normalization.
+Essentially, this formula embodies the inertia of code momentum pushing
+forward while simultaneously having RMSProp’s adaptive braking.</p>
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ol type="1">
+<li><strong>Where Did the Computational Power Go?</strong> The vast
+majority of computational power (&gt;95%) is spent on
+<strong>Forward</strong> and <strong>Backward</strong> matrix
+multiplications.</li>
+<li><strong>Where Did the Memory Go?</strong>
+<ul>
+<li><strong>Static</strong>: Model parameters (Weights) + Optimizer
+states (Optimizer States).</li>
+<li><strong>Dynamic</strong>: Intermediate activation values
+(Activations). The larger the Batch Size and the longer the Context
+Length, the more terrifying the memory consumption of activation
+values.</li>
+</ul></li>
+<li><strong>Where Are the Bottlenecks?</strong>
+<ul>
+<li>Matrix multiplication layers are usually <strong>Compute
+Bound</strong> (limited by computational power).</li>
+<li>LayerNorm, Softmax, CrossEntropy are typically <strong>Memory
+Bound</strong> (limited by memory bandwidth).</li>
+</ul></li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2025/12/15/CS336/CS336-Lec2-PyTorch-Resource-accounting/">https://xloverflow.github.io/2025/12/15/CS336/CS336-Lec2-PyTorch-Resource-accounting/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/tags/AI/">AI</a><a class="post-meta__tags" href="/tags/LLM/">LLM</a><a class="post-meta__tags" href="/tags/CS336/">CS336</a><a class="post-meta__tags" href="/tags/PyTorch/">PyTorch</a><a class="post-meta__tags" href="/tags/Stanford/">Stanford</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/12/16/CS336/CS336-Lec3-Architectures-Hyperparameters/" title="CS336-Lec3 Architectures &amp; Hyperparameters"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">CS336-Lec3 Architectures & Hyperparameters</div></div><div class="info-2"><div class="info-item-1">This article summarizes the content of the third lecture of the CS336 course, focusing on the evolution of Transformer architectures and their hyperparameter choices, including the latest developments in normalization methods, activation functions, position encoding, and more.</div></div></div></a><a class="pagination-related" href="/2025/12/14/CS336/CS336-Lec1-Tokenization/" title="CS336-Lec1 Tokenization"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">CS336-Lec1 Tokenization</div></div><div class="info-2"><div class="info-item-1">Lec1 mainly introduces the basic concepts of Tokenization and several common Tokenizer methods, including Character Tokenizer, Byte Tokenizer, Word Tokenizer, and BPE Tokenizer, analyzing their advantages, disadvantages, and applicable scenarios.</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/02/09/CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch/" title="CS336 Assignment 1: Building a Transformer Language Model from Scratch"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-08</div><div class="info-item-2">CS336 Assignment 1: Building a Transformer Language Model from Scratch</div></div><div class="info-2"><div class="info-item-1">A comprehensive reflection on implementing a complete Transformer language model pipeline from scratch — including BPE tokenizer with parallel pre-tokenization, decoder-only Transformer with RMSNorm/RoPE/SwiGLU, AdamW optimizer, and autoregressive text generation. Trained on TinyStories and OpenWebText with extensive experiments on learning rate sweeps, batch size studies, and architectural ablations.</div></div></div></a><a class="pagination-related" href="/2025/12/14/CS336/CS336-Lec1-Tokenization/" title="CS336-Lec1 Tokenization"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-12-14</div><div class="info-item-2">CS336-Lec1 Tokenization</div></div><div class="info-2"><div class="info-item-1">Lec1 mainly introduces the basic concepts of Tokenization and several common Tokenizer methods, including Character Tokenizer, Byte Tokenizer, Word Tokenizer, and BPE Tokenizer, analyzing their advantages, disadvantages, and applicable scenarios.</div></div></div></a><a class="pagination-related" href="/2025/12/16/CS336/CS336-Lec3-Architectures-Hyperparameters/" title="CS336-Lec3 Architectures &amp; Hyperparameters"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-12-16</div><div class="info-item-2">CS336-Lec3 Architectures &amp; Hyperparameters</div></div><div class="info-2"><div class="info-item-1">This article summarizes the content of the third lecture of the CS336 course, focusing on the evolution of Transformer architectures and their hyperparameter choices, including the latest developments in normalization methods, activation functions, position encoding, and more.</div></div></div></a><a class="pagination-related" href="/2025/12/17/CS336/CS336-Lec4-Mixture-of-Experts/" title="CS336-Lec4 Mixture of Experts"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-12-17</div><div class="info-item-2">CS336-Lec4 Mixture of Experts</div></div><div class="info-2"><div class="info-item-1">This article summarizes the content of Lecture 4 of the CS336 course, focusing on the principles, implementation methods, and applications of the Mixture of Experts model within the Transformer architecture, including recent advancements in expert selection mechanisms, routing strategies, and training techniques.</div></div></div></a><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">Notes on RNN architectures, encoder-decoder models, and attention mechanisms from CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-22</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 11-711 Advanced NLP.</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#lec-2-pytorch-resource-accounting"><span class="toc-number">1.</span> <span class="toc-text">Lec 2: PyTorch &amp; Resource
+accounting</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#numeric-formats-float-pointing-formats"><span class="toc-number">1.1.</span> <span class="toc-text">Numeric Formats (Float
+Pointing Formats)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#why-not-use-fp32-exclusively"><span class="toc-number">1.1.1.</span> <span class="toc-text">Why Not Use FP32 Exclusively</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#fp16-and-bf16"><span class="toc-number">1.1.2.</span> <span class="toc-text">FP16 and BF16</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#measuring-computational-power-flops"><span class="toc-number">1.2.</span> <span class="toc-text">Measuring Computational
+Power: FLOPs</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#matrix-multiplication-matmul"><span class="toc-number">1.2.1.</span> <span class="toc-text">Matrix Multiplication
+(MatMul)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#training-cost-law-126"><span class="toc-number">1.2.2.</span> <span class="toc-text">Training Cost Law: 1:2:6</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#hardware-h100-and-tensor-cores"><span class="toc-number">1.2.3.</span> <span class="toc-text">Hardware: H100 and Tensor
+Cores</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#engineering-practice-code-and-dimension-management"><span class="toc-number">1.3.</span> <span class="toc-text">Engineering
+Practice: Code and Dimension Management</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#dimensionality-hell"><span class="toc-number">1.3.1.</span> <span class="toc-text">Dimensionality Hell</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#einops-library"><span class="toc-number">1.3.2.</span> <span class="toc-text">Einops Library</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#optimizer"><span class="toc-number">1.4.</span> <span class="toc-text">Optimizer</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#origin-of-adamw"><span class="toc-number">1.4.1.</span> <span class="toc-text">Origin of AdamW</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#what-is-momentum"><span class="toc-number">1.4.2.</span> <span class="toc-text">What is Momentum</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#adam-adaptive-moment-estimation"><span class="toc-number">1.4.3.</span> <span class="toc-text">Adam (Adaptive Moment
+Estimation)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#key-takeaways"><span class="toc-number">1.5.</span> <span class="toc-text">Key Takeaways</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Retrieval and RAG"/></a><div class="content"><a class="title" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG">11711 Advanced NLP: Retrieval and RAG</a><time datetime="2026-02-14T22:08:21.000Z" title="Created 2026-02-14 17:08:21">2026-02-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Distributed Training and Parallelization"/></a><div class="content"><a class="title" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization">15642 Machine Learning Systems: Distributed Training and Parallelization</a><time datetime="2026-02-13T21:00:00.000Z" title="Created 2026-02-13 16:00:00">2026-02-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Decoding"/></a><div class="content"><a class="title" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding">11868 LLM Sys: Decoding</a><time datetime="2026-02-13T01:00:00.000Z" title="Created 2026-02-12 20:00:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Tokenization and Embedding"/></a><div class="content"><a class="title" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding">11868 LLM Sys: Tokenization and Embedding</a><time datetime="2026-02-12T20:30:00.000Z" title="Created 2026-02-12 15:30:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"/></a><div class="content"><a class="title" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations">15642 Machine Learning Systems: Transformer, Attention, and Optimizations</a><time datetime="2026-02-09T19:30:00.000Z" title="Created 2026-02-09 14:30:00">2026-02-09</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '3f8d3cc57e842c958f5dbc91fc34a7e5'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

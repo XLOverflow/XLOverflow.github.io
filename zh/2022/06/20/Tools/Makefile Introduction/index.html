@@ -1,0 +1,411 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Makefile Introduction | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Basic concepts of makefile">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Makefile Introduction">
+<meta property="og:url" content="https://xloverflow.github.io/zh/2022/06/20/Tools/Makefile%20Introduction/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Basic concepts of makefile">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg">
+<meta property="article:published_time" content="2022-06-20T02:49:31.000Z">
+<meta property="article:modified_time" content="2026-02-15T05:04:17.032Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="Learning">
+<meta property="article:tag" content="CS Tools">
+<meta property="article:tag" content="Makefile Basics">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Makefile Introduction",
+  "url": "https://xloverflow.github.io/zh/2022/06/20/Tools/Makefile%20Introduction/",
+  "image": "https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg",
+  "datePublished": "2022-06-20T02:49:31.000Z",
+  "dateModified": "2026-02-15T05:04:17.032Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io/zh"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/zh/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/zh/2022/06/20/Tools/Makefile%20Introduction/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/zh/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/zh/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Makefile Introduction',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">47</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">62</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">18</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/zh/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/zh/"><span class="site-name">Makefile Introduction</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/"><i class="fas fa-language fa-fw"></i><span> English</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Makefile Introduction</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-06-20T02:49:31.000Z" title="发表于 2022-06-19 22:49:31">2022-06-19</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-15T05:04:17.032Z" title="更新于 2026-02-15 00:04:17">2026-02-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/zh/categories/%E5%B7%A5%E5%85%B7%E4%B8%8E%E5%B7%A5%E4%BD%9C%E6%B5%81/">工具与工作流</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="makefile-概念介绍">Makefile 概念介绍</h1>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/29910215">原始知乎链接</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://www.cnblogs.com/paul-617/p/15501875.html">博客解释链接</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_38391755/article/details/80380786">另一个解释</a></p>
+<p>本文主要介绍如何使用“基于目标的分层”方法来理解一个工具，编写概念，定义设计或部署一组代码。</p>
+<p>本文首先是“Makefile 介绍”，然后是“基于目标的分层方法介绍”。</p>
+<span id="more"></span>
+<h2 id="关于程序编译">关于程序编译</h2>
+<p>Makefile 解决的是编译的问题。Makefile 最初是用来解决 C
+语言的编译问题的，所以与 C 的关系特别密切，但并不是说 Makefile
+只能用来解决 C 的编译问题。你用来处理 Java 一点问题没有，但对于
+Java，显然 ant 比 Makefile 处理得更好。</p>
+<p>比如说，你有 foo.c、bar.c、main.c 三个 C 文件，你要编译成一个
+app.executable，你会怎么做呢？你会执行这样的命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">gcc -Wall -c foo.c -o foo.o</span><br><span class="line">gcc -Wall -c bar.c -o bar.o</span><br><span class="line">gcc -Wall -c main.c -o main.o</span><br><span class="line">gcc main.o foo.o bar.o -lpthread -o app.executable</span><br></pre></td></tr></table></figure>
+<p>按照程序员的惯例，凡是要一次次重新执行的命令，都应该写成脚本。所以，简单来说，你会把上面这个命令序列写成一个
+build.sh，每次编译你只要执行这个脚本问题就解决了。</p>
+<p>但这个脚本有问题，假设我修改了 foo.c，但我没有修改 bar.c 和
+main.c，那么执行这个脚本是很浪费的，因为它会无条件也重新编译 bar.c 和
+main.c。</p>
+<p>这个脚本更合理的写法应该是这样的：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[ foo.o -ot foo.c ] &amp;&amp; gcc -Wall -c foo.c -o foo.o</span><br><span class="line">[ bar.o -ot bar.c ] &amp;&amp; gcc -Wall -c bar.c -o bar.o</span><br><span class="line">[ main.o -ot main.o] &amp;&amp; gcc -Wall -c main.c -o main.o</span><br><span class="line">[ app.executable -ot main.o ] &amp;&amp; [ app.executable -ot foo.o ] &amp;&amp; [ app.executable -ot bar.o ] &amp;&amp; gcc main.o foo.o bar.o -lpthread -o app.executable</span><br></pre></td></tr></table></figure>
+<p>如果你面对一个问题，不要尝试重新去定义这个问题，而是看它和原来的问题相比，多出来的问题是什么，尝试解决那个多出来的问题就好了。那么这里，多出来的问题就是文件修改时间比较。这个就是
+Makefile 要解决的基本问题了。我们定义一种新的“脚本语言”（只是不用
+sh/bash/tch 来解释，而是用 make
+来解释），可以用很简单的方法来说明我们需要做的文件比较。这样上面的脚本就可以写成这个样子了：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#sample1</span></span><br><span class="line"><span class="section">foo.o: foo.c</span></span><br><span class="line">  gcc -Wall -c foo.c -o foo.o</span><br><span class="line"><span class="section">bar.o: bar.c</span></span><br><span class="line">  gcc -Wall -c bar.c -o woo.o</span><br><span class="line"><span class="section">main.o: main.c</span></span><br><span class="line">  gcc -Wall -c main.c -o main.o</span><br><span class="line"><span class="section">app.executable: foo.o bar.o main.o</span></span><br><span class="line">  gcc main.o foo.o bar.o -lpthread -o app.executable</span><br></pre></td></tr></table></figure>
+<p>上面那个 Makefile 中，foo.o: foo.c
+定义了一个<strong>“依赖”</strong>，说明 foo.o 是靠 foo.c
+编译成的，它后面缩进的那些命令，就是简单的 shell
+脚本，称为<strong>规则(rule)</strong>。而 Makefile
+的作用是定义一组依赖，当被依赖的文件比依赖的文件新，就执行规则。这样，前面的问题就解决了。</p>
+<p>IDE 中封装了 Makefile
+的使用，但想要具体控制特定文件的编译细节，最终仍然需要面对这些问题，IDE
+和 make 工具的对比，两者解决的是问题的不同层次。</p>
+<p>Makefile 中的依赖定义构成了一个依赖链（树），比如上面这个 Makefile
+中，app.executable 依赖于 main.o，main.o 又依赖于
+main.c，所以，当你去满足
+app.executable（这个目标）的依赖的时候，它首先去检查 main.o
+的依赖，直到找到依赖树的叶子节点（main.c），然后进行时间比较。这个判断过程由
+make 工具来完成，所以，和一般的脚本不一样。Makefile
+的执行过程不是基于语句顺序的，而是基于依赖链的顺序的。<img
+src="https://pic4.zhimg.com/80/v2-90371e6fcdf8f515a68dab7404ed4f43_1440w.jpg"
+alt="依赖树" /></p>
+<h2 id="phony-依赖">phony 依赖</h2>
+<p>make
+命令执行的时候，后面跟一个“目标”（不带参数的话默认是第一个依赖的目标），然后以这个目标为根建立整个依赖树。依赖树的每个节点是一个文件，任何时候我们都可以通过比较每个依赖文件和被依赖文件的时间，以决定是否需要执行“规则”</p>
+<p>但有时，我们希望某个规则<strong>总是被执行</strong>。这时，很自然地，我们会定义一下<strong>永远都不会被满足</strong>的依赖。</p>
+<p>可能会这么写：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">test:</span></span><br><span class="line">  DEBUG=1 ./app.executable</span><br></pre></td></tr></table></figure>
+<p>test 这个文件永远都不会被产生，所以，你只要执行这个依赖，rule
+是必然会被执行的。这种形式看起来很好用，但由于 make
+工具默认认为你这是个文件，当它成为依赖链的一部分的时候，很容易造成各种误会和处理误差。</p>
+<p>所以，简化起见，Makefile
+允许你显式地把一个依赖目标定义为<strong>假的(Phony)</strong>：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"><span class="keyword">.PHONY</span>: test</span></span><br><span class="line"><span class="section">test:</span></span><br><span class="line"> DEBUG=1 ./app.executable</span><br></pre></td></tr></table></figure>
+<p>这样 make 工具就不用多想了，也不用检查 test 这个文件的时间了，反正
+test 就是假的，如果有人依赖它，无条件执行就对了。</p>
+<h2 id="宏">宏</h2>
+<p>前面的 sample1
+明显还是有很多多余的成份，这些多余的成份可以简单通过引入“宏”定义来解决，比如上面的
+Makefile，我们把重复的东西都用宏来写，就成了这样了：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#sample2</span></span><br><span class="line">CC=gcc -Wall -c</span><br><span class="line">LD=gcc</span><br><span class="line"></span><br><span class="line"><span class="section">foo.o: foo.c</span></span><br><span class="line"> <span class="variable">$(CC)</span> foo.c -o foo.o</span><br><span class="line"><span class="section">bar.o: bar.c</span></span><br><span class="line"> <span class="variable">$(CC)</span> bar.c -o bar.o</span><br><span class="line"><span class="section">main.o: main.c</span></span><br><span class="line"> <span class="variable">$(CC)</span> main.c -o main.o</span><br><span class="line"><span class="section">app.executable: foo.o woo.o main.o</span></span><br><span class="line"> <span class="variable">$(LD)</span> main.o foo.o bar.o -o app.executable</span><br></pre></td></tr></table></figure>
+<p>还是有“多余”的成份在，因为明明依赖中已经写了 foo.o 了，rule
+中还要再写一次，我们可以把依赖的对象定义为 $@，被依赖的对象定义为
+$^（这是当前 gnumake 的设计），这样就可以进一步化简：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#sample3</span></span><br><span class="line">CC=gcc -Wall -c</span><br><span class="line">LD=gcc</span><br><span class="line"></span><br><span class="line"><span class="section">foo.o: foo.c</span></span><br><span class="line">  <span class="variable">$(CC)</span> <span class="variable">$^</span> -o <span class="variable">$@</span></span><br><span class="line"><span class="section">bar.o: bar.c</span></span><br><span class="line">  <span class="variable">$(CC)</span> <span class="variable">$^</span> -o <span class="variable">$@</span></span><br><span class="line"><span class="section">main.o: main.c</span></span><br><span class="line">  <span class="variable">$(CC)</span> <span class="variable">$^</span> -o <span class="variable">$@</span></span><br><span class="line"><span class="section">app.executable: foo.o woo.o main.o</span></span><br><span class="line">  <span class="variable">$(LD)</span> <span class="variable">$^</span> -o <span class="variable">$@</span></span><br></pre></td></tr></table></figure>
+<p>很明显，这还是有重复，我们可以把重复的定义写成通配符：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#sample4</span></span><br><span class="line">CC=gcc -Wall -c</span><br><span class="line">LD=gcc</span><br><span class="line"></span><br><span class="line"><span class="section">%.o: %.c</span></span><br><span class="line"> <span class="variable">$(CC)</span> <span class="variable">$^</span> -o <span class="variable">$@</span></span><br><span class="line"><span class="section">foo.o: foo.c</span></span><br><span class="line"><span class="section">woo.o: woo.c</span></span><br><span class="line"><span class="section">main.o: main.c</span></span><br><span class="line"><span class="section">app.executable: foo.o woo.o main.o</span></span><br><span class="line"> <span class="variable">$(LD)</span> <span class="variable">$^</span> -o <span class="variable">$@</span></span><br></pre></td></tr></table></figure>
+<p>实际上，你要化简，还有很多手段，比如 gnumake 其实是默认定义了一组
+rule 的，上面这个整个你都可以不写，就这样就可以了：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#sample5</span></span><br><span class="line">LDLIBS=-lpthead</span><br><span class="line">SRC=<span class="variable">$(<span class="built_in">wildcard</span> *.c)</span></span><br><span class="line">OBJ=$(SRC:.c=.o)</span><br><span class="line"><span class="section">app.executable: <span class="variable">$(OBJ)</span></span></span><br><span class="line"><span class="comment">#看不懂</span></span><br></pre></td></tr></table></figure>
+<p>这里其实没有定义 .o 到 .c 的依赖，但 gnumake 默认如果 .c 存在，.o
+就依赖对应的 .c，而 .o 到 .c 的 rule，是通过宏默认定义的。你只要修改
+CC，LDLIBS
+这类的宏，就能解决大部分问题了。所以你又省掉了一组定义，这就可以写得很短。</p>
+<h2 id="头文件问题">头文件问题</h2>
+<p>现在我们把问题搞得复杂一点，增加三个头文件。比如 foo.h、bar.h 和
+common.h，前两者定义 foo.c 和 bar.c 的对外接口，给 main.c 使用，common.h
+定义所有文件都要用到的通用定义（foo.h 和 woo.h 中包含
+common.h）。这样前面这个 sample1 就有毛病了。照理说，foo.h
+更新的时候，foo.o 和 main.o
+都需要重新编译，但根据那个定义，根本就没有这个比较。</p>
+<p>我们的定义必须写成这个样子：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#sample4+</span></span><br><span class="line">CC=gcc -Wall -c</span><br><span class="line">LD=gcc</span><br><span class="line"></span><br><span class="line"><span class="section">%.o: %.c</span></span><br><span class="line">  <span class="variable">$(CC)</span> <span class="variable">$&lt;</span> -o <span class="variable">$@</span></span><br><span class="line"><span class="section">foo.o: foo.c foo.h common.h</span></span><br><span class="line"><span class="section">bar.o: bar.c bar.h common.h</span></span><br><span class="line"><span class="section">main.o: main.c foo.h bar.h common.h</span></span><br><span class="line"><span class="section">app.executable: foo.o bar.o main.o</span></span><br><span class="line">  <span class="variable">$(LD)</span> <span class="variable">$^</span> -o <span class="variable">$@</span></span><br></pre></td></tr></table></figure>
+<p>(注：这个例子我们在 .o.c 依赖的规则中使用了 $&lt; 宏，它和 $^
+的区别是，它不包括依赖列表中的所有文件，而仅仅是列表中的第一个文件）</p>
+<p>这就又增加了复杂度了——头文件包含关系一变化，我就得更新这个 Makefile
+的定义。这带来了升级时的冗余工作。按我们前面考虑一样的策略，我们尝试在已有的名称空间上解决这个问题。Makefile
+已经可以定义依赖了，但我们不知道这个依赖本身。这个事情谁能解决？——把这个过程想一下——其实已经有人解决这个问题了，这个包含关系谁知道嘛？当然是编译器。编译器都已经用到那个头文件了，当然是它才知道这种包含关系是什么样的。比如
+gcc 本身直接就提供了 -M 系列参数，可以自动帮你生成依赖关系。比如你执行
+gcc -MM foo.c 就可以得到</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">foo.o: foo.c foo.h common.h</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>本文引自开头的链接，由于能力有限及需求不高，剩余的看的不是很懂，目前就到这里。</p>
+</blockquote>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh/2022/06/20/Tools/Makefile%20Introduction/">https://xloverflow.github.io/zh/2022/06/20/Tools/Makefile%20Introduction/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://xloverflow.github.io/zh" target="_blank">Life is not a race, but a journey</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/zh/tags/Learning/">Learning</a><a class="post-meta__tags" href="/zh/tags/CS-Tools/">CS Tools</a><a class="post-meta__tags" href="/zh/tags/Makefile-Basics/">Makefile Basics</a></div><div class="post-share"><div class="social-share" data-image="https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/zh/2022/07/05/Tools/Git%20Introduction/" title="Git Introduction"><img class="cover" src="https://pic2.zhimg.com/80/v2-7cb1b45abcd853e66e024a802aa4fffc_1440w.jpeg" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Git Introduction</div></div><div class="info-2"><div class="info-item-1">Basic concepts and operations of git</div></div></div></a><a class="pagination-related" href="/zh/2022/06/13/Tools/Computer%20Network%20Fundamentals/" title="Computer Network Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/nasa-Q1p7bh3SHj8-unsplash.jpg" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Computer Network Fundamentals</div></div><div class="info-2"><div class="info-item-1">基本概念 端点与会话 端点是指网络中可以发送或接收数据的设备。两个端点之间的通信称为对话。 ## IP 地址 32 位二进制数，通常以点分十进制表示，随着设备连接到不同的局域网而变化。部分由网络号组成，另一部分是主机号，由子网掩码决定。 ## 子网掩码 32 位二进制数，形式为 1111…0000。与 IP 地址直接进行 AND 操作可以得到网络号，与反转的掩码和 IP 地址进行 AND 操作可以得到主机号。 ## MAC 地址 48 位二进制数 每个主机的唯一标识符（出厂后保持不变），网络卡的物理地址，在局域网中与 IP 地址有映射关系。网络卡通过比较数据包中的目标 MAC 地址直接决定是否发送给操作系统。 IP 和 MAC 之间的关系类似于邮寄地址和身份证号码 - 邮寄地址可能会改变，但身份证号码永远不会改变。  问题：既然我们有 IP 地址，为什么还需要 MAC 地址？ IP 地址相当于包裹上的收件人地址。快递员通过收件人地址将线路从起点连接到终点，然后通过不同区域之间的物流转运将包裹送到收件人手中。 MAC 地址相当于包裹上的收件人姓名。MAC 地址更多是为了确认对方的信...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/zh/2022/05/25/Blog/useful-links/" title="useful_links"><img class="cover" src="https://pic3.zhimg.com/80/v2-5a46a5d9fa0a1a69a99846b5efc689f8_1440w.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-05-25</div><div class="info-item-2">useful_links</div></div><div class="info-2"><div class="info-item-1">书籍资源: https://github.com/frankcbliu/CS-Books-PDF 算法知识解释: https://oi-wiki.org/graph/ 计算机自学指南: https://csdiy.wiki 学堂在线（类似于MOOC课程网站）: https://www.xuetangx.com （强烈推荐清华大学郑莉教授的C++编程课程）  计算机实用技术（学堂在线）: https://www.xuetangx.com/learn/THUSAST08091234567890/THUSAST08091234567890/8571842/video/13167559 邓俊辉的数据结构（学堂在线）: https://www.xuetangx.com/learn/THU08091000384/THU08091000384/10322765/video/17436706?channel=i.area.manual_search 在线编码学习网站: https://www.freecodecamp.org/ https://www.codecademy.com/learn 清...</div></div></div></a><a class="pagination-related" href="/zh/2022/07/05/Tools/Git%20Introduction/" title="Git Introduction"><img class="cover" src="https://pic2.zhimg.com/80/v2-7cb1b45abcd853e66e024a802aa4fffc_1440w.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-05</div><div class="info-item-2">Git Introduction</div></div><div class="info-2"><div class="info-item-1">Basic concepts and operations of git</div></div></div></a><a class="pagination-related" href="/zh/2022/07/17/Tools/Git%20Remote%20Connection/" title="Git Remote Connection"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/david-kaloczi-012FTEA0ZQ0-unsplash.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-17</div><div class="info-item-2">Git Remote Connection</div></div><div class="info-2"><div class="info-item-1">Establishing connection between git and github, uploading files</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li 的中文博客</div><div class="site-data"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">47</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">62</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">18</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#makefile-%E6%A6%82%E5%BF%B5%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.</span> <span class="toc-text">Makefile 概念介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B3%E4%BA%8E%E7%A8%8B%E5%BA%8F%E7%BC%96%E8%AF%91"><span class="toc-number">1.1.</span> <span class="toc-text">关于程序编译</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#phony-%E4%BE%9D%E8%B5%96"><span class="toc-number">1.2.</span> <span class="toc-text">phony 依赖</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%8F"><span class="toc-number">1.3.</span> <span class="toc-text">宏</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%B4%E6%96%87%E4%BB%B6%E9%97%AE%E9%A2%98"><span class="toc-number">1.4.</span> <span class="toc-text">头文件问题</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11711 Advanced NLP: Retrieval and RAG"/></a><div class="content"><a class="title" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG">11711 Advanced NLP: Retrieval and RAG</a><time datetime="2026-02-14T22:08:21.000Z" title="发表于 2026-02-14 17:08:21">2026-02-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM系统：解码"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11868 LLM系统：解码"/></a><div class="content"><a class="title" href="/zh/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM系统：解码">11868 LLM系统：解码</a><time datetime="2026-02-13T01:00:00.000Z" title="发表于 2026-02-12 20:00:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11868 LLM Sys: Tokenization and Embedding"/></a><div class="content"><a class="title" href="/zh/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding">11868 LLM Sys: Tokenization and Embedding</a><time datetime="2026-02-12T20:30:00.000Z" title="发表于 2026-02-12 15:30:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 机器学习系统：Transformer、注意力机制与优化"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="15642 机器学习系统：Transformer、注意力机制与优化"/></a><div class="content"><a class="title" href="/zh/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 机器学习系统：Transformer、注意力机制与优化">15642 机器学习系统：Transformer、注意力机制与优化</a><time datetime="2026-02-09T19:30:00.000Z" title="发表于 2026-02-09 14:30:00">2026-02-09</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/09/CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch/" title="CS336 Assignment 1: Building a Transformer Language Model from Scratch"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="CS336 Assignment 1: Building a Transformer Language Model from Scratch"/></a><div class="content"><a class="title" href="/zh/2026/02/09/CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch/" title="CS336 Assignment 1: Building a Transformer Language Model from Scratch">CS336 Assignment 1: Building a Transformer Language Model from Scratch</a><time datetime="2026-02-09T04:05:02.000Z" title="发表于 2026-02-08 23:05:02">2026-02-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/zh/js/utils.js"></script><script src="/zh/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '23db6e8fdd649689b5d2a994f2ab6be6'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/zh/404.html') : window.location.href = '/zh/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

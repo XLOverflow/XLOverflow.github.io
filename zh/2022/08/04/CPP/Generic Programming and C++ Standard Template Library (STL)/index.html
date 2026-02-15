@@ -1,0 +1,752 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Generic Programming and C++ Standard Template Library (STL) | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Introduction to C++ Standard Template Library (STL)">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Generic Programming and C++ Standard Template Library (STL)">
+<meta property="og:url" content="https://xloverflow.github.io/zh/2022/08/04/CPP/Generic%20Programming%20and%20C++%20Standard%20Template%20Library%20(STL)/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Introduction to C++ Standard Template Library (STL)">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-b3235667ca289c4b127e5448bed79144_1440w.jpeg">
+<meta property="article:published_time" content="2022-08-04T18:31:05.000Z">
+<meta property="article:modified_time" content="2026-02-15T05:04:17.030Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="Study Notes">
+<meta property="article:tag" content="C++ Programming">
+<meta property="article:tag" content="C++ Language">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pic1.zhimg.com/80/v2-b3235667ca289c4b127e5448bed79144_1440w.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Generic Programming and C++ Standard Template Library (STL)",
+  "url": "https://xloverflow.github.io/zh/2022/08/04/CPP/Generic%20Programming%20and%20C++%20Standard%20Template%20Library%20(STL)/",
+  "image": "https://pic1.zhimg.com/80/v2-b3235667ca289c4b127e5448bed79144_1440w.jpeg",
+  "datePublished": "2022-08-04T18:31:05.000Z",
+  "dateModified": "2026-02-15T05:04:17.030Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io/zh"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/zh/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/zh/2022/08/04/CPP/Generic%20Programming%20and%20C++%20Standard%20Template%20Library%20(STL)/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/zh/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/zh/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Generic Programming and C++ Standard Template Library (STL)',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">47</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">62</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">18</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://pic1.zhimg.com/80/v2-b3235667ca289c4b127e5448bed79144_1440w.jpeg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/zh/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/zh/"><span class="site-name">Generic Programming and C++ Standard Template Library (STL)</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/"><i class="fas fa-language fa-fw"></i><span> English</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Generic Programming and C++ Standard Template Library (STL)</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-08-04T18:31:05.000Z" title="发表于 2022-08-04 14:31:05">2022-08-04</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-15T05:04:17.030Z" title="更新于 2026-02-15 00:04:17">2026-02-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/zh/categories/C-C-%E7%BC%96%E7%A8%8B/">C/C++ 编程</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="泛型编程与-stl-结构">泛型编程与 STL 结构</h1>
+<h2 id="泛型编程的基本概念">泛型编程的基本概念</h2>
+<p>指编写<strong>不依赖于特定数据类型</strong>的程序。模板是泛型编程的主要工具。</p>
+<p>术语：概念</p>
+<p>用于定义具有某些功能的数据类型。例如： *
+“所有可以比较（使用比较运算符）的数据类型”的概念表示为 Comparable *
+“具有公共复制构造函数并可以使用 ‘=’ 赋值的数据类型”的概念表示为
+Assignable * “所有可以比较、具有公共复制构造函数并可以使用 ‘=’
+赋值的数据类型”的概念表示为 Sortable。</p>
+<p>对于两个不同的概念 A 和 B，如果概念 A 所需的所有函数也被概念 B
+所需，则称概念 B 是概念 A 的子概念。例如： * Sortable 是 Comparable 和
+Assignable 的子概念</p>
+<blockquote>
+<p>实际上，这个子概念类似于从基类派生的类。</p>
+</blockquote>
+<p>术语：模型</p>
+<p>模型：符合某个概念的数据类型称为该概念的模型 * int 类型是 Comparable
+概念的模型； * 静态数组类型不是 Assignable
+概念的类型（静态数组不能被赋值）。</p>
+<p>使用概念作为模板参数名称</p>
+<ul>
+<li>许多 STL 实现代码使用概念来命名模板参数。</li>
+<li>给一个概念命名，并将该名称用作模板参数名称。</li>
+</ul>
+<p>例如： 表示一个函数模板的原型，如 insertionSort： <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">Sortable</span>&gt;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">insertionSort</span><span class="params">(Sortable a[], <span class="type">int</span> n)</span></span>;</span><br></pre></td></tr></table></figure></p>
+<h1 id="stl-介绍">STL 介绍</h1>
+<p><strong>标准模板库</strong>提供了一些非常常用的数据结构和算法。</p>
+<p>STL 的基本组成部分： * 容器 * 迭代器 * 函数对象 * 算法</p>
+<p>基本关系： *
+迭代器是算法与容器之间的桥梁。使用迭代器作为算法参数，通过迭代器访问容器，而不是直接将容器作为算法参数传递；
+* 使用函数对象作为算法参数，而不是将函数执行的操作作为算法的一部分。</p>
+<p>关系图：</p>
+<p><img
+src="https://pic4.zhimg.com/80/v2-277324313f500492215f4604944da7fb_1440w.png" /></p>
+<h2 id="stl-的基本组成部分---容器">STL 的基本组成部分 - 容器</h2>
+<p>容器是保存一组元素的对象。容器类库包括七种基本容器：vector、deque、list、set、multiset、map
+和 multimap。</p>
+<ul>
+<li>顺序容器：array、vector、deque、forward_list（单链表）、list（双链表）；</li>
+<li>有序关联容器：set、multiset、map、multimap；</li>
+<li>无序关联容器：unordered_set、unordered_multiset、unordered_map、unordered_multimap。</li>
+</ul>
+<p>容器适配器：stack、queue、priority_queue（优先队列，底层是最大或最小二叉堆）</p>
+<div class="note info flat"><p>要使用容器，您需要包含相应的头文件。</p>
+</div>
+<h2 id="stl-的基本组成部分---迭代器">STL 的基本组成部分 - 迭代器</h2>
+<ul>
+<li>迭代器是通用指针，提供对容器中每个元素的顺序访问方法；</li>
+<li>提供对容器中每个元素的顺序访问方法；</li>
+<li>可以使用 “++” 运算符获取指向下一个元素的迭代器；</li>
+<li>可以使用 “*”
+运算符访问迭代器指向的元素。如果元素类型是类或结构体，还可以使用 “-&gt;”
+运算符直接访问该元素的成员；</li>
+<li>一些迭代器还支持通过 “–” 运算符获取指向前一个元素的迭代器；</li>
+<li>迭代器是通用指针：指针具有相同的特性，因此指针本身是一种迭代器；</li>
+<li>要独立于 STL 容器使用迭代器，您需要包含头文件
+<code>&lt;iterator&gt;</code>。</li>
+</ul>
+<h2 id="stl-的基本组成部分---函数对象">STL 的基本组成部分 -
+函数对象</h2>
+<ul>
+<li>行为像函数的对象，可以像函数一样被调用。</li>
+<li>函数对象是通用函数：任何普通函数和任何重载了 “()”
+运算符的类的对象都可以用作函数对象。</li>
+<li>要使用 STL 函数对象，您需要包含头文件
+<code>&lt;functional&gt;</code>。</li>
+</ul>
+<h2 id="stl-的基本组成部分---算法">STL 的基本组成部分 - 算法</h2>
+<ul>
+<li>STL 包含超过 70
+种算法，例如：排序算法、消除算法、计数算法、比较算法、变换算法、排列算法和容器管理；</li>
+<li>可以广泛用于不同对象和内置数据类型；</li>
+<li>要使用 STL 算法，您需要包含头文件
+<code>&lt;algorithm&gt;</code>。</li>
+</ul>
+<h3 id="算法示例---transform-算法">算法示例 - transform 算法</h3>
+<p>transform 算法顺序遍历由两个迭代器 first 和 last 指向的元素； *
+使用每个元素的值作为函数对象 op 的参数； * 通过迭代器 result 顺序输出 op
+的返回值； * 遍历完成后，result
+迭代器指向最后一个输出元素之后的位置，transform 将返回该迭代器。</p>
+<p>例如，以下可能是 transform 算法的一种实现： <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">InputIterator</span>, <span class="keyword">class</span> <span class="title class_">OutputIterator</span>, <span class="keyword">class</span> <span class="title class_">UnaryFunction</span>&gt;</span><br><span class="line"><span class="function">OutputIterator <span class="title">transform</span><span class="params">(InputIterator first, InputIterator last, OutputIterator result, UnaryFunction op)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">for</span> (;first != last; ++first, ++result) </span><br><span class="line">    &#123;</span><br><span class="line">      *result = <span class="built_in">op</span>(*first);</span><br><span class="line">    &#125;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>示例： <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//从标准输入读取几个整数，存储在 vector 容器中，输出它们的负值</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;vector&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iterator&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;algorithm&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;functional&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"><span class="type">const</span> <span class="type">int</span> N = <span class="number">5</span>;</span><br><span class="line"><span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">s</span><span class="params">(N)</span></span>;</span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; N; i++)</span><br><span class="line">&#123;</span><br><span class="line">cin &gt;&gt; s[i];</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">transform</span>(s.<span class="built_in">begin</span>(),s.<span class="built_in">end</span>(), <span class="built_in">ostream_iterator</span>&lt;<span class="type">int</span>&gt;(cout,<span class="string">&quot; &quot;</span>),<span class="built_in">negate</span>&lt;<span class="type">int</span>&gt;());</span><br><span class="line">cout &lt;&lt; endl;</span><br><span class="line"><span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="迭代器">迭代器</h1>
+<p>迭代器是算法与容器之间的桥梁： * 迭代器用于访问容器中的元素 *
+算法不直接操作容器中的数据，而是通过迭代器间接操作</p>
+<p>算法与容器是独立的： * 添加新算法不会影响容器实现 *
+添加新容器时，现有算法仍然可以应用</p>
+<h2 id="输入流迭代器和输出流迭代器">输入流迭代器和输出流迭代器</h2>
+<p>输入流迭代器 * <code>istream_iterator&lt;T&gt;</code> * 以输入流（如
+cin）作为参数构造 * 可以使用 <em>(p++) 获取下一个输入元素 输出流迭代器
+</em> <code>ostream_iterator&lt;T&gt;</code> * 构造时需要提供输出流（如
+cout） * 可以使用 (*p++) = x 将 x 输出到输出流</p>
+<p>两者都属于适配器 * 适配器是用于为现有对象提供新接口的对象 *
+输入流适配器和输出流适配器为流对象提供迭代器接口</p>
+<p>程序示例： <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//从标准输入读取几个实数，输出它们的平方</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iterator&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;algorithm&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">double</span> <span class="title">square</span><span class="params">(<span class="type">double</span> x)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> x * x;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">transform</span>(<span class="built_in">istream_iterator</span>&lt;<span class="type">double</span>&gt;(cin),<span class="built_in">istream_iterator</span>&lt;<span class="type">double</span>&gt;(),<span class="built_in">ostream_iterator</span>&lt;<span class="type">double</span>&gt;(cout,<span class="string">&quot;\t&quot;</span>),square);</span><br><span class="line">    <span class="comment">//istream_iterator&lt;double&gt;() 调用输入流迭代器的默认构造函数，使其指向输入流的结束位置。</span></span><br><span class="line">    cout &lt;&lt; endl;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    <span class="comment">//如果不手动终止程序，它将一直运行，因为输入流始终在等待您的输入</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="迭代器分类">迭代器分类</h2>
+<p>按访问方法分类： <img
+src="https://img-blog.csdnimg.cn/20200609192939833.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MTk2OTY5MA==,size_16,color_FFFFFF,t_70"
+alt="Fetching Title#2j8d" /></p>
+<p>关系图： <img
+src="https://pica.zhimg.com/80/v2-9cb5c611c9ab48c561a010de1208c150_1440w.png" /></p>
+<p>按操作类型分类： <img
+src="https://img-blog.csdnimg.cn/20200609192955690.png" /></p>
+<h2 id="迭代器范围">迭代器范围</h2>
+<ul>
+<li>两个迭代器表示一个范围：[p1, p2)，范围包括 p1 但不包括 p2；</li>
+<li>STL 算法通常使用迭代器范围作为输入来传递输入数据；</li>
+<li>有效范围：p1 在 n 次（n &gt; 0）递增（++）操作后满足 p1 == p2。</li>
+</ul>
+<p>程序示例： <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//各种迭代器综合使用的示例</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;algorithm&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iterator&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;vector&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">T</span>, <span class="keyword">class</span> <span class="title class_">InputIterator</span>, <span class="keyword">class</span> <span class="title class_">OutputIterator</span>&gt;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">mySort</span><span class="params">(InputIterator first, InputIterator last, OutputIterator result)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    vector&lt;T&gt; s;</span><br><span class="line">    <span class="keyword">while</span> (first != last)</span><br><span class="line">    &#123;</span><br><span class="line">        s.<span class="built_in">push_back</span>(*first);</span><br><span class="line">        first++;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">sort</span>(s.<span class="built_in">begin</span>(), s.<span class="built_in">end</span>()); <span class="comment">//sort 参数必须是随机访问迭代器</span></span><br><span class="line">    <span class="built_in">copy</span>(s.<span class="built_in">begin</span>(), s.<span class="built_in">end</span>(), result);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">double</span> a[<span class="number">5</span>] = &#123;<span class="number">1.2</span>, <span class="number">2.4</span>, <span class="number">0.8</span>, <span class="number">3.3</span>, <span class="number">3.2</span>&#125;;</span><br><span class="line">    <span class="comment">//排序已知数组</span></span><br><span class="line">    <span class="built_in">mySort</span>&lt;<span class="type">double</span>&gt;(a, a + <span class="number">5</span>, <span class="built_in">ostream_iterator</span>&lt;<span class="type">double</span>&gt;(cout, <span class="string">&quot; &quot;</span>));</span><br><span class="line">    cout &lt;&lt; endl;</span><br><span class="line">    <span class="comment">//从标准输入读取几个整数，输出排序结果</span></span><br><span class="line">    <span class="built_in">mySort</span>&lt;<span class="type">int</span>&gt;(<span class="built_in">istream_iterator</span>&lt;<span class="type">int</span>&gt;(cin), <span class="built_in">istream_iterator</span>&lt;<span class="type">int</span>&gt;(), <span class="built_in">ostream_iterator</span>&lt;<span class="type">int</span>&gt;(cout, <span class="string">&quot; &quot;</span>));</span><br><span class="line">    cout &lt;&lt; endl;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="迭代器辅助函数">迭代器辅助函数</h2>
+<ul>
+<li>advance(p,n)：对 p 执行 n 次增量操作</li>
+<li>distance(first,last)：计算两个迭代器 first 和 last 之间的距离</li>
+</ul>
+<h1 id="容器">容器</h1>
+<h2 id="容器的基本功能和分类">容器的基本功能和分类</h2>
+<p><img
+src="https://pica.zhimg.com/80/v2-015ee01d628fdd4ee76acf4213a6d583_1440w.png" /></p>
+<p>容器的常用功能 * 使用默认构造函数构造空容器 *
+支持关系运算符：==、!=、&lt;、&lt;=、&gt;、&gt;= *
+begin()、end()：获取容器的头尾迭代器（<strong>实际上指向容器最后一个元素之后的元素</strong>）
+* cbegin()、cend()：获取容器的头尾常量迭代器，在不改变容器时更安全 *
+clear()：清空容器 * empty()：检查容器是否为空 *
+size()：获取容器中元素的数量 * s1.swap(s2)：交换容器 s1 和 s2 的内容</p>
+<p>相关数据类型（S 表示容器类型） *
+S::iterator：指向容器元素的迭代器类型 *
+S::const_iterator：常量迭代器类型</p>
+<p>使用一般容器的
+begin()/end()，获得的迭代器都是前向迭代器，而可逆容器提供双向迭代器。</p>
+<div class="note info flat"><p>实际上，STL
+模板提供的标准容器至少是可逆容器，但一些非标准模板库提供的容器如
+slist（单链表）仅提供前向迭代器。</p>
+</div>
+<h3 id="访问可逆容器">访问可逆容器</h3>
+<p>STL 为每个可逆容器提供反向迭代器，可以通过以下成员函数获得： *
+rbegin()：指向容器末尾的反向迭代器 *
+rend()：指向容器开头的反向迭代器</p>
+<p>反向迭代器的类型名称表示如下（S 表示容器类型）： *
+S::reverse_iterator：反向迭代器类型 *
+S::const_reverse_iterator：常量反向迭代器类型</p>
+<p>反向迭代器是普通迭代器的适配器，其中反向迭代器的 ++
+被映射到前向迭代器的 –。</p>
+<blockquote>
+<p>细节： 迭代器及其反向迭代器可以相互转换。例如：如果 p1 是类型
+S::iterator 的迭代器，则使用表达式 S::reverse_iterator(p1) 可以获得与 p1
+对应的反向迭代器；也可以使用 base
+函数获取与反向迭代器对应的普通迭代器，例如：r1 是通过
+S::reverse_iterator(p1) 构造的反向迭代器，则 r1.base() == p1。但 r1 和
+p1 不指向同一个元素，r1 指向的元素始终与 p1-1 指向的元素相同。</p>
+</blockquote>
+<h2 id="顺序容器">顺序容器</h2>
+<p>STL 中的顺序容器 * vector * deque * list * forward_list * array</p>
+<ul>
+<li>元素线性排列，可以随时在指定位置插入和删除元素。</li>
+<li>必须符合 Assignable 概念（即具有公共复制构造函数并可以使用 “=”
+赋值）。</li>
+<li>array 对象具有固定大小，forward_list 具有特殊的添加和删除操作。</li>
+</ul>
+<h3 id="顺序容器接口">顺序容器接口</h3>
+<div class="note danger flat"><p>不包括单链表（forward_list）和数组</p>
+</div>
+<ol type="1">
+<li>构造函数</li>
+</ol>
+<ul>
+<li>列表初始化，例如
+<code>vector&lt;int&gt; arr = &#123;1,4,5,7&#125;;</code></li>
+</ul>
+<ol start="2" type="1">
+<li>赋值函数</li>
+</ol>
+<ul>
+<li>assign</li>
+</ul>
+<ol start="3" type="1">
+<li>插入函数</li>
+</ol>
+<ul>
+<li><code>insert(iterator pos, const T&amp; v)</code>，在 pos
+位置插入后，返回新插入元素的迭代器；</li>
+<li>push_front（仅适用于 list 和 deque）、push_back；</li>
+<li>emplace_front、emplace 和
+emplace_back，这些操作将元素构造而不是复制到容器中，这些操作分别对应
+push_front、insert 和
+push_back，允许我们将元素放置在容器的头部、指定位置和尾部。</li>
+</ul>
+<ol start="4" type="1">
+<li>删除函数
+<ul>
+<li>erase、clear、pop_front（仅适用于 list 和 deque）、pop_back</li>
+</ul></li>
+<li>直接访问头部和尾部元素
+<ul>
+<li>front、back</li>
+</ul></li>
+<li>改变大小
+<ul>
+<li>resize</li>
+</ul></li>
+</ol>
+<div class="note success flat"><p>请记住，头部操作不适合具有连续物理地址的数据结构。</p>
+</div>
+<h3 id="vector">Vector</h3>
+<p>特性： * 可扩展的动态数组 * 快速随机访问，快速在尾部插入或删除 *
+中间或头部插入或删除较慢</p>
+<p>Vector 容量：实际分配空间的大小 * s.capacity()：返回当前容量 *
+s.reserve(n)：如果容量小于 n，则扩展 s 使其容量至少为 n *
+s.shrink_to_fit()：回收未使用的元素空间，即 size 和 capacity
+函数返回值相等</p>
+<div class="note danger flat"><p>失效： 如果添加元素导致 vector
+扩展，则所有迭代器、指针和引用将失效，因为内存空间被重新分配；如果没有扩展，则仅插入（或删除）元素之后的迭代器将失效（因为元素被移动）。</p>
+</div>
+<h3 id="deque">Deque</h3>
+<p>特性 * 快速在两端插入或删除 * 中间插入或删除较慢 * 随机访问更快，但比
+vector 容器慢</p>
+<p>Deque 是许多 STL
+实现中的分段数组。容器中的元素存储在固定大小的数组段中。此外，容器需要维护一个索引数组，存储这些分段数组的第一个地址，因此
+deque 的连续性是一种幻觉。</p>
+<figure>
+<img
+src="https://img-blog.csdnimg.cn/20190217155302649.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjQ2MjIwMg==,size_16,color_FFFFFF,t_70"
+alt="https://img-blog.csdnimg.cn/20190217155302649.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjQ2MjIwMg==,size_16,color_FFFFFF,t_70" />
+<figcaption
+aria-hidden="true">https://img-blog.csdnimg.cn/20190217155302649.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjQ2MjIwMg==,size_16,color_FFFFFF,t_70</figcaption>
+</figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//首先按降序输出奇数，然后按升序输出偶数。</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;deque&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iterator&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;vector&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="function">istream_iterator&lt;<span class="type">int</span>&gt; <span class="title">i1</span><span class="params">(cin)</span>, i2</span>; <span class="comment">//创建一对输入流迭代器，第一个是标准输入的开始，第二个是标准输入的结束</span></span><br><span class="line">    <span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">s1</span><span class="params">(i1, i2)</span></span>;            <span class="comment">//通过输入流迭代器从标准输入流输入数据</span></span><br><span class="line">    <span class="built_in">sort</span>(s<span class="number">1.</span><span class="built_in">begin</span>(), s<span class="number">1.</span><span class="built_in">end</span>());        <span class="comment">//对输入的整数进行排序</span></span><br><span class="line">    deque&lt;<span class="type">int</span>&gt; s2;</span><br><span class="line">    <span class="comment">//以下循环遍历 s1</span></span><br><span class="line">    <span class="keyword">for</span> (vector&lt;<span class="type">int</span>&gt;::iterator iter = s<span class="number">1.</span><span class="built_in">begin</span>(); iter != s<span class="number">1.</span><span class="built_in">end</span>(); ++iter)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> (*iter % <span class="number">2</span> == <span class="number">0</span>) <span class="comment">//偶数放入 s2 尾部</span></span><br><span class="line">            s<span class="number">2.</span><span class="built_in">push_back</span>(*iter);</span><br><span class="line">        <span class="keyword">else</span> <span class="comment">//奇数放入 s2 头部</span></span><br><span class="line">            s<span class="number">2.</span><span class="built_in">push_front</span>(*iter);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//输出 s2 的结果</span></span><br><span class="line">    <span class="built_in">copy</span>(s<span class="number">2.</span><span class="built_in">begin</span>(), s<span class="number">2.</span><span class="built_in">end</span>(), <span class="built_in">ostream_iterator</span>&lt;<span class="type">int</span>&gt;(cout, <span class="string">&quot; &quot;</span>));</span><br><span class="line">    cout &lt;&lt; endl;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="list">List</h3>
+<p>底层逻辑是双向链表。</p>
+<p>特性 * 在任何位置快速插入和删除元素 * 不支持随机访问</p>
+<p>拼接操作 <code>s1.splice(p, s2, q1, q2)</code> 意味着将 [q1, q2) 从
+s2 移动到 s1 中指向 p 的元素之前</p>
+<h3 id="forward-list">Forward List</h3>
+<p>特性： *
+单链表中的每个节点仅有指向下一个节点的指针，没有简单的方法获取节点的前驱；
+* 不定义 insert、emplace 和 erase 操作，但定义了
+insert_after、emplace_after 和 erase_after 操作。它们的参数与 list 的
+insert、emplace 和 erase 相同，但它们不插入或删除指向迭代器 p1
+的元素，而是对 p1 指向的元素之后的节点进行操作； * 不支持 size
+操作。</p>
+<h3 id="array">Array</h3>
+<p>特性： * array
+是对内置数组的封装，提供了一种更安全和方便的使用数组的方法 * array
+对象的大小是固定的。在定义时，需要指定元素类型和容器大小。 *
+不能动态改变容器大小</p>
+<p><img
+src="https://picx.zhimg.com/80/v2-ea9110203c1e89cfaac565d2c3356953_1440w.jpeg" /></p>
+<h2 id="顺序容器插入迭代器和适配器">顺序容器插入迭代器和适配器</h2>
+<h3 id="顺序容器插入迭代器">顺序容器插入迭代器</h3>
+<p>概念：用于在容器的头部、尾部或中间指定位置插入元素的迭代器，包括前插入器（front_inserter）、后插入器（back_inserter）和任意位置插入器（inserter）。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">list&lt;<span class="type">int</span>&gt; s;</span><br><span class="line"><span class="function">back_inserter <span class="title">iter</span><span class="params">(s)</span></span>;</span><br><span class="line">*(iter++) = <span class="number">5</span>; <span class="comment">//通过 iter 在 s 的末尾插入 5</span></span><br></pre></td></tr></table></figure>
+<h3 id="顺序容器适配器">顺序容器适配器</h3>
+<p>基于顺序容器构建一些常用的数据结构，是顺序容器的封装： *
+Stack：第一个压入的元素最后弹出 * Queue：第一个压入的元素第一个弹出 *
+Priority queue：首先弹出“最大”的元素</p>
+<p>Stack 可以使用任何顺序容器作为基础容器，但 queue
+仅允许<strong>前插入的顺序容器</strong>（deque 或 list）</p>
+<div class="note info flat"><p>优先队列的本质是最大（最小）二叉堆。</p>
+</div>
+<h4 id="stack-和-queue-支持的常见操作">Stack 和 Queue
+支持的常见操作</h4>
+<ul>
+<li>s1 op s2 op 可以是 ==、!=、&lt;、&lt;=、&gt;、&gt;=
+之一，它比较两个容器适配器之间的元素，<strong>按字典顺序</strong>；</li>
+<li>s.size() 返回 s 中的元素数量；</li>
+<li>s.empty() 返回 s 是否为空；</li>
+<li>s.push(t) 将元素 t 压入 s；</li>
+<li>s.pop() 从 s 中弹出一个元素。对于
+stack，每次弹出的元素是最后压入的元素，而对于
+queue，每次弹出的元素是第一个压入的元素；</li>
+<li><strong>不支持迭代器</strong>，因为它们不允许访问任意元素。</li>
+</ul>
+<h4 id="stack-和-queue-的不同操作">Stack 和 Queue 的不同操作</h4>
+<p>Stack 操作： * s.top() 返回对 stack 顶部元素的引用</p>
+<p>Queue 操作： * s.front() 获取对队列头部元素的引用 * s.back()
+获取对队列尾部元素的引用</p>
+<h4 id="优先队列">优先队列</h4>
+<p>优先队列也支持像 stack 和 queue
+一样的元素压入和弹出，但元素弹出的顺序与元素大小有关。每次弹出的元素始终是容器中的“最大”元素。
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">T</span>, <span class="keyword">class</span> <span class="title class_">Sequence</span> = vector&lt;T&gt;</span><br><span class="line"><span class="keyword">class</span> priority_queue; </span><br></pre></td></tr></table></figure>
+优先队列的基础容器必须是一个<strong>支持随机访问</strong>的顺序容器。 *
+支持 stack 和 queue 的 size、empty、push、pop 成员函数，使用方法与 stack
+和 queue 相同。 * 优先队列<strong>不支持比较操作</strong>。 * 类似于
+stack，优先队列提供一个 top
+函数，可以获取对下一个要弹出的元素（即“最大”元素）的引用。</p>
+<h2 id="关联容器">关联容器</h2>
+<h3 id="关联容器的分类和基本功能">关联容器的分类和基本功能</h3>
+<p>对于关联容器，每个元素都有一个键，容器中元素的顺序按<strong>键值的升序</strong>排列。</p>
+<blockquote>
+<p>与顺序容器不同，查找元素的时间复杂度为 <span
+class="math inline">\(O(n)\)</span>，关联容器根据键大小将元素组织成<strong>平衡二叉树</strong>，时间复杂度为
+<span class="math inline">\(O(\log n)\)</span>。</p>
+</blockquote>
+<p>有序关联容器的分类： * 单一关联容器（set 和 map） *
+键值是<strong>唯一的</strong>，一个键值<strong>只能对应一个元素</strong>
+* 多重关联容器（multiset 和 multimap） *
+键值是<strong>不唯一的</strong>，一个键值可以<strong>对应多个元素</strong>
+* 简单关联容器（set 和 multiset） *
+容器只有<strong>一个类型参数</strong>，如
+set<K>、multiset<K>，表示键类型 * 容器的<strong>元素就是键本身</strong>
+* 二元关联容器（map 和 multimap） *
+容器有<strong>两个类型参数</strong>，如
+map&lt;K,V&gt;、multimap&lt;K,V&gt;，分别表示键和附加数据类型 *
+容器的元素类型是
+pair&lt;K,V&gt;，即由<strong>键类型和附加数据类型</strong>组成的二元元组</p>
+<p>接口 * 构造：列表初始化，例如
+<code>map&lt;string, int&gt; id_map = &#123;&#123;"Xiao Ming", 1&#125;, &#123;"Li Hua", 2&#125;&#125;</code> *
+插入：insert * 删除：erase * 查找：find *
+边界：lower_bound、upper_bound、equal_range * 计数：count</p>
+<blockquote>
+<p>C++11 新标准定义了 4 种无序关联容器
+unordered_set、unordered_map、unordered_multiset、unordered_multimap *
+不使用比较运算符来组织元素，而是通过哈希函数和键类型的 == 运算符。 *
+提供与有序容器相同的操作 * 可以直接使用内置类型关键字定义无序容器。 *
+不能直接使用自定义类键类型定义无序容器。如果需要，必须提供我们自己的哈希模板。</p>
+</blockquote>
+<h3 id="set">Set</h3>
+<p>Set 用于存储一组不重复的元素。由于 set
+的元素是有序的，因此可以高效地查找指定元素，并方便地获取容器中指定大小元素的范围。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">pair&lt;set&lt;<span class="type">double</span>&gt;::iterator,<span class="type">bool</span>&gt; r=s.<span class="built_in">insert</span>(v); </span><br><span class="line"><span class="keyword">if</span> (!r.second);</span><br><span class="line"><span class="comment">//让我解释一下。insert 函数的返回值是一个二元元组，第一个是一个迭代器，第二个是一个布尔值，指示插入是否可能。</span></span><br><span class="line"><span class="comment">//第一行构造了一个 r 二元元组，访问其两个元素的方法是 r.first 和 r.second。</span></span><br></pre></td></tr></table></figure>
+<h3 id="map">Map</h3>
+<p>Map 和 set 都属于单一关联容器。它们的主要区别在于 set
+的元素类型是键本身，而 map
+的元素类型是由键和附加数据组成的<strong>二元元组</strong>。</p>
+<p>在 set 中通过键查找元素时，通常仅用于确定元素是否存在，而在 map
+中通过键查找元素时，除了确定其存在性外，还可以获取<strong>相应的附加数据</strong>。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">courses.<span class="built_in">insert</span>(<span class="built_in">make_pair</span>(<span class="string">&quot;CSAPP&quot;</span>, <span class="number">3</span>));</span><br><span class="line"><span class="comment">//二元元组初始化可以使用 pair&lt;first_type,second_type&gt; r = &#123;element1,element2&#125;</span></span><br><span class="line"><span class="comment">//同时，如果您想将其用作函数参数，可以省略构造步骤，直接使用 make_pair(element1,element2)</span></span><br></pre></td></tr></table></figure>
+<h3 id="multiset-和-multimap">Multiset 和 Multimap</h3>
+<p>Multiset 是一个<strong>允许重复元素</strong>的集合，而 multimap
+是一个<strong>允许一个键对应多个附加数据</strong>的映射。</p>
+<p>Multiset 和 set、multimap 和 map
+的用法相似，仅在少数成员函数上有细微差别。区别主要体现在<strong>移除键必须唯一的限制</strong>。</p>
+<h1 id="函数对象">函数对象</h1>
+<h2 id="函数对象的基本概念和分类">函数对象的基本概念和分类</h2>
+<p>函数对象实际上是行为像函数的对象。它们可以没有参数或有多个参数，其功能是获取值或改变操作的状态。</p>
+<blockquote>
+<p>任何普通函数和任何重载调用运算符 operator()
+的类的对象都满足函数对象的特性</p>
+</blockquote>
+<p><img
+src="https://pic1.zhimg.com/80/v2-31d073302a8e96d89105422051760a76_1440w.png" /></p>
+<p>以下是两个结果相同的程序： <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span> </span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;numeric&gt;</span> <span class="comment">//包含数值算法头文件</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"><span class="comment">//定义一个普通函数</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">mult</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span> </span>&#123; <span class="keyword">return</span> x * y; &#125;;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="type">int</span> a[] = &#123; <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span> &#125;;</span><br><span class="line">  <span class="type">const</span> <span class="type">int</span> N = <span class="built_in">sizeof</span>(a) / <span class="built_in">sizeof</span>(<span class="type">int</span>);</span><br><span class="line">  cout &lt;&lt; <span class="string">&quot;将 a 中所有元素相乘的结果是 &quot;</span> &lt;&lt; <span class="built_in">accumulate</span>(a, a + N, <span class="number">1</span>, mult) &lt;&lt; endl;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;numeric&gt;</span> <span class="comment">//包含数值算法头文件</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MultClass</span>&#123; <span class="comment">//定义 MultClass 类</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line"><span class="comment">//重载运算符 operator()</span></span><br><span class="line">  <span class="function"><span class="type">int</span> <span class="title">operator</span><span class="params">()</span> <span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span> <span class="type">const</span> </span>&#123; <span class="keyword">return</span> x * y; &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="type">int</span> a[] = &#123; <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span> &#125;;</span><br><span class="line">  <span class="type">const</span> <span class="type">int</span> N = <span class="built_in">sizeof</span>(a) / <span class="built_in">sizeof</span>(<span class="type">int</span>);</span><br><span class="line">  cout &lt;&lt; <span class="string">&quot;将 a 中所有元素相乘的结果是 &quot;</span> &lt;&lt; <span class="built_in">accumulate</span>(a, a + N, <span class="number">1</span>, <span class="built_in">MultClass</span>()) <span class="comment">//MultClass 对象传递给通用算法 </span></span><br><span class="line">  &lt;&lt; endl;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>一个普通函数，一个类重载了 ()。</p>
+<p>STL 提供的函数对象： * 算术运算的函数对象 *
+关系运算和逻辑运算的函数对象（要求返回值为 bool）</p>
+<p><img
+src="https://pic4.zhimg.com/80/v2-0e4a6bbd4d06bb5765d22c2d1662cdad_1440w.jpeg" /></p>
+<p><img
+src="https://pica.zhimg.com/80/v2-7df16ba33fcbf887ef22acad3f7855ee_1440w.jpeg" /></p>
+<h2 id="lambda-表达式">Lambda 表达式</h2>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/DswCnblog/p/5629165.html">Lambda
+表达式详细信息</a> 定义：[捕获列表]（参数列表）-&gt; 返回类型 {函数体} *
+捕获列表可以捕获 lambda 所在函数的局部变量 *
+参数列表、返回类型和函数体与普通函数一致 *
+可以在函数内部定义，理解为无名内联函数 * auto lambda = [] { return
+“Hello World!”; }; * cout&lt;&lt; lambda() &lt;&lt;std::endl;
+//执行与函数对象一致</p>
+<p>捕获列表有值捕获、引用捕获和隐式捕获方法 * int size = 10, base = 0;
+//局部变量 * auto longer = <a
+href="const%20string%20&amp;s">size</a>{return s.size()&gt;size;}
+//值捕获 * auto longer = <a
+href="const%20string%20&amp;s">&amp;size</a>{return
+s.size()&gt;size;}//引用捕获 * auto longer = <a
+href="const%20string%20&amp;s">=</a>{return
+s.size()&gt;base;}//隐式值捕获 * auto longer = <a
+href="const%20string%20&amp;s">&amp;</a>{return
+s.size()&gt;size;}//隐式引用捕获 ## 函数适配器 <img
+src="https://pic4.zhimg.com/80/v2-2ed3c65215b6553242c0785fb1c84ae7_1440w.jpeg" /></p>
+<p>bind2nd 生成 binder2nd 函数适配器的实例 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;functional&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;vector&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;algorithm&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> placeholders; <span class="comment">//占位符 _n 的命名空间</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="type">int</span> intArr[] = &#123; <span class="number">30</span>, <span class="number">90</span>, <span class="number">10</span>, <span class="number">40</span>, <span class="number">70</span>, <span class="number">50</span>, <span class="number">20</span>, <span class="number">80</span> &#125;;</span><br><span class="line">  <span class="type">const</span> <span class="type">int</span> N = <span class="built_in">sizeof</span>(intArr) / <span class="built_in">sizeof</span>(<span class="type">int</span>);</span><br><span class="line">  <span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">a</span><span class="params">(intArr, intArr + N)</span></span>;</span><br><span class="line">  <span class="keyword">auto</span> p = <span class="built_in">find_if</span>(a.<span class="built_in">begin</span>(), a.<span class="built_in">end</span>(),<span class="built_in">bind2nd</span>(greater&lt;&gt;(), <span class="number">40</span>));</span><br><span class="line">  <span class="keyword">if</span> (p == a.<span class="built_in">end</span>())</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;没有大于 40 的元素&quot;</span> &lt;&lt; endl;</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;第一个大于 40 的元素是: &quot;</span> &lt;&lt; *p &lt;&lt; endl;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>函数模板的内容远不止这些，逐步在实践中学习</p>
+</blockquote>
+<h1 id="算法">算法</h1>
+<p>算法的特征： * STL 算法本身是函数模板 * 通过迭代器获取输入数据 *
+通过函数对象处理数据 * 通过迭代器输出结果 * STL
+算法是通用的，与特定数据类型和容器类型无关</p>
+<p>算法分类： * 不可变序列算法 * 可变序列算法 * 排序和搜索算法 *
+数值算法</p>
+<blockquote>
+<p>代码中使用的所有算法都可以在图像中找到，因此不再解释。</p>
+</blockquote>
+<h2 id="不可变序列算法">不可变序列算法</h2>
+<p>不直接修改操作容器内容的算法，用于查找指定元素、比较两个序列是否相等、计数元素等。</p>
+<p><img
+src="https://pic3.zhimg.com/80/v2-cbe6b4025b2427cf9b3936eb3a467b96_1440w.png" /></p>
+<p>示例： <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">class</span> InputIterator, <span class="keyword">class</span> UnaryPredicate&gt;</span></span><br><span class="line"><span class="function">InputIterator <span class="title">find_if</span><span class="params">(InputIterator first, InputIterator last, UnaryPredicate pred;</span></span></span><br><span class="line"><span class="params"><span class="function"><span class="comment">//在 [first, last) 范围内查找第一个使 pred(x) 为真的元素</span></span></span></span><br></pre></td></tr></table></figure></p>
+<p><a
+target="_blank" rel="noopener" href="https://github.com/hustlixiang21/cpp-practice/blob/main/%E4%B8%8D%E5%8F%AF%E5%8F%98%E5%BA%8F%E5%88%97%E7%AE%97%E6%B3%95%E5%BA%94%E7%94%A8%E5%AE%9E%E4%BE%8B/main.cpp">不可变序列算法示例</a></p>
+<h2 id="可变序列算法">可变序列算法</h2>
+<p>可以修改它们操作的容器对象，包括复制、删除、替换、反转、旋转、交换、分区、去重、填充、洗牌序列和生成序列的算法。</p>
+<p><img
+src="https://pic3.zhimg.com/80/v2-ec3de91c8801e4fbb7993a038d8ba58e_1440w.png" /></p>
+<p><img
+src="https://picx.zhimg.com/80/v2-e1eedaedbe50397fdac1453674369c25_1440w.png" /></p>
+<p>示例： <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">class</span> ForwardIterator, <span class="keyword">class</span> T&gt;</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">fill</span><span class="params">(ForwardIterator first, ForwardIterator last, <span class="type">const</span> T&amp; x)</span></span>;</span><br><span class="line"><span class="comment">//将 [first, last) 范围内的所有元素重写为 x。</span></span><br></pre></td></tr></table></figure></p>
+<div class="note danger flat"><p><a
+target="_blank" rel="noopener" href="https://blog.csdn.net/qq_27788829/article/details/51181080?spm=1001.2101.3001.6661.1&amp;utm_medium=distribute.pc_relevant_t0.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-1-51181080-blog-80187847.pc_relevant_default&amp;depth_1-utm_source=distribute.pc_relevant_t0.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-1-51181080-blog-80187847.pc_relevant_default&amp;utm_relevant_index=1">remove_if
+的欺骗性</a></p>
+</div>
+<blockquote>
+<p>删除是通过移动（通过 copy assignment （直到 C++11）move
+assignment （自 C++11
+起））范围内的元素，以使不需要删除的元素出现在范围的开头。保留的元素的相对顺序保持不变，容器的<em>物理</em>大小不变。指向新<em>逻辑</em>结束和<em>物理</em>结束之间的元素的迭代器仍然可以解引用，但元素本身具有未指定的值（根据 <a
+target="_blank" rel="noopener" href="https://en.cppreference.com/w/cpp/named_req/MoveAssignable"
+title="cpp/named req/MoveAssignable">MoveAssignable</a> 后置条件）。</p>
+</blockquote>
+<p><a
+target="_blank" rel="noopener" href="https://github.com/hustlixiang21/cpp-practice/blob/main/%E5%8F%AF%E5%8F%98%E5%BA%8F%E5%88%97%E7%AE%97%E6%B3%95%E5%BA%94%E7%94%A8%E5%AE%9E%E4%BE%8B/main.cpp">可变序列算法示例</a></p>
+<h2 id="排序和搜索算法">排序和搜索算法</h2>
+<ul>
+<li>对序列进行排序</li>
+<li>合并两个有序序列</li>
+<li>搜索有序序列</li>
+<li>对有序序列进行集合操作</li>
+<li>堆算法</li>
+</ul>
+<p><img
+src="https://pic2.zhimg.com/80/v2-d880ec033f01b154525a1600bad9c14f_1440w.jpeg" /></p>
+<p><img
+src="https://pic3.zhimg.com/80/v2-e367dca4110be05e688ba80abffe29be_1440w.jpeg" /></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">RandomAccessIterator</span> , <span class="keyword">class</span> <span class="title class_">UnaryPredicate</span>&gt;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">sort</span><span class="params">(RandomAccessIterator first, RandomAccessIterator last, UnaryPredicate comp)</span></span>;</span><br><span class="line"><span class="comment">//使用函数对象 comp 作为 &quot;&lt;&quot; 对 [first, last) 范围内的数据进行排序</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>sort 要求 first 和 last 为随机迭代器类型，因为 sort
+的具体实现使用快速排序，使用随机迭代器是出于效率考虑。</p>
+</blockquote>
+<h2 id="数值算法">数值算法</h2>
+<p>查找序列中元素的“和”、部分“和”、相邻元素的“差”或两个序列的内积。查找“和”的“+”、查找“差”的“-”以及查找内积的“+”和“·”都可以通过函数对象指定。</p>
+<p><img
+src="https://pic2.zhimg.com/80/v2-b20e0971749bf96f4e9e97fdb6121fd2_1440w.png" /></p>
+<p>示例： <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">class</span> <span class="title class_">InputIterator</span>, <span class="keyword">class</span> <span class="title class_">OutputIterator</span>, <span class="keyword">class</span> <span class="title class_">BinaryFunction</span>&gt; ▫ <span class="function">OutputIterator <span class="title">partial_sum</span><span class="params">(InputIterator first, InputIterator last, OutputIterator result, BinaryFunction op)</span></span>;</span><br><span class="line"><span class="comment">//查找 [first, last) 范围内元素的部分“和”（所谓部分“和”是与输入序列长度相同的序列，其中第 n 项是输入序列前 n 个元素的“和”）</span></span><br><span class="line"><span class="comment">//使用函数对象 op 作为 &quot;+&quot; 运算符，通过 result 输出结果，返回指向输出序列最后一个元素之后的迭代器</span></span><br></pre></td></tr></table></figure></p>
+<p><a
+target="_blank" rel="noopener" href="https://github.com/hustlixiang21/cpp-practice/tree/main/%E6%95%B0%E5%80%BC%E7%AE%97%E6%B3%95%E5%BA%94%E7%94%A8%E5%AE%9E%E4%BE%8B">数值算法示例</a></p>
+<h1 id="综合示例---银行账户管理">综合示例 - 银行账户管理</h1>
+<p><a
+target="_blank" rel="noopener" href="https://github.com/hustlixiang21/cpp-practice/tree/main/Personal_bank_management_update4">源代码
++ 更新</a></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh/2022/08/04/CPP/Generic%20Programming%20and%20C++%20Standard%20Template%20Library%20(STL)/">https://xloverflow.github.io/zh/2022/08/04/CPP/Generic%20Programming%20and%20C++%20Standard%20Template%20Library%20(STL)/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://xloverflow.github.io/zh" target="_blank">Life is not a race, but a journey</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/zh/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/zh/tags/C-Programming/">C++ Programming</a><a class="post-meta__tags" href="/zh/tags/C-Language/">C++ Language</a></div><div class="post-share"><div class="social-share" data-image="https://pic1.zhimg.com/80/v2-b3235667ca289c4b127e5448bed79144_1440w.jpeg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/zh/2022/08/04/CPP/Stream%20Library%20and%20Input&amp;Output/" title="Stream Library and Input/Output"><img class="cover" src="https://pic2.zhimg.com/80/v2-19acd9758c049d0f5b91788ed9dc37c7_1440w.jpeg" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Stream Library and Input/Output</div></div><div class="info-2"><div class="info-item-1">Focus on streams and input/output</div></div></div></a><a class="pagination-related" href="/zh/2022/08/04/CPP/Templates%20and%20Data%20Organization/" title="Templates and Data Organization"><img class="cover" src="https://pic1.zhimg.com/80/v2-4d8dbc5f894427d430bdf29ad9ee3d04_1440w.jpeg" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Templates and Data Organization</div></div><div class="info-2"><div class="info-item-1">Function Templates and Class Templates</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/zh/2022/07/23/CPP/C++%20Arrays,%20Pointers%20and%20Strings/" title="C++ Arrays, Pointers and Strings"><img class="cover" src="https://pica.zhimg.com/80/v2-bb5f6ef138cca79e736aa26bb4bdc2e4_1440w.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-23</div><div class="info-item-2">C++ Arrays, Pointers and Strings</div></div><div class="info-2"><div class="info-item-1">Notes on C++ arrays, pointers, and strings. Some content may be abbreviated due to prior C language knowledge.</div></div></div></a><a class="pagination-related" href="/zh/2022/07/20/CPP/C++%20Classes%20and%20Objects/" title="C++ Classes and Objects"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/larm-rmah-1cvEeuJKYto-unsplash.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-20</div><div class="info-item-2">C++ Classes and Objects</div></div><div class="info-2"><div class="info-item-1">Notes on C++ classes and objects</div></div></div></a><a class="pagination-related" href="/zh/2022/07/21/CPP/C++%20Data%20Sharing%20and%20Protection/" title="C++ Data Sharing and Protection"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/romain-briaux-P-O6B62iWgA-unsplash.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-21</div><div class="info-item-2">C++ Data Sharing and Protection</div></div><div class="info-2"><div class="info-item-1">Notes on data sharing and protection in C++ learning</div></div></div></a><a class="pagination-related" href="/zh/2022/07/20/CPP/C++%20Functions/" title="C++ Functions"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/jason-blackeye-GPPAjJicemU-unsplash.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-20</div><div class="info-item-2">C++ Functions</div></div><div class="info-2"><div class="info-item-1">Notes on C++ Functions chapter</div></div></div></a><a class="pagination-related" href="/zh/2022/07/31/CPP/CPP%20Inheritance%20and%20Derivation/" title="CPP Inheritance and Derivation"><img class="cover" src="https://picx.zhimg.com/80/v2-198d4af1c9c6939cf37223aae9e7102f_1440w.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-31</div><div class="info-item-2">CPP Inheritance and Derivation</div></div><div class="info-2"><div class="info-item-1">This note mainly records related concepts and code examples in CPP inheritance and derivation.</div></div></div></a><a class="pagination-related" href="/zh/2022/07/20/CPP/Important%20Points%20to%20Note%20in%20C++%20Basics/" title="Important Points to Note in C++ Basics"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/ann-savchenko-H0h_89iFsWs-unsplash.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-20</div><div class="info-item-2">Important Points to Note in C++ Basics</div></div><div class="info-2"><div class="info-item-1">Common pitfalls to note when transitioning from C to C++</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li 的中文博客</div><div class="site-data"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">47</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">62</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">18</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%B3%9B%E5%9E%8B%E7%BC%96%E7%A8%8B%E4%B8%8E-stl-%E7%BB%93%E6%9E%84"><span class="toc-number">1.</span> <span class="toc-text">泛型编程与 STL 结构</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B3%9B%E5%9E%8B%E7%BC%96%E7%A8%8B%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="toc-number">1.1.</span> <span class="toc-text">泛型编程的基本概念</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#stl-%E4%BB%8B%E7%BB%8D"><span class="toc-number">2.</span> <span class="toc-text">STL 介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#stl-%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%84%E6%88%90%E9%83%A8%E5%88%86---%E5%AE%B9%E5%99%A8"><span class="toc-number">2.1.</span> <span class="toc-text">STL 的基本组成部分 - 容器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#stl-%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%84%E6%88%90%E9%83%A8%E5%88%86---%E8%BF%AD%E4%BB%A3%E5%99%A8"><span class="toc-number">2.2.</span> <span class="toc-text">STL 的基本组成部分 - 迭代器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#stl-%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%84%E6%88%90%E9%83%A8%E5%88%86---%E5%87%BD%E6%95%B0%E5%AF%B9%E8%B1%A1"><span class="toc-number">2.3.</span> <span class="toc-text">STL 的基本组成部分 -
+函数对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#stl-%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%84%E6%88%90%E9%83%A8%E5%88%86---%E7%AE%97%E6%B3%95"><span class="toc-number">2.4.</span> <span class="toc-text">STL 的基本组成部分 - 算法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AE%97%E6%B3%95%E7%A4%BA%E4%BE%8B---transform-%E7%AE%97%E6%B3%95"><span class="toc-number">2.4.1.</span> <span class="toc-text">算法示例 - transform 算法</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%BF%AD%E4%BB%A3%E5%99%A8"><span class="toc-number">3.</span> <span class="toc-text">迭代器</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BE%93%E5%85%A5%E6%B5%81%E8%BF%AD%E4%BB%A3%E5%99%A8%E5%92%8C%E8%BE%93%E5%87%BA%E6%B5%81%E8%BF%AD%E4%BB%A3%E5%99%A8"><span class="toc-number">3.1.</span> <span class="toc-text">输入流迭代器和输出流迭代器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%AD%E4%BB%A3%E5%99%A8%E5%88%86%E7%B1%BB"><span class="toc-number">3.2.</span> <span class="toc-text">迭代器分类</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%AD%E4%BB%A3%E5%99%A8%E8%8C%83%E5%9B%B4"><span class="toc-number">3.3.</span> <span class="toc-text">迭代器范围</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%AD%E4%BB%A3%E5%99%A8%E8%BE%85%E5%8A%A9%E5%87%BD%E6%95%B0"><span class="toc-number">3.4.</span> <span class="toc-text">迭代器辅助函数</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AE%B9%E5%99%A8"><span class="toc-number">4.</span> <span class="toc-text">容器</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%B9%E5%99%A8%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8A%9F%E8%83%BD%E5%92%8C%E5%88%86%E7%B1%BB"><span class="toc-number">4.1.</span> <span class="toc-text">容器的基本功能和分类</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BF%E9%97%AE%E5%8F%AF%E9%80%86%E5%AE%B9%E5%99%A8"><span class="toc-number">4.1.1.</span> <span class="toc-text">访问可逆容器</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A1%BA%E5%BA%8F%E5%AE%B9%E5%99%A8"><span class="toc-number">4.2.</span> <span class="toc-text">顺序容器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A1%BA%E5%BA%8F%E5%AE%B9%E5%99%A8%E6%8E%A5%E5%8F%A3"><span class="toc-number">4.2.1.</span> <span class="toc-text">顺序容器接口</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#vector"><span class="toc-number">4.2.2.</span> <span class="toc-text">Vector</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#deque"><span class="toc-number">4.2.3.</span> <span class="toc-text">Deque</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#list"><span class="toc-number">4.2.4.</span> <span class="toc-text">List</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#forward-list"><span class="toc-number">4.2.5.</span> <span class="toc-text">Forward List</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#array"><span class="toc-number">4.2.6.</span> <span class="toc-text">Array</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A1%BA%E5%BA%8F%E5%AE%B9%E5%99%A8%E6%8F%92%E5%85%A5%E8%BF%AD%E4%BB%A3%E5%99%A8%E5%92%8C%E9%80%82%E9%85%8D%E5%99%A8"><span class="toc-number">4.3.</span> <span class="toc-text">顺序容器插入迭代器和适配器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A1%BA%E5%BA%8F%E5%AE%B9%E5%99%A8%E6%8F%92%E5%85%A5%E8%BF%AD%E4%BB%A3%E5%99%A8"><span class="toc-number">4.3.1.</span> <span class="toc-text">顺序容器插入迭代器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A1%BA%E5%BA%8F%E5%AE%B9%E5%99%A8%E9%80%82%E9%85%8D%E5%99%A8"><span class="toc-number">4.3.2.</span> <span class="toc-text">顺序容器适配器</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#stack-%E5%92%8C-queue-%E6%94%AF%E6%8C%81%E7%9A%84%E5%B8%B8%E8%A7%81%E6%93%8D%E4%BD%9C"><span class="toc-number">4.3.2.1.</span> <span class="toc-text">Stack 和 Queue
+支持的常见操作</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#stack-%E5%92%8C-queue-%E7%9A%84%E4%B8%8D%E5%90%8C%E6%93%8D%E4%BD%9C"><span class="toc-number">4.3.2.2.</span> <span class="toc-text">Stack 和 Queue 的不同操作</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BC%98%E5%85%88%E9%98%9F%E5%88%97"><span class="toc-number">4.3.2.3.</span> <span class="toc-text">优先队列</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B3%E8%81%94%E5%AE%B9%E5%99%A8"><span class="toc-number">4.4.</span> <span class="toc-text">关联容器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E8%81%94%E5%AE%B9%E5%99%A8%E7%9A%84%E5%88%86%E7%B1%BB%E5%92%8C%E5%9F%BA%E6%9C%AC%E5%8A%9F%E8%83%BD"><span class="toc-number">4.4.1.</span> <span class="toc-text">关联容器的分类和基本功能</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#set"><span class="toc-number">4.4.2.</span> <span class="toc-text">Set</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#map"><span class="toc-number">4.4.3.</span> <span class="toc-text">Map</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#multiset-%E5%92%8C-multimap"><span class="toc-number">4.4.4.</span> <span class="toc-text">Multiset 和 Multimap</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%87%BD%E6%95%B0%E5%AF%B9%E8%B1%A1"><span class="toc-number">5.</span> <span class="toc-text">函数对象</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%BD%E6%95%B0%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5%E5%92%8C%E5%88%86%E7%B1%BB"><span class="toc-number">5.1.</span> <span class="toc-text">函数对象的基本概念和分类</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#lambda-%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="toc-number">5.2.</span> <span class="toc-text">Lambda 表达式</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AE%97%E6%B3%95"><span class="toc-number">6.</span> <span class="toc-text">算法</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%8D%E5%8F%AF%E5%8F%98%E5%BA%8F%E5%88%97%E7%AE%97%E6%B3%95"><span class="toc-number">6.1.</span> <span class="toc-text">不可变序列算法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%AF%E5%8F%98%E5%BA%8F%E5%88%97%E7%AE%97%E6%B3%95"><span class="toc-number">6.2.</span> <span class="toc-text">可变序列算法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8E%92%E5%BA%8F%E5%92%8C%E6%90%9C%E7%B4%A2%E7%AE%97%E6%B3%95"><span class="toc-number">6.3.</span> <span class="toc-text">排序和搜索算法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E5%80%BC%E7%AE%97%E6%B3%95"><span class="toc-number">6.4.</span> <span class="toc-text">数值算法</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%BB%BC%E5%90%88%E7%A4%BA%E4%BE%8B---%E9%93%B6%E8%A1%8C%E8%B4%A6%E6%88%B7%E7%AE%A1%E7%90%86"><span class="toc-number">7.</span> <span class="toc-text">综合示例 - 银行账户管理</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11711 Advanced NLP: Retrieval and RAG"/></a><div class="content"><a class="title" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG">11711 Advanced NLP: Retrieval and RAG</a><time datetime="2026-02-14T22:08:21.000Z" title="发表于 2026-02-14 17:08:21">2026-02-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM系统：解码"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11868 LLM系统：解码"/></a><div class="content"><a class="title" href="/zh/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM系统：解码">11868 LLM系统：解码</a><time datetime="2026-02-13T01:00:00.000Z" title="发表于 2026-02-12 20:00:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11868 LLM Sys: Tokenization and Embedding"/></a><div class="content"><a class="title" href="/zh/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding">11868 LLM Sys: Tokenization and Embedding</a><time datetime="2026-02-12T20:30:00.000Z" title="发表于 2026-02-12 15:30:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 机器学习系统：Transformer、注意力机制与优化"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="15642 机器学习系统：Transformer、注意力机制与优化"/></a><div class="content"><a class="title" href="/zh/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 机器学习系统：Transformer、注意力机制与优化">15642 机器学习系统：Transformer、注意力机制与优化</a><time datetime="2026-02-09T19:30:00.000Z" title="发表于 2026-02-09 14:30:00">2026-02-09</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/09/CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch/" title="CS336 Assignment 1: Building a Transformer Language Model from Scratch"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="CS336 Assignment 1: Building a Transformer Language Model from Scratch"/></a><div class="content"><a class="title" href="/zh/2026/02/09/CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch/" title="CS336 Assignment 1: Building a Transformer Language Model from Scratch">CS336 Assignment 1: Building a Transformer Language Model from Scratch</a><time datetime="2026-02-09T04:05:02.000Z" title="发表于 2026-02-08 23:05:02">2026-02-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/zh/js/utils.js"></script><script src="/zh/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '904dd4d6ba89011ec6ca8d35d7a2dde5'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/zh/404.html') : window.location.href = '/zh/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

@@ -1,0 +1,571 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>CPP Inheritance and Derivation | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="This note mainly records related concepts and code examples in CPP inheritance and derivation.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CPP Inheritance and Derivation">
+<meta property="og:url" content="https://xloverflow.github.io/2022/07/31/CPP/CPP%20Inheritance%20and%20Derivation/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="This note mainly records related concepts and code examples in CPP inheritance and derivation.">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://picx.zhimg.com/80/v2-198d4af1c9c6939cf37223aae9e7102f_1440w.jpeg">
+<meta property="article:published_time" content="2022-07-31T19:33:24.000Z">
+<meta property="article:modified_time" content="2026-02-15T05:04:17.010Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="C++ Language">
+<meta property="article:tag" content="C++ Programming">
+<meta property="article:tag" content="Study Notes">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picx.zhimg.com/80/v2-198d4af1c9c6939cf37223aae9e7102f_1440w.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "CPP Inheritance and Derivation",
+  "url": "https://xloverflow.github.io/2022/07/31/CPP/CPP%20Inheritance%20and%20Derivation/",
+  "image": "https://picx.zhimg.com/80/v2-198d4af1c9c6939cf37223aae9e7102f_1440w.jpeg",
+  "datePublished": "2022-07-31T19:33:24.000Z",
+  "dateModified": "2026-02-15T05:04:17.010Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2022/07/31/CPP/CPP%20Inheritance%20and%20Derivation/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'CPP Inheritance and Derivation',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://picx.zhimg.com/80/v2-198d4af1c9c6939cf37223aae9e7102f_1440w.jpeg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">CPP Inheritance and Derivation</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">CPP Inheritance and Derivation</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2022-07-31T19:33:24.000Z" title="Created 2022-07-31 15:33:24">2022-07-31</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-02-15T05:04:17.010Z" title="Updated 2026-02-15 00:04:17">2026-02-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/C-C-Programming/">C/C++ Programming</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="class-inheritance-and-derivation">Class Inheritance and
+Derivation</h1>
+<h2 id="overview">Overview</h2>
+<p>Inheritance means obtaining <strong>attributes</strong> and
+<strong>behavioral characteristics</strong> from ancestors.</p>
+<p>Class inheritance is when a new class obtains existing
+characteristics from an existing class. From another perspective, the
+process of creating a new class from an existing class is called class
+derivation.</p>
+<div class="note info flat"><p>They are essentially the same, just the same process viewed from
+different angles.</p>
+</div>
+<h3 id="purpose-of-inheritance-and-derivation">Purpose of Inheritance
+and Derivation</h3>
+<p>Purpose of inheritance: Achieve reuse of design and code.</p>
+<p>Purpose of derivation: When new problems arise and the original
+program cannot solve them well, the original program needs to be
+modified.</p>
+<hr />
+<blockquote><p>Different classification standards</p>
+<blockquote>
+<p>
+Base classes that directly participate in deriving a class are called
+<strong>direct base classes</strong>, and base classes of base classes
+or even higher-level base classes are called <strong>indirect base
+classes</strong>.
+</p>
+</blockquote>
+<blockquote>
+<p>
+A derived class can have multiple base classes at the same time, this
+situation is called <strong>multiple inheritance</strong>. Similarly,
+the case with only one base class is called <strong>single
+inheritance</strong>.
+</p>
+</blockquote>
+</blockquote>
+<h2 id="definition-of-derived-classes">Definition of Derived
+Classes</h2>
+<p>Derived class definition syntax:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">DerivedClassName</span>: inheritance_mode BaseClassName1,...,inheritance_mode BaseClassNamen</span><br><span class="line">&#123;</span><br><span class="line">  member declarations</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="process-of-creating-derived-classes">Process of Creating Derived
+Classes</h2>
+<ol type="1">
+<li>Absorb base class members</li>
+</ol>
+<p>​ After absorbing base class members, the derived class actually
+contains all members from its base classes <strong>except constructors
+and destructors</strong>.</p>
+<ol start="2" type="1">
+<li>Modify base class members</li>
+</ol>
+<p>​ If a derived class declares a new member with the same name as a
+base class member, the derived new member <strong>hides or
+overrides</strong> the outer member with the same name.</p>
+<ol start="3" type="1">
+<li>Add new members</li>
+</ol>
+<p>​ Derived classes add new members to develop functionality.</p>
+<h1 id="access-control">Access Control</h1>
+<p>Access mainly comes from two aspects: first, new members in derived
+classes accessing members inherited from base classes; second, outside
+the derived class, accessing members inherited from base classes through
+derived class objects.</p>
+<p>Inheritance modes are mainly divided into <strong>three
+types</strong>, and their respective characteristics are listed
+below.</p>
+<h2 id="public-inheritance-public">Public Inheritance (public)</h2>
+<ul>
+<li><p>The access attributes of public and protected members of the base
+class <strong>remain unchanged</strong> in the derived class, but
+private members of the base class <strong>cannot be directly
+accessed</strong>.</p></li>
+<li><p>Member functions in derived classes can directly access public
+and protected members of the base class, but <strong>cannot directly
+access</strong> private members of the base class.</p></li>
+<li><p>When accessing members inherited from the base class through
+derived class objects, <strong>only public members can be
+accessed</strong>.</p></li>
+</ul>
+<h2 id="protected-inheritance-protected">Protected Inheritance
+(protected)</h2>
+<ul>
+<li><p>Both public and protected members of the base class appear in the
+derived class <strong>as protected</strong>, but private members of the
+base class <strong>cannot be directly accessed</strong>.</p></li>
+<li><p>Member functions in derived classes can directly access public
+and protected members of the base class, but cannot directly access
+private members of the base class.</p></li>
+<li><p>Through derived class objects, <strong>no members inherited from
+the base class can be directly accessed</strong>.</p></li>
+</ul>
+<h2 id="private-inheritance-private">Private Inheritance (private)</h2>
+<ul>
+<li><p>Both public and protected members of the base class appear in the
+derived class <strong>as private</strong>, but private members of the
+base class <strong>cannot be directly accessed</strong>.</p></li>
+<li><p>Member functions in derived classes <strong>can directly
+access</strong> public and protected members of the base class, but
+<strong>cannot directly access</strong> private members of the base
+class.</p></li>
+<li><p>Through derived class objects, <strong>no members inherited from
+the base class can be directly accessed</strong>.</p></li>
+</ul>
+<div class="note success flat"><p>It is not difficult to see that the second point of these three
+inheritance methods is exactly the same, which follows the principle of
+data sharing and protection. Derived class objects can access public
+members under public inheritance, but cannot access them in other cases
+for data protection.</p>
+</div>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/NueXini/p/16180257.html">Attached is
+a good detailed explanation</a></p>
+<h1 id="type-compatibility-rules">Type Compatibility Rules</h1>
+<p>Type compatibility rules mean that anywhere a base class object is
+needed, <strong>public derived class objects</strong> can be used as
+substitutes. Through public inheritance, derived classes get all members
+of the base class except constructors and destructors, possessing all
+functionality of the base class. (Protected and private inheritance
+don’t work because objects cannot access any members inherited from the
+base class)</p>
+<p>Example:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">B</span>&#123;...&#125;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">D</span>: <span class="keyword">public</span> B &#123;...&#125;</span><br><span class="line"></span><br><span class="line">B b1, * pb1;</span><br><span class="line">D d1;</span><br></pre></td></tr></table></figure>
+<p>Based on the above code, there are three substitution situations:</p>
+<ul>
+<li><p>Derived class objects can be implicitly converted to base class
+objects</p>
+<p><code>b1=d1;</code></p></li>
+<li><p>Derived class objects can initialize base class references</p>
+<p><code>B &amp;rb=d1;</code></p></li>
+<li><p>Derived class pointers can be implicitly converted to base class
+pointers</p>
+<p><code>pb1=&amp;d1</code></p></li>
+</ul>
+<p>This compatibility rule allows us to use the same function to
+uniformly handle base class and public derived class objects. That is,
+when the formal parameter is a base class object (reference, pointer),
+the actual parameter can be a derived class object or pointer. This
+greatly improves program efficiency.</p>
+<h1 id="constructors-and-destructors-of-derived-classes">Constructors
+and Destructors of Derived Classes</h1>
+<p>Constructors of derived classes are only responsible for initializing
+newly added members of the derived class. For all members inherited from
+the base class, initialization is still done by the base class
+constructor. Finally, cleanup of derived objects also requires adding
+new destructors.</p>
+<h2 id="constructors">Constructors</h2>
+<p>Since derived classes cannot access many data members in the base
+class, they need to rely on the base class constructor. When
+constructing derived class objects, the base class constructor is called
+first, then the newly added member objects of the derived class are
+initialized.</p>
+<p>General syntax form:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">DerivedClassName::<span class="built_in">DerivedClassName</span>(parameter_list):<span class="built_in">BaseClassName1</span>(BaseClassName1_initialization_parameters),...,<span class="built_in">BaseClassNamen</span>(BaseClassNamen_initialization_parameters)</span><br><span class="line">,<span class="built_in">member_object_name1</span>(member_object1_initialization_parameters),...,<span class="built_in">member_object_namem</span>(member_objectm_initialization_parameters)</span><br><span class="line">&#123;</span><br><span class="line">  other initialization operations of derived <span class="keyword">class</span> <span class="title class_">constructor</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>General order of constructor execution:</p>
+<ol type="1">
+<li>Call base class constructors in the order they were declared during
+inheritance (left to right).</li>
+<li>Initialize newly added member objects of the derived class in the
+order they were declared in the class.</li>
+<li>Execute the content in the derived class constructor body.</li>
+</ol>
+<h2 id="copy-constructor">Copy Constructor</h2>
+<p>Derived classes also use the base class copy constructor when
+performing copy construction.</p>
+<p>Example: If writing a copy constructor for the Derived class (with
+Base class as base class), the form is:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Derived::<span class="built_in">Derived</span>(<span class="type">const</span> Derived &amp;v): <span class="built_in">Base</span>(v)&#123;...&#125;</span><br></pre></td></tr></table></figure>
+<div class="note info flat"><p>Here the base class uses a reference to the derived class, which
+fully complies with the type compatibility rules where derived class
+objects can be used to initialize the base class.</p>
+</div>
+<h2 id="destructor">Destructor</h2>
+<p>Actually, it’s completely consistent with the idea of constructors,
+the biggest difference is that <strong>the order of destruction is
+completely opposite to the order of initialization.</strong></p>
+<hr />
+<h1
+id="identification-and-access-of-derived-class-members">Identification
+and Access of Derived Class Members</h1>
+<h2 id="scope-resolution-operator">Scope Resolution Operator</h2>
+<p>“::” is the scope resolution operator, used to specify the name of
+the class where the member to be accessed is located.</p>
+<p>If a derived class declares a new function with the same name as a
+base class member function, even if the function parameter lists are
+different, all overloaded forms of the inherited function with the same
+name from the base class will be hidden.</p>
+<p>The same applies to data members. New members with the same name will
+override the base class; if multiple inheritance base classes are
+duplicated, ambiguity will arise and must be resolved by using class
+names and scope resolution operators to identify members.</p>
+<div class="note danger flat"><p>Only functions defined in the same scope are called overloads.</p>
+</div>
+<hr />
+<p>The using keyword can be used to use identifiers from other
+scopes.</p>
+<h2 id="virtual-base-classes">Virtual Base Classes</h2>
+<p>Suppose a derived class inherits from multiple base classes, and some
+or all of these base classes are derived from <strong>another common
+base class</strong>, then in this derived class, there will be the same
+names and <strong>multiple copies</strong> in memory, causing program
+overhead.</p>
+<p>At this time, the common base class can be set as a virtual base
+class, so that data members with the same name inherited from different
+paths have only one copy in memory, and the same function name has only
+one mapping.</p>
+<p>Syntax form:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">DerivedClassName</span>:<span class="keyword">virtual</span> inheritance_mode BaseClassName</span><br></pre></td></tr></table></figure>
+<h2
+id="constructors-of-virtual-base-classes-and-their-derived-classes">Constructors
+of Virtual Base Classes and Their Derived Classes</h2>
+<p>In the entire inheritance relationship, all derived classes that
+directly or indirectly inherit from virtual base classes must list
+initialization of virtual base classes in the member initialization list
+of constructors.</p>
+<p>When calling the constructor of virtual classes, the C++ compiler
+will specify the constructor of the most derived class to call the
+constructor of the virtual base class, so there’s no need to worry about
+multiple repeated calls.</p>
+<blockquote><p>The general order of constructing an object of a class is:</p>
+<ol type="1">
+<li><p>If the class has direct or indirect virtual base classes, then
+the constructor of the virtual base class is executed first.</p></li>
+<li><p>If there are other base classes, initialize them in the order
+they appear in the inheritance declaration list, but during
+construction, their virtual base class constructors are no longer
+executed.</p></li>
+<li><p>Initialize newly added member objects in the order they appear in
+the definition. For class-type member objects, if they appear in the
+constructor initialization list, execute the constructor with the
+specified parameters; if not, execute the default constructor; for
+basic-type member objects, if they appear in the initialization list,
+use the specified value to assign initial value, otherwise do
+nothing.</p></li>
+<li><p>Execute the constructor function body.</p></li>
+</ol>
+</blockquote>
+<h1
+id="program-example---solving-linear-equations-using-gaussian-elimination">Program
+Example - Solving Linear Equations Using Gaussian Elimination</h1>
+<p><a
+target="_blank" rel="noopener" href="https://github.com/hustlixiang21/cpp-practice/tree/main/Gauss%E6%B6%88%E5%8E%BB_CPP">Source
+code on github</a></p>
+<h1
+id="comprehensive-example---personal-bank-account-management-program">Comprehensive
+Example - Personal Bank Account Management Program</h1>
+<p><a
+target="_blank" rel="noopener" href="https://github.com/hustlixiang21/cpp-practice/tree/main/Personal_bank_management_update_1">Source
+code on github</a></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2022/07/31/CPP/CPP%20Inheritance%20and%20Derivation/">https://xloverflow.github.io/2022/07/31/CPP/CPP%20Inheritance%20and%20Derivation/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/tags/C-Programming/">C++ Programming</a><a class="post-meta__tags" href="/tags/C-Language/">C++ Language</a></div><div class="post-share"><div class="social-share" data-image="https://picx.zhimg.com/80/v2-198d4af1c9c6939cf37223aae9e7102f_1440w.jpeg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2022/07/31/CPP/Polymorphism/" title="Polymorphism"><img class="cover" src="https://pic1.zhimg.com/80/v2-aa2b0445c8d4db32c0e021608da2a7fc_1440w.jpeg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">Polymorphism</div></div><div class="info-2"><div class="info-item-1">C++ Polymorphism</div></div></div></a><a class="pagination-related" href="/2022/07/23/CPP/C++%20Arrays,%20Pointers%20and%20Strings/" title="C++ Arrays, Pointers and Strings"><img class="cover" src="https://pica.zhimg.com/80/v2-bb5f6ef138cca79e736aa26bb4bdc2e4_1440w.jpeg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">C++ Arrays, Pointers and Strings</div></div><div class="info-2"><div class="info-item-1">Notes on C++ arrays, pointers, and strings. Some content may be abbreviated due to prior C language knowledge.</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2022/07/23/CPP/C++%20Arrays,%20Pointers%20and%20Strings/" title="C++ Arrays, Pointers and Strings"><img class="cover" src="https://pica.zhimg.com/80/v2-bb5f6ef138cca79e736aa26bb4bdc2e4_1440w.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-23</div><div class="info-item-2">C++ Arrays, Pointers and Strings</div></div><div class="info-2"><div class="info-item-1">Notes on C++ arrays, pointers, and strings. Some content may be abbreviated due to prior C language knowledge.</div></div></div></a><a class="pagination-related" href="/2022/07/20/CPP/C++%20Classes%20and%20Objects/" title="C++ Classes and Objects"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/larm-rmah-1cvEeuJKYto-unsplash.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-20</div><div class="info-item-2">C++ Classes and Objects</div></div><div class="info-2"><div class="info-item-1">Notes on C++ classes and objects</div></div></div></a><a class="pagination-related" href="/2022/07/21/CPP/C++%20Data%20Sharing%20and%20Protection/" title="C++ Data Sharing and Protection"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/romain-briaux-P-O6B62iWgA-unsplash.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-21</div><div class="info-item-2">C++ Data Sharing and Protection</div></div><div class="info-2"><div class="info-item-1">Notes on data sharing and protection in C++ learning</div></div></div></a><a class="pagination-related" href="/2022/07/20/CPP/C++%20Functions/" title="C++ Functions"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/jason-blackeye-GPPAjJicemU-unsplash.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-20</div><div class="info-item-2">C++ Functions</div></div><div class="info-2"><div class="info-item-1">Notes on C++ Functions chapter</div></div></div></a><a class="pagination-related" href="/2022/08/04/CPP/Generic%20Programming%20and%20C++%20Standard%20Template%20Library%20(STL)/" title="Generic Programming and C++ Standard Template Library (STL)"><img class="cover" src="https://pic1.zhimg.com/80/v2-b3235667ca289c4b127e5448bed79144_1440w.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-04</div><div class="info-item-2">Generic Programming and C++ Standard Template Library (STL)</div></div><div class="info-2"><div class="info-item-1">Introduction to C++ Standard Template Library (STL)</div></div></div></a><a class="pagination-related" href="/2022/07/20/CPP/Important%20Points%20to%20Note%20in%20C++%20Basics/" title="Important Points to Note in C++ Basics"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/ann-savchenko-H0h_89iFsWs-unsplash.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-20</div><div class="info-item-2">Important Points to Note in C++ Basics</div></div><div class="info-2"><div class="info-item-1">Common pitfalls to note when transitioning from C to C++</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#class-inheritance-and-derivation"><span class="toc-number">1.</span> <span class="toc-text">Class Inheritance and
+Derivation</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#overview"><span class="toc-number">1.1.</span> <span class="toc-text">Overview</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#purpose-of-inheritance-and-derivation"><span class="toc-number">1.1.1.</span> <span class="toc-text">Purpose of Inheritance
+and Derivation</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#definition-of-derived-classes"><span class="toc-number">1.2.</span> <span class="toc-text">Definition of Derived
+Classes</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#process-of-creating-derived-classes"><span class="toc-number">1.3.</span> <span class="toc-text">Process of Creating Derived
+Classes</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#access-control"><span class="toc-number">2.</span> <span class="toc-text">Access Control</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#public-inheritance-public"><span class="toc-number">2.1.</span> <span class="toc-text">Public Inheritance (public)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#protected-inheritance-protected"><span class="toc-number">2.2.</span> <span class="toc-text">Protected Inheritance
+(protected)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#private-inheritance-private"><span class="toc-number">2.3.</span> <span class="toc-text">Private Inheritance (private)</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#type-compatibility-rules"><span class="toc-number">3.</span> <span class="toc-text">Type Compatibility Rules</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#constructors-and-destructors-of-derived-classes"><span class="toc-number">4.</span> <span class="toc-text">Constructors
+and Destructors of Derived Classes</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#constructors"><span class="toc-number">4.1.</span> <span class="toc-text">Constructors</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#copy-constructor"><span class="toc-number">4.2.</span> <span class="toc-text">Copy Constructor</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#destructor"><span class="toc-number">4.3.</span> <span class="toc-text">Destructor</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#identification-and-access-of-derived-class-members"><span class="toc-number">5.</span> <span class="toc-text">Identification
+and Access of Derived Class Members</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#scope-resolution-operator"><span class="toc-number">5.1.</span> <span class="toc-text">Scope Resolution Operator</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#virtual-base-classes"><span class="toc-number">5.2.</span> <span class="toc-text">Virtual Base Classes</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#constructors-of-virtual-base-classes-and-their-derived-classes"><span class="toc-number">5.3.</span> <span class="toc-text">Constructors
+of Virtual Base Classes and Their Derived Classes</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#program-example---solving-linear-equations-using-gaussian-elimination"><span class="toc-number">6.</span> <span class="toc-text">Program
+Example - Solving Linear Equations Using Gaussian Elimination</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#comprehensive-example---personal-bank-account-management-program"><span class="toc-number">7.</span> <span class="toc-text">Comprehensive
+Example - Personal Bank Account Management Program</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Retrieval and RAG"/></a><div class="content"><a class="title" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG">11711 Advanced NLP: Retrieval and RAG</a><time datetime="2026-02-14T22:08:21.000Z" title="Created 2026-02-14 17:08:21">2026-02-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Distributed Training and Parallelization"/></a><div class="content"><a class="title" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization">15642 Machine Learning Systems: Distributed Training and Parallelization</a><time datetime="2026-02-13T21:00:00.000Z" title="Created 2026-02-13 16:00:00">2026-02-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Decoding"/></a><div class="content"><a class="title" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding">11868 LLM Sys: Decoding</a><time datetime="2026-02-13T01:00:00.000Z" title="Created 2026-02-12 20:00:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Tokenization and Embedding"/></a><div class="content"><a class="title" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding">11868 LLM Sys: Tokenization and Embedding</a><time datetime="2026-02-12T20:30:00.000Z" title="Created 2026-02-12 15:30:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"/></a><div class="content"><a class="title" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations">15642 Machine Learning Systems: Transformer, Attention, and Optimizations</a><time datetime="2026-02-09T19:30:00.000Z" title="Created 2026-02-09 14:30:00">2026-02-09</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || 'f7ec7ee0852cef65f6cd1d29cea318eb'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

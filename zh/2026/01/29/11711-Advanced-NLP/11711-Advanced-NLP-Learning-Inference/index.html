@@ -1,0 +1,1008 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>11711 Advanced NLP: Learning &amp; Inference | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="卡内基梅隆大学 11-711 高级自然语言处理的学习算法和推理方法笔记。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="11711 Advanced NLP: Learning &amp; Inference">
+<meta property="og:url" content="https://xloverflow.github.io/zh/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="卡内基梅隆大学 11-711 高级自然语言处理的学习算法和推理方法笔记。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png">
+<meta property="article:published_time" content="2026-01-29T20:46:34.000Z">
+<meta property="article:modified_time" content="2026-01-29T20:46:34.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="Natural Language Processing">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="Study Notes">
+<meta property="article:tag" content="11711">
+<meta property="article:tag" content="AI">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "11711 Advanced NLP: Learning & Inference",
+  "url": "https://xloverflow.github.io/zh/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png",
+  "datePublished": "2026-01-29T20:46:34.000Z",
+  "dateModified": "2026-01-29T20:46:34.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io/zh"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/zh/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/zh/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/zh/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/zh/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '11711 Advanced NLP: Learning & Inference',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">47</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">62</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">18</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/zh/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/zh/"><span class="site-name">11711 Advanced NLP: Learning &amp; Inference</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/"><i class="fas fa-language fa-fw"></i><span> English</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">11711 Advanced NLP: Learning &amp; Inference</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-01-29T20:46:34.000Z" title="发表于 2026-01-29 15:46:34">2026-01-29</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-01-29T20:46:34.000Z" title="更新于 2026-01-29 15:46:34">2026-01-29</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/zh/categories/CMU-11-711-Advanced-NLP/">CMU 11-711 Advanced NLP</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="lec6-预训练">Lec6 预训练</h1>
+<h2 id="基本思想">基本思想</h2>
+<p>预训练的基础模型将适应下游任务。</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260130130847510.png" alt="image-20260130130847510" style="zoom: 33%;" /></p>
+<p>迁移学习：从一个任务中获取“知识”并应用于另一个任务</p>
+<p><strong>•</strong>
+<strong>更少的任务数据</strong>：使用更少的数据达到给定的性能水平</p>
+<p><strong>•</strong>
+<strong>更好的任务性能</strong>：达到比从头开始训练更高的性能</p>
+<p><strong>•</strong>
+<strong>一个模型，多种任务</strong>：方便，摊薄成本，许多用途的起点，…</p>
+<h2 id="主要因素">主要因素</h2>
+<p>每个模型受以下四个主要因素的影响：</p>
+<p><strong>•</strong> <strong>架构：</strong> 神经网络架构</p>
+<p><strong>•</strong> <strong>任务：</strong>
+模型预测的内容（例如，下一个标记）</p>
+<p><strong>•</strong> <strong>数据：</strong> 用于训练模型的数据</p>
+<p><strong>•</strong>
+<strong>超参数</strong>：例如，学习率，批量大小</p>
+<h2 id="掩码语言建模">掩码语言建模</h2>
+<p>掩码语言建模（MLM）训练语言模型以<strong>根据剩余可见上下文预测掩码标记</strong>。这个目标在双向模型（如BERT）中被广泛使用。</p>
+<p>MLM损失定义为：</p>
+<p><span class="math display">\[
+\mathcal{L}_{\text{MLM}}(\theta; D)
+=
+-\frac{1}{|D|}
+\sum_{x \in D}
+\;\mathbb{E}_{M \sim \text{corrupt}(x)}
+\sum_{t \in M}
+\log p_\theta(x_t \mid x_{-M})
+\]</span></p>
+<ul>
+<li><p><span class="math inline">\(x \in
+D\)</span>：来自数据集的输入序列（句子）<br />
+</p></li>
+<li><p><span
+class="math inline">\(M\)</span>：随机抽样的掩码标记位置集合<br />
+</p></li>
+<li><p><span
+class="math inline">\(\text{corrupt}(x)\)</span>：应用于<span
+class="math inline">\(x\)</span>的掩码（损坏）过程<br />
+</p></li>
+<li><p><span
+class="math inline">\(x_{-M}\)</span>：序列中所有未掩码的标记<br />
+</p></li>
+<li><p><span class="math inline">\(x_t\)</span>：位置<span
+class="math inline">\(t\)</span>的真实标记<br />
+</p></li>
+<li><p><span class="math inline">\(p_\theta(x_t \mid
+x_{-M})\)</span>：给定可见上下文预测<span
+class="math inline">\(x_t\)</span>的模型概率</p></li>
+<li><p><strong>去噪视角</strong>：MLM可以被视为去噪自编码器：输入通过掩码标记被损坏，模型学习重建原始序列。</p></li>
+<li><p><strong>伪似然目标</strong>：MLM最大化给定序列其余部分的掩码标记的条件对数概率之和，而不是建模序列的完整联合似然。这对应于最大化<em>伪似然</em>而不是真实的联合似然。</p></li>
+</ul>
+<h2 id="自回归语言建模">自回归语言建模</h2>
+<p>给定所有先前的标记<span
+class="math inline">\(x_{&lt;t}\)</span>预测下一个标记<span
+class="math inline">\(x_t\)</span>。 [ <em>{}(; D) = - </em>{x D}
+<em>{t=1}^{|x|} p</em>(x_t x_{&lt;t}) ] <strong>关键特性</strong> -
+最大化训练数据的似然<br />
+- 拟合真实数据分布<span class="math inline">\(p_*\)</span><br />
+- 等价于具有单热目标分布的交叉熵<br />
+- 可以解释为学习<strong>压缩</strong>由<span
+class="math inline">\(p_*\)</span>生成的数据</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260130140511145.png" alt="image-20260130140511145" style="zoom:40%;" /></p>
+<h2 id="评估模型">评估模型</h2>
+<ul>
+<li>损失（训练、验证、测试）
+<ul>
+<li>诊断训练轨迹，比较同一家族的模型</li>
+</ul></li>
+<li>少量提示</li>
+<li>微调</li>
+</ul>
+<h2 id="数据">数据</h2>
+<ul>
+<li><strong>数量</strong>：我有多少数据？</li>
+<li><strong>质量</strong>：对训练是否有益？（提取、过滤、去重）</li>
+<li><strong>覆盖率</strong>：数据是否覆盖我关心的领域，并且比例正确？
+<ul>
+<li>我们可以训练一个分类器过滤，以帮助我们检测内容</li>
+</ul></li>
+</ul>
+<h1 id="lec7-规模法则与上下文学习">Lec7 规模法则与上下文学习</h1>
+<h2 id="规模法则">规模法则</h2>
+<h3 id="训练-花费计算">训练 = 花费计算</h3>
+<p>在固定的预训练预算下，我们应该如何分配预算以实现最佳模型？</p>
+<p><img src="C:\Users\11946\AppData\Roaming\Typora\typora-user-images\image-20260206232739205.png" alt="image-20260206232739205" style="zoom:33%;" /></p>
+<p>变压器LM的核心近似（Kaplan et al. 2020）： <span
+class="math display">\[
+C \approx 6ND
+\]</span></p>
+<ul>
+<li><strong>N</strong> = 参数数量，<strong>D</strong> =
+标记数量，<strong>C</strong> = FLOPs</li>
+<li>示例：Llama 2 7B在2T标记上 → C ≈ 8.4 × 10²² FLOPs</li>
+</ul>
+<p><strong>核心问题</strong>：在固定的C下，如何在N和D之间进行拆分？</p>
+<h3 id="幂律">幂律</h3>
+<p><span class="math display">\[
+L = a \cdot x^{b} \quad \Rightarrow \quad \log L = \log a + b \cdot \log
+x
+\]</span></p>
+<p>将x加倍 → L变为L · 2ᵇ。当b =
+−0.095时，加倍数据仅减少损失约6.4%。<strong>收益递减非常严重</strong>——线性损失改善需要指数级更多资源。</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260206233531669.png" alt="image-20260206233531669" style="zoom:40%;" /></p>
+<h3 id="数据规模">数据规模</h3>
+<p><span class="math display">\[
+L = (D / D_c)^{-b}
+\]</span></p>
+<ul>
+<li>三个区域：小数据 → <strong>幂律区域</strong> →
+不可减少的误差（受数据熵限制）</li>
+<li>重复数据：<sub>4个周期≈新数据；</sub>40个周期→毫无价值（Muennighoff+
+2025）</li>
+<li>不同领域（维基百科、书籍、公共抓取）具有不同的规模曲线</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260206233726326.png" alt="image-20260206233726326" style="zoom:40%;" /></p>
+<h3 id="模型大小规模">模型大小规模</h3>
+<p><span class="math display">\[
+L = (N / N_c)^{-b}
+\]</span></p>
+<ul>
+<li>更大的模型更<strong>样本高效</strong>（用更少的标记达到更低的损失）</li>
+<li>变压器的扩展性显著优于LSTM</li>
+</ul>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260206233840078.png"
+alt="image-20260206233840078" />
+<figcaption aria-hidden="true">image-20260206233840078</figcaption>
+</figure>
+<h3 id="计算最优训练">计算最优训练</h3>
+<table>
+<colgroup>
+<col style="width: 49%" />
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 32%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>论文</th>
+<th>N_opt</th>
+<th>D_opt</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Kaplan et al. 2020</td>
+<td>∝ C⁰·⁷³</td>
+<td>∝ C⁰·²⁷</td>
+<td>优先考虑更大的模型</td>
+</tr>
+<tr class="even">
+<td><strong>Chinchilla</strong> (Hoffmann et al. 2022)</td>
+<td>∝ C⁰·⁵</td>
+<td>∝ C⁰·⁵</td>
+<td><strong>N和D同等扩展</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong><u>∝表示成比例</u></strong></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260206234520100.png" alt="image-20260206234520100" style="zoom:40%;" /></p>
+<p>Chinchilla的洞察：许多现有的LLM（例如，Gopher
+280B）被<strong>训练不足</strong>。这直接影响了LLaMA的设计——较小的模型在更多数据上进行训练。</p>
+<blockquote>
+<p>进行小规模实验 → 适应规模法则 →
+推断目标运行的最佳超参数（模型大小、标记、批量大小、学习率）。</p>
+</blockquote>
+<h2 id="提示与上下文学习">提示与上下文学习</h2>
+<h3 id="三种提示策略">三种提示策略</h3>
+<table>
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 34%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>策略</th>
+<th>格式</th>
+<th>关键问题</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>无提示</td>
+<td>原始文本补全</td>
+<td>不可控</td>
+</tr>
+<tr class="even">
+<td>零-shot</td>
+<td>指令 + 输入</td>
+<td>输出格式不稳定；对措辞敏感</td>
+</tr>
+<tr class="odd">
+<td>少量-shot (ICL)</td>
+<td>指令 + K个示例 + 输入</td>
+<td>示例定义格式和任务；无参数更新</td>
+</tr>
+</tbody>
+</table>
+<h3 id="icl现象agarwal-et-al.-2024">ICL现象（Agarwal et al. 2024）</h3>
+<ul>
+<li><strong>任务检索</strong>：有时仅输入示例的效果与（输入，输出）对一样好——ICL部分“检索”预训练模式而不是学习新的映射</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260206235526522.png" alt="image-20260206235526522" style="zoom:40%;" /></p>
+<ul>
+<li><p><strong>预训练偏差</strong>：默认标签需要少量示例；翻转/抽象标签需要更多示例以克服内置关联</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260206235557572.png" alt="image-20260206235557572" style="zoom:30%;" /></p></li>
+<li><p><strong>敏感性</strong>：示例顺序、标签平衡和标签覆盖率都会显著影响性能（Lu
+et al. 2021；Zhang et al. 2022）</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260206235916474.png" alt="image-20260206235916474" style="zoom:30%;" /></p></li>
+<li><p><strong>模型变异</strong>：从多次示例中受益的能力差异很大（Gemini
+1.5 Pro在1024-shot时提升；GPT-4-Turbo早期达到饱和）</p></li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260206235954906.png" alt="image-20260206235954906" style="zoom:33%;" /></p>
+<h3 id="聊天提示">聊天提示</h3>
+<p>消息格式为<strong>系统</strong> / <strong>用户</strong> /
+<strong>助手</strong>角色 →
+分词器将其转换为带有特殊标记的字符串。系统提示定义模型行为（推理策略、安全规则、输出格式等）。</p>
+<h3 id="思维链cot">思维链（CoT）</h3>
+<ul>
+<li><strong>少量-shot CoT</strong>（Wei et
+al. 2022）：在示例中包含推理步骤</li>
+<li><strong>零-shot CoT</strong>（Kojima et
+al. 2022）：附加“让我们一步一步思考”</li>
+<li>关键洞察：CoT为模型提供<strong>自适应计算时间</strong>——每个推理标记是额外的前向传递</li>
+</ul>
+<h3 id="提示链">提示链</h3>
+<p>顺序链多个LLM调用（使用不同的提示/外部工具）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">输入 → LLM₁ → 中间结果 → LLM₂ → 中间结果 → ... → 输出</span><br></pre></td></tr></table></figure>
+<p>实现问题分解、工具使用（搜索、代码执行）和多步骤推理。</p>
+<hr />
+<h1 id="lec8-微调">Lec8 微调</h1>
+<h3 id="什么是微调">什么是微调？</h3>
+<p>在任务特定数据上继续基于梯度的训练预训练模型。给定预训练参数θ₀和数据集D
+= {(x, y)ₙ}： <span class="math display">\[
+\theta^* = \arg\min_\theta \mathbb{E}_{(x,y)\sim D}
+[\mathcal{L}(f_\theta(x), y)]
+\]</span>
+也称为<strong>监督微调（SFT）</strong>。使用正则化/丢弃以防止过拟合。</p>
+<h3 id="两种微调范式">两种微调范式</h3>
+<p><strong>分类微调</strong>：在最后的隐藏状态上添加线性头。 <span
+class="math display">\[
+p_\theta(y \mid x) = \text{softmax}(Wh + b), \quad W \in \mathbb{R}^{K
+\times d}, \; b \in \mathbb{R}^K
+\]</span></p>
+<ul>
+<li>损失：交叉熵 <span class="math inline">\(\mathcal{L} = -\log
+p_\theta(y \mid x)\)</span></li>
+<li>更新所有参数 <span class="math inline">\(\theta = (\theta_0, W,
+b)\)</span></li>
+</ul>
+<p><strong>语言模型微调</strong>：保持LM架构，在（输入，输出）对上训练。</p>
+<p>保持LM架构，在（输入，输出）对上训练。连接为<code>[start] x [sep] y [end]</code>，仅对输出标记计算损失：</p>
+<p><span class="math display">\[
+\mathcal{L}_{\text{MLE}} = -\sum_{t=1}^{T} \log p_\theta(y_t \mid x,
+y_{&lt;t})
+\]</span> 不需要额外的头——使用现有的LM头。</p>
+<h3 id="更新哪些参数">更新哪些参数？</h3>
+<table>
+<colgroup>
+<col style="width: 13%" />
+<col style="width: 24%" />
+<col style="width: 7%" />
+<col style="width: 53%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>选项</th>
+<th>更新内容</th>
+<th>成本</th>
+<th>权衡</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>仅头部</td>
+<td><span class="math inline">\(K \times d + K\)</span>参数</td>
+<td>最便宜</td>
+<td>假设预训练表示已经是线性可分的</td>
+</tr>
+<tr class="even">
+<td>完全微调</td>
+<td>所有</td>
+<td><span class="math inline">\(\theta\)</span></td>
+<td>可能导致过拟合</td>
+</tr>
+<tr class="odd">
+<td><strong>PEFT</strong></td>
+<td>小子集</td>
+<td><span class="math inline">\(\theta\)</span></td>
+<td>可以改变表示</td>
+</tr>
+</tbody>
+</table>
+<h3 id="lora低秩适应hu-et-al.-2021">LoRA（低秩适应）[Hu et
+al. 2021]</h3>
+<p>关键思想：用低秩矩阵近似权重更新。</p>
+<p>对于权重<span class="math inline">\(W_0 \in \mathbb{R}^{d \times
+d&#39;}\)</span>，将更新分解为：</p>
+<p><span class="math display">\[
+\Delta W = BA, \quad B \in \mathbb{R}^{d \times r}, \; A \in
+\mathbb{R}^{r \times d&#39;}, \; r \ll \min(d, d&#39;)
+\]</span></p>
+<ul>
+<li>冻结<span class="math inline">\(W_0\)</span>，仅训练<span
+class="math inline">\(A\)</span>和<span
+class="math inline">\(B\)</span></li>
+<li>最终权重：<span class="math inline">\(W = W_0 + \frac{\alpha}{r}
+\cdot BA\)</span></li>
+<li>通常应用于注意力层中的<span
+class="math inline">\(W_q\)</span>和<span
+class="math inline">\(W_v\)</span></li>
+<li>训练后，将<span class="math inline">\(\Delta W\)</span>合并到<span
+class="math inline">\(W_0\)</span>中 →
+<strong>没有额外的推理成本</strong></li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260207002605984.png" alt="image-20260207002605984" style="zoom:33%;" /></p>
+<h3 id="微调的效果">微调的效果</h3>
+<p><strong>数据效率</strong>：预训练模型在比从头开始训练少得多的示例下达到良好性能（Howard
+&amp; Ruder 2018 — ULMFiT）。</p>
+<p><strong>分布收敛</strong>：微调最小化<span
+class="math inline">\(D_{\text{KL}}(p_{\text{finetune}} \|
+p_\theta)\)</span>而不是<span
+class="math inline">\(D_{\text{KL}}(p_{\text{data}} \|
+p_\theta)\)</span>。模型的分布变得更窄且专业化。</p>
+<p><strong>副作用</strong>：</p>
+<ul>
+<li>摘要模型在翻译时失败（失去了通用性）</li>
+<li>模型变得依赖于训练期间使用的确切提示格式</li>
+<li>微调后少量学习能力可能下降</li>
+</ul>
+<hr />
+<h2 id="指令微调">指令微调</h2>
+<p>在多个任务上对（指令 +
+输入，输出）对进行微调，使其学习通用地遵循指令。</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260207002839337.png" alt="image-20260207002839337" style="zoom: 33%;" /></p>
+<h3 id="聊天微调">聊天微调</h3>
+<p>聊天只是具有对话格式的指令微调：</p>
+<ul>
+<li>系统提示 + [用户，助手，用户，助手，…]</li>
+<li>特殊标记标记角色边界（例如，<code>&lt;|start_header_id|&gt;user&lt;|end_header_id|&gt;</code>）</li>
+<li>指令 + 输入隐式嵌入在对话中</li>
+</ul>
+<p><strong>数据来源</strong>：OpenOrca（16个手写系统提示，GPT-4输出，2.9M示例），LMSys-1M（来自在线LLM服务的真实用户对话）</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260207002950797.png" alt="image-20260207002950797" style="zoom:33%;" /></p>
+<h2 id="知识蒸馏">知识蒸馏</h2>
+<p>使用强大的<strong>教师</strong>模型训练一个较小的<strong>学生</strong>模型。两种方法都最小化教师<span
+class="math inline">\(q\)</span>与学生<span
+class="math inline">\(p_\theta\)</span>之间的<span
+class="math inline">\(D_{\text{KL}}(q \| p_\theta)\)</span>。</p>
+<h3 id="标记级蒸馏-hinton-et-al.-2015">标记级蒸馏 [Hinton et
+al. 2015]</h3>
+<p>学生在每个标记位置模仿教师的<strong>完整概率分布</strong>：</p>
+<p><span class="math display">\[
+\mathcal{L}_{\text{distill}} = -\sum_{y_t \in V} q(y_t \mid y_{&lt;t},
+x) \cdot \log p_\theta(y_t \mid y_{&lt;t}, x)
+\]</span></p>
+<ul>
+<li>使用<strong>软标签</strong>（教师的分布）而不是硬的单热标签</li>
+<li>需要访问教师的logits</li>
+<li>比标准交叉熵提供更丰富的信号（仅使用正确的标记）</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260207003122001.png" alt="image-20260207003122001" style="zoom: 25%;" /></p>
+<h3 id="序列级蒸馏-kim-rush-2016">序列级蒸馏 [Kim &amp; Rush 2016]</h3>
+<p>教师<strong>生成</strong>完整输出；学生在其上进行微调：</p>
+<p><span class="math display">\[
+\mathcal{L}_{\text{seq}} = \mathbb{E}_{y \sim q(y|x)} \left[-\log
+p_\theta(y \mid x)\right]
+\]</span></p>
+<ul>
+<li>只需要教师生成的文本，而不是logits（黑箱友好）</li>
+<li>示例：DeepSeek-R1-Distill-Qwen-7B =
+在DeepSeek-R1的输出上微调的Qwen-7B</li>
+<li>数学上也最小化<span class="math inline">\(D_{\text{KL}}(q \|
+p_\theta)\)</span>，只是使用蒙特卡洛近似</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260207003300579.png" alt="image-20260207003300579" style="zoom: 25%;" /></p>
+<h3 id="增强教师-west-et-al.-2022">增强教师 [West et al. 2022]</h3>
+<p>教师可以是一个<strong>增强的</strong>LLM：</p>
+<p><span class="math display">\[
+q \propto p_{\text{LLM}}(y \mid x) \cdot A(x, y)
+\]</span> 其中<span
+class="math inline">\(A\)</span>是分类器/验证器。如果增强的教师优于单独的<span
+class="math inline">\(p_{\text{LLM}}\)</span>，则蒸馏的学生可以<strong>超越</strong><span
+class="math inline">\(p_{\text{LLM}}\)</span>——学生通过过滤/验证的数据变得比其基础教师更好。</p>
+<h1 id="lec9-解码算法">Lec9 解码算法</h1>
+<h2 id="基本设置">基本设置</h2>
+<h3 id="自回归语言模型">自回归语言模型</h3>
+<p><span class="math display">\[
+p_\theta(y_{1:T} | x) = \prod_{t=1}^{T} p_\theta(y_t | y_{&lt;t}, x)
+\]</span></p>
+<h3 id="下一个标记分布">下一个标记分布</h3>
+<p>每个项<span class="math inline">\(p_\theta(y_t | y_{&lt;t},
+x)\)</span>为下一个标记提供概率分布。</p>
+<p><strong>解码</strong>：选择下一个标记，以便我们最终得到输出<span
+class="math inline">\(y_{1:T}\)</span>。</p>
+<hr />
+<h2 id="解码作为优化">解码作为优化</h2>
+<h3 id="目标map解码">目标：MAP解码</h3>
+<p>找到最可能的输出： <span class="math display">\[
+\hat{y} = \arg\max_{y \in \mathcal{Y}} p_\theta(y | x)
+\]</span></p>
+<ul>
+<li>也称为<strong>模式寻求</strong>或<strong>最大后验（MAP）</strong></li>
+<li>关键挑战：输出空间<span
+class="math inline">\(\mathcal{Y}\)</span>非常大</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260210155455010.png" alt="image-20260210155455010" style="zoom:50%;" /></p>
+<h3 id="方法1贪婪解码">方法1：贪婪解码</h3>
+<p>对于<span class="math inline">\(t = 1 \ldots \text{结束}\)</span>：
+<span class="math display">\[
+\hat{y}_t = \arg\max_{y_t \in V} p_\theta(y_t | \hat{y}_{&lt;t}, x)
+\]</span></p>
+<p><strong>局限性</strong>：不保证最可能的序列。</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260210155537243.png" alt="image-20260210155537243" style="zoom:30%;" /></p>
+<h3 id="方法2束搜索">方法2：束搜索</h3>
+<ul>
+<li>宽度限制的广度优先搜索</li>
+<li>在每一步保持<span class="math inline">\(B\)</span>个可能路径</li>
+<li><span class="math inline">\(B = 1\)</span>：贪婪解码</li>
+<li><span class="math inline">\(B =
+|V|^{T_{\max}}\)</span>：精确MAP（不可处理）</li>
+<li>实际上：<span class="math inline">\(B = 16\)</span>（超参数）</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260210155609745.png" alt="image-20260210155609745" style="zoom:30%;" /></p>
+<p><strong>HuggingFace接口</strong>： <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 贪婪</span></span><br><span class="line">model.generate(do_sample=<span class="literal">False</span>, num_beams=<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 束搜索</span></span><br><span class="line">model.generate(do_sample=<span class="literal">False</span>, num_beams=<span class="number">16</span>)</span><br></pre></td></tr></table></figure></p>
+<h3 id="map解码的陷阱">MAP解码的陷阱</h3>
+<p><strong>1. 退化</strong> -
+<strong>重复陷阱</strong>：模型对重复循环分配高概率 -
+<strong>短序列</strong>：最高概率序列可能为空 - 补救：长度归一化</p>
+<p><strong>2. 非典型性</strong> - 最可能的结果 ≠ 典型结果 -
+示例：偏置硬币<span class="math inline">\(\Pr[H] =
+0.6\)</span>，100次翻转的最可能结果是全是正面（非典型！）</p>
+<p><strong>3. 概率分布</strong> -
+当存在多种方式表达相同事物时，概率在变体之间分散 -
+最高概率输出可能不是“最佳”</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260210160105078.png" alt="image-20260210160105078" style="zoom:25%;" /></p>
+<hr />
+<h2 id="采样">采样</h2>
+<h3 id="祖先采样">祖先采样</h3>
+<p>对于<span class="math inline">\(t = 1 \ldots \text{结束}\)</span>：
+<span class="math display">\[
+\hat{y}_t \sim p_\theta(y_t | \hat{y}_{&lt;t}, x)
+\]</span></p>
+<ul>
+<li>等同于序列采样：<span class="math inline">\(y_{1:T} \sim
+p_\theta(y_{1:T} | x)\)</span></li>
+<li>通过分类采样实现（PyTorch等）</li>
+</ul>
+<p><strong>HuggingFace接口</strong>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">model.generate(do_sample=<span class="literal">True</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="祖先采样的问题">祖先采样的问题</h3>
+<p><strong>重尾问题</strong>：</p>
+<ul>
+<li>即使每个坏标记的概率很小，坏标记的总和也具有非平凡的概率</li>
+<li>导致不连贯</li>
+</ul>
+<p><strong>复合错误</strong>： - 采样没有坏标记的概率：<span
+class="math inline">\((1 - \epsilon)^T\)</span> - 示例：<span
+class="math inline">\(\epsilon = 0.01, T = 128 \Rightarrow
+p(\text{没有坏标记}) = 0.276\)</span></p>
+<h3 id="解决方法截断尾部">解决方法：截断尾部</h3>
+<p><strong>Top-k采样</strong>：仅从<span
+class="math inline">\(k\)</span>个最可能的标记中采样 <span
+class="math display">\[
+\hat{y}_t \sim \begin{cases}
+p_\theta(y_t | y_{&lt;t}, x) / Z_t &amp; \text{如果 } y_t \text{ 在
+top-}k \\
+0 &amp; \text{否则}
+\end{cases}
+\]</span></p>
+<p><strong>Top-p采样</strong>：仅从前<span
+class="math inline">\(p\)</span>概率质量中采样</p>
+<p><strong>温度采样</strong>：使分布更加尖锐 <span
+class="math display">\[
+\text{softmax}(x, \tau) = \frac{\exp(x/\tau)}{\sum_i \exp(x_i/\tau)}
+\]</span></p>
+<table>
+<thead>
+<tr class="header">
+<th>温度</th>
+<th>参数</th>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>高</td>
+<td><span class="math inline">\(\tau \geq 1\)</span></td>
+<td>多样化</td>
+<td>不连贯</td>
+</tr>
+<tr class="even">
+<td>低</td>
+<td><span class="math inline">\(\tau &lt; 1\)</span></td>
+<td>连贯</td>
+<td>重复</td>
+</tr>
+</tbody>
+</table>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260210161335068.png" alt="image-20260210161335068" style="zoom:30%;" /></p>
+<p><strong>HuggingFace接口</strong>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Top-k</span></span><br><span class="line">model.generate(do_sample=<span class="literal">True</span>, top_k=<span class="number">20</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Top-p</span></span><br><span class="line">model.generate(do_sample=<span class="literal">True</span>, top_p=<span class="number">0.9</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 温度</span></span><br><span class="line">model.generate(do_sample=<span class="literal">True</span>, temperature=<span class="number">0.7</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="其他截断策略">其他截断策略</h3>
+<table>
+<thead>
+<tr class="header">
+<th>方法</th>
+<th>阈值策略</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Top-<span class="math inline">\(k\)</span></td>
+<td>从<span class="math inline">\(k\)</span>个最可能的中采样</td>
+</tr>
+<tr class="even">
+<td>Top-<span class="math inline">\(p\)</span></td>
+<td>累计概率最多为<span class="math inline">\(p\)</span></td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(\epsilon\)</span></td>
+<td>概率至少为<span class="math inline">\(\epsilon\)</span></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\eta\)</span></td>
+<td>最小概率与熵成比例</td>
+</tr>
+<tr class="odd">
+<td>Min-<span class="math inline">\(p\)</span></td>
+<td>概率至少为<span
+class="math inline">\(p_{\min}\)</span>，按最大标记概率缩放</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="加速解码">加速解码</h2>
+<h3 id="为什么解码慢">为什么解码慢？</h3>
+<p><strong>时间瓶颈</strong>： <span class="math display">\[
+\text{时间} = \max\left(\frac{\text{操作FLOPs}}{\text{设备FLOP/s}},
+\frac{\text{传输数据（GB）}}{\text{内存带宽（GB/s）}}\right)
+\]</span></p>
+<ul>
+<li><strong>计算限制</strong>：例如，<span class="math inline">\(A =
+BC\)</span>（矩阵乘法）</li>
+<li><strong>内存限制</strong>：例如，<span class="math inline">\(a =
+Bx\)</span>（矩阵-向量乘法）</li>
+<li>解码一个标记通常是<strong>内存限制</strong>的</li>
+</ul>
+<h3 id="指标">指标</h3>
+<p><strong>延迟</strong>：用户等待多久？ -
+第一个标记的时间，每个请求的时间</p>
+<p><strong>吞吐量</strong>：每秒完成多少请求？ -
+每秒标记数，每秒请求数</p>
+<h3 id="键值缓存">键值缓存</h3>
+<p><strong>问题</strong>：没有缓存，计算注意力需要<span
+class="math inline">\(O(T^2)\)</span>的重新计算。</p>
+<p><strong>解决方案</strong>：存储先前计算的键和值。</p>
+<p>在解码的第<span class="math inline">\(t\)</span>步（1层，1头）：
+<span class="math display">\[
+\begin{align}
+q_t &amp;= h_t W_q \in \mathbb{R}^{1 \times d_k} \\
+k_t &amp;= h_t W_K \in \mathbb{R}^{1 \times d_k} \\
+v_t &amp;= h_t W_V \in \mathbb{R}^{1 \times d_v}
+\end{align}
+\]</span></p>
+<p>缓存：<span class="math inline">\(K_{1:t-1} \in \mathbb{R}^{(t-1)
+\times d_k}\)</span>，<span class="math inline">\(V_{1:t-1} \in
+\mathbb{R}^{(t-1) \times d_v}\)</span></p>
+<p>将<span class="math inline">\(k_t\)</span>附加到<span
+class="math inline">\(K_{1:t-1}\)</span>，将<span
+class="math inline">\(v_t\)</span>附加到<span
+class="math inline">\(V_{1:t-1}\)</span>： <span class="math display">\[
+z_t = \text{softmax}\left(\frac{q_t K_{1:t}^T}{\sqrt{d_k}}\right)
+V_{1:t}
+\]</span></p>
+<p><strong>加速</strong>：将<span
+class="math inline">\(O(T^2)\)</span>减少到<span
+class="math inline">\(O(T)\)</span>计算。</p>
+<h3 id="加速单个标记">加速单个标记</h3>
+<table>
+<thead>
+<tr class="header">
+<th>目标</th>
+<th>策略</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>减少内存带宽</td>
+<td>量化、蒸馏、架构</td>
+<td>GPTQ、AWQ、GQA/MQA</td>
+</tr>
+<tr class="even">
+<td>增加FLOP/s</td>
+<td>在硬件上优化操作</td>
+<td>FlashAttention、torch.compile</td>
+</tr>
+<tr class="odd">
+<td>减少FLOPs</td>
+<td>在架构中减少FLOPs</td>
+<td>专家混合、Mamba</td>
+</tr>
+</tbody>
+</table>
+<h3 id="加速完整序列">加速完整序列</h3>
+<table>
+<thead>
+<tr class="header">
+<th>策略</th>
+<th>思路</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>在时间上并行化</td>
+<td>便宜地草拟标记，进行并行验证</td>
+<td>投机解码</td>
+</tr>
+<tr class="even">
+<td>在时间上并行化</td>
+<td>并行生成多个标记</td>
+<td>非自回归模型</td>
+</tr>
+</tbody>
+</table>
+<p><strong>投机解码</strong>： 1. 使用小型<strong>草拟模型</strong><span
+class="math inline">\(q\)</span>提前生成标记 2. 大模型<span
+class="math inline">\(p\)</span>并行处理草拟的标记 3. 以概率接受：<span
+class="math inline">\(\alpha_i = \min\left(1, \frac{p(\text{标记} |
+\ldots)}{q(\text{标记} | \ldots)}\right)\)</span></p>
+<h3 id="加速多个序列">加速多个序列</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>策略</th>
+<th>思路</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>状态重用</td>
+<td>共享前缀<span
+class="math inline">\(\Rightarrow\)</span>共享KV缓存</td>
+<td>PagedAttention、RadixAttention</td>
+</tr>
+<tr class="even">
+<td>改进批处理</td>
+<td>更好的调度</td>
+<td>连续批处理</td>
+</tr>
+<tr class="odd">
+<td>程序级优化</td>
+<td>优化完整生成图</td>
+<td>SGLang、DSPy</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="总结">总结</h2>
+<ol type="1">
+<li><strong>解码作为优化</strong>：贪婪、束搜索、MAP（固定路线最大化概率）
+<ul>
+<li>陷阱：退化、非典型性、概率分布</li>
+</ul></li>
+<li><strong>采样</strong>：祖先、top-k、top-p、温度。（改变后续采样的概率分布）
+<ul>
+<li>解决尾部概率和多样性问题</li>
+</ul></li>
+<li><strong>高效推理</strong>：KV缓存、投机解码、批处理
+<ul>
+<li>对于大规模部署至关重要</li>
+</ul></li>
+</ol>
+<blockquote>
+<p>一个关键的收获是，束搜索或贪婪是基于搜索的，它希望获得一个固定的优化输出，但采样引入了多样性或变异，以生成更具创造性的答案，并可能得到不同的答案。</p>
+</blockquote>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/">https://xloverflow.github.io/zh/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://xloverflow.github.io/zh" target="_blank">Life is not a race, but a journey</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/zh/tags/Natural-Language-Processing/">Natural Language Processing</a><a class="post-meta__tags" href="/zh/tags/CMU/">CMU</a><a class="post-meta__tags" href="/zh/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/zh/tags/11711/">11711</a><a class="post-meta__tags" href="/zh/tags/AI/">AI</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/zh/2026/01/31/15645-Database-Systems/15645-Database-systems-Storage/" title="15645 Database systems: Storage"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">15645 Database systems: Storage</div></div><div class="info-2"><div class="info-item-1">CMU 15-645 数据库系统的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">关于CMU 11-711高级自然语言处理的RNN架构、编码器-解码器模型和注意力机制的笔记。</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/zh/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">关于CMU 11-711高级自然语言处理的RNN架构、编码器-解码器模型和注意力机制的笔记。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-22</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-14</div><div class="info-item-2">11711 Advanced NLP: Retrieval and RAG</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理中关于检索系统、检索器和检索增强生成（RAG）的笔记。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/26/11868-LLM-Sys/11868-LLM-SyS-GPU-Programming-Acceleration/" title="11868 LLM Sys: GPU Programming &amp; Acceleration"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-25</div><div class="info-item-2">11868 LLM Sys: GPU Programming &amp; Acceleration</div></div><div class="info-2"><div class="info-item-1">CMU 11-868 LLM系统：GPU编程与加速的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/28/11868-LLM-Sys/11868-LLM-Sys-15642-ML-Sys-DL-Framworks-and-Auto-Differentiation/" title="11868 LLM Sys &amp; 15642 ML Sys: DL Frameworks and Auto Differentiation"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-28</div><div class="info-item-2">11868 LLM Sys &amp; 15642 ML Sys: DL Frameworks and Auto Differentiation</div></div><div class="info-2"><div class="info-item-1">关于CMU 11-868 LLM系统和15-642 ML系统课程的深度学习框架和自动微分的综合笔记。</div></div></div></a><a class="pagination-related" href="/zh/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-12</div><div class="info-item-2">11868 LLM Sys: Tokenization and Embedding</div></div><div class="info-2"><div class="info-item-1">关于大语言模型的分词技术和词汇学习的综合笔记，包括BPE、VOLT以及多语言LLM的实际考虑。</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li 的中文博客</div><div class="site-data"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">47</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">62</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">18</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#lec6-%E9%A2%84%E8%AE%AD%E7%BB%83"><span class="toc-number">1.</span> <span class="toc-text">Lec6 预训练</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E6%80%9D%E6%83%B3"><span class="toc-number">1.1.</span> <span class="toc-text">基本思想</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BB%E8%A6%81%E5%9B%A0%E7%B4%A0"><span class="toc-number">1.2.</span> <span class="toc-text">主要因素</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8E%A9%E7%A0%81%E8%AF%AD%E8%A8%80%E5%BB%BA%E6%A8%A1"><span class="toc-number">1.3.</span> <span class="toc-text">掩码语言建模</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%87%AA%E5%9B%9E%E5%BD%92%E8%AF%AD%E8%A8%80%E5%BB%BA%E6%A8%A1"><span class="toc-number">1.4.</span> <span class="toc-text">自回归语言建模</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%84%E4%BC%B0%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.5.</span> <span class="toc-text">评估模型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE"><span class="toc-number">1.6.</span> <span class="toc-text">数据</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#lec7-%E8%A7%84%E6%A8%A1%E6%B3%95%E5%88%99%E4%B8%8E%E4%B8%8A%E4%B8%8B%E6%96%87%E5%AD%A6%E4%B9%A0"><span class="toc-number">2.</span> <span class="toc-text">Lec7 规模法则与上下文学习</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%84%E6%A8%A1%E6%B3%95%E5%88%99"><span class="toc-number">2.1.</span> <span class="toc-text">规模法则</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%AD%E7%BB%83-%E8%8A%B1%E8%B4%B9%E8%AE%A1%E7%AE%97"><span class="toc-number">2.1.1.</span> <span class="toc-text">训练 &#x3D; 花费计算</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B9%82%E5%BE%8B"><span class="toc-number">2.1.2.</span> <span class="toc-text">幂律</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E8%A7%84%E6%A8%A1"><span class="toc-number">2.1.3.</span> <span class="toc-text">数据规模</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A8%A1%E5%9E%8B%E5%A4%A7%E5%B0%8F%E8%A7%84%E6%A8%A1"><span class="toc-number">2.1.4.</span> <span class="toc-text">模型大小规模</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E6%9C%80%E4%BC%98%E8%AE%AD%E7%BB%83"><span class="toc-number">2.1.5.</span> <span class="toc-text">计算最优训练</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8F%90%E7%A4%BA%E4%B8%8E%E4%B8%8A%E4%B8%8B%E6%96%87%E5%AD%A6%E4%B9%A0"><span class="toc-number">2.2.</span> <span class="toc-text">提示与上下文学习</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%E7%A7%8D%E6%8F%90%E7%A4%BA%E7%AD%96%E7%95%A5"><span class="toc-number">2.2.1.</span> <span class="toc-text">三种提示策略</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#icl%E7%8E%B0%E8%B1%A1agarwal-et-al.-2024"><span class="toc-number">2.2.2.</span> <span class="toc-text">ICL现象（Agarwal et al. 2024）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%81%8A%E5%A4%A9%E6%8F%90%E7%A4%BA"><span class="toc-number">2.2.3.</span> <span class="toc-text">聊天提示</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%9D%E7%BB%B4%E9%93%BEcot"><span class="toc-number">2.2.4.</span> <span class="toc-text">思维链（CoT）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8F%90%E7%A4%BA%E9%93%BE"><span class="toc-number">2.2.5.</span> <span class="toc-text">提示链</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#lec8-%E5%BE%AE%E8%B0%83"><span class="toc-number">3.</span> <span class="toc-text">Lec8 微调</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%BE%AE%E8%B0%83"><span class="toc-number">3.0.1.</span> <span class="toc-text">什么是微调？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%A4%E7%A7%8D%E5%BE%AE%E8%B0%83%E8%8C%83%E5%BC%8F"><span class="toc-number">3.0.2.</span> <span class="toc-text">两种微调范式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E5%93%AA%E4%BA%9B%E5%8F%82%E6%95%B0"><span class="toc-number">3.0.3.</span> <span class="toc-text">更新哪些参数？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#lora%E4%BD%8E%E7%A7%A9%E9%80%82%E5%BA%94hu-et-al.-2021"><span class="toc-number">3.0.4.</span> <span class="toc-text">LoRA（低秩适应）[Hu et
+al. 2021]</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BE%AE%E8%B0%83%E7%9A%84%E6%95%88%E6%9E%9C"><span class="toc-number">3.0.5.</span> <span class="toc-text">微调的效果</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8C%87%E4%BB%A4%E5%BE%AE%E8%B0%83"><span class="toc-number">3.1.</span> <span class="toc-text">指令微调</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%81%8A%E5%A4%A9%E5%BE%AE%E8%B0%83"><span class="toc-number">3.1.1.</span> <span class="toc-text">聊天微调</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9F%A5%E8%AF%86%E8%92%B8%E9%A6%8F"><span class="toc-number">3.2.</span> <span class="toc-text">知识蒸馏</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%87%E8%AE%B0%E7%BA%A7%E8%92%B8%E9%A6%8F-hinton-et-al.-2015"><span class="toc-number">3.2.1.</span> <span class="toc-text">标记级蒸馏 [Hinton et
+al. 2015]</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BA%8F%E5%88%97%E7%BA%A7%E8%92%B8%E9%A6%8F-kim-rush-2016"><span class="toc-number">3.2.2.</span> <span class="toc-text">序列级蒸馏 [Kim &amp; Rush 2016]</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A2%9E%E5%BC%BA%E6%95%99%E5%B8%88-west-et-al.-2022"><span class="toc-number">3.2.3.</span> <span class="toc-text">增强教师 [West et al. 2022]</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#lec9-%E8%A7%A3%E7%A0%81%E7%AE%97%E6%B3%95"><span class="toc-number">4.</span> <span class="toc-text">Lec9 解码算法</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E8%AE%BE%E7%BD%AE"><span class="toc-number">4.1.</span> <span class="toc-text">基本设置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%87%AA%E5%9B%9E%E5%BD%92%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B"><span class="toc-number">4.1.1.</span> <span class="toc-text">自回归语言模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8B%E4%B8%80%E4%B8%AA%E6%A0%87%E8%AE%B0%E5%88%86%E5%B8%83"><span class="toc-number">4.1.2.</span> <span class="toc-text">下一个标记分布</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E7%A0%81%E4%BD%9C%E4%B8%BA%E4%BC%98%E5%8C%96"><span class="toc-number">4.2.</span> <span class="toc-text">解码作为优化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%AE%E6%A0%87map%E8%A7%A3%E7%A0%81"><span class="toc-number">4.2.1.</span> <span class="toc-text">目标：MAP解码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%B3%951%E8%B4%AA%E5%A9%AA%E8%A7%A3%E7%A0%81"><span class="toc-number">4.2.2.</span> <span class="toc-text">方法1：贪婪解码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%B3%952%E6%9D%9F%E6%90%9C%E7%B4%A2"><span class="toc-number">4.2.3.</span> <span class="toc-text">方法2：束搜索</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#map%E8%A7%A3%E7%A0%81%E7%9A%84%E9%99%B7%E9%98%B1"><span class="toc-number">4.2.4.</span> <span class="toc-text">MAP解码的陷阱</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%87%87%E6%A0%B7"><span class="toc-number">4.3.</span> <span class="toc-text">采样</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%A5%96%E5%85%88%E9%87%87%E6%A0%B7"><span class="toc-number">4.3.1.</span> <span class="toc-text">祖先采样</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%A5%96%E5%85%88%E9%87%87%E6%A0%B7%E7%9A%84%E9%97%AE%E9%A2%98"><span class="toc-number">4.3.2.</span> <span class="toc-text">祖先采样的问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%B3%95%E6%88%AA%E6%96%AD%E5%B0%BE%E9%83%A8"><span class="toc-number">4.3.3.</span> <span class="toc-text">解决方法：截断尾部</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B6%E4%BB%96%E6%88%AA%E6%96%AD%E7%AD%96%E7%95%A5"><span class="toc-number">4.3.4.</span> <span class="toc-text">其他截断策略</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8A%A0%E9%80%9F%E8%A7%A3%E7%A0%81"><span class="toc-number">4.4.</span> <span class="toc-text">加速解码</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A7%A3%E7%A0%81%E6%85%A2"><span class="toc-number">4.4.1.</span> <span class="toc-text">为什么解码慢？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8C%87%E6%A0%87"><span class="toc-number">4.4.2.</span> <span class="toc-text">指标</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%94%AE%E5%80%BC%E7%BC%93%E5%AD%98"><span class="toc-number">4.4.3.</span> <span class="toc-text">键值缓存</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%A0%E9%80%9F%E5%8D%95%E4%B8%AA%E6%A0%87%E8%AE%B0"><span class="toc-number">4.4.4.</span> <span class="toc-text">加速单个标记</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%A0%E9%80%9F%E5%AE%8C%E6%95%B4%E5%BA%8F%E5%88%97"><span class="toc-number">4.4.5.</span> <span class="toc-text">加速完整序列</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%A0%E9%80%9F%E5%A4%9A%E4%B8%AA%E5%BA%8F%E5%88%97"><span class="toc-number">4.4.6.</span> <span class="toc-text">加速多个序列</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">4.5.</span> <span class="toc-text">总结</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11711 Advanced NLP: Retrieval and RAG"/></a><div class="content"><a class="title" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG">11711 Advanced NLP: Retrieval and RAG</a><time datetime="2026-02-14T22:08:21.000Z" title="发表于 2026-02-14 17:08:21">2026-02-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM系统：解码"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11868 LLM系统：解码"/></a><div class="content"><a class="title" href="/zh/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM系统：解码">11868 LLM系统：解码</a><time datetime="2026-02-13T01:00:00.000Z" title="发表于 2026-02-12 20:00:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11868 LLM Sys: Tokenization and Embedding"/></a><div class="content"><a class="title" href="/zh/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding">11868 LLM Sys: Tokenization and Embedding</a><time datetime="2026-02-12T20:30:00.000Z" title="发表于 2026-02-12 15:30:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 机器学习系统：Transformer、注意力机制与优化"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="15642 机器学习系统：Transformer、注意力机制与优化"/></a><div class="content"><a class="title" href="/zh/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 机器学习系统：Transformer、注意力机制与优化">15642 机器学习系统：Transformer、注意力机制与优化</a><time datetime="2026-02-09T19:30:00.000Z" title="发表于 2026-02-09 14:30:00">2026-02-09</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/09/CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch/" title="CS336 Assignment 1: Building a Transformer Language Model from Scratch"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="CS336 Assignment 1: Building a Transformer Language Model from Scratch"/></a><div class="content"><a class="title" href="/zh/2026/02/09/CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch/" title="CS336 Assignment 1: Building a Transformer Language Model from Scratch">CS336 Assignment 1: Building a Transformer Language Model from Scratch</a><time datetime="2026-02-09T04:05:02.000Z" title="发表于 2026-02-08 23:05:02">2026-02-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/zh/js/utils.js"></script><script src="/zh/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '8cb760f41847ea7b979291cbb815aa33'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/zh/404.html') : window.location.href = '/zh/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

@@ -1,0 +1,615 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>15618 Parallel Programming Lecture (1-4) Notes | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Notes and summaries for CMU 15-618 Parallel Programming.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="15618 Parallel Programming Lecture (1-4) Notes">
+<meta property="og:url" content="https://xloverflow.github.io/2026/01/16/15618-Parallel-Programming/15618-Parallel-Programming-Lecture-Notes/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Notes and summaries for CMU 15-618 Parallel Programming.">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png">
+<meta property="article:published_time" content="2026-01-16T02:27:48.000Z">
+<meta property="article:modified_time" content="2026-01-16T02:27:48.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="15618">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="Parallel Programming">
+<meta property="article:tag" content="Performance Optimization">
+<meta property="article:tag" content="Systems">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "15618 Parallel Programming Lecture (1-4) Notes",
+  "url": "https://xloverflow.github.io/2026/01/16/15618-Parallel-Programming/15618-Parallel-Programming-Lecture-Notes/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png",
+  "datePublished": "2026-01-16T02:27:48.000Z",
+  "dateModified": "2026-01-16T02:27:48.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2026/01/16/15618-Parallel-Programming/15618-Parallel-Programming-Lecture-Notes/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '15618 Parallel Programming Lecture (1-4) Notes',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">15618 Parallel Programming Lecture (1-4) Notes</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">15618 Parallel Programming Lecture (1-4) Notes</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-01-16T02:27:48.000Z" title="Created 2026-01-15 21:27:48">2026-01-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-01-16T02:27:48.000Z" title="Updated 2026-01-15 21:27:48">2026-01-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CMU-15-618-Parallel-Programming/">CMU 15-618 Parallel Programming</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>[toc]</p>
+<h1 id="lec-1-why-parallelism-why-efficiency">Lec 1 Why Parallelism? Why
+Efficiency?</h1>
+<h2 id="a-brief-history-of-processor-performace">A brief history of
+processor performace</h2>
+<ul>
+<li><p>Wider data path (bits width)</p></li>
+<li><p>More efficient pipelining (3.5 Cycles Per Instruction (CPI) → 1.1
+CPI )</p></li>
+<li><p>Instruction level parallelism(ILP) e.g.,
+<strong>superscalar</strong> processing</p></li>
+<li><p>Faster clock rates(<strong>most important</strong>) e.g., 10 MHz
+→ 200 MHz → 3 GHz</p></li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260115123917522.png" alt="image-20260115123917522" style="zoom: 33%;" /></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260115124003572.png" alt="image-20260115124003572" style="zoom: 33%;" /></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260115124019432.png" alt="image-20260115124019432" style="zoom:33%;" /></p>
+<h2 id="what-is-a-parallel-computer">What is a parallel computer?</h2>
+<p>A common definition:</p>
+<p>A parallel computer is a <strong>collection of processing
+elements</strong> that <strong>cooperate</strong> to <strong>solve
+problems quickly</strong>. <span class="math display">\[
+Speedup(using\ P\ processors) = \frac{execution\ time (using\ 1\
+processor)}{execution\ time (using\ P\ processors)}
+\]</span> Some overservation of the speedup:</p>
+<ul>
+<li>Communication limited the maximum speedup achieved (may
+<strong>dominate</strong> a parallel computation)</li>
+<li>Minimizing the cost the communication improves speedup</li>
+<li>Imbalance in work assignment limited speedup</li>
+<li>Improving the distribution of work improved speedup</li>
+</ul>
+<h2 id="shift-in-cpu-deisgn-philosophy">Shift in CPU Deisgn
+Philosophy</h2>
+<p>Maximize <strong>performace</strong>(ILP) -&gt; Maximize
+<strong>performance per area</strong> (cpres/chip) -&gt; Maximize
+<strong>performance per Watt</strong></p>
+<p><u>upshot</u>: major focus on <strong>efficiency of
+cores</strong></p>
+<hr />
+<h1 id="lec-2-a-moredern-multi-core-processor">Lec 2 A Moredern
+Multi-Core Processor</h1>
+<h2 id="parallel-execution">Parallel execution</h2>
+<p><strong>Compute sin(x) using Taylor expansion:</strong> sin(x) = x -
+x³/3! + x⁵/5! - x⁷/7! + …</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">sinx</span><span class="params">(<span class="type">int</span> N, <span class="type">int</span> terms, <span class="type">float</span>* x, <span class="type">float</span>* result)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i=<span class="number">0</span>; i&lt;N; i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="type">float</span> value = x[i];</span><br><span class="line">        <span class="type">float</span> numer = x[i] * x[i] * x[i];</span><br><span class="line">        <span class="type">int</span> denom = <span class="number">6</span>;  <span class="comment">// 3!</span></span><br><span class="line">        <span class="type">int</span> sign = <span class="number">-1</span>;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> j=<span class="number">1</span>; j&lt;=terms; j++)</span><br><span class="line">        &#123;</span><br><span class="line">            value += sign * numer / denom;</span><br><span class="line">            numer *= x[i] * x[i];</span><br><span class="line">            denom *= (<span class="number">2</span>*j+<span class="number">2</span>) * (<span class="number">2</span>*j+<span class="number">3</span>);</span><br><span class="line">            sign *= <span class="number">-1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        result[i] = value;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>The idea to boost the efficiency of the progeam is as follows.</p>
+<h3 id="multi-cores">Multi Cores</h3>
+<p>Use increasing transistor count to add more cores to the
+processor</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260115141242348.png" alt="image-20260115141242348" style="zoom: 33%;" /></p>
+<h3 id="more-alus">More ALUs</h3>
+<p>Amortize cost/complexity of managing an instruction stream across
+many ALUs</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260115141328877.png" alt="image-20260115141328877" style="zoom:40%;" /></p>
+<div class="note info flat"><p><strong>SIMD processing</strong> (Single instruction, multiple data):
+Same instruction broadcast to all ALUs and Executed in parallel on all
+ALUs</p>
+</div>
+<p><strong>Scalar Program vs. Vector Program</strong>: Scalar: one
+operation per register. Vector: multiple operations per register using
+SIMD.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260115141737878.png" alt="image-20260115141737878" style="zoom:33%;" /></p>
+<p>The picture above shows that conditional code(if - else) could
+<strong>recude the efficiency</strong> of multi ALUs architecture.
+Because <strong>only one instruction can be executed at a time</strong>
+in the same processor, so there may some ALUs are idle, we use
+<strong>mask to discard the output</strong> of some ALUs.</p>
+<h3 id="simd-terminology">SIMD Terminology</h3>
+<p><strong>Instruction Stream Coherence vs. Divergent
+Execution</strong></p>
+<ul>
+<li><strong>Coherent execution</strong>: All elements execute the same
+instruction sequence simultaneously (efficient for SIMD)</li>
+<li><strong>Divergent execution</strong>: Different elements need
+different instruction paths (inefficient for SIMD, e.g., if-else
+branches)</li>
+</ul>
+<p><strong>SSE vs. AVX</strong></p>
+<ul>
+<li><strong>SSE</strong>: 128-bit operations (4-wide float vectors)</li>
+<li><strong>AVX</strong>: 256-bit operations (8-wide float vectors)</li>
+</ul>
+<p><strong>Explicit SIMD vs. Implicit SIMD</strong></p>
+<ul>
+<li><strong>Explicit SIMD</strong>: Programmer explicitly writes SIMD
+code using intrinsics or parallel constructs; vectorization done at
+compile time</li>
+<li><strong>Implicit SIMD (Auto-vectorization)</strong>: Compiler
+automatically detects and converts scalar loops to SIMD
+instructions</li>
+</ul>
+<h3 id="summary">Summary</h3>
+<p><strong>Multi-core</strong></p>
+<ul>
+<li><strong>What</strong>: Multiple cores execute different threads
+simultaneously</li>
+<li><strong>Control</strong>: Programmer creates threads (e.g.,
+pthreads)</li>
+<li><strong>Parallelism</strong>: Thread-level parallelism</li>
+</ul>
+<p><strong>SIMD</strong></p>
+<ul>
+<li><strong>What</strong>: Single instruction operates on multiple data
+elements</li>
+<li><strong>Control</strong>: Compiler (explicit SIMD) or hardware
+(implicit)</li>
+<li><strong>Parallelism</strong>: Data-level parallelism</li>
+</ul>
+<p><strong>Superscalar</strong></p>
+<ul>
+<li><strong>What</strong>: Multiple instructions from same thread
+execute in parallel</li>
+<li><strong>Control</strong>: Hardware automatically discovers
+parallelism at runtime</li>
+<li><strong>Parallelism</strong>: Instruction-level parallelism
+(ILP)</li>
+<li><strong>Note</strong>: Not covered in this course (belongs to
+architecture courses like 18-447)</li>
+</ul>
+<h2 id="accessing-memory">Accessing Memory</h2>
+<h3 id="stalls">Stalls</h3>
+<p>A processor “<strong>stalls</strong>” when it cannot run the next
+instruction in an instruction stream because of a dependency on a
+previous instruction.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260115142855628.png" alt="image-20260115142855628" style="zoom:40%;" /></p>
+<p>Ways to recude stalls:</p>
+<ul>
+<li><p><strong>Prefetching</strong>: All modern CPUs have logic for
+prefetching data into caches</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260115143654668.png" alt="image-20260115143654668" style="zoom: 50%;" /></p></li>
+<li><p><strong>Multi-Threading</strong>: Interleave processing of
+multiple threads on the same core to hide stalls</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260115143214758.png" alt="image-20260115143214758" style="zoom: 33%;" /></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260115143626898.png" alt="image-20260115143626898" style="zoom: 33%;" /></p></li>
+</ul>
+<p>Core needs to manage execution context for multiple threads. And a
+example of count methods for different concepts.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260115143926553.png" alt="image-20260115143926553" style="zoom:33%;" /></p>
+<h3 id="gpu-vs.-cpu">GPU vs. CPU</h3>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260115144059525.png" alt="image-20260115144059525" style="zoom: 33%;" /></p>
+<h3 id="bandwith-limited">Bandwith Limited</h3>
+<p>Due to <strong>high arithmetic capability</strong> on modern chips,
+many parallel applications (on both CPUs and GPUs) are bandwidth
+bound.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260115144345891.png" alt="image-20260115144345891" style="zoom: 33%;" /></p>
+<h1 id="lec-3-parallel-programming-abstractions">Lec 3 Parallel
+Programming Abstractions</h1>
+<h2 id="intel-spmd-program-compiler-ispc">Intel SPMD Program Compiler
+(ISPC)</h2>
+<p>SPMD refers to single program multiple data, and call to ISPC
+function spawns “<u>gang</u>” of ISPC “<u>programming instances</u>
+(SIMD lanes)”. All instances run ISPC code concurrently.</p>
+<blockquote>
+<p>Gang is the vector width level concept</p>
+</blockquote>
+<h3 id="interleaved-version">Interleaved Version</h3>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260116095110149.png" alt="image-20260116095110149" style="zoom:33%;" /></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260116095416655.png" alt="image-20260116095416655" style="zoom:33%;" /></p>
+<h3 id="blocked-version">Blocked Version</h3>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260116100317569.png" alt="image-20260116100317569" style="zoom:33%;" /></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260116100327583.png" alt="image-20260116100327583" style="zoom:33%;" /></p>
+<blockquote>
+<p><strong>Which is faster?</strong> A: The <strong>interleaved</strong>
+one is faster.</p>
+<p>The interleaved one use **_mm_load_ps1** to load these continuous
+data, but the blocked one need to use **_mm_i32gather**, which is more
+complex and slower.</p>
+</blockquote>
+<blockquote>
+<p>For ISPC, we cannot add a varying number with a uniform number, and
+it will reject the code during the compile time.</p>
+</blockquote>
+<h2 id="four-models-of-communication">Four models of communication</h2>
+<h3 id="shared-address-space-very-little-structure">Shared address
+space: very little structure</h3>
+<p>Threads communicate by</p>
+<ul>
+<li>Reading/writing to shared variables.</li>
+<li>Manipulating synchronization primitives</li>
+</ul>
+<blockquote>
+<p>Synchronization primitives are also shared variables. e.g., locks,
+semaphore</p>
+</blockquote>
+<p><strong>Hardware implementation of a shared address
+space</strong></p>
+<p>Key idea: any processor can <u><strong>directly</strong></u>
+inference any memory location</p>
+<ul>
+<li><p>Symmetric (shared-memory) multi-processor(<strong>SMP</strong>) :
+uniform memory access time</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260116113230688.png" alt="image-20260116113230688" style="zoom: 33%;" /></p></li>
+<li><p>Non-uniform memory access(<strong>NUMA</strong>): All processors
+can access any memory location, but the cost of memory access is
+different for processors.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260116113407652.png"
+alt="image-20260116113407652" />
+<figcaption aria-hidden="true">image-20260116113407652</figcaption>
+</figure></li>
+</ul>
+<blockquote>
+<p>Uniform: costs are uniform but are uniformly bad</p>
+<p>NUMA: more scalable</p>
+</blockquote>
+<h3 id="message-passing-highly-structured-communication">Message
+passing: highly structured communication</h3>
+<p>Threads operate within their own private space, and they communicate
+by <strong><u>sending/receiving messages</u></strong></p>
+<p>Popular software library: <strong>MPI(message passing
+interface)</strong></p>
+<blockquote>
+<p>Programming models and hardware architectures do not have a
+one-to-one correspondence: message passing can be implemented on
+shared-memory hardware, and shared-memory abstractions can be emulated
+on machines without hardware support, usually with performance
+trade-offs.</p>
+</blockquote>
+<h3 id="data-parallel-very-rigid-computation-structure">Data parallel:
+very rigid computation structure</h3>
+<p>Data-parallel programming maps independent computations over large
+data collections; by restricting communication and side effects, it
+enables simple reasoning and high-performance implementations, though
+irregular access patterns like <strong><u>gather/scatter</u></strong>
+are costly.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260116115517345.png" alt="image-20260116115517345" style="zoom: 33%;" /></p>
+<h3 id="systolic-arrays">Systolic arrays</h3>
+<p><u>Target domain</u>: data-intensive applications where
+<strong>memory bandwidth</strong> is the
+<strong>bottleneck</strong>.</p>
+<p>And because the memory bandwidth is the critical resource, so we
+really want to <strong>avoid accessing memory unnecessarily.</strong> So
+we need to <strong>perform all necessary computation on the
+processor</strong> before writing back any results, usually by
+<strong>directly pipelining intermediate results between
+processors</strong>.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260116120138219.png" alt="**image-20260116120138219**" style="zoom: 33%;" /></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260116120212339.png" alt="image-20260116120212339" style="zoom:33%;" /></p>
+<blockquote>
+<p>Modern practice: mixed programming models</p>
+<p>Use <u>shared address space</u> programming within a <u>multi-core
+node</u> of a cluster, use <u>message passing</u> between nodes.</p>
+</blockquote>
+<h1 id="lec-4-parallel-programming-basics">Lec 4 Parallel Programming
+Basics</h1>
+<h2 id="creating-a-parallel-program">Creating a parallel program</h2>
+<p>Thought process:</p>
+<ol type="1">
+<li>Identify work that can be performed in parallel</li>
+<li>Partition work (and also data associated with the work)</li>
+<li>Manage <strong>data access</strong>, <strong>communication</strong>,
+and <strong>synchronization</strong></li>
+</ol>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260121094725347.png" alt="image-20260121094725347" style="zoom:35%;" /></p>
+<h3 id="decomposition">Decomposition</h3>
+<p>Break up problem into <strong><u>tasks</u></strong> that can be
+<strong>carried out in parallel</strong></p>
+<p><strong>Main idea</strong>: Create at least enough tasks to keep all
+execution units on a machine busy.</p>
+<p><strong>Amdahl’s law</strong>: Dependencies limit maximum speedup due
+to parallelism. Then <strong><u>the maximum speed up due to parallel
+execution &lt;= 1 / S</u></strong>. <span class="math display">\[
+\text{speedup} \leq \frac{1}{s + \frac{1-s}{p}}
+\]</span></p>
+<h3 id="assignment">Assignment</h3>
+<p>Assigning tasks to threads</p>
+<p><strong><u>Goals</u></strong>: balance workloadm reduce communication
+costs</p>
+<h3 id="orchestration">Orchestration</h3>
+<ul>
+<li>Structuring communication</li>
+<li>Adding synchronization to preserve dependencies if necessary</li>
+<li>Organizing data structures in memory</li>
+<li>Scheduling tasks</li>
+</ul>
+<p><strong><u>Goals</u></strong>: reduce <strong>costs of
+communication/sync</strong>, preserve <strong>locality</strong> of data
+reference, reduce <strong>overhead</strong>, etc.</p>
+<h3 id="mapping-to-hardware">Mapping to hardware</h3>
+<p>Mapping “threads”(“workerss”) to hardware execution units</p>
+<ul>
+<li>Mapping by the <strong><u>operating system</u></strong> (e.g., map
+pthread to HW execution contect on a CPU core)</li>
+<li>Mapping by the <strong><u>complier</u></strong> (Map ISPC program
+instances to vector instruction lanes)</li>
+<li>Mapping by the <strong><u>hardware</u></strong> (Map CUDA thread
+blocks to GPU cores)</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2026/01/16/15618-Parallel-Programming/15618-Parallel-Programming-Lecture-Notes/">https://xloverflow.github.io/2026/01/16/15618-Parallel-Programming/15618-Parallel-Programming-Lecture-Notes/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/CMU/">CMU</a><a class="post-meta__tags" href="/tags/15618/">15618</a><a class="post-meta__tags" href="/tags/Parallel-Programming/">Parallel Programming</a><a class="post-meta__tags" href="/tags/Systems/">Systems</a><a class="post-meta__tags" href="/tags/Performance-Optimization/">Performance Optimization</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/01/16/15645-Database-Systems/15645-Database-Systems-relational-model-and-SQL/" title="15645 Database systems: Relational Model and SQL"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">15645 Database systems: Relational Model and SQL</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/01/12/Personal/Deconstructing%20Agentic%20Coding%20with%20First%20Principles:%20From%20Theory%20to%20Practice/" title="Deconstructing Agentic Coding with First Principles: From Theory to Practice"><img class="cover" src="https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">Deconstructing Agentic Coding with First Principles: From Theory to Practice</div></div><div class="info-2"><div class="info-item-1">This article is from a ByteDance expert, titled "Deconstructing Agentic Coding with First Principles: From Theory to Practice." I gained a lot from reading it.</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/01/17/15618-Parallel-Programming/15618%20Assignment1%20Report/" title="15618 Assignment 1 Report"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-16</div><div class="info-item-2">15618 Assignment 1 Report</div></div><div class="info-2"><div class="info-item-1">Assignment 1 report for CMU 15-618, covering pthreads speedup analysis and SIMD vectorization.</div></div></div></a><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">Notes on RNN architectures, encoder-decoder models, and attention mechanisms from CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-22</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/" title="11711 Advanced NLP: Learning &amp; Inference"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Learning &amp; Inference</div></div><div class="info-2"><div class="info-item-1">Notes on learning algorithms and inference methods from CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-14</div><div class="info-item-2">11711 Advanced NLP: Retrieval and RAG</div></div><div class="info-2"><div class="info-item-1">Notes on retrieval systems, retrievers, and retrieval-augmented generation (RAG) from CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/01/26/11868-LLM-Sys/11868-LLM-SyS-GPU-Programming-Acceleration/" title="11868 LLM Sys: GPU Programming &amp; Acceleration"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-25</div><div class="info-item-2">11868 LLM Sys: GPU Programming &amp; Acceleration</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 11-868 LLM Systems: GPU Programming & Acceleration.</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#lec-1-why-parallelism-why-efficiency"><span class="toc-number">1.</span> <span class="toc-text">Lec 1 Why Parallelism? Why
+Efficiency?</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#a-brief-history-of-processor-performace"><span class="toc-number">1.1.</span> <span class="toc-text">A brief history of
+processor performace</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#what-is-a-parallel-computer"><span class="toc-number">1.2.</span> <span class="toc-text">What is a parallel computer?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#shift-in-cpu-deisgn-philosophy"><span class="toc-number">1.3.</span> <span class="toc-text">Shift in CPU Deisgn
+Philosophy</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#lec-2-a-moredern-multi-core-processor"><span class="toc-number">2.</span> <span class="toc-text">Lec 2 A Moredern
+Multi-Core Processor</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#parallel-execution"><span class="toc-number">2.1.</span> <span class="toc-text">Parallel execution</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#multi-cores"><span class="toc-number">2.1.1.</span> <span class="toc-text">Multi Cores</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#more-alus"><span class="toc-number">2.1.2.</span> <span class="toc-text">More ALUs</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#simd-terminology"><span class="toc-number">2.1.3.</span> <span class="toc-text">SIMD Terminology</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#summary"><span class="toc-number">2.1.4.</span> <span class="toc-text">Summary</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#accessing-memory"><span class="toc-number">2.2.</span> <span class="toc-text">Accessing Memory</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#stalls"><span class="toc-number">2.2.1.</span> <span class="toc-text">Stalls</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#gpu-vs.-cpu"><span class="toc-number">2.2.2.</span> <span class="toc-text">GPU vs. CPU</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#bandwith-limited"><span class="toc-number">2.2.3.</span> <span class="toc-text">Bandwith Limited</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#lec-3-parallel-programming-abstractions"><span class="toc-number">3.</span> <span class="toc-text">Lec 3 Parallel
+Programming Abstractions</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#intel-spmd-program-compiler-ispc"><span class="toc-number">3.1.</span> <span class="toc-text">Intel SPMD Program Compiler
+(ISPC)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#interleaved-version"><span class="toc-number">3.1.1.</span> <span class="toc-text">Interleaved Version</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#blocked-version"><span class="toc-number">3.1.2.</span> <span class="toc-text">Blocked Version</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#four-models-of-communication"><span class="toc-number">3.2.</span> <span class="toc-text">Four models of communication</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#shared-address-space-very-little-structure"><span class="toc-number">3.2.1.</span> <span class="toc-text">Shared address
+space: very little structure</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#message-passing-highly-structured-communication"><span class="toc-number">3.2.2.</span> <span class="toc-text">Message
+passing: highly structured communication</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#data-parallel-very-rigid-computation-structure"><span class="toc-number">3.2.3.</span> <span class="toc-text">Data parallel:
+very rigid computation structure</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#systolic-arrays"><span class="toc-number">3.2.4.</span> <span class="toc-text">Systolic arrays</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#lec-4-parallel-programming-basics"><span class="toc-number">4.</span> <span class="toc-text">Lec 4 Parallel Programming
+Basics</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#creating-a-parallel-program"><span class="toc-number">4.1.</span> <span class="toc-text">Creating a parallel program</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#decomposition"><span class="toc-number">4.1.1.</span> <span class="toc-text">Decomposition</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#assignment"><span class="toc-number">4.1.2.</span> <span class="toc-text">Assignment</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#orchestration"><span class="toc-number">4.1.3.</span> <span class="toc-text">Orchestration</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#mapping-to-hardware"><span class="toc-number">4.1.4.</span> <span class="toc-text">Mapping to hardware</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Retrieval and RAG"/></a><div class="content"><a class="title" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG">11711 Advanced NLP: Retrieval and RAG</a><time datetime="2026-02-14T22:08:21.000Z" title="Created 2026-02-14 17:08:21">2026-02-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Distributed Training and Parallelization"/></a><div class="content"><a class="title" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization">15642 Machine Learning Systems: Distributed Training and Parallelization</a><time datetime="2026-02-13T21:00:00.000Z" title="Created 2026-02-13 16:00:00">2026-02-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Decoding"/></a><div class="content"><a class="title" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding">11868 LLM Sys: Decoding</a><time datetime="2026-02-13T01:00:00.000Z" title="Created 2026-02-12 20:00:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Tokenization and Embedding"/></a><div class="content"><a class="title" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding">11868 LLM Sys: Tokenization and Embedding</a><time datetime="2026-02-12T20:30:00.000Z" title="Created 2026-02-12 15:30:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"/></a><div class="content"><a class="title" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations">15642 Machine Learning Systems: Transformer, Attention, and Optimizations</a><time datetime="2026-02-09T19:30:00.000Z" title="Created 2026-02-09 14:30:00">2026-02-09</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '4890a0f2fe927720ea2f48ccf8c18dd1'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

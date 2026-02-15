@@ -1,0 +1,686 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>HUST Operating System Lab3: Memory Management | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Operation process record for HUST Operating System Lab3">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HUST Operating System Lab3: Memory Management">
+<meta property="og:url" content="https://xloverflow.github.io/2023/12/05/HUST-Labs/HUST%20Operating%20System%20Lab3:%20Memory%20Management/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Operation process record for HUST Operating System Lab3">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/david-marcu-78A265wPiO4-unsplash.jpg">
+<meta property="article:published_time" content="2023-12-05T23:51:55.000Z">
+<meta property="article:modified_time" content="2026-02-15T05:04:17.012Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="Course Experiments">
+<meta property="article:tag" content="Operating System">
+<meta property="article:tag" content="Study Notes">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/david-marcu-78A265wPiO4-unsplash.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "HUST Operating System Lab3: Memory Management",
+  "url": "https://xloverflow.github.io/2023/12/05/HUST-Labs/HUST%20Operating%20System%20Lab3:%20Memory%20Management/",
+  "image": "https://raw.githubusercontent.com/hustlixiang21/blog-image/main/david-marcu-78A265wPiO4-unsplash.jpg",
+  "datePublished": "2023-12-05T23:51:55.000Z",
+  "dateModified": "2026-02-15T05:04:17.012Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2023/12/05/HUST-Labs/HUST%20Operating%20System%20Lab3:%20Memory%20Management/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'HUST Operating System Lab3: Memory Management',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/hustlixiang21/blog-image/main/david-marcu-78A265wPiO4-unsplash.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">HUST Operating System Lab3: Memory Management</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">HUST Operating System Lab3: Memory Management</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2023-12-05T23:51:55.000Z" title="Created 2023-12-05 18:51:55">2023-12-05</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-02-15T05:04:17.012Z" title="Updated 2026-02-15 00:04:17">2026-02-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/HUST-Lab-Reports/">HUST Lab Reports</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="operating-system-lab3-memory-management">Operating System Lab3:
+Memory Management</h1>
+<h2 id="experiment-objectives">Experiment Objectives</h2>
+<ol type="1">
+<li><p>Understand page replacement algorithm principles and write
+programs to demonstrate page replacement algorithms.</p></li>
+<li><p>Verify the mechanism of Linux virtual address to physical address
+conversion</p></li>
+<li><p>Understand and verify the principle of program execution
+locality.</p></li>
+<li><p>Understand and verify the page fault handling process.</p></li>
+</ol>
+<h2 id="experiment-content">Experiment Content</h2>
+<ol type="1">
+<li><p>Write a 2D array traversal program in Win/Linux to understand the
+principle of locality.</p></li>
+<li><p>Simulate and implement OPT, FIFO, or LRU page replacement
+algorithms in Windows/Linux.</p></li>
+<li><p>Study and modify Linux kernel’s page fault handling function
+do_no_page (new version should be handle_mm_fault) or page frame
+allocation function get_free_page, and use printk to print debug
+information. Note: Kernel compilation is required. <strong>Recommended:
+Ubuntu Kylin or Kylin system</strong>.</p></li>
+<li><p>Use /proc/pid/pagemap technology in Linux to calculate physical
+addresses corresponding to virtual addresses of variables or functions.
+<strong>Recommended: Ubuntu Kylin or Kylin system</strong>.</p></li>
+</ol>
+<h2
+id="task-1-write-a-2d-array-traversal-program-to-understand-the-principle-of-program-locality">Task
+1: Write a 2D Array Traversal Program to Understand the Principle of
+Program Locality</h2>
+<h3 id="task-requirements">Task Requirements</h3>
+<ol type="1">
+<li><p>Make the array as large as possible, and try changing the array
+size and the order of inner and outer loops. For example, change from
+[2048] X [2048] to [10240] x [20480], and observe their traversal
+efficiency.</p></li>
+<li><p>Observe their page fault counts in Task Manager or using the
+/proc file system.</p></li>
+</ol>
+<h3 id="code-implementation">Code Implementation</h3>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/time.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/resource.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;vector&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iomanip&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Row-major traversal</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">traverseRowMajor</span><span class="params">(vector&lt;vector&lt;<span class="type">int</span>&gt;&gt; &amp;arr)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">int</span> sum = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">size_t</span> i = <span class="number">0</span>; i &lt; arr.<span class="built_in">size</span>(); i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">size_t</span> j = <span class="number">0</span>; j &lt; arr[i].<span class="built_in">size</span>(); j++)</span><br><span class="line">        &#123;</span><br><span class="line">            sum += arr[i][j];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Column-major traversal</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">traverseColumnMajor</span><span class="params">(vector&lt;vector&lt;<span class="type">int</span>&gt;&gt; &amp;arr)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">int</span> sum = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">size_t</span> j = <span class="number">0</span>; j &lt; arr[<span class="number">0</span>].<span class="built_in">size</span>(); j++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">size_t</span> i = <span class="number">0</span>; i &lt; arr.<span class="built_in">size</span>(); i++)</span><br><span class="line">        &#123;</span><br><span class="line">            sum += arr[i][j];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">int</span> rows, cols;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;Enter the number of rows and columns of the matrix (format: x y): &quot;</span>;</span><br><span class="line">    cin &gt;&gt; rows &gt;&gt; cols;</span><br><span class="line"></span><br><span class="line">    vector&lt;vector&lt;<span class="type">int</span>&gt;&gt; <span class="built_in">arr</span>(rows, <span class="built_in">vector</span>&lt;<span class="type">int</span>&gt;(cols, <span class="number">1</span>));</span><br><span class="line"></span><br><span class="line">    rusage usage;</span><br><span class="line">    timeval start, end;</span><br><span class="line"></span><br><span class="line">    <span class="type">char</span> choice;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;Choose traversal method (r: row-major, c: column-major): &quot;</span>;</span><br><span class="line">    </span><br><span class="line">    cin &gt;&gt; choice;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Get process resource usage before starting</span></span><br><span class="line">    <span class="built_in">getrusage</span>(RUSAGE_SELF, &amp;usage);</span><br><span class="line">    start = usage.ru_utime;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (choice == <span class="string">&#x27;r&#x27;</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">traverseRowMajor</span>(arr);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (choice == <span class="string">&#x27;c&#x27;</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">traverseColumnMajor</span>(arr);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Get process resource usage after completion</span></span><br><span class="line">    <span class="built_in">getrusage</span>(RUSAGE_SELF, &amp;usage);</span><br><span class="line">    end = usage.ru_utime;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Output time in milliseconds</span></span><br><span class="line">    <span class="type">double</span> time_taken = (end.tv_sec - start.tv_sec) * <span class="number">1000</span> + (end.tv_usec - start.tv_usec) / <span class="number">1000.0</span>;</span><br><span class="line"></span><br><span class="line">    cout &lt;&lt; fixed &lt;&lt; <span class="built_in">setprecision</span>(<span class="number">3</span>) &lt;&lt; <span class="string">&quot;Time consumed: &quot;</span> &lt;&lt; time_taken &lt;&lt; <span class="string">&quot; milliseconds\n&quot;</span>;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;Page faults: &quot;</span> &lt;&lt; usage.ru_minflt &lt;&lt; <span class="string">&quot; times\n&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="bit-program-compilation">32-bit Program Compilation</h3>
+<p>If you directly add -m32 for compilation, it will report an
+error:</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/3-1-32bit_error.png"
+alt="32bit compilation error" />
+<figcaption aria-hidden="true">32bit compilation error</figcaption>
+</figure>
+<p>Because 32-bit libraries are missing, you need to install 32-bit
+libraries:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> dpkg --add-architecture i386              <span class="comment"># Add 32-bit architecture</span></span><br><span class="line"><span class="built_in">sudo</span> apt-get install gcc-multilib g++-multilib <span class="comment"># Install 32-bit libraries</span></span><br></pre></td></tr></table></figure>
+<h3 id="bit-and-64-bit-program-execution-results">32-bit and 64-bit
+Program Execution Results</h3>
+<p>Using g++ to compile 32-bit and 64-bit executable files test_32 and
+test_64 respectively, the execution results are as follows:</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/3-1-result1.png"
+alt="64-bit execution result" />
+<figcaption aria-hidden="true">64-bit execution result</figcaption>
+</figure>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/3-1-result2.png"
+alt="32-bit execution result" />
+<figcaption aria-hidden="true">32-bit execution result</figcaption>
+</figure>
+<h3 id="observation-and-analysis-of-phenomena">Observation and Analysis
+of Phenomena</h3>
+<ol type="1">
+<li>Execution time:
+<ol type="1">
+<li>In smaller matrices (2048x2048), 64-bit programs have slightly less
+execution time than 32-bit programs.</li>
+<li>In larger matrices (10240x20480), 64-bit programs are significantly
+faster than 32-bit programs in row-major traversal, but in column-major
+traversal, the time difference between the two is not significant.</li>
+</ol></li>
+<li>Page faults:
+<ol type="1">
+<li>For both programs (32-bit and 64-bit), under the same matrix size
+and traversal method, the number of page faults is almost
+identical.</li>
+</ol></li>
+</ol>
+<p>Execution time differences:</p>
+<p>64-bit programs can typically handle large datasets more efficiently
+because they can utilize larger address spaces and generally more
+efficient data processing capabilities (e.g., larger registers and
+better memory management). This explains why 64-bit programs are faster
+than 32-bit programs in row-major traversal when processing larger
+matrices. For column-major traversal, due to memory access patterns
+causing frequent cache misses, this may somewhat offset the advantages
+of 64-bit architecture, resulting in similar performance between the two
+in large matrix column-major traversal.</p>
+<p>Page fault similarity:</p>
+<p>The number of page faults mainly depends on the program’s memory
+access patterns and the operating system’s page management strategy,
+rather than the program’s bit width. Therefore, even for 32-bit and
+64-bit programs, if they perform the same memory access operations, the
+number of page faults may be very similar. It seems more dependent on
+memory access patterns and the operating system’s memory management.</p>
+<p>But I actually have a question: intuitively, column-major traversal
+should produce more page faults than row-major traversal, because in
+column-major traversal, each access address is continuous, while in
+row-major traversal, each access address is discontinuous. But in
+reality, the number of page faults for both is almost the same.</p>
+<p><strong>GPT’s answer:</strong></p>
+<ul>
+<li>Memory paging and access patterns:
+<ul>
+<li>In modern computer systems, physical memory is managed in pages. If
+a matrix’s rows or columns span multiple memory pages, then both
+row-major and column-major traversal may cause page faults.</li>
+<li>In row-major traversal, if each row of the matrix spans multiple
+pages, then even if access is continuous, page faults may occur when
+accessing new rows.</li>
+<li>In column-major traversal, although each jump to a new column may
+touch new memory pages, if the column data is small and can be
+completely contained within a single or few memory pages, the occurrence
+of page faults may not be much more than in row-major traversal.</li>
+</ul></li>
+<li>Cache and prefetch strategies:
+<ul>
+<li>Modern processors have advanced cache and prefetch mechanisms. These
+mechanisms may somewhat reduce the expected number of page faults in
+column-major traversal.</li>
+<li>Processors may be able to predict upcoming memory access patterns
+and preload data from main memory to cache, so even column-major access
+may not immediately cause page faults.</li>
+</ul></li>
+<li>Operating system memory management:
+<ul>
+<li>The operating system may adopt some strategies in memory management,
+such as lazy allocation, which may cause the actual number of page
+faults to differ from expectations.</li>
+<li>The operating system may maintain a certain number of free page
+pools, so in early memory access, the occurrence rate of page faults may
+be lower.</li>
+</ul></li>
+<li>Physical memory layout of matrices:
+<ul>
+<li>The actual layout of matrices in physical memory may also affect the
+occurrence of page faults. For example, if some parts of the matrix have
+already been loaded into memory for other reasons, this may reduce page
+faults in specific traversal methods.</li>
+</ul></li>
+<li>Overall system memory load:
+<ul>
+<li>If other processes running on the system consume a lot of memory,
+this may affect the page fault behavior of your program. The overall
+memory load and availability of the system may cause different page
+fault behaviors for the same operation at different time points.</li>
+</ul></li>
+</ul>
+<h2
+id="task-2-simulate-and-implement-opt-fifo-or-lru-page-replacement-algorithms">Task
+2: Simulate and Implement OPT, FIFO, or LRU Page Replacement
+Algorithms</h2>
+<h3 id="task-requirements-1">Task Requirements</h3>
+<ol type="1">
+<li><p>Use array traversal operations to simulate program instruction
+execution;</p></li>
+<li><p>Use one large array A (e.g., 2400 elements) to simulate a
+process, with random numbers in the array. When each element is
+accessed, use printf to print it out, simulating instruction execution.
+The size of array A must be an integer multiple of the set page size
+(e.g., 10 elements or 16 elements, etc.).</p></li>
+<li><p>Use 3-8 small arrays (e.g., array B, array C, array D, etc.) to
+simulate allocated page frames. The size of small arrays equals the page
+size (e.g., 10 instruction sizes, i.e., 10 elements). The small arrays
+contain copies of the corresponding page content from the large array
+(build a page table separately to describe the relationship between
+pages of the large array and small array indices).</p></li>
+<li><p>Access array A in different orders, which can be: sequential,
+jump, branch, loop, or random. Build access orders yourself. Different
+orders also reflect program locality to some extent.</p></li>
+<li><p>The access order of the large array can be defined using the
+rand() function to simulate instruction access sequences corresponding
+to the access order of large array A. Then transform the instruction
+sequence into corresponding page address streams and count “page faults”
+for different page replacement algorithms. Page faults occur when the
+corresponding “page” is not loaded into small arrays (e.g., array B,
+array C, array D, etc.).</p></li>
+<li><p>In the experiment, page size, number of page frames, access
+order, and replacement algorithm should all be adjustable.</p></li>
+</ol>
+<h3 id="code-implementation-1">Code Implementation</h3>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;time.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;limits.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ARRAY_SIZE 2400                    <span class="comment">// Process virtual space size</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> PAGE_SIZE 10                       <span class="comment">// Page frame size</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> NUM_PAGES (ARRAY_SIZE / PAGE_SIZE) <span class="comment">// Number of pages in virtual memory</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> NUM_FRAMES 5                       <span class="comment">// Number of pages in physical memory</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> JUMP_NUM_FRAMES 7                  <span class="comment">// Number of pages to jump</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LOOP_TIMES 3                       <span class="comment">// Number of loop iterations</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> main_array[ARRAY_SIZE];        <span class="comment">// Process virtual space</span></span><br><span class="line"><span class="type">int</span> frames[NUM_FRAMES][PAGE_SIZE]; <span class="comment">// Physical memory divided into page frames</span></span><br><span class="line"><span class="type">int</span> page_table[NUM_PAGES];         <span class="comment">// Page table entries (mapping from virtual page frame number to physical page frame number)</span></span><br><span class="line"><span class="type">int</span> frame_table[NUM_FRAMES];       <span class="comment">// Frame table (mapping from physical page frame number to virtual page frame number)</span></span><br><span class="line"><span class="type">int</span> page_faults = <span class="number">0</span>;               <span class="comment">// Number of page faults</span></span><br><span class="line"><span class="type">int</span> algo_choice = <span class="number">0</span>;               <span class="comment">// Page replacement algorithm</span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> frame_pointer = <span class="number">0</span>;           <span class="comment">// For FIFO</span></span><br><span class="line"><span class="type">int</span> frame_queue[NUM_FRAMES];     <span class="comment">// For FIFO</span></span><br><span class="line"><span class="type">int</span> frame_timestamp[NUM_FRAMES]; <span class="comment">// For LRU</span></span><br><span class="line"><span class="type">int</span> future_pages[ARRAY_SIZE];    <span class="comment">// For OPT</span></span><br><span class="line"></span><br><span class="line"><span class="type">char</span> *algo_name[<span class="number">4</span>] = &#123;<span class="string">&quot;Random Replacement&quot;</span>, <span class="string">&quot;OPT&quot;</span>, <span class="string">&quot;FIFO&quot;</span>, <span class="string">&quot;LRU&quot;</span>&#125;; <span class="comment">// Page replacement algorithm names</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Initialize</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">initialize</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    srand(time(<span class="literal">NULL</span>));</span><br><span class="line">    <span class="comment">// Fill random numbers and initialize</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; ARRAY_SIZE; i++)</span><br><span class="line">    &#123;</span><br><span class="line">        main_array[i] = rand() % <span class="number">100000</span>;</span><br><span class="line">        future_pages[i] = <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// Initialize page table</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; NUM_PAGES; i++)</span><br><span class="line">    &#123;</span><br><span class="line">        page_table[i] = <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// Initialize page frame queue and timestamps</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; NUM_FRAMES; i++)</span><br><span class="line">    &#123;</span><br><span class="line">        frame_queue[i] = <span class="number">-1</span>;</span><br><span class="line">        frame_timestamp[i] = <span class="number">-1</span>;</span><br><span class="line">        frame_table[i] = <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">find_frame_opt</span><span class="params">(<span class="type">int</span> current_time)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// Implement OPT algorithm</span></span><br><span class="line">    <span class="type">int</span> frame = <span class="number">-1</span>;</span><br><span class="line">    <span class="type">int</span> max_future = <span class="number">-1</span>;</span><br><span class="line">    <span class="comment">// Find the page frame that won&#x27;t be used for the longest time in the future</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; NUM_FRAMES; i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// If an empty page frame is found, return directly</span></span><br><span class="line">        <span class="keyword">if</span> (frame_table[i] == <span class="number">-1</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            frame = i;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="type">int</span> <span class="built_in">future</span> = <span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> j = current_time; j &lt; ARRAY_SIZE; j++)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> (future_pages[j] == frame_table[i])</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="built_in">future</span> = j;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (<span class="built_in">future</span> &gt; max_future)</span><br><span class="line">        &#123;</span><br><span class="line">            max_future = <span class="built_in">future</span>;</span><br><span class="line">            frame = i;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (max_future == <span class="number">-1</span>)</span><br><span class="line">        frame = rand() % NUM_FRAMES;</span><br><span class="line">    <span class="keyword">return</span> frame;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">find_frame_fifo</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// Implement FIFO algorithm, relying on queue, first in first out</span></span><br><span class="line">    <span class="type">int</span> frame = frame_pointer;</span><br><span class="line">    frame_pointer = (frame_pointer + <span class="number">1</span>) % NUM_FRAMES;</span><br><span class="line">    <span class="keyword">return</span> frame;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">find_frame_lru</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// Implement LRU algorithm</span></span><br><span class="line">    <span class="type">int</span> lru = INT_MAX;</span><br><span class="line">    <span class="type">int</span> frame = <span class="number">-1</span>;</span><br><span class="line">    <span class="comment">// Find the least recently used page frame</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; NUM_FRAMES; i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> (frame_timestamp[i] &lt; lru)</span><br><span class="line">        &#123;</span><br><span class="line">            lru = frame_timestamp[i];</span><br><span class="line">            frame = i;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> frame;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Access page</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">access_page</span><span class="params">(<span class="type">int</span> page_number, <span class="type">int</span> offset, <span class="type">int</span> current_time)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// Page fault, use corresponding page replacement algorithm</span></span><br><span class="line">    <span class="keyword">if</span> (page_table[page_number] == <span class="number">-1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// Find an empty or page frame that should be replaced</span></span><br><span class="line">        <span class="type">int</span> frame_number;</span><br><span class="line">        <span class="keyword">switch</span> (algo_choice)</span><br><span class="line">        &#123;</span><br><span class="line">        <span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">            frame_number = find_frame_opt(current_time);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> <span class="number">2</span>:</span><br><span class="line">            frame_number = find_frame_fifo();</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> <span class="number">3</span>:</span><br><span class="line">            frame_number = find_frame_lru();</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">default</span>:</span><br><span class="line">            frame_number = rand() % NUM_FRAMES;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// Change the previous virtual to physical page table mapping to -1</span></span><br><span class="line">        <span class="keyword">if</span> (frame_table[frame_number] != <span class="number">-1</span>)</span><br><span class="line">            page_table[frame_table[frame_number]] = <span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;\033[1;31mPage Fault\033[0m, Page %3d loaded into frame %2d, data at offset %2d: &quot;</span>, page_number, frame_number, offset);</span><br><span class="line">        page_table[page_number] = frame_number;</span><br><span class="line">        frame_table[frame_number] = page_number;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; PAGE_SIZE; i++)</span><br><span class="line">        &#123;</span><br><span class="line">            frames[frame_number][i] = main_array[page_number * PAGE_SIZE + i];</span><br><span class="line">        &#125;</span><br><span class="line">        page_faults++;</span><br><span class="line">        frame_queue[frame_number] = page_number;</span><br><span class="line">        frame_timestamp[frame_number] = current_time;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;\033[1;32mPage Hit\033[0m, Page %3d in frame %2d, data at offset %2d: &quot;</span>, page_number, page_table[page_number], offset);</span><br><span class="line">        frame_timestamp[page_table[page_number]] = current_time;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%5d &quot;</span>, main_array[page_number * PAGE_SIZE + offset]);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    initialize();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Prompt user to select page replacement algorithm</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Please select page replacement algorithm (1=OPT, 2=FIFO, 3=LRU), default random replacement: &quot;</span>);</span><br><span class="line">    <span class="built_in">scanf</span>(<span class="string">&quot;%d&quot;</span>, &amp;algo_choice);</span><br><span class="line">    <span class="keyword">if</span> (algo_choice &lt; <span class="number">1</span> || algo_choice &gt; <span class="number">3</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Invalid page replacement algorithm option, using default replacement method: random replacement.\n&quot;</span>);</span><br><span class="line">        algo_choice = <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Currently using page replacement algorithm: %s\n&quot;</span>, algo_name[algo_choice]);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Prompt user to select page access order</span></span><br><span class="line">    <span class="type">int</span> access_order = <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">if</span> (algo_choice == <span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// Prompt user to select, reselect if wrong choice</span></span><br><span class="line">        <span class="keyword">do</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> (access_order &lt; <span class="number">1</span> || access_order &gt; <span class="number">4</span>)</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;Invalid access order option, please reselect.\n&quot;</span>);</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;OPT algorithm needs to know future page access order, please select page access order (1=sequential, 2=jump, 3=branch, 4=loop): &quot;</span>);</span><br><span class="line">            <span class="built_in">scanf</span>(<span class="string">&quot;%d&quot;</span>, &amp;access_order);</span><br><span class="line">        &#125; <span class="keyword">while</span> (access_order &lt; <span class="number">1</span> || access_order &gt; <span class="number">4</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// Prompt user to select, reselect if wrong choice</span></span><br><span class="line">        <span class="keyword">do</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> (access_order &lt; <span class="number">1</span> || access_order &gt; <span class="number">5</span>)</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;Invalid access order option, please reselect.\n&quot;</span>);</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;Please select page access order (1=sequential, 2=jump, 3=branch, 4=loop, 5=random): &quot;</span>);</span><br><span class="line">            <span class="built_in">scanf</span>(<span class="string">&quot;%d&quot;</span>, &amp;access_order);</span><br><span class="line">        &#125; <span class="keyword">while</span> (access_order &lt; <span class="number">1</span> || access_order &gt; <span class="number">5</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Access pages according to selected access order</span></span><br><span class="line">    <span class="keyword">switch</span> (access_order)</span><br><span class="line">    &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">1</span>: <span class="comment">// Sequential access</span></span><br><span class="line">        <span class="comment">// Construct future_pages array</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; ARRAY_SIZE; i++)</span><br><span class="line">            future_pages[i] = i / PAGE_SIZE;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; ARRAY_SIZE; i++)</span><br><span class="line">            access_page(i / PAGE_SIZE, i % PAGE_SIZE, i);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">2</span>: <span class="comment">// Jump access</span></span><br><span class="line">        <span class="comment">// Construct future_pages array</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; ARRAY_SIZE; i++)</span><br><span class="line">            future_pages[i] = i * JUMP_NUM_FRAMES % ARRAY_SIZE / PAGE_SIZE;</span><br><span class="line">        <span class="comment">// Access with JUMP_NUM_FRAMES step intervals</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; ARRAY_SIZE; i++)</span><br><span class="line">            access_page(i * JUMP_NUM_FRAMES % ARRAY_SIZE / PAGE_SIZE, i * JUMP_NUM_FRAMES % ARRAY_SIZE % PAGE_SIZE, i);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">3</span>: <span class="comment">// Branch access</span></span><br><span class="line">        <span class="comment">// Construct future_pages array</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; ARRAY_SIZE; i++)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">// Even page frames sequential access, odd page frames jump access</span></span><br><span class="line">            <span class="keyword">if</span> (i % <span class="number">2</span> == <span class="number">0</span>)</span><br><span class="line">                future_pages[i] = i / PAGE_SIZE;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                future_pages[i] = i * JUMP_NUM_FRAMES % ARRAY_SIZE / PAGE_SIZE;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; ARRAY_SIZE; i++) &#123;</span><br><span class="line">            <span class="keyword">if</span> (i % <span class="number">2</span> == <span class="number">0</span>)</span><br><span class="line">                access_page(i / PAGE_SIZE, i % PAGE_SIZE, i);</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                access_page(i * JUMP_NUM_FRAMES % ARRAY_SIZE / PAGE_SIZE, i * JUMP_NUM_FRAMES % ARRAY_SIZE % PAGE_SIZE, i);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">4</span>: <span class="comment">// Loop access</span></span><br><span class="line">        <span class="comment">// Construct future_pages array</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; ARRAY_SIZE; i++)</span><br><span class="line">            future_pages[i] = (i % (ARRAY_SIZE / LOOP_TIMES)) / PAGE_SIZE;</span><br><span class="line">        <span class="comment">// Loop access loop_times times</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; ARRAY_SIZE; i++) </span><br><span class="line">            access_page((i % (ARRAY_SIZE / LOOP_TIMES)) / PAGE_SIZE, (i % (ARRAY_SIZE / LOOP_TIMES)) % PAGE_SIZE, i);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">5</span>: <span class="comment">// Random access</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; ARRAY_SIZE; i++)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="type">int</span> ind = rand() % ARRAY_SIZE;</span><br><span class="line">            access_page(ind / PAGE_SIZE, ind % PAGE_SIZE, i);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; ARRAY_SIZE; i++)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="type">int</span> ind = rand() % ARRAY_SIZE;</span><br><span class="line">            access_page(ind / PAGE_SIZE, ind % PAGE_SIZE, i);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Print future_pages */</span></span><br><span class="line">    <span class="comment">// for (int i = 0; i &lt; NUM_PAGES; i++)</span></span><br><span class="line">    <span class="comment">// &#123;</span></span><br><span class="line">    <span class="comment">//     printf(&quot;%d &quot;, future_pages[i]);</span></span><br><span class="line">    <span class="comment">// &#125;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Output page fault count</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Page access error count: %d, Hit rate: %.2f%%\n&quot;</span>, page_faults, (<span class="number">1</span> - (<span class="type">float</span>)page_faults / ARRAY_SIZE) * <span class="number">100</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="program-execution-results">Program Execution Results</h3>
+<p>This is the original output example, but for better demonstration, I
+made some modifications to the program and commented out some
+output.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/3-2-output.png"
+alt="Original output" />
+<figcaption aria-hidden="true">Original output</figcaption>
+</figure>
+<h4 id="opt">OPT</h4>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/3-2-opt.png"
+alt="OPT execution result" />
+<figcaption aria-hidden="true">OPT execution result</figcaption>
+</figure>
+<h4 id="fifo">FIFO</h4>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/3-2-fifo.png"
+alt="FIFO execution result" />
+<figcaption aria-hidden="true">FIFO execution result</figcaption>
+</figure>
+<h4 id="lru">LRU</h4>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/3-2-lru.png"
+alt="LRU execution result" />
+<figcaption aria-hidden="true">LRU execution result</figcaption>
+</figure>
+<p>Since the OPT algorithm needs to know the future page access order,
+after selecting the OPT algorithm, there is no option 5=random
+access.</p>
+<h2
+id="task-3-modify-linux-kernel-page-fault-handling-function-to-print-debug-information">Task
+3: Modify Linux Kernel Page Fault Handling Function to Print Debug
+Information</h2>
+<h3 id="task-requirements-2">Task Requirements</h3>
+<ol type="1">
+<li><p>Write 2 applications similar to hello world or simple for loops
+as test targets.</p></li>
+<li><p>Add debug information using printk in Linux kernel’s page fault
+handling function do_no_page() or similar functions (function names vary
+across versions), print page fault information for specific processes
+(using program name as filter condition), and count page
+faults.</p></li>
+<li><p>You can also add debug information using printk in Linux kernel’s
+physical page frame allocation function get_free_page() or similar
+functions (function names vary across versions), print information about
+new page frame allocation during specific process execution (using
+program name as filter condition), and count related
+information.</p></li>
+</ol>
+<h3 id="modify-kernel-source-code">Modify Kernel Source Code</h3>
+<h4 id="add-code-.mmmemory.c">Add Code <code>./mm/memory.c</code></h4>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Add two system calls for program control, one to set target program name, one to get target program&#x27;s page fault count</span></span><br><span class="line"><span class="type">static</span> <span class="type">char</span> target_program[<span class="number">256</span>] = &#123;<span class="number">0</span>&#125;; <span class="comment">// target program name</span></span><br><span class="line"><span class="type">static</span> <span class="type">long</span> page_fault_count = <span class="number">0</span>;      <span class="comment">// page fault counts</span></span><br><span class="line"></span><br><span class="line">SYSCALL_DEFINE1(set_target_program_name, <span class="type">const</span> <span class="type">char</span> __user *, program_name) &#123;</span><br><span class="line">        <span class="comment">// copy name to kernel </span></span><br><span class="line">        <span class="keyword">if</span> (copy_from_user(target_program,program_name, <span class="number">255</span>) != <span class="number">0</span>)</span><br><span class="line">                <span class="keyword">return</span> -EFAULT;  <span class="comment">// if fail, return -EFAULT</span></span><br><span class="line"></span><br><span class="line">        target_program[<span class="number">255</span>] = <span class="string">&#x27;\0&#x27;</span>;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">SYSCALL_DEFINE0(get_page_fault_count) &#123;</span><br><span class="line">        printk(KERN_INFO <span class="string">&quot;%s page fault count: %ld\n&quot;</span>, target_program, page_fault_count);</span><br><span class="line">        page_fault_count = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">return</span> page_fault_count;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Add debug information in do_no_page function</span></span><br><span class="line"><span class="keyword">if</span> (<span class="built_in">strcmp</span>(current-&gt;comm, target_program) == <span class="number">0</span>)</span><br><span class="line">                page_fault_count++;</span><br></pre></td></tr></table></figure>
+<h4 id="system-call-function-declaration-.includelinuxsyscalls.h">System
+Call Function Declaration <code>./include/linux/syscalls.h</code></h4>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Add declarations for two system calls</span></span><br><span class="line">asmlinkage <span class="type">long</span> <span class="title function_">sys_set_target_program_name</span><span class="params">(<span class="type">const</span> <span class="type">char</span> __user *name)</span>;</span><br><span class="line">asmlinkage <span class="type">long</span> <span class="title function_">sys_get_page_fault_count</span><span class="params">(<span class="type">void</span>)</span>;</span><br></pre></td></tr></table></figure>
+<h4 id="system-call-id-.archx86entrysyscallssyscall_64.tbl">System Call
+ID <code>./arch/x86/entry/syscalls/syscall_64.tbl</code></h4>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Add system call numbers for two system calls</span></span><br><span class="line"><span class="number">448</span>   <span class="number">64</span>   set_target_program_name     sys_set_target_program_name</span><br><span class="line"><span class="number">449</span>   <span class="number">64</span>   get_page_fault_count        sys_get_page_fault_count</span><br></pre></td></tr></table></figure>
+<h4
+id="system-call-id-declaration-.includeuapiasm-genericunistd.h">System
+Call ID Declaration
+<code>./include/uapi/asm-generic/unistd.h</code></h4>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Add declarations for two system calls</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> __NR_set_target_program_name 448</span></span><br><span class="line">__SYSCALL(__NR_set_target_program_name, sys_set_target_program_name)</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> __NR_get_page_fault_count 449</span></span><br><span class="line">__SYSCALL(__NR_get_page_fault_count, sys_get_page_fault_count)</span><br></pre></td></tr></table></figure>
+<h3 id="write-test-code-after-kernel-compilation">Write Test Code After
+Kernel Compilation</h3>
+<p>The compilation will report an error as follows:</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/3-3-error1.png"
+alt="Error" />
+<figcaption aria-hidden="true">Error</figcaption>
+</figure>
+<p>Initially I didn’t know what this error meant, and after modifying
+for a long time without effect, I later added
+<code>#include &lt;linux/syscalls.h&gt;</code> and it worked. This means
+that if you define system calls, you must include this header file. But
+the error message is not very clear, which caused me to waste a lot of
+time.</p>
+<p>Below is test1.c, test2.c just removes the newly added system calls.
+This is to test that the debug information is controllable.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/syscall.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Assume these are the numbers for your new system calls</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SYS_SET_TARGET_PROGRAM_NAME 448</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SYS_GET_PAGE_FAULT_COUNT 449</span></span><br><span class="line"></span><br><span class="line"><span class="type">const</span> <span class="type">int</span> size = <span class="number">1000</span>;</span><br><span class="line"><span class="type">int</span> <span class="built_in">array</span>[<span class="number">1000</span>][<span class="number">1000</span>];</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="comment">// Set target program name</span></span><br><span class="line">    <span class="type">const</span> <span class="type">char</span> *target_program = <span class="string">&quot;test&quot;</span>;</span><br><span class="line">    syscall(SYS_SET_TARGET_PROGRAM_NAME, target_program);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Execute operations that may trigger page faults</span></span><br><span class="line">    <span class="type">int</span> i, j;</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; size; i++) &#123;</span><br><span class="line">        <span class="keyword">for</span> (j = <span class="number">0</span>; j &lt; size; j++) &#123;</span><br><span class="line">            <span class="built_in">array</span>[i][j] = i + j;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Get and output page fault count</span></span><br><span class="line">    syscall(SYS_GET_PAGE_FAULT_COUNT);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="program-execution-results-1">Program Execution Results</h3>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/3-3-test_result.png"
+alt="Program execution result" />
+<figcaption aria-hidden="true">Program execution result</figcaption>
+</figure>
+<p>As shown in the figure, only the page fault count for the test1
+program was printed, while the page fault count for the test2 program
+was not printed.</p>
+<h2
+id="task-4-calculate-va-to-pa-mapping-using-procpidpagemap-in-linux">Task
+4: Calculate VA to PA Mapping using /proc/pid/pagemap in Linux</h2>
+<h3 id="task-requirements-3">Task Requirements</h3>
+<ol type="1">
+<li><p>Linux’s /proc/pid/pagemap file allows users to view physical
+addresses and other related information of current process virtual
+pages. Each virtual page contains a 64-bit value, pay attention to
+analyzing the 64-bit information.</p></li>
+<li><p>Get the full name of the current process’s pagemap file</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Example code from ppt</span></span><br><span class="line"><span class="type">pid_t</span> pid = getpid();</span><br><span class="line"><span class="built_in">sprintf</span>(buf, <span class="string">&quot;%d&quot;</span>, pid);</span><br><span class="line"><span class="built_in">strcpy</span>(filename, <span class="string">&quot;/proc/&quot;</span>);</span><br><span class="line"><span class="built_in">strcat</span>(filename, buf);</span><br><span class="line"><span class="built_in">strcat</span>(filename, <span class="string">&quot;/pagemap&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// Can be done in one step</span></span><br><span class="line"><span class="built_in">sprintf</span>(filename, <span class="string">&quot;/proc/%d/pagemap&quot;</span>, pid);</span><br></pre></td></tr></table></figure></li>
+<li><p>Can output virtual addresses, page numbers, physical page frame
+numbers, physical addresses and other information of one or more global
+variables or custom functions in the process.</p></li>
+</ol>
+<p>Thinking:</p>
+<ol type="1">
+<li><p>How to extend the experiment (write a general function) to show
+the physical address corresponding to a specified virtual address of a
+specified process.</p></li>
+<li><p>How to extend the experiment to verify that different processes’
+shared libraries (e.g., some known, commonly called *.so libraries) have
+the same physical address.</p></li>
+</ol>
+<h3 id="code-implementation-2">Code Implementation</h3>
+<p>program.c implements output of virtual addresses, page numbers,
+physical page frame numbers, physical addresses and other information of
+one or more global variables or custom functions.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/stat.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdint.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">printPhysicalAddress</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *description, <span class="type">unsigned</span> <span class="type">long</span> vaddr)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> pageSize = getpagesize();                            <span class="comment">// Get system-set page size</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> v_pageIndex = vaddr / pageSize;            <span class="comment">// Calculate number of pages passed relative to 0x0 for this virtual address</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> v_offset = v_pageIndex * <span class="keyword">sizeof</span>(<span class="type">uint64_t</span>); <span class="comment">// Calculate offset in /proc/pid/page_map file</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> page_offset = vaddr % pageSize;            <span class="comment">// Calculate offset of virtual address within page</span></span><br><span class="line">    <span class="type">uint64_t</span> item = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="type">char</span> buf[<span class="number">200</span>];</span><br><span class="line">    <span class="built_in">sprintf</span>(buf, <span class="string">&quot;/proc/%d/pagemap&quot;</span>, getpid());</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> fd = open(buf, O_RDONLY);</span><br><span class="line">    <span class="keyword">if</span> (fd == <span class="number">-1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        perror(<span class="string">&quot;Error opening pagemap&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    lseek(fd, v_offset, SEEK_SET); <span class="comment">// Move file pointer to corresponding position in file to get item</span></span><br><span class="line">    <span class="keyword">if</span> (read(fd, &amp;item, <span class="keyword">sizeof</span>(<span class="type">uint64_t</span>)) != <span class="keyword">sizeof</span>(<span class="type">uint64_t</span>))</span><br><span class="line">    &#123;</span><br><span class="line">        perror(<span class="string">&quot;Error reading pagemap&quot;</span>);</span><br><span class="line">        close(fd);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">uint64_t</span> phy_pageIndex = (((<span class="type">uint64_t</span>)<span class="number">1</span> &lt;&lt; <span class="number">55</span>) - <span class="number">1</span>) &amp; item;      <span class="comment">// Physical page number, i.e., take bits 0-54 of item</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> paddr = (phy_pageIndex * pageSize) + page_offset; <span class="comment">// Physical address = physical page number * page size + page offset</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;【%s】pid = %d, Virtual address = 0x%lx, Page number = %lu, Physical address = 0x%lx, Physical page frame number = %lu\n&quot;</span>,</span><br><span class="line">           description, getpid(), vaddr, v_pageIndex, paddr, phy_pageIndex);</span><br><span class="line"></span><br><span class="line">    close(fd);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">const</span> <span class="type">int</span> a = <span class="number">100</span>; <span class="comment">// Global constant</span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> b = <span class="number">100</span>;                   <span class="comment">// Local variable</span></span><br><span class="line">    <span class="type">static</span> <span class="type">int</span> c = <span class="number">100</span>;            <span class="comment">// Local static variable</span></span><br><span class="line">    <span class="type">const</span> <span class="type">int</span> d = <span class="number">100</span>;             <span class="comment">// Local constant</span></span><br><span class="line">    <span class="type">char</span> *p = (<span class="type">char</span> *)<span class="built_in">malloc</span>(<span class="number">100</span>); <span class="comment">// Dynamic memory</span></span><br><span class="line"></span><br><span class="line">    printPhysicalAddress(<span class="string">&quot;Global constant&quot;</span>, (<span class="type">unsigned</span> <span class="type">long</span>)&amp;a);</span><br><span class="line">    printPhysicalAddress(<span class="string">&quot;Local variable&quot;</span>, (<span class="type">unsigned</span> <span class="type">long</span>)&amp;b);</span><br><span class="line">    printPhysicalAddress(<span class="string">&quot;Local static variable&quot;</span>, (<span class="type">unsigned</span> <span class="type">long</span>)&amp;c);</span><br><span class="line">    printPhysicalAddress(<span class="string">&quot;Local constant&quot;</span>, (<span class="type">unsigned</span> <span class="type">long</span>)&amp;d);</span><br><span class="line">    printPhysicalAddress(<span class="string">&quot;Dynamic memory&quot;</span>, (<span class="type">unsigned</span> <span class="type">long</span>)p);</span><br><span class="line">    <span class="built_in">free</span>(p);</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>va2pa.c implements output of physical address corresponding to a
+specified virtual address of a specified process.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdint.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Logic is the same as above, just pid and vaddr are parameters</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">printPhysicalAddressForProcess</span><span class="params">(<span class="type">pid_t</span> pid, <span class="type">unsigned</span> <span class="type">long</span> vaddr)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> pageSize = getpagesize();</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> v_pageIndex = vaddr / pageSize;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> v_offset = v_pageIndex * <span class="keyword">sizeof</span>(<span class="type">uint64_t</span>);</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> page_offset = vaddr % pageSize;</span><br><span class="line">    <span class="type">uint64_t</span> item = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="type">char</span> pagemap_file[<span class="number">256</span>];</span><br><span class="line">    <span class="built_in">sprintf</span>(pagemap_file, <span class="string">&quot;/proc/%d/pagemap&quot;</span>, pid);</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> fd = open(pagemap_file, O_RDONLY);</span><br><span class="line">    <span class="keyword">if</span> (fd == <span class="number">-1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        perror(<span class="string">&quot;Error opening pagemap&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    lseek(fd, v_offset, SEEK_SET);</span><br><span class="line">    <span class="keyword">if</span> (read(fd, &amp;item, <span class="keyword">sizeof</span>(<span class="type">uint64_t</span>)) != <span class="keyword">sizeof</span>(<span class="type">uint64_t</span>))</span><br><span class="line">    &#123;</span><br><span class="line">        perror(<span class="string">&quot;Error reading pagemap&quot;</span>);</span><br><span class="line">        close(fd);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">uint64_t</span> phy_pageIndex = (((<span class="type">uint64_t</span>)<span class="number">1</span> &lt;&lt; <span class="number">55</span>) - <span class="number">1</span>) &amp; item;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> paddr = (phy_pageIndex * pageSize) + page_offset;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;pid = %d, Virtual address = 0x%lx, Page number = %lu, Physical address = 0x%lx, Physical page frame number = %lu\n&quot;</span>,</span><br><span class="line">           pid, vaddr, v_pageIndex, paddr, phy_pageIndex);</span><br><span class="line">    close(fd);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> *argv[])</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (argc != <span class="number">3</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Usage: %s &lt;pid&gt; &lt;virtual address&gt;\n&quot;</span>, argv[<span class="number">0</span>]);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">pid_t</span> pid = atoi(argv[<span class="number">1</span>]);</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> vaddr = strtoul(argv[<span class="number">2</span>], <span class="literal">NULL</span>, <span class="number">16</span>);</span><br><span class="line"></span><br><span class="line">    printPhysicalAddressForProcess(pid, vaddr);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>test.c is a test program used to verify that different processes’
+shared libraries have the same physical address. For example, the printf
+function in this program is in the <strong>libc.so</strong> shared
+library.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;PID: %d, Virtual address of printf: %p\n&quot;</span>, getpid(), (<span class="type">void</span> *)<span class="built_in">printf</span>);</span><br><span class="line">    sleep(<span class="number">1000</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="program-execution-results-2">Program Execution Results</h3>
+<blockquote>
+<p>Must run with sudo, otherwise this file should not have permission to
+open</p>
+</blockquote>
+<h4 id="program.c">program.c</h4>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/3-4-program1.png"
+alt="program.c execution result" />
+<figcaption aria-hidden="true">program.c execution result</figcaption>
+</figure>
+<h4 id="va2pa.c-test.c">va2pa.c &amp;&amp; test.c</h4>
+<p>Start two test processes, output the virtual addresses of the printf
+function respectively. va2pa.c calculates the physical addresses
+corresponding to the virtual addresses of the printf function for both
+processes.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/3-4-va2pa.png"
+alt="va2pa.c program execution result" />
+<figcaption aria-hidden="true">va2pa.c program execution
+result</figcaption>
+</figure>
+<p>The two red boxes on the right print the pid of the currently running
+test program and the virtual address of the printf function, then use
+the process number and virtual address as parameters for va2pa.c to
+calculate the physical address. The results are shown in the two boxes
+on the left. The physical addresses corresponding to the virtual
+addresses of the printf function for both processes (marked with blue
+highlighter) are the same, proving that different processes’ shared
+libraries have the same physical address.</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2023/12/05/HUST-Labs/HUST%20Operating%20System%20Lab3:%20Memory%20Management/">https://xloverflow.github.io/2023/12/05/HUST-Labs/HUST%20Operating%20System%20Lab3:%20Memory%20Management/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/tags/Course-Experiments/">Course Experiments</a><a class="post-meta__tags" href="/tags/Operating-System/">Operating System</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/david-marcu-78A265wPiO4-unsplash.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab1-Software%20Security/" title="HUST Information System Security Lab1-Software Security"><img class="cover" src="https://t3.chei.com.cn/zyk/zybk/zyjd/cdn/showImg/ikb2ll7ejr4ufkfj.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">HUST Information System Security Lab1-Software Security</div></div><div class="info-2"><div class="info-item-1">Operation process record for HUST Information System Security Lab1</div></div></div></a><a class="pagination-related" href="/2023/11/29/HUST-Labs/HUST%20Operating%20System%20Lab2:%20Process&amp;Thread%20Synchronization%20Mechanisms%20and%20Application%20Programming/" title="HUST Operating System Lab2: Process&amp;Thread Synchronization Mechanisms and Application Programming"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/v2osk-1Z2niiBPg5A-unsplash.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">HUST Operating System Lab2: Process&Thread Synchronization Mechanisms and Application Programming</div></div><div class="info-2"><div class="info-item-1">Operation process record for HUST Operating System Lab2</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2023/11/29/HUST-Labs/HUST%20Operating%20System%20Lab2:%20Process&Thread%20Synchronization%20Mechanisms%20and%20Application%20Programming/" title="HUST Operating System Lab2: Process&amp;Thread Synchronization Mechanisms and Application Programming"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/v2osk-1Z2niiBPg5A-unsplash.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-29</div><div class="info-item-2">HUST Operating System Lab2: Process&amp;Thread Synchronization Mechanisms and Application Programming</div></div><div class="info-2"><div class="info-item-1">Operation process record for HUST Operating System Lab2</div></div></div></a><a class="pagination-related" href="/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab1-Software%20Security/" title="HUST Information System Security Lab1-Software Security"><img class="cover" src="https://t3.chei.com.cn/zyk/zybk/zyjd/cdn/showImg/ikb2ll7ejr4ufkfj.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-26</div><div class="info-item-2">HUST Information System Security Lab1-Software Security</div></div><div class="info-2"><div class="info-item-1">Operation process record for HUST Information System Security Lab1</div></div></div></a><a class="pagination-related" href="/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab2-System%20Security/" title="HUST Information System Security Lab2-System Security"><img class="cover" src="https://picx.zhimg.com/80/v2-06450eedf96def79a590cec5c6c0ecbd_720w.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-26</div><div class="info-item-2">HUST Information System Security Lab2-System Security</div></div><div class="info-2"><div class="info-item-1">Operation process record for HUST Information System Security Lab2</div></div></div></a><a class="pagination-related" href="/2024/09/26/HUST-Labs/HUST%20Information%20System%20Security%20Lab3-Web%20Security/" title="HUST Information System Security Lab3-Web Security"><img class="cover" src="https://pic1.zhimg.com/80/v2-416f1b8d4133d67e746a67adbb40f508_720w.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-26</div><div class="info-item-2">HUST Information System Security Lab3-Web Security</div></div><div class="info-2"><div class="info-item-1">Operation process record for HUST Information System Security Lab3</div></div></div></a><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">Notes on RNN architectures, encoder-decoder models, and attention mechanisms from CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-22</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 11-711 Advanced NLP.</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#operating-system-lab3-memory-management"><span class="toc-number">1.</span> <span class="toc-text">Operating System Lab3:
+Memory Management</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#experiment-objectives"><span class="toc-number">1.1.</span> <span class="toc-text">Experiment Objectives</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#experiment-content"><span class="toc-number">1.2.</span> <span class="toc-text">Experiment Content</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#task-1-write-a-2d-array-traversal-program-to-understand-the-principle-of-program-locality"><span class="toc-number">1.3.</span> <span class="toc-text">Task
+1: Write a 2D Array Traversal Program to Understand the Principle of
+Program Locality</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#task-requirements"><span class="toc-number">1.3.1.</span> <span class="toc-text">Task Requirements</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#code-implementation"><span class="toc-number">1.3.2.</span> <span class="toc-text">Code Implementation</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#bit-program-compilation"><span class="toc-number">1.3.3.</span> <span class="toc-text">32-bit Program Compilation</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#bit-and-64-bit-program-execution-results"><span class="toc-number">1.3.4.</span> <span class="toc-text">32-bit and 64-bit
+Program Execution Results</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#observation-and-analysis-of-phenomena"><span class="toc-number">1.3.5.</span> <span class="toc-text">Observation and Analysis
+of Phenomena</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#task-2-simulate-and-implement-opt-fifo-or-lru-page-replacement-algorithms"><span class="toc-number">1.4.</span> <span class="toc-text">Task
+2: Simulate and Implement OPT, FIFO, or LRU Page Replacement
+Algorithms</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#task-requirements-1"><span class="toc-number">1.4.1.</span> <span class="toc-text">Task Requirements</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#code-implementation-1"><span class="toc-number">1.4.2.</span> <span class="toc-text">Code Implementation</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#program-execution-results"><span class="toc-number">1.4.3.</span> <span class="toc-text">Program Execution Results</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#opt"><span class="toc-number">1.4.3.1.</span> <span class="toc-text">OPT</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#fifo"><span class="toc-number">1.4.3.2.</span> <span class="toc-text">FIFO</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#lru"><span class="toc-number">1.4.3.3.</span> <span class="toc-text">LRU</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#task-3-modify-linux-kernel-page-fault-handling-function-to-print-debug-information"><span class="toc-number">1.5.</span> <span class="toc-text">Task
+3: Modify Linux Kernel Page Fault Handling Function to Print Debug
+Information</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#task-requirements-2"><span class="toc-number">1.5.1.</span> <span class="toc-text">Task Requirements</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#modify-kernel-source-code"><span class="toc-number">1.5.2.</span> <span class="toc-text">Modify Kernel Source Code</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#add-code-.mmmemory.c"><span class="toc-number">1.5.2.1.</span> <span class="toc-text">Add Code .&#x2F;mm&#x2F;memory.c</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#system-call-function-declaration-.includelinuxsyscalls.h"><span class="toc-number">1.5.2.2.</span> <span class="toc-text">System
+Call Function Declaration .&#x2F;include&#x2F;linux&#x2F;syscalls.h</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#system-call-id-.archx86entrysyscallssyscall_64.tbl"><span class="toc-number">1.5.2.3.</span> <span class="toc-text">System Call
+ID .&#x2F;arch&#x2F;x86&#x2F;entry&#x2F;syscalls&#x2F;syscall_64.tbl</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#system-call-id-declaration-.includeuapiasm-genericunistd.h"><span class="toc-number">1.5.2.4.</span> <span class="toc-text">System
+Call ID Declaration
+.&#x2F;include&#x2F;uapi&#x2F;asm-generic&#x2F;unistd.h</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#write-test-code-after-kernel-compilation"><span class="toc-number">1.5.3.</span> <span class="toc-text">Write Test Code After
+Kernel Compilation</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#program-execution-results-1"><span class="toc-number">1.5.4.</span> <span class="toc-text">Program Execution Results</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#task-4-calculate-va-to-pa-mapping-using-procpidpagemap-in-linux"><span class="toc-number">1.6.</span> <span class="toc-text">Task
+4: Calculate VA to PA Mapping using &#x2F;proc&#x2F;pid&#x2F;pagemap in Linux</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#task-requirements-3"><span class="toc-number">1.6.1.</span> <span class="toc-text">Task Requirements</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#code-implementation-2"><span class="toc-number">1.6.2.</span> <span class="toc-text">Code Implementation</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#program-execution-results-2"><span class="toc-number">1.6.3.</span> <span class="toc-text">Program Execution Results</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#program.c"><span class="toc-number">1.6.3.1.</span> <span class="toc-text">program.c</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#va2pa.c-test.c"><span class="toc-number">1.6.3.2.</span> <span class="toc-text">va2pa.c &amp;&amp; test.c</span></a></li></ol></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Retrieval and RAG"/></a><div class="content"><a class="title" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG">11711 Advanced NLP: Retrieval and RAG</a><time datetime="2026-02-14T22:08:21.000Z" title="Created 2026-02-14 17:08:21">2026-02-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Distributed Training and Parallelization"/></a><div class="content"><a class="title" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization">15642 Machine Learning Systems: Distributed Training and Parallelization</a><time datetime="2026-02-13T21:00:00.000Z" title="Created 2026-02-13 16:00:00">2026-02-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Decoding"/></a><div class="content"><a class="title" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding">11868 LLM Sys: Decoding</a><time datetime="2026-02-13T01:00:00.000Z" title="Created 2026-02-12 20:00:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Tokenization and Embedding"/></a><div class="content"><a class="title" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding">11868 LLM Sys: Tokenization and Embedding</a><time datetime="2026-02-12T20:30:00.000Z" title="Created 2026-02-12 15:30:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"/></a><div class="content"><a class="title" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations">15642 Machine Learning Systems: Transformer, Attention, and Optimizations</a><time datetime="2026-02-09T19:30:00.000Z" title="Created 2026-02-09 14:30:00">2026-02-09</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '0d4ec3ddf24d431368129ae606e9ea53'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

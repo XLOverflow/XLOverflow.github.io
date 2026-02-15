@@ -1,0 +1,443 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Campus Network Router Connection with Web Authentication | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Recording the process of connecting router to HUST campus network">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Campus Network Router Connection with Web Authentication">
+<meta property="og:url" content="https://xloverflow.github.io/2023/02/17/Tools/Campus%20Network%20Router%20Connection%20with%20Web%20Authentication/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Recording the process of connecting router to HUST campus network">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/nasa-Q1p7bh3SHj8-unsplash.jpg">
+<meta property="article:published_time" content="2023-02-17T00:10:12.000Z">
+<meta property="article:modified_time" content="2026-02-15T05:04:17.013Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="Computer Networks - Campus Network - Routing">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/nasa-Q1p7bh3SHj8-unsplash.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Campus Network Router Connection with Web Authentication",
+  "url": "https://xloverflow.github.io/2023/02/17/Tools/Campus%20Network%20Router%20Connection%20with%20Web%20Authentication/",
+  "image": "https://raw.githubusercontent.com/hustlixiang21/blog-image/main/nasa-Q1p7bh3SHj8-unsplash.jpg",
+  "datePublished": "2023-02-17T00:10:12.000Z",
+  "dateModified": "2026-02-15T05:04:17.013Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2023/02/17/Tools/Campus%20Network%20Router%20Connection%20with%20Web%20Authentication/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Campus Network Router Connection with Web Authentication',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/hustlixiang21/blog-image/main/nasa-Q1p7bh3SHj8-unsplash.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">Campus Network Router Connection with Web Authentication</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Campus Network Router Connection with Web Authentication</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2023-02-17T00:10:12.000Z" title="Created 2023-02-16 19:10:12">2023-02-16</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-02-15T05:04:17.013Z" title="Updated 2026-02-15 00:04:17">2026-02-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Tools-Workflow/">Tools &amp; Workflow</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="requirements">Requirements</h1>
+<p>Due to the device quantity limitations of campus network, I wanted to
+use the campus wired network to connect my own router to remove device
+quantity restrictions, and implement so-called hardware VPN, where
+traffic is forwarded through the router to a proxy server, so that
+devices in the network formed by this router don’t need to start VPN
+software, saving some trouble.</p>
+<h1 id="difficulties-and-solutions">Difficulties and Solutions</h1>
+<p>Campus network is different from home network, requiring web
+authentication to connect. Initially, I thought I could just buy a
+ready-made router (ASUS TUF AX3000) and connect it for authentication,
+but it turned out that the authentication interface wouldn’t pop up. So
+I bought a soft router R2S (essentially a microcomputer) and installed
+<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/zh-hans/OpenWrt">OpenWrt</a> system as
+the upper-level router, because it’s essentially an embedded Linux
+system with command-line tools, and I can use the <code>curl</code>
+command to send HTTP requests to the campus network authentication
+interface (HUST uses 192.168.50.3) to achieve login. As for VPN, I just
+need to configure the subscribed proxy server address in the soft router
+software. Yes, it’s essentially still software VPN, but it’s handled by
+the gateway.</p>
+<h1 id="process-demonstration">Process Demonstration</h1>
+<h2 id="equipment-preparation">Equipment Preparation</h2>
+<p>One router, one soft router, two network cables, one computer.</p>
+<h2
+id="using-network-packet-capture-to-get-http-request-content-value-for-campus-network-authentication">Using
+Network Packet Capture to Get HTTP Request Content Value for Campus
+Network Authentication</h2>
+<p>First, connect one end of a network cable to the campus wired network
+port, and the other end to your computer. Access the campus network
+authentication interface through a browser, preferably with WiFi
+disabled. Enter your account and password in advance, <strong>but don’t
+click login</strong>. <img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/%E6%88%AA%E5%B1%8F2023-02-16%2020.01.16.png" /></p>
+<h3 id="enter-developer-mode">Enter Developer Mode</h3>
+<p>Press F12 to enter the browser’s developer mode, take a general look,
+and understand the webpage’s logic, specifically the login function <img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/%E6%88%AA%E5%B1%8F2023-02-16%2020.05.27.png" /></p>
+<h3 id="set-breakpoint-at-post-location">Set Breakpoint at POST
+Location</h3>
+<p>Just like debugging code normally. <img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/%E6%88%AA%E5%B1%8F2023-02-16%2020.06.24.png" /></p>
+<h3 id="click-login-to-get-content-value">Click Login to Get Content
+Value</h3>
+<p><img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/%E6%88%AA%E5%B1%8F2023-02-16%2020.27.04.png" /></p>
+<h3 id="use-curl-command-to-send-request">Use curl Command to Send
+Request</h3>
+<p>Write a shell script, or don’t write one at all. <img
+src="https://picx.zhimg.com/80/v2-285e2cea8e82f818410f32dd796559b3_1440w.png" />
+After using the chmod command to give it execution permissions, execute
+the script. If the return value is “success”, it means the command
+executed successfully and completed campus network authentication; if
+not successful, repeat the content acquisition operation, as I also
+failed the first time. ## Configure Soft Router</p>
+<h3 id="install-openwrt-system">Install OpenWrt System</h3>
+<p>Since there are many open-source options on GitHub, the effects
+should be similar, so you can choose any one. Most soft routers bought
+on Taobao come pre-installed. If you have a completely new machine,
+refer to the video below to install the OpenWrt system.
+<div class="video-container"><iframe src="https://www.youtube.com/embed/gsrAj1vySaE" frameborder="0" loading="lazy" allowfullscreen></iframe></div></p>
+<h3 id="access-soft-router-backend">Access Soft Router Backend</h3>
+<p>Insert the TF card correctly into the soft router and ensure the sys
+indicator light on your soft router is normal.
+<img src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/%E6%88%AA%E5%B1%8F2023-02-16%2019.46.52.png"/></p>
+<p>Connect one end of a network cable to the campus wired network port
+and the other end to the WAN port of the soft router. Connect one end of
+another network cable to the LAN port of the soft router and the other
+end to your computer. At this point, the computer and soft router are on
+the same local network. Access the soft router’s backend through its IP
+address (this is usually provided by the seller; if not, you can check
+the gateway’s IP address or disable DHCP for manual assignment) in the
+browser and log in with username and password. <img
+src="https://picx.zhimg.com/80/v2-7d989b04c23b0a4f5f0bef25068a117a_1440w.png" />
+### Using curl Command in Command Line Access the soft router’s command
+line tool and use the curl command written above to perform campus
+network authentication. It’s best to try pinging Baidu to see if it
+works. <img
+src="https://pica.zhimg.com/80/v2-1b493abb1ef9054903270b5bdffeabb5_1440w.png" /></p>
+<h3 id="configure-internet-access">Configure Internet Access</h3>
+<p>I use OpenClash, which is built-in software. You can use any proxy
+software, then configure it like on other devices by entering the
+subscription URL. <img
+src="https://pic1.zhimg.com/80/v2-d9aab76bd341cae45b8c5524653098e7_1440w.png" /></p>
+<h2 id="configure-hard-router">Configure Hard Router</h2>
+<p>Since soft routers cannot send wireless network signals like regular
+routers (at least my entry-level machine cannot), you need to use a real
+router to send WiFi signals or provide more LAN ports for wired network
+connections. My ASUS router serves this purpose. Focus on the cable
+connected to the soft router’s LAN port, and change the end that was
+connected to the computer to connect to the router’s WAN port. Of
+course, you can also connect it to the LAN port, but you need to use the
+router’s AP mode. The difference is that when connected to the WAN port,
+the soft router becomes the upstream router, and you cannot access the
+soft router’s backend by entering its IP address (at least with my
+current technical level); when connected to the LAN port, the soft
+router remains on the same local network as our devices (at this point,
+the router acts like a switch with wireless functionality).</p>
+<p>I connected it to the WAN port, then used any device that can access
+the internet to connect to the WiFi signal and complete the initial
+router setup based on the information provided on the back of the
+router, such as name and password. This process is relatively simple and
+won’t be elaborated on further.</p>
+<h1 id="final-notes">Final Notes</h1>
+<p>Due to the limitations of school power and network outages causing
+devices to disconnect at night, we can’t repeatedly log into the soft
+router backend to connect to the campus network every time. However, it
+seems that after enabling seamless authentication, it can automatically
+reconnect even after being disconnected for a while. I’m still planning
+to write an automatic login and logout script when I have time to comply
+with school regulations.</p>
+<p>The above method indeed works for my situation, and the router I
+bought itself supports flashing. Actually, for general home networks
+that don’t require authentication, you don’t need a soft router. Some
+ASUS router series support flashing Merlin firmware, which is
+essentially an OpenWrt system adapted for ASUS routers. Since I haven’t
+found a better solution yet, I can only maintain the current situation.
+The soft router serves more as a side router, specifically providing
+ad-blocking services for the TV box at home, or streaming acceleration,
+and most importantly, enabling internet access to watch foreign
+streaming software.</p>
+<p>Reference Article <a
+target="_blank" rel="noopener" href="https://blog.csdn.net/qq_30763587/article/details/119523231">Implementing
+Campus Network Web Authentication under OpenWrt</a> <a
+target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/443145372?utm_campaign=shareopn&amp;utm_medium=social&amp;utm_oi=1137483569697013760&amp;utm_psn=1609660582969470976&amp;utm_source=wechat_session">Huazhong
+University of Science and Technology Campus Network
+Auto-Reconnection</a></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2023/02/17/Tools/Campus%20Network%20Router%20Connection%20with%20Web%20Authentication/">https://xloverflow.github.io/2023/02/17/Tools/Campus%20Network%20Router%20Connection%20with%20Web%20Authentication/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Computer-Networks-Campus-Network-Routing/">Computer Networks - Campus Network - Routing</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/nasa-Q1p7bh3SHj8-unsplash.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2023/11/29/HUST-Labs/HUST%20Operating%20System%20Lab2:%20Process&amp;Thread%20Synchronization%20Mechanisms%20and%20Application%20Programming/" title="HUST Operating System Lab2: Process&amp;Thread Synchronization Mechanisms and Application Programming"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/v2osk-1Z2niiBPg5A-unsplash.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">HUST Operating System Lab2: Process&Thread Synchronization Mechanisms and Application Programming</div></div><div class="info-2"><div class="info-item-1">Operation process record for HUST Operating System Lab2</div></div></div></a><a class="pagination-related" href="/2022/09/03/CPP/Qt/" title="Qt"><img class="cover" src="https://picx.zhimg.com/80/v2-3ff0c2db1a4a86eaebde45a30ff730c7_1440w.jpeg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">Qt</div></div><div class="info-2"><div class="info-item-1">Cross-platform Qt applications, designing programs with graphical user interfaces</div></div></div></a></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#requirements"><span class="toc-number">1.</span> <span class="toc-text">Requirements</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#difficulties-and-solutions"><span class="toc-number">2.</span> <span class="toc-text">Difficulties and Solutions</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#process-demonstration"><span class="toc-number">3.</span> <span class="toc-text">Process Demonstration</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#equipment-preparation"><span class="toc-number">3.1.</span> <span class="toc-text">Equipment Preparation</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#using-network-packet-capture-to-get-http-request-content-value-for-campus-network-authentication"><span class="toc-number">3.2.</span> <span class="toc-text">Using
+Network Packet Capture to Get HTTP Request Content Value for Campus
+Network Authentication</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#enter-developer-mode"><span class="toc-number">3.2.1.</span> <span class="toc-text">Enter Developer Mode</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#set-breakpoint-at-post-location"><span class="toc-number">3.2.2.</span> <span class="toc-text">Set Breakpoint at POST
+Location</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#click-login-to-get-content-value"><span class="toc-number">3.2.3.</span> <span class="toc-text">Click Login to Get Content
+Value</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#use-curl-command-to-send-request"><span class="toc-number">3.2.4.</span> <span class="toc-text">Use curl Command to Send
+Request</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#install-openwrt-system"><span class="toc-number">3.2.5.</span> <span class="toc-text">Install OpenWrt System</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#access-soft-router-backend"><span class="toc-number">3.2.6.</span> <span class="toc-text">Access Soft Router Backend</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#configure-internet-access"><span class="toc-number">3.2.7.</span> <span class="toc-text">Configure Internet Access</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#configure-hard-router"><span class="toc-number">3.3.</span> <span class="toc-text">Configure Hard Router</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#final-notes"><span class="toc-number">4.</span> <span class="toc-text">Final Notes</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Retrieval and RAG"/></a><div class="content"><a class="title" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG">11711 Advanced NLP: Retrieval and RAG</a><time datetime="2026-02-14T22:08:21.000Z" title="Created 2026-02-14 17:08:21">2026-02-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Distributed Training and Parallelization"/></a><div class="content"><a class="title" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization">15642 Machine Learning Systems: Distributed Training and Parallelization</a><time datetime="2026-02-13T21:00:00.000Z" title="Created 2026-02-13 16:00:00">2026-02-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Decoding"/></a><div class="content"><a class="title" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding">11868 LLM Sys: Decoding</a><time datetime="2026-02-13T01:00:00.000Z" title="Created 2026-02-12 20:00:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Tokenization and Embedding"/></a><div class="content"><a class="title" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding">11868 LLM Sys: Tokenization and Embedding</a><time datetime="2026-02-12T20:30:00.000Z" title="Created 2026-02-12 15:30:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"/></a><div class="content"><a class="title" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations">15642 Machine Learning Systems: Transformer, Attention, and Optimizations</a><time datetime="2026-02-09T19:30:00.000Z" title="Created 2026-02-09 14:30:00">2026-02-09</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '890a6e067071afbee6b24cb640e512ee'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

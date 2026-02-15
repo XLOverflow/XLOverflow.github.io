@@ -1,0 +1,713 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>15618 Assignment 1 Report | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="CMU 15-618 作业 1 报告，涵盖 pthreads 加速分析和 SIMD 向量化。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="15618 Assignment 1 Report">
+<meta property="og:url" content="https://xloverflow.github.io/zh/2026/01/17/15618-Parallel-Programming/15618%20Assignment1%20Report/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="CMU 15-618 作业 1 报告，涵盖 pthreads 加速分析和 SIMD 向量化。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png">
+<meta property="article:published_time" content="2026-01-17T01:00:00.000Z">
+<meta property="article:modified_time" content="2026-01-17T01:00:00.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="Parallel Programming">
+<meta property="article:tag" content="15618">
+<meta property="article:tag" content="Assignment">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "15618 Assignment 1 Report",
+  "url": "https://xloverflow.github.io/zh/2026/01/17/15618-Parallel-Programming/15618%20Assignment1%20Report/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png",
+  "datePublished": "2026-01-17T01:00:00.000Z",
+  "dateModified": "2026-01-17T01:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io/zh"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/zh/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/zh/2026/01/17/15618-Parallel-Programming/15618%20Assignment1%20Report/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/zh/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/zh/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '15618 Assignment 1 Report',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">47</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">62</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">18</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/zh/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/zh/"><span class="site-name">15618 Assignment 1 Report</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/"><i class="fas fa-language fa-fw"></i><span> English</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">15618 Assignment 1 Report</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-01-17T01:00:00.000Z" title="发表于 2026-01-16 20:00:00">2026-01-16</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-01-17T01:00:00.000Z" title="更新于 2026-01-16 20:00:00">2026-01-16</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/zh/categories/CMU-15-618-%E5%B9%B6%E8%A1%8C%E7%BC%96%E7%A8%8B/">CMU 15-618 并行编程</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="作业-1-探索多核和-simd-并行性报告">15618 作业 1 探索多核和 SIMD
+并行性报告</h1>
+<h2 id="问题-1使用-pthreads-的并行分形生成">问题 1：使用 Pthreads
+的并行分形生成</h2>
+<h3 id="加速图">1.1 加速图</h3>
+<p><strong>实现：</strong> 使用水平条带（空间分解）的多线程 Mandelbrot
+生成。每个线程
+<u>处理连续的行</u>。对于行数（900）不能被线程数整除的情况，前 (900 % T)
+个线程被 <u>分配一行额外的行</u> 以确保所有行都被处理。</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260116145929648.png" alt="image-20260116145929648" style="zoom: 25%;" /></p>
+<blockquote>
+<p>注意：16 个线程通过超线程技术使用相同的 8 个物理核心。</p>
+</blockquote>
+<p><strong><u>加速并不是线性的。</u></strong> 在 8
+个核心下，我们仅实现了 <strong>3.97× 的加速</strong>（49.6%
+的效率），而不是理想的 8×。</p>
+<p><u><strong>假设：负载不平衡</strong>：</u></p>
+<p>水平条带策略造成了严重的负载不平衡，因为：</p>
+<ul>
+<li><strong>顶部/底部行</strong>：远离 Mandelbrot 边界的点快速发散（约
+10-50 次迭代）</li>
+<li><strong>中间行</strong>：靠近边界的点需要最大迭代次数（256）</li>
+<li>结果：分配给中间行的线程工作时间显著更长</li>
+</ul>
+<p>由于总时间等于最慢线程的时间，不平衡的工作显著降低了加速。</p>
+<blockquote>
+<p>关键观察：</p>
+<p>从 2 个线程（98%）到 4
+个线程（60%）的效率急剧下降，确认负载不平衡是主要的性能瓶颈，而不是硬件限制。</p>
+</blockquote>
+<h3 id="每线程计时测量">1.2 每线程计时测量</h3>
+<p>为了验证第 1.1 节的负载不平衡假设，我在 workerThreadStart()
+的开始和结束处添加了计时测量，使用 CycleTimer::currentSeconds()。</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260116151418165.png"
+alt="image-20260116151418165" />
+<figcaption aria-hidden="true">image-20260116151418165</figcaption>
+</figure>
+<p><strong><u>分析：负载不平衡确认</u></strong></p>
+<p>计时可视化清楚地显示了
+<strong>严重的负载不平衡</strong>。颜色渐变揭示了问题：处理顶部和底部行的线程（绿色条）快速完成，而处理中间行的线程（红色条）则需要显著更长的时间。这个模式直接对应于
+Mandelbrot
+集的计算结构——边界区域需要最大迭代次数，而外部区域快速发散。</p>
+<p>对于 4
+个线程，这种不平衡意味着两个线程在大部分执行时间内处于空闲状态，而另外两个线程继续工作，浪费了一半的可用
+CPU 能力。使用 8
+个线程时，问题更严重：大多数线程早早完成并等待少数几个处理昂贵边界行的线程。这种不均匀分布解释了为什么我们在
+8 个核心下仅实现了 3.97× 的加速，而不是理想的
+8×——执行时间被最慢线程所瓶颈，而不是平均工作负载。</p>
+<h3 id="提高加速">1.3 提高加速</h3>
+<p><strong>策略：交错行分配</strong></p>
+<p>我实现了交错分配，而不是水平条带（每个线程处理连续行），其中线程
+<em>i</em> 处理行 <em>i</em>, <em>i+T</em>, <em>i+2T</em>,
+<em>i+3T</em>, …，其中 <em>T</em> 是线程总数。</p>
+<p>这种简单的静态分配确保每个线程处理一组计算上便宜的行（图像顶部/底部）和昂贵的行（靠近
+Mandelbrot 边界），自动平衡工作负载而无需任何同步。</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">线程数</th>
+<th style="text-align: left;">视图 1 加速</th>
+<th style="text-align: left;">视图 2 加速</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">4</td>
+<td style="text-align: left;">3.84×</td>
+<td style="text-align: left;">3.82×</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">8</td>
+<td style="text-align: left;"><strong>7.56×</strong></td>
+<td style="text-align: left;"><strong>7.53×</strong></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">16</td>
+<td style="text-align: left;">7.61×</td>
+<td style="text-align: left;">7.35×</td>
+</tr>
+</tbody>
+</table>
+<p><strong><u>扩展行为分析：</u></strong></p>
+<p><strong>4→8 线程（4→8 核心）：</strong>
+加速几乎翻倍，展示了出色的扩展性，因为每个额外的线程都在一个专用的物理核心上运行，拥有完整的计算资源。</p>
+<p><strong>8→16 线程（8 核心与超线程）：</strong>
+性能提升有限甚至下降（视图 2）。由于这两种配置共享相同的 8
+个物理核心，16 个线程在执行单元和缓存上通过超线程竞争。对于计算密集型的
+Mandelbrot 工作负载，内存停顿最小，超线程几乎没有好处。</p>
+<h2 id="问题-2使用-simd-内在向量化代码"><strong>问题 2：使用 SIMD
+内在向量化代码</strong></h2>
+<h3 id="clampedexpvector">2.1 clampedExpVector</h3>
+<p>实现遵循平方取幂算法，并每个向量指令并行处理 W 个元素。</p>
+<p><strong>关键实现细节：</strong></p>
+<ol type="1">
+<li><strong>循环结构</strong>：以 VECTOR_WIDTH
+为单位处理数组，每次迭代处理一个元素向量</li>
+<li><strong>掩码管理</strong>：使用 maskActive 跟踪哪些通道的指数仍大于
+0，当所有通道完成时终止循环</li>
+<li><strong>边界处理</strong>：使用 _cmu418_init_ones(count)
+动态创建掩码，以正确处理 N 不是 W 的倍数的情况</li>
+<li><strong>结果限制</strong>：向量化限制逻辑，以限制超过 4.18
+的结果</li>
+</ol>
+<p><strong>正确性</strong>：通过了所有测试用例，包括非对齐数组大小（例如，N=3，N=10，N=100）</p>
+<h3 id="向量宽度扫频实验">2.2 向量宽度扫频实验</h3>
+<p><strong>实验设置</strong>：运行 ./vrun -s 10000，VECTOR_WIDTH ∈ {2,
+4, 8, 16, 32}</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260116181624182.png"
+alt="image-20260116181624182" />
+<figcaption aria-hidden="true">image-20260116181624182</figcaption>
+</figure>
+<ol type="1">
+<li><p><strong>向量利用率分析</strong></p>
+<p><strong>观察</strong>：在所有向量宽度下，向量利用率保持高水平（88.51%-89.45%），随着
+W 从 2 增加到 32，仅 <u>下降 0.94%</u>。这表明
+<u>对向量宽度的低敏感性</u>。</p>
+<p>这是因为迭代次数与 log₂(指数) 成正比，这意味着指数之间的 10
+倍差异（例如，100 与 1000）仅导致 ~3 次额外迭代。由于向量指令必须
+<u>等待最慢的通道完成</u>，每个向量的迭代次数由最大迭代次数的元素决定。这种低方差
+<u>确保向量内的元素在相似时间内完成，最小化空闲通道，无论向量宽度如何</u>。</p></li>
+<li><p><strong>向量指令数量分析</strong></p>
+<p><strong>观察</strong>：总向量指令从 286,614（W=2）减少到
+18,471（W=32），<u>每次向量宽度翻倍大约减半</u>。测得的指令数量紧密跟随理论
+O(N/W) 曲线（红色虚线），确认接近理想扩展。</p>
+<p>总指令数量 <u>由外循环运行的次数决定</u>。当向量宽度翻倍（例如，W=4
+到
+W=8）时，每个向量指令可以处理更多元素，因此外循环只需运行一半的次数。由于每次循环迭代内部的工作保持不变，<u>翻倍
+W 直接减半总指令</u>。这种 <strong>93.6% 的减少</strong> 从 W=2 到 W=32
+证明了向量化提供了预期的线性加速。</p></li>
+</ol>
+<h3 id="arraysumvector">2.3 <strong>arraySumVector</strong></h3>
+<p>实现了一个树归约算法，达到 <strong>O(N/W + log₂W)</strong>
+的跨度复杂度：</p>
+<p><strong>算法：</strong></p>
+<ol type="1">
+<li><strong>第一阶段 -
+向量累加（O(N/W)）</strong>：使用向量加法将所有数组元素相加到一个单一的向量寄存器中</li>
+<li><strong>第二阶段 - 树归约（O(log₂W)）</strong>：在 log₂W 轮中使用
+hadd 和交错操作将 W 个元素归约为一个标量</li>
+</ol>
+<p><strong>正确性</strong>：通过了 W = 2, 4, 8, 16 的所有测试。</p>
+<h2 id="问题-3使用-ispc-的并行分形生成">问题 3：使用 ISPC
+的并行分形生成</h2>
+<h3 id="第-1-部分ispc-simd-并行化分析">3.1 第 1 部分：ISPC SIMD
+并行化分析</h3>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/Figure_1.png" alt="Figure_1" style="zoom:70%;" /></p>
+<h4 id="x-理论最大加速">8x 理论最大加速</h4>
+<p>ISPC 编译器配置为发出 8 路 AVX2 SIMD 指令，可以 <u>同时处理 8
+个浮点值</u>。因此，理论最大加速为
+<strong>8x</strong>，与串行实现相比。</p>
+<h4 id="simd-分歧停顿">SIMD 分歧（停顿）</h4>
+<p>观察到的平均加速为 <strong>4.48x</strong>，仅为理论 8x 最大值的
+56%，因为 <u>不同像素需要不同数量的迭代</u> 来确定它们是否在 Mandelbrot
+集中——在 SIMD 中同时处理 8
+个像素时，有些快速完成，而其他则需要更长时间，迫使
+<u>所有通道等待最慢的一个</u>，这浪费了空闲通道的计算。</p>
+<h4 id="不同视图的性能变化">不同视图的性能变化</h4>
+<p>不同视图的加速范围从 <strong>4.01x 到 4.88x</strong>（视图 6：最佳
+4.88x，视图 5：最差 4.01x）。具有 <u>复杂分形边界的视图</u>
+其相邻像素的迭代次数差异很大，导致更多 SIMD 通道处于空闲状态，而具有
+<u>平滑区域的视图</u> 其像素在相似时间内完成，从而减少了浪费的计算。</p>
+<h3 id="第-2-部分ispc-任务">3.2 第 2 部分：ISPC 任务</h3>
+<h4 id="使用-tasks-的加速">使用 –tasks 的加速</h4>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">实现</th>
+<th style="text-align: left;">时间 (ms)</th>
+<th style="text-align: left;">与串行的加速</th>
+<th style="text-align: left;">与 ISPC 的加速</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">串行</td>
+<td style="text-align: left;">176.369</td>
+<td style="text-align: left;">1.00x</td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">ISPC（仅 SIMD）</td>
+<td style="text-align: left;">37.019</td>
+<td style="text-align: left;">4.76x</td>
+<td style="text-align: left;">1.00x</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ISPC + 任务（2 个任务）</td>
+<td style="text-align: left;">18.721</td>
+<td style="text-align: left;"><strong>9.42x</strong></td>
+<td style="text-align: left;"><strong>1.98x</strong></td>
+</tr>
+</tbody>
+</table>
+<p>来自任务的 2 倍提升是合理的，因为当前实现仅创建 2 个任务，仅利用了 8
+个核心中的 2 个。通过增加任务数量，性能可以显著提高。</p>
+<h4 id="找到最佳任务数量">找到最佳任务数量</h4>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260116231307425.png"
+alt="image-20260116231307425" />
+<figcaption aria-hidden="true">image-20260116231307425</figcaption>
+</figure>
+<p><u><strong>最佳任务数量为 16</strong></u></p>
+<p>系统有 <strong>8 个物理核心，支持超线程</strong>，允许 <strong>16
+个硬件线程</strong> 同时运行。使用 16 个任务实现最佳性能（<strong>32.49×
+加速</strong>），原因如下：</p>
+<ol type="1">
+<li><strong>匹配硬件容量</strong>：16 个任务充分利用所有 16
+个硬件线程，使所有执行单元保持忙碌。</li>
+<li><strong>更好的负载平衡</strong>：Mandelbrot
+计算的工作负载不均匀——分形边界需要比实心区域多得多的迭代。仅使用 2
+个任务时，一个任务可能会在重负载区域卡住，而另一个则早早完成。使用 16
+个较小的任务，工作在核心之间分配得更均匀。</li>
+<li><strong>超过 16 的收益递减</strong>：使用 32 个任务（32.86×）相较于
+16
+个任务的提升有限，因为任务调度开销增加，而负载平衡的好处趋于平稳。</li>
+</ol>
+<h4 id="pthread-与-ispc-任务的对比">Pthread 与 ISPC 任务的对比</h4>
+<p>Pthreads 是操作系统级线程，开销较大。启动 10,000
+个线程可能会由于过多的内存消耗和上下文切换而崩溃或严重减慢系统。</p>
+<p>相比之下，ISPC
+任务是轻量级的逻辑单元。运行时将它们映射到一个小的固定线程池（通常与 CPU
+核心数量相匹配）。启动 10,000
+个任务是高效的，因为它们通过任务队列进行调度。</p>
+<p><strong>关键区别</strong>是 Pthreads
+适用于粗粒度并行（任务少，开销高），而 ISPC
+任务使得细粒度数据并行（任务多，开销低）。这使得 ISPC
+非常适合像像素级处理这样的 SPMD 风格操作。</p>
+<h2 id="问题-4迭代平方根"><strong>问题 4：迭代平方根</strong></h2>
+<h3 id="加速">4.1 加速</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">串行：682.707 ms</span><br><span class="line">ISPC（无任务）：145.532 ms</span><br><span class="line">ISPC（有任务）：20.079 ms</span><br><span class="line"></span><br><span class="line">SIMD 加速：4.69x</span><br><span class="line">多核加速：7.25x (145.532/20.079)</span><br><span class="line">总加速：34.00x</span><br></pre></td></tr></table></figure>
+<h3 id="initgood">4.2 initGood</h3>
+<p><strong>实现：</strong> 将所有值设置为 <code>2.999f</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">串行：1698.132 ms</span><br><span class="line">ISPC（无任务）：297.302 ms</span><br><span class="line">ISPC（有任务）：33.920 ms</span><br><span class="line"></span><br><span class="line">SIMD 加速：5.71x</span><br><span class="line">多核加速：8.76x (297.302/33.920)</span><br><span class="line">总加速：50.06x</span><br></pre></td></tr></table></figure>
+<p>这个选择通过以下方式最大化加速：</p>
+<ul>
+<li><p><strong>完美的 SIMD 效率</strong>：所有元素
+<u>在相同的迭代中收敛</u>，消除了通道分歧。每个 SIMD
+通道执行相同的工作量，并且 <u>同时完成，没有空闲等待。</u> SIMD 加速
+<u>从 4.69x（随机）提高到 5.71x</u>。</p>
+<p><strong>超线程下的最大多核收益</strong>：均匀的重负载使得多核扩展表现出色。<u>多核加速达到
+8.76x，超过基线 7.25x</u>。这证明了作业中提到的
+<u>超线程效应</u>——当所有线程执行相同的重负载时，超线程可以提供超出物理核心数量的额外性能。</p></li>
+</ul>
+<h3 id="initbad">4.3 initBad</h3>
+<p><strong>实现：</strong> 每 8 个元素交替使用 <code>2.999f</code> 和
+<code>1.0f</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">串行：234.384 ms</span><br><span class="line">ISPC（无任务）：297.430 ms</span><br><span class="line">ISPC（有任务）：33.926 ms</span><br><span class="line"></span><br><span class="line">SIMD 加速：0.79x</span><br><span class="line">多核加速：8.77x (297.430/33.926)</span><br><span class="line">总加速：6.91x</span><br></pre></td></tr></table></figure>
+<p><strong>值的选择</strong>：<code>2.999f</code> 需要更多的迭代，而
+<code>1.0f</code> 需要 ~0 次迭代（与初始猜测相符）。这在每个 SIMD
+幫中造成了最大迭代次数的分歧。</p>
+<p><strong>SIMD 性能</strong>：这种模式在每个 SIMD 向量内造成了
+<u>最大工作分歧</u>（帮大小 = 8），每个向量有 1 个慢元素和 7
+个快元素。SIMD
+在锁步操作中，所有通道必须等待最慢的通道，<u>性能低于串行执行（0.79x）</u>。</p>
+<p><strong>多核性能</strong>：多核加速 <u>仍然非常高，达到 8.77x</u>，与
+initGood（8.76x）几乎相同。<u>该模式在数组中均匀重复</u>（每第 8
+个元素是慢的），确保 <u>尽管单个向量内存在严重的 SIMD
+效率低下，但线程之间的工作负载分配仍然均衡</u>。</p>
+<h2 id="问题-5blas-saxpy"><strong>问题 5：BLAS</strong> saxpy</h2>
+<h3 id="saxpy-性能分析">5.1 saxpy 性能分析</h3>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 24%" />
+<col style="width: 15%" />
+<col style="width: 21%" />
+<col style="width: 24%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>版本</th>
+<th>时间 (ms)</th>
+<th>带宽 (GB/s)</th>
+<th>性能 (GFLOPS)</th>
+<th>加速</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>串行</td>
+<td>11.356</td>
+<td>26.243</td>
+<td>1.761</td>
+<td>1.00x</td>
+</tr>
+<tr class="even">
+<td>流式</td>
+<td>11.242</td>
+<td>26.509</td>
+<td>1.779</td>
+<td>1.01x</td>
+</tr>
+<tr class="odd">
+<td><strong>ISPC</strong></td>
+<td><strong>11.315</strong></td>
+<td><strong>26.339</strong></td>
+<td><strong>1.768</strong></td>
+<td><strong>1.00x</strong></td>
+</tr>
+<tr class="even">
+<td><strong>任务 ISPC</strong></td>
+<td><strong>11.133</strong></td>
+<td><strong>26.768</strong></td>
+<td><strong>1.796</strong></td>
+<td><strong>1.02x</strong></td>
+</tr>
+</tbody>
+</table>
+<p>工作负载是 <strong><u>受内存带宽限制</u></strong>。Saxpy
+访问大量数据，但仅执行 2
+次浮点运算。处理器在等待内存时花费的时间远远超过计算时间。尽管 saxpy
+可以轻松并行化，<u>ISPC 和多核执行提供的加速仅约为
+1.00x</u>。所有实现的带宽约为 26-27 GB/s，表明我们已经
+<u>达到了内存带宽限制</u>。</p>
+<p><u><strong>该程序无法通过并行化单独显著改善。</strong></u>
+增加更多核心或 SIMD
+通道在串行执行已经最大化内存带宽时并没有帮助。潜在的改进需要
+<u>减少内存流量</u>（例如，使用非临时存储结果向量以避免缓存污染，将带宽从
+4N 降低到 3N 个浮点数）或 <u>升级到更高带宽的内存硬件</u>。</p>
+<h3 id="额外学分为什么是-4n-而不是-3n">5.2 额外学分：为什么是 4N 而不是
+3N？</h3>
+<p>我认为这是因为缓存的行为。现代 CPU
+使用写分配缓存策略，这意味着写操作必须首先将目标数据加载到缓存中，然后才能修改。这是为了确保缓存一致性和局部性优化。因此，额外的
+N 个浮点数是 <u>读取结果缓存行</u>。</p>
+<h3 id="额外学分还有哪些因素可能影响">5.3
+额外学分：还有哪些因素可能影响？</h3>
+<p>观察到的 26-27 GB/s 带宽代表了 DDR4
+内存系统的典型效率。观察到的带宽与理论峰值之间的差距是由于：</p>
+<ul>
+<li><strong>DRAM 时序开销</strong>：DDR4 在操作之间需要强制延迟（CAS
+延迟、行预充电时间、刷新周期），在此期间内存总线处于空闲状态。这些时序限制通常将有效带宽降低到理论峰值的
+60-70%。</li>
+<li><strong>内存控制器效率</strong>：银行冲突、通道仲裁和内存控制器中的命令调度增加了额外的开销。</li>
+</ul>
+<h3 id="额外学分非临时存储优化">5.4 额外学分：非临时存储优化</h3>
+<p><strong>实现：</strong> 使用 SSE 内在修改 saxpyStreaming()，使用
+<code>_mm_stream_ps</code> 绕过缓存。</p>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 24%" />
+<col style="width: 15%" />
+<col style="width: 21%" />
+<col style="width: 24%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>版本</th>
+<th>时间 (ms)</th>
+<th>带宽 (GB/s)</th>
+<th>性能 (GFLOPS)</th>
+<th>加速</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>串行</td>
+<td>11.124</td>
+<td>26.791</td>
+<td>1.798</td>
+<td>1.00x</td>
+</tr>
+<tr class="even">
+<td><strong>流式</strong></td>
+<td><strong>8.138</strong></td>
+<td><strong>36.623</strong></td>
+<td><strong>2.458</strong></td>
+<td><strong>1.37x</strong></td>
+</tr>
+<tr class="odd">
+<td>ISPC</td>
+<td>11.201</td>
+<td>26.608</td>
+<td>1.786</td>
+<td>0.99x</td>
+</tr>
+<tr class="even">
+<td>任务 ISPC</td>
+<td>11.125</td>
+<td>26.789</td>
+<td>1.798</td>
+<td>1.00x</td>
+</tr>
+</tbody>
+</table>
+<p>非临时存储将内存流量从 4N 降低到 3N 个浮点数，实现了 1.37x
+的加速和带宽从 26.8 GB/s 提升到 36.6 GB/s。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh/2026/01/17/15618-Parallel-Programming/15618%20Assignment1%20Report/">https://xloverflow.github.io/zh/2026/01/17/15618-Parallel-Programming/15618%20Assignment1%20Report/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://xloverflow.github.io/zh" target="_blank">Life is not a race, but a journey</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/zh/tags/CMU/">CMU</a><a class="post-meta__tags" href="/zh/tags/Parallel-Programming/">Parallel Programming</a><a class="post-meta__tags" href="/zh/tags/15618/">15618</a><a class="post-meta__tags" href="/zh/tags/Assignment/">Assignment</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/zh/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/16/15645-Database-Systems/15645-Database-Systems-relational-model-and-SQL/" title="15645 Database Systems Lecture Notes"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">15645 Database Systems Lecture Notes</div></div><div class="info-2"><div class="info-item-1">CMU 15-645 数据库系统的笔记和总结。</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/zh/2026/01/16/15618-Parallel-Programming/15618-Parallel-Programming-Lecture-Notes/" title="15618 Parallel Programming Lecture (1-4) Notes"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-15</div><div class="info-item-2">15618 Parallel Programming Lecture (1-4) Notes</div></div><div class="info-2"><div class="info-item-1">CMU 15-618 并行编程的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">关于CMU 11-711高级自然语言处理的RNN架构、编码器-解码器模型和注意力机制的笔记。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-22</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/" title="11711 Advanced NLP: Learning &amp; Inference"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Learning &amp; Inference</div></div><div class="info-2"><div class="info-item-1">卡内基梅隆大学 11-711 高级自然语言处理的学习算法和推理方法笔记。</div></div></div></a><a class="pagination-related" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-14</div><div class="info-item-2">11711 Advanced NLP: Retrieval and RAG</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理中关于检索系统、检索器和检索增强生成（RAG）的笔记。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/26/11868-LLM-Sys/11868-LLM-SyS-GPU-Programming-Acceleration/" title="11868 LLM Sys: GPU Programming &amp; Acceleration"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-25</div><div class="info-item-2">11868 LLM Sys: GPU Programming &amp; Acceleration</div></div><div class="info-2"><div class="info-item-1">CMU 11-868 LLM系统：GPU编程与加速的笔记和总结。</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li 的中文博客</div><div class="site-data"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">47</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">62</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">18</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BD%9C%E4%B8%9A-1-%E6%8E%A2%E7%B4%A2%E5%A4%9A%E6%A0%B8%E5%92%8C-simd-%E5%B9%B6%E8%A1%8C%E6%80%A7%E6%8A%A5%E5%91%8A"><span class="toc-number">1.</span> <span class="toc-text">15618 作业 1 探索多核和 SIMD
+并行性报告</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-1%E4%BD%BF%E7%94%A8-pthreads-%E7%9A%84%E5%B9%B6%E8%A1%8C%E5%88%86%E5%BD%A2%E7%94%9F%E6%88%90"><span class="toc-number">1.1.</span> <span class="toc-text">问题 1：使用 Pthreads
+的并行分形生成</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%A0%E9%80%9F%E5%9B%BE"><span class="toc-number">1.1.1.</span> <span class="toc-text">1.1 加速图</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AF%8F%E7%BA%BF%E7%A8%8B%E8%AE%A1%E6%97%B6%E6%B5%8B%E9%87%8F"><span class="toc-number">1.1.2.</span> <span class="toc-text">1.2 每线程计时测量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8F%90%E9%AB%98%E5%8A%A0%E9%80%9F"><span class="toc-number">1.1.3.</span> <span class="toc-text">1.3 提高加速</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-2%E4%BD%BF%E7%94%A8-simd-%E5%86%85%E5%9C%A8%E5%90%91%E9%87%8F%E5%8C%96%E4%BB%A3%E7%A0%81"><span class="toc-number">1.2.</span> <span class="toc-text">问题 2：使用 SIMD
+内在向量化代码</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#clampedexpvector"><span class="toc-number">1.2.1.</span> <span class="toc-text">2.1 clampedExpVector</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%91%E9%87%8F%E5%AE%BD%E5%BA%A6%E6%89%AB%E9%A2%91%E5%AE%9E%E9%AA%8C"><span class="toc-number">1.2.2.</span> <span class="toc-text">2.2 向量宽度扫频实验</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#arraysumvector"><span class="toc-number">1.2.3.</span> <span class="toc-text">2.3 arraySumVector</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-3%E4%BD%BF%E7%94%A8-ispc-%E7%9A%84%E5%B9%B6%E8%A1%8C%E5%88%86%E5%BD%A2%E7%94%9F%E6%88%90"><span class="toc-number">1.3.</span> <span class="toc-text">问题 3：使用 ISPC
+的并行分形生成</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC-1-%E9%83%A8%E5%88%86ispc-simd-%E5%B9%B6%E8%A1%8C%E5%8C%96%E5%88%86%E6%9E%90"><span class="toc-number">1.3.1.</span> <span class="toc-text">3.1 第 1 部分：ISPC SIMD
+并行化分析</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#x-%E7%90%86%E8%AE%BA%E6%9C%80%E5%A4%A7%E5%8A%A0%E9%80%9F"><span class="toc-number">1.3.1.1.</span> <span class="toc-text">8x 理论最大加速</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#simd-%E5%88%86%E6%AD%A7%E5%81%9C%E9%A1%BF"><span class="toc-number">1.3.1.2.</span> <span class="toc-text">SIMD 分歧（停顿）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%8D%E5%90%8C%E8%A7%86%E5%9B%BE%E7%9A%84%E6%80%A7%E8%83%BD%E5%8F%98%E5%8C%96"><span class="toc-number">1.3.1.3.</span> <span class="toc-text">不同视图的性能变化</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC-2-%E9%83%A8%E5%88%86ispc-%E4%BB%BB%E5%8A%A1"><span class="toc-number">1.3.2.</span> <span class="toc-text">3.2 第 2 部分：ISPC 任务</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-tasks-%E7%9A%84%E5%8A%A0%E9%80%9F"><span class="toc-number">1.3.2.1.</span> <span class="toc-text">使用 –tasks 的加速</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%89%BE%E5%88%B0%E6%9C%80%E4%BD%B3%E4%BB%BB%E5%8A%A1%E6%95%B0%E9%87%8F"><span class="toc-number">1.3.2.2.</span> <span class="toc-text">找到最佳任务数量</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#pthread-%E4%B8%8E-ispc-%E4%BB%BB%E5%8A%A1%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">1.3.2.3.</span> <span class="toc-text">Pthread 与 ISPC 任务的对比</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-4%E8%BF%AD%E4%BB%A3%E5%B9%B3%E6%96%B9%E6%A0%B9"><span class="toc-number">1.4.</span> <span class="toc-text">问题 4：迭代平方根</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%A0%E9%80%9F"><span class="toc-number">1.4.1.</span> <span class="toc-text">4.1 加速</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#initgood"><span class="toc-number">1.4.2.</span> <span class="toc-text">4.2 initGood</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#initbad"><span class="toc-number">1.4.3.</span> <span class="toc-text">4.3 initBad</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-5blas-saxpy"><span class="toc-number">1.5.</span> <span class="toc-text">问题 5：BLAS saxpy</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#saxpy-%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90"><span class="toc-number">1.5.1.</span> <span class="toc-text">5.1 saxpy 性能分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A2%9D%E5%A4%96%E5%AD%A6%E5%88%86%E4%B8%BA%E4%BB%80%E4%B9%88%E6%98%AF-4n-%E8%80%8C%E4%B8%8D%E6%98%AF-3n"><span class="toc-number">1.5.2.</span> <span class="toc-text">5.2 额外学分：为什么是 4N 而不是
+3N？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A2%9D%E5%A4%96%E5%AD%A6%E5%88%86%E8%BF%98%E6%9C%89%E5%93%AA%E4%BA%9B%E5%9B%A0%E7%B4%A0%E5%8F%AF%E8%83%BD%E5%BD%B1%E5%93%8D"><span class="toc-number">1.5.3.</span> <span class="toc-text">5.3
+额外学分：还有哪些因素可能影响？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A2%9D%E5%A4%96%E5%AD%A6%E5%88%86%E9%9D%9E%E4%B8%B4%E6%97%B6%E5%AD%98%E5%82%A8%E4%BC%98%E5%8C%96"><span class="toc-number">1.5.4.</span> <span class="toc-text">5.4 额外学分：非临时存储优化</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11711 Advanced NLP: Retrieval and RAG"/></a><div class="content"><a class="title" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG">11711 Advanced NLP: Retrieval and RAG</a><time datetime="2026-02-14T22:08:21.000Z" title="发表于 2026-02-14 17:08:21">2026-02-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM系统：解码"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11868 LLM系统：解码"/></a><div class="content"><a class="title" href="/zh/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM系统：解码">11868 LLM系统：解码</a><time datetime="2026-02-13T01:00:00.000Z" title="发表于 2026-02-12 20:00:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11868 LLM Sys: Tokenization and Embedding"/></a><div class="content"><a class="title" href="/zh/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding">11868 LLM Sys: Tokenization and Embedding</a><time datetime="2026-02-12T20:30:00.000Z" title="发表于 2026-02-12 15:30:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 机器学习系统：Transformer、注意力机制与优化"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="15642 机器学习系统：Transformer、注意力机制与优化"/></a><div class="content"><a class="title" href="/zh/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 机器学习系统：Transformer、注意力机制与优化">15642 机器学习系统：Transformer、注意力机制与优化</a><time datetime="2026-02-09T19:30:00.000Z" title="发表于 2026-02-09 14:30:00">2026-02-09</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/09/CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch/" title="CS336 Assignment 1: Building a Transformer Language Model from Scratch"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="CS336 Assignment 1: Building a Transformer Language Model from Scratch"/></a><div class="content"><a class="title" href="/zh/2026/02/09/CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch/" title="CS336 Assignment 1: Building a Transformer Language Model from Scratch">CS336 Assignment 1: Building a Transformer Language Model from Scratch</a><time datetime="2026-02-09T04:05:02.000Z" title="发表于 2026-02-08 23:05:02">2026-02-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/zh/js/utils.js"></script><script src="/zh/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || 'd9e452dc6bd126f4bf9684e3318529a5'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/zh/404.html') : window.location.href = '/zh/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

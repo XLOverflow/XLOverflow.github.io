@@ -1,0 +1,667 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>11868 LLM Sys: GPU Programming &amp; Acceleration | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="CMU 11-868 LLM系统：GPU编程与加速的笔记和总结。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="11868 LLM Sys: GPU Programming &amp; Acceleration">
+<meta property="og:url" content="https://xloverflow.github.io/zh/2026/01/26/11868-LLM-Sys/11868-LLM-SyS-GPU-Programming-Acceleration/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="CMU 11-868 LLM系统：GPU编程与加速的笔记和总结。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png">
+<meta property="article:published_time" content="2026-01-26T02:58:04.000Z">
+<meta property="article:modified_time" content="2026-01-26T02:58:04.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="Study Notes">
+<meta property="article:tag" content="LLM Systems">
+<meta property="article:tag" content="GPU Programming">
+<meta property="article:tag" content="11868">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "11868 LLM Sys: GPU Programming & Acceleration",
+  "url": "https://xloverflow.github.io/zh/2026/01/26/11868-LLM-Sys/11868-LLM-SyS-GPU-Programming-Acceleration/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png",
+  "datePublished": "2026-01-26T02:58:04.000Z",
+  "dateModified": "2026-01-26T02:58:04.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io/zh"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/zh/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/zh/2026/01/26/11868-LLM-Sys/11868-LLM-SyS-GPU-Programming-Acceleration/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/zh/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/zh/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '11868 LLM Sys: GPU Programming & Acceleration',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">47</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">62</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">18</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/zh/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/zh/"><span class="site-name">11868 LLM Sys: GPU Programming &amp; Acceleration</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/"><i class="fas fa-language fa-fw"></i><span> English</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">11868 LLM Sys: GPU Programming &amp; Acceleration</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-01-26T02:58:04.000Z" title="发表于 2026-01-25 21:58:04">2026-01-25</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-01-26T02:58:04.000Z" title="更新于 2026-01-25 21:58:04">2026-01-25</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/zh/categories/CMU-11-868-%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B%E7%B3%BB%E7%BB%9F/">CMU 11-868 大语言模型系统</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="gpu-编程">GPU 编程</h1>
+<h2 id="神经网络层和低级操作">神经网络层和低级操作</h2>
+<p>一个简单的前馈神经网络用于文本分类，由一系列标准层组成。输入文本首先通过
+<strong><u>嵌入层</u></strong> 映射为向量，然后是带有 <strong><u>ReLU
+激活</u></strong> 的 <strong><u>线性层</u></strong>。一个
+<strong><u>平均池化</u></strong>
+操作将标记表示聚合为一个单一向量，最后一个 <strong><u>softmax
+层</u></strong> 生成最终的类别概率。</p>
+<p>在更低的层面，这些神经网络层是通过一小组基本操作实现的。<strong><u>矩阵乘法</u></strong>
+用于线性层，<u><strong>逐元素操作</strong></u> 处理激活，而
+<u><strong>归约操作</strong></u>（如平均）用于池化。这些操作的高效执行在很大程度上依赖于
+<u><strong>GPU</strong></u>。</p>
+<h2 id="gpu-服务器的组成">GPU 服务器的组成</h2>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260125221821311.png" alt="image-20260125221821311" style="zoom:40%;" /></p>
+<p>该图展示了一台现代的 4U 计算服务器，旨在处理高性能和 AI
+工作负载。它结合了双 AMD EPYC CPU 和 <strong><u>多个通过 PCIe 和 NVLink
+连接的 NVIDIA GPU</u></strong>，以及高带宽的 DDR5 内存和 NVMe
+存储，以支持大规模并行计算。</p>
+<h2 id="gpu-架构">GPU 架构</h2>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260125221946137.png" alt="image-20260125221946137" style="zoom:40%;" /></p>
+<p>现代 GPU 通过优先考虑 <strong>面向吞吐量的并行性</strong>
+而非单线程延迟来实现高性能。与 CPU 的少数复杂核心不同，GPU 由许多
+<strong>流式多处理器（SMs）</strong> 组成，每个 SM
+包含大量简单的计算核心，旨在并行执行相同的操作。</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260125222912708.png" alt="image-20260125222912708" style="zoom:70%;" /></p>
+<p>SM 是 GPU 的基本执行单元。每个 SM 被分为
+<strong>四个分区</strong>，每个分区包含 <strong>32 个 CUDA
+核心</strong>，与 <strong>warp</strong> 的大小相匹配，warp 是 NVIDIA GPU
+中的基本调度和执行单元。一个 warp 由 <strong>32
+个线程在锁步中执行相同的指令</strong>（SIMT：单指令，多线程）。因此，单个
+SM 包含 <strong>128 个核心</strong>，在理想条件下每个周期可以执行多达
+<strong>128 个 FP32 操作</strong>。</p>
+<p>在每个分区内，<strong>warp 调度器</strong> 每个周期选择一个准备好的
+warp，而 <strong>调度单元</strong>
+将其指令发给适当的执行单元（例如，FP32
+核心、张量核心或加载/存储单元）。GPU 不调度单个线程；相反，它们调度
+warp。当一个 warp 因内存访问而停滞时，调度器可以立即切换到另一个准备好的
+warp，几乎没有开销，从而使 GPU 能够通过大规模并发有效地
+<strong>隐藏内存延迟</strong>。</p>
+<p>每个 SM 还包含一个大的
+<strong>寄存器文件</strong>（最快的片上存储）和一个共享的 <strong>L1
+缓存/共享内存</strong>，这使得线程之间能够快速重用数据和通信。像 NVIDIA
+H100 这样的新架构显著增加了
+L1/共享内存的容量，并增强了张量核心，进一步优化了 SM
+以满足深度学习工作负载中常见的大规模矩阵和张量计算。</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260125223615074.png" alt="image-20260125223615074" style="zoom:50%;" /></p>
+<p>H100 引入了 FP8，以进一步提高吞吐量并减少大规模 AI
+工作负载的内存带宽需求。通过 <strong><u>支持多种 FP8
+格式并以更高精度累积结果</u></strong>，该架构实现了高性能和数值稳定性。</p>
+<blockquote>
+<p>Transformer Engine 是 H100
+中的一个硬件-软件协同设计系统，自动管理精度、缩放和累积，以安全地使用
+FP8 进行 Transformer 工作负载。</p>
+</blockquote>
+<p><strong>CPU 与 GPU</strong></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260125223107120.png" alt="image-20260125223107120" style="zoom: 33%;" /></p>
+<h2 id="在-gpu-上执行程序">在 GPU 上执行程序</h2>
+<p>在 CUDA 编程模型中，<strong><u>CPU 作为主机控制执行并启动 GPU
+内核</u></strong>，而 <strong><u>GPU
+作为优化的大规模并行计算设备</u></strong>。内核使用 SIMT
+模型执行，其中线程被组织成块和网格，并映射到多个 SM 进行并行执行。</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260125224122973.png" alt="image-20260125224122973" style="zoom: 33%;" /></p>
+<h3 id="内核线程的执行方式">内核线程的执行方式</h3>
+<p>当启动 CUDA 内核时，线程首先被组织成
+<strong>线程块</strong>，然后分配给
+<strong>流式多处理器（SMs）</strong>。在一个 SM 内，每个线程块进一步
+<strong>划分为 warp</strong>，<u><strong>warp</strong> 是 GPU
+用于创建、管理、调度和执行线程的基本单元。</u></p>
+<p>一个 <strong>warp</strong> 由 <strong>32 个线程</strong>
+组成。所有线程在同一程序地址开始执行，但 <u>每个线程维护自己的
+<strong>程序计数器和寄存器状态</strong></u>。在任何给定周期，warp 在所有
+32 个线程中执行 <strong>一个共同的指令</strong>，遵循
+SIMT（单指令，多线程）执行模型。尽管 warp
+内的线程由于分支可以采取不同的控制流路径，但硬件会对分歧路径进行串行化，这可能会降低性能。</p>
+<h3 id="sm-上的-warp-执行模型">SM 上的 Warp 执行模型</h3>
+<p>一旦 warp 被分配给 SM，<u>其 <strong>执行上下文在整个 warp
+生命周期内保持驻留在 SM
+上</strong></u>。该上下文包括程序计数器、寄存器值和 warp
+使用的任何共享内存。由于所有活动的 warp
+都将其上下文保留在片上，<strong><u>在 warp
+之间切换不需要保存或恢复状态</u></strong>，使得 warp
+之间的上下文切换几乎是瞬时的。</p>
+<p>在运行时，每个 SM 包含一个或多个 <strong>warp
+调度器</strong>，它们不断选择一个具有活动和准备线程的 warp。所选 warp
+的下一条指令随后被 <strong>发出（调度）</strong> 到适当的执行单元，例如
+FP32 核心、张量核心或加载/存储单元。如果一个 warp
+因长延迟操作（例如，全局内存访问）而停滞，调度器可以立即切换到另一个准备好的
+warp，从而允许 SM 通过并发隐藏内存延迟。</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260125224641812.png" alt="image-20260125224641812" style="zoom:40%;" /></p>
+<blockquote>
+<p>尽管 NVIDIA GPU 暴露了 SIMT 编程模型，但 warp
+执行是通过硬件级别的带有预测和掩蔽的 SIMD 风格向量执行来实现的。</p>
+</blockquote>
+<h3 id="cpu-gpu-数据移动">CPU-GPU 数据移动</h3>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260125224832439.png" alt="image-20260125224832439" style="zoom:33%;" /></p>
+<h3 id="cuda-内核">CUDA 内核</h3>
+<p>CUDA <strong>内核</strong> 是在 GPU
+上运行的函数。从编程的角度来看，内核描述了 <strong>单个线程</strong>
+的执行逻辑，代码本身是以 <strong>串行方式</strong>
+编写的。并行性并不是来自代码结构，而是来自于内核被大量线程同时执行的事实。</p>
+<p>当内核被启动时，<strong>成千上万的线程</strong>
+可能会同时执行相同的内核函数。每个线程使用其
+<strong>线程索引</strong>（例如，<code>threadIdx</code>，<code>blockIdx</code>）来确定其操作的数据部分。这遵循
+SPMD（单程序，多数据）模型：相同的程序在许多线程中复制，每个线程处理不同的数据元素。</p>
+<p>CUDA 内核的关键特性：</p>
+<ul>
+<li>内核代码是 <strong>每个线程串行的</strong></li>
+<li>通过 <strong>许多线程执行相同内核</strong> 实现大规模并行性</li>
+<li>线程索引用于将线程映射到数据</li>
+<li>程序员表达 <em>一个线程做什么</em>，而不是线程如何被调度</li>
+</ul>
+<h3 id="编译-cuda-代码">编译 CUDA 代码</h3>
+<p>CUDA 程序遵循 <strong>异构编程模型</strong>，其中 <u>单个源文件包含
+<strong>主机（CPU）</strong> 代码和 <strong>设备（GPU）</strong>
+代码。</u> CUDA 编译器 <strong>NVCC</strong>
+作为编译驱动程序，分别处理这两部分并以不同方式编译它们。</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260125225428030.png" alt="image-20260125225428030" style="zoom:50%;" /></p>
+<p>在编译期间：</p>
+<ul>
+<li><strong>主机代码</strong> 被传递给标准 C/C++
+编译器（例如，<code>gcc</code> 或 <code>clang</code>），并编译为 CPU
+可执行代码。</li>
+<li><strong>设备代码</strong>（CUDA 内核）被编译为
+<strong>PTX</strong>，这是 NVIDIA GPU 的中间表示。</li>
+</ul>
+<p>在运行时，PTX 代码由 NVIDIA 驱动程序 <strong>即时编译（JIT）</strong>
+为特定于目标 GPU 架构的机器代码。这种设计允许相同的 CUDA
+二进制文件在不同的 GPU 代上运行，而无需重新编译源代码。</p>
+<blockquote>
+<p>PTX 作为中间表示，而不是最终的机器代码。在运行时，NVIDIA 驱动程序将
+PTX JIT 编译为特定于架构的 GPU 指令，从而使相同的 CUDA
+二进制文件能够在不同的 GPU 代上运行。</p>
+</blockquote>
+<h2 id="基本-gpu-cuda-操作">基本 GPU CUDA 操作</h2>
+<p>在 CUDA 中，所有 GPU 操作由 CPU 协调。主机显式地使用
+<code>cudaMalloc</code> 分配设备内存，使用 <code>cudaMemcpy</code>
+在主机和设备之间传输数据，启动 GPU 内核，最后使用 <code>cudaFree</code>
+释放设备内存。这种显式的内存管理模型反映了 CUDA 的异构设计，其中 GPU
+作为由 CPU 控制的计算加速器。</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260125230332427.png" alt="image-20260125230332427" style="zoom:33%;" /></p>
+<h3 id="gpu-内存">GPU 内存</h3>
+<p>CUDA 提供了一个分层内存模型。每个线程都有
+<strong>私有寄存器</strong>，这是访问速度最快的内存。</p>
+<p>同一 <strong>线程块</strong> 内的线程可以通过
+<strong><u>共享内存</u></strong> 进行通信，使用 <code>__shared__</code>
+显式声明，延迟远低于全局内存。</p>
+<p>相比之下，<strong><u>全局内存</u></strong>
+可被所有线程访问，并在内核启动之间持续存在，但访问延迟最高。</p>
+<h3 id="数据移动">数据移动</h3>
+<p>CPU 和 GPU 之间的数据移动由程序员使用 <code>cudaMemcpy</code>
+显式管理。内存可以 <strong>从主机到设备</strong> 或
+<strong>从设备到主机</strong> 复制，传输大小以字节为单位指定。由于
+CPU-GPU 数据传输相对昂贵，性能关键的应用程序旨在最小化此类传输并最大化
+GPU 上的数据重用。</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260125230847834.png" alt="image-20260125230847834" style="zoom: 40%;" /></p>
+<p>在每个流式多处理器（SM）上，指令通过每个周期有限数量的
+<strong>发射槽</strong> 发给执行单元。发射槽表示在给定周期从 warp
+发出指令的硬件能力，因此直接限制了 SM 上的指令吞吐量。</p>
+<p>在预 Hopper 架构（例如，A100）中，等待内存操作的 warp——例如
+<strong><u>异步复制到共享内存</u></strong>——仍然参与调度。即使一个 warp
+在障碍上停滞，它也会反复检查准备情况，占用发射槽并降低整体 SM
+利用率。</p>
+<p>Hopper 在这个执行模型中引入了一个关键变化。通过
+<strong><u>张量内存加速器（TMA）</u></strong>，内存传输被卸载到专用硬件单元，等待复制完成的
+warp 被置于 <strong>睡眠状态</strong>。<strong><u>睡眠中的 warp
+从调度器的活动集中移除，不再消耗发射槽</u></strong>。因此，发射槽专门用于准备好执行计算的
+warp，从而实现更高的指令吞吐量和更有效的内存移动与计算之间的重叠。</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260125232105257.png" alt="image-20260125232105257" style="zoom: 40%;" /></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260125232132936.png" alt="image-20260125232132936" style="zoom:50%;" /></p>
+<h3 id="主机设备函数的声明">主机/设备函数的声明</h3>
+<table>
+<thead>
+<tr class="header">
+<th>关键字</th>
+<th>调用在</th>
+<th>执行在</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>__global__</code></td>
+<td>主机（CPU）</td>
+<td>设备（GPU）</td>
+<td><strong>GPU 内核</strong></td>
+</tr>
+<tr class="even">
+<td><code>__device__</code></td>
+<td>设备</td>
+<td>设备</td>
+<td>GPU 函数</td>
+</tr>
+<tr class="odd">
+<td><code>__host__</code></td>
+<td>主机</td>
+<td>主机</td>
+<td>普通 CPU 函数</td>
+</tr>
+</tbody>
+</table>
+<p>CUDA 使用显式限定符区分主机和设备函数。<code>__global__</code>
+函数定义一个 GPU 内核，从 CPU 启动，但由 GPU
+上的许多线程并行执行。每个线程运行相同的内核代码，并使用其线程和块索引来确定处理的数据部分。</p>
+<h3 id="运行时调用内核">运行时调用内核</h3>
+<p>在 CUDA 中，内核的并行执行配置由 <strong>主机（CPU）</strong>
+在运行时指定，而不是在编译时固定。当启动内核时，主机显式定义
+<strong>网格-块-线程层次结构</strong>，这决定了将有多少 GPU
+线程执行该内核。</p>
+<p>内核使用特殊语法启动：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kernelFunc&lt;&lt;&lt;Dg, Db&gt;&gt;&gt;(args);</span><br></pre></td></tr></table></figure>
+<p>在这里，<code>Dg</code>（网格维度）和
+<code>Db</code>（块维度）可以指定为整数或 <code>dim3</code> 对象：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">dim3 <span class="title">Dg</span><span class="params">(<span class="number">4</span>, <span class="number">2</span>, <span class="number">1</span>)</span></span>;</span><br><span class="line"><span class="function">dim3 <span class="title">Db</span><span class="params">(<span class="number">8</span>, <span class="number">8</span>, <span class="number">1</span>)</span></span>;</span><br><span class="line">kernelFunc&lt;&lt;&lt;Dg, Db&gt;&gt;&gt;(args);</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>Dg</code> 定义
+<strong>网格的大小</strong>，即线程块的数量。</li>
+<li><code>Db</code> 定义
+<strong>每个块的大小</strong>，即每个块的线程数量。</li>
+</ul>
+<p>块的总数为 <code>Dg.x * Dg.y * Dg.z</code>，每个块的线程总数为
+<code>Db.x * Db.y * Db.z</code>，在当前 NVIDIA GPU 上不得超过 1024。</p>
+<h3 id="设备运行时变量">设备运行时变量</h3>
+<p>一旦内核被启动，每个在 GPU 上执行的线程必须能够识别
+<strong>它属于哪个块以及它在该块内的线程编号</strong>。CUDA
+提供了一组内置的设备侧变量来实现这一点，这些变量由编译器自动生成。</p>
+<p>这些变量包括：</p>
+<ul>
+<li><code>gridDim</code> (<code>dim3</code>): 网格的维度</li>
+<li><code>blockIdx</code> (<code>uint3</code>):
+当前块在网格中的索引</li>
+<li><code>blockDim</code> (<code>dim3</code>): 块的维度</li>
+<li><code>threadIdx</code> (<code>uint3</code>):
+当前线程在块内的索引</li>
+</ul>
+<p>所有内核线程执行相同的代码，但通过使用这些变量，每个线程可以计算出一个唯一的全局索引。一个常见的模式是：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">int i = blockIdx.x * blockDim.x + threadIdx.x;</span><br></pre></td></tr></table></figure>
+<p>这使得线程能够自然地映射到存储在全局内存中的数组或其他数据结构的元素。</p>
+<h3 id="从-cpu-调用-cuda-内核">从 CPU 调用 CUDA 内核</h3>
+<p>在实践中，主机通常根据输入问题的大小计算网格和块的大小。例如，在处理长度为
+<code>n</code>
+的向量时，常见的方法是选择固定数量的线程每个块，并使用向上取整的整数除法计算所需的块数：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> n = <span class="number">1024</span>;</span><br><span class="line"><span class="type">int</span> threads_per_block = <span class="number">256</span>;</span><br><span class="line"><span class="type">int</span> num_blocks = (n + threads_per_block - <span class="number">1</span>) / threads_per_block;</span><br><span class="line"></span><br><span class="line">VecAddKernel&lt;&lt;&lt;num_blocks, threads_per_block&gt;&gt;&gt;(dA, dB, dC, n);</span><br></pre></td></tr></table></figure>
+<p>当这个启动发生时：</p>
+<ol type="1">
+<li>CPU 使用指定的网格和块配置发出内核启动。</li>
+<li>GPU 创建块的网格并将其调度到可用的流式多处理器（SMs）上。</li>
+<li>每个块进一步划分为 warp，线程并行执行内核代码。</li>
+<li>每个线程使用 <code>blockIdx</code>、<code>blockDim</code> 和
+<code>threadIdx</code> 确定其操作的数据元素。</li>
+</ol>
+<h1 id="gpu-加速">GPU 加速</h1>
+<h2 id="内存访问效率">内存访问效率</h2>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260126001922475.png" alt="image-20260126001922475" style="zoom:50%;" /></p>
+<h2 id="cuda-设备内存模型">CUDA 设备内存模型</h2>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260126002047948.png" alt="image-20260126002047948" style="zoom: 33%;" /></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260126003051375.png" alt="image-20260126003051375" style="zoom: 33%;" /></p>
+<h2 id="矩阵乘法的平铺">矩阵乘法的平铺</h2>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260126131507652.png" alt="image-20260126131507652" style="zoom:50%;" /></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260126131528542.png" alt="image-20260126131528542" style="zoom:50%;" /></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260126131541664.png" alt="image-20260126131541664" style="zoom:50%;" /></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260126131553021.png" alt="image-20260126131553021" style="zoom:50%;" /></p>
+<p>在 CUDA C++ 中的实现：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">__global__ <span class="type">void</span> <span class="title">MatrixMultiplyKernel</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">float</span> *out,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">const</span> <span class="type">int</span> *out_shape,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">const</span> <span class="type">int</span> *out_strides,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">float</span> *a_storage,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">const</span> <span class="type">int</span> *a_shape,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">const</span> <span class="type">int</span> *a_strides,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">float</span> *b_storage,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">const</span> <span class="type">int</span> *b_shape,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">const</span> <span class="type">int</span> *b_strides)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 将两个（紧凑）矩阵相乘到输出（也为紧凑）矩阵中。矩阵 a 和 b 都是批处理格式，</span></span><br><span class="line"><span class="comment">   * 形状为 [batch_size, m, n], [batch_size, n, p]。</span></span><br><span class="line"><span class="comment">   * 要求：</span></span><br><span class="line"><span class="comment">   * - 所有数据必须首先移动到共享内存。</span></span><br><span class="line"><span class="comment">   * - 只读取 a 和 b 中的每个单元一次。</span></span><br><span class="line"><span class="comment">   * - 每个内核只写入全局内存一次。</span></span><br><span class="line"><span class="comment">   * 保证 a_shape[0] == b_shape[0], a_shape[2] == b_shape[1],</span></span><br><span class="line"><span class="comment">   * 和 out_shape[0] == a_shape[0], out_shape[1] == a_shape[1], out_shape[2] == b_shape[2]。</span></span><br><span class="line"><span class="comment">   *</span></span><br><span class="line"><span class="comment">   * 参数：</span></span><br><span class="line"><span class="comment">   *   out: 紧凑的 1D 数组，大小为 batch_size x m x p，用于写入输出</span></span><br><span class="line"><span class="comment">   *   out_shape: 输出数组的形状</span></span><br><span class="line"><span class="comment">   *   out_strides: 输出数组的步幅</span></span><br><span class="line"><span class="comment">   *   a_storage: 紧凑的 1D 数组，大小为 batch_size x m x n</span></span><br><span class="line"><span class="comment">   *   a_shape: a 数组的形状</span></span><br><span class="line"><span class="comment">   *   a_strides: a 数组的步幅</span></span><br><span class="line"><span class="comment">   *   b_storage: 紧凑的 2D 数组，大小为 batch_size x n x p</span></span><br><span class="line"><span class="comment">   *   b_shape: b 数组的形状</span></span><br><span class="line"><span class="comment">   *   b_strides: b 数组的步幅</span></span><br><span class="line"><span class="comment">   *</span></span><br><span class="line"><span class="comment">   * 返回：</span></span><br><span class="line"><span class="comment">   *   None (填充输出数组)</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line"></span><br><span class="line">  __shared__ <span class="type">float</span> a_shared[TILE][TILE];</span><br><span class="line">  __shared__ <span class="type">float</span> b_shared[TILE][TILE];</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 在每个块中，我们将计算输出矩阵的一批</span></span><br><span class="line">  <span class="comment">// 块中的所有线程将共同计算这一批</span></span><br><span class="line">  <span class="type">int</span> batch = blockIdx.z;</span><br><span class="line">  <span class="type">int</span> a_batch_stride = a_shape[<span class="number">0</span>] &gt; <span class="number">1</span> ? a_strides[<span class="number">0</span>] : <span class="number">0</span>;</span><br><span class="line">  <span class="type">int</span> b_batch_stride = b_shape[<span class="number">0</span>] &gt; <span class="number">1</span> ? b_strides[<span class="number">0</span>] : <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/// BEGIN HW1_4</span></span><br><span class="line">  <span class="comment">/// TODO</span></span><br><span class="line">  <span class="comment">// 提示：</span></span><br><span class="line">  <span class="comment">// 1. 计算此块将计算的输出矩阵的行和列</span></span><br><span class="line">  <span class="type">int</span> row = blockIdx.y * TILE + threadIdx.y;</span><br><span class="line">  <span class="type">int</span> col = blockIdx.x * TILE + threadIdx.x;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 获取矩阵维度：A[batch, m, n] × B[batch, n, p] = C[batch, m, p]</span></span><br><span class="line">  <span class="type">int</span> m = a_shape[<span class="number">1</span>];</span><br><span class="line">  <span class="type">int</span> n = a_shape[<span class="number">2</span>];</span><br><span class="line">  <span class="type">int</span> p = b_shape[<span class="number">2</span>];</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 2. 计算此线程将写入的输出数组中的位置</span></span><br><span class="line">  <span class="comment">// （移动到步骤 7 进行边界检查）</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 点积的累加器</span></span><br><span class="line">  <span class="type">float</span> sum = <span class="number">0.0f</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 3. 遍历两个输入矩阵的平铺，将数据读取到共享内存中</span></span><br><span class="line">  <span class="type">int</span> num_tiles = (n + TILE - <span class="number">1</span>) / TILE;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (<span class="type">int</span> t = <span class="number">0</span>; t &lt; num_tiles; t++) &#123;</span><br><span class="line">    <span class="comment">// 加载 A 瓦片：A[row, t*TILE + threadIdx.x]</span></span><br><span class="line">    <span class="type">int</span> a_col = t * TILE + threadIdx.x;</span><br><span class="line">    <span class="keyword">if</span> (row &lt; m &amp;&amp; a_col &lt; n) &#123;</span><br><span class="line">      a_shared[threadIdx.y][threadIdx.x] = a_storage[batch * a_batch_stride + row * a_strides[<span class="number">1</span>] + a_col * a_strides[<span class="number">2</span>]];</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      a_shared[threadIdx.y][threadIdx.x] = <span class="number">0.0f</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 加载 B 瓦片：B[t*TILE + threadIdx.y, col]</span></span><br><span class="line">    <span class="type">int</span> b_row = t * TILE + threadIdx.y;</span><br><span class="line">    <span class="keyword">if</span> (b_row &lt; n &amp;&amp; col &lt; p) &#123;</span><br><span class="line">      b_shared[threadIdx.y][threadIdx.x] = b_storage[batch * b_batch_stride + b_row * b_strides[<span class="number">1</span>] + col * b_strides[<span class="number">2</span>]];</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      b_shared[threadIdx.y][threadIdx.x] = <span class="number">0.0f</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 4. 同步以确保所有线程都可以访问数据</span></span><br><span class="line">    __syncthreads();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 5. 计算此线程块的输出瓦片</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> k = <span class="number">0</span>; k &lt; TILE; k++) &#123;</span><br><span class="line">      sum += a_shared[threadIdx.y][k] * b_shared[k][threadIdx.x];</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 6. 同步以确保所有线程完成对（row, col）的输出瓦片计算</span></span><br><span class="line">    __syncthreads();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 7. 将输出写入全局内存</span></span><br><span class="line">  <span class="keyword">if</span> (row &lt; m &amp;&amp; col &lt; p) &#123;</span><br><span class="line">    <span class="type">int</span> out_pos = batch * out_strides[<span class="number">0</span>] + row * out_strides[<span class="number">1</span>] + col * out_strides[<span class="number">2</span>];</span><br><span class="line">    out[out_pos] = sum;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">/// END HW1_4</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="gpu-上的矩阵转置合并共享内存和银行冲突">GPU
+上的矩阵转置：合并、共享内存和银行冲突</h2>
+<h3 id="合并转置内核">合并转置内核</h3>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">__global__ <span class="type">void</span> <span class="title">smem_cuda_transpose</span><span class="params">(<span class="type">int</span> m, <span class="type">float</span>* a, <span class="type">float</span>* c)</span> </span>&#123;</span><br><span class="line">    __shared__ <span class="type">float</span> smem[BLOCK_X][BLOCK_Y];</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> tileCol = blockDim.x * blockIdx.x;</span><br><span class="line">    <span class="type">int</span> tileRow = blockDim.y * blockIdx.y;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 从全局内存加载 → 共享内存</span></span><br><span class="line">    smem[threadIdx.x][threadIdx.y] =</span><br><span class="line">        a[(tileRow + threadIdx.y) * m + (tileCol + threadIdx.x)];</span><br><span class="line"></span><br><span class="line">    __syncthreads();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 从共享内存存储 → 全局内存</span></span><br><span class="line">    c[(tileCol + threadIdx.y) * m + (tileRow + threadIdx.x)] =</span><br><span class="line">        smem[threadIdx.y][threadIdx.x];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这解决了什么</p>
+<p>✅ 全局内存读取被合并 ✅ 全局内存写入被合并</p>
+<p>但是…</p>
+<p>❌ <strong>共享内存银行冲突出现</strong></p>
+<h3 id="共享内存银行真正的瓶颈">共享内存银行：真正的瓶颈</h3>
+<ul>
+<li>共享内存被划分为 <strong>32 个银行</strong></li>
+<li>每个银行每个周期提供 <strong>一个 32 位字</strong></li>
+<li>一个 warp 只能在 <strong>1 个周期</strong> 访问共享内存，前提是：
+<ul>
+<li>每个线程访问 <strong>不同的银行</strong></li>
+</ul></li>
+</ul>
+<p><code>smem[threadIdx.x][threadIdx.y]</code>
+这段代码实际上会导致银行冲突。</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260126142048710.png" alt="image-20260126142048710" style="zoom: 40%;" /></p>
+<h3 id="修复填充共享内存">修复：填充共享内存</h3>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">__global__ <span class="type">void</span> <span class="title">smem_cuda_transpose</span><span class="params">(<span class="type">int</span> m, <span class="type">float</span>* a, <span class="type">float</span>* c)</span> </span>&#123;</span><br><span class="line">    __shared__ <span class="type">float</span> smem[BLOCK_X][BLOCK_Y + <span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> tileCol = blockDim.x * blockIdx.x;</span><br><span class="line">    <span class="type">int</span> tileRow = blockDim.y * blockIdx.y;</span><br><span class="line"></span><br><span class="line">    smem[threadIdx.x][threadIdx.y] =</span><br><span class="line">        a[(tileRow + threadIdx.y) * m + (tileCol + threadIdx.x)];</span><br><span class="line"></span><br><span class="line">    __syncthreads();</span><br><span class="line"></span><br><span class="line">    c[(tileCol + threadIdx.y) * m + (tileRow + threadIdx.x)] =</span><br><span class="line">        smem[threadIdx.y][threadIdx.x];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260126142323660.png" alt="image-20260126142323660" style="zoom:40%;" /></p>
+<h2 id="稀疏矩阵乘法">稀疏矩阵乘法</h2>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260126150918193.png" alt="image-20260126150918193" style="zoom:80%;" /></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">__global__ <span class="type">void</span> <span class="title">SpMVCSRKernel</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">float</span>* data,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">int</span>*   col_index,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">int</span>*   row_ptr,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">float</span>* x,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">float</span>* y,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">int</span>    num_rows</span></span></span><br><span class="line"><span class="params"><span class="function">)</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> row = blockIdx.x * blockDim.x + threadIdx.x;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (row &lt; num_rows) &#123;</span><br><span class="line">        <span class="type">float</span> dot = <span class="number">0.0f</span>;</span><br><span class="line"></span><br><span class="line">        <span class="type">int</span> row_start = row_ptr[row];</span><br><span class="line">        <span class="type">int</span> row_end   = row_ptr[row + <span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> elem = row_start; elem &lt; row_end; ++elem) &#123;</span><br><span class="line">            dot += x[col_index[elem]] * data[elem];</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        y[row] += dot;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="cublas">cuBLAS</h2>
+<p><strong>cuBLAS</strong> 代表 <strong>CUDA
+基本线性代数子程序</strong>。</p>
+<p>它是 NVIDIA 高度优化的 GPU 实现经典 <strong>BLAS</strong>
+接口，针对以下操作：</p>
+<ul>
+<li>向量操作（第 1 级 BLAS）</li>
+<li>矩阵-向量操作（第 2 级 BLAS）</li>
+<li>矩阵-矩阵操作（第 3 级 BLAS，特别是 GEMM）</li>
+</ul>
+<h3 id="编程模型">编程模型</h3>
+<p>cuBLAS 使用 <strong>基于句柄的 API</strong>：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">cublasHandle_t handle;</span><br><span class="line"><span class="built_in">cublasCreate</span>(&amp;handle);</span><br><span class="line"></span><br><span class="line"><span class="comment">// cuBLAS 调用</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">cublasDestroy</span>(handle);</span><br></pre></td></tr></table></figure>
+<p>所有 cuBLAS 操作都需要一个有效的
+<code>cublasHandle_t</code>，它存储执行上下文，例如 CUDA
+流和数学模式。</p>
+<h3 id="第-1-级-blas向量点积">第 1 级 BLAS：向量点积</h3>
+<p>计算两个向量的点积： <span class="math display">\[
+\text{result} = x^T y
+\]</span></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">cublasStatus_t cublasSdot(</span><br><span class="line">    cublasHandle_t handle,</span><br><span class="line">    int n,</span><br><span class="line">    const float* x, int incx,</span><br><span class="line">    const float* y, int incy,</span><br><span class="line">    float* result</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<p><strong>关键点：</strong></p>
+<ul>
+<li><code>n</code> 是元素的数量</li>
+<li><code>incx</code>、<code>incy</code> 指定元素之间的步幅</li>
+<li><code>x</code> 和 <code>y</code> 必须位于 <strong>设备内存</strong>
+中</li>
+<li><code>result</code> 写入 <strong>主机内存</strong></li>
+</ul>
+<p>这是范数、投影和归约的基本构建块。</p>
+<hr />
+<h3 id="第-2-级-blas矩阵-向量乘法">第 2 级 BLAS：矩阵-向量乘法</h3>
+<p>计算： <span class="math display">\[
+y = \alpha A x + \beta y
+\]</span></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">cublasStatus_t cublasSgemv(</span><br><span class="line">    cublasHandle_t handle,</span><br><span class="line">    cublasOperation_t trans,</span><br><span class="line">    int m, int n,</span><br><span class="line">    const float* alpha,</span><br><span class="line">    const float* A, int lda,</span><br><span class="line">    const float* x, int incx,</span><br><span class="line">    const float* beta,</span><br><span class="line">    float* y, int incy</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<p><strong>关键点：</strong></p>
+<ul>
+<li><code>A</code> 是一个 <span class="math inline">\(m \times
+n\)</span> 矩阵，以 <strong>列优先</strong> 顺序存储</li>
+<li><code>trans</code> 控制 <code>A</code> 是否转置</li>
+<li><code>lda</code> 是 <code>A</code> 的主维度</li>
+<li>所有向量和矩阵都在 <strong>设备内存</strong> 中</li>
+</ul>
+<p>此操作在迭代求解器和神经网络层中很常见。</p>
+<hr />
+<h3 id="第-3-级-blas矩阵-矩阵乘法gemm">第 3 级
+BLAS：矩阵-矩阵乘法（GEMM）</h3>
+<p>计算： <span class="math display">\[
+C = \alpha A B + \beta C
+\]</span></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">cublasStatus_t cublasSgemm(</span><br><span class="line">    cublasHandle_t handle,</span><br><span class="line">    cublasOperation_t transA,</span><br><span class="line">    cublasOperation_t transB,</span><br><span class="line">    int m, int n, int k,</span><br><span class="line">    const float* alpha,</span><br><span class="line">    const float* A, int lda,</span><br><span class="line">    const float* B, int ldb,</span><br><span class="line">    const float* beta,</span><br><span class="line">    float* C, int ldc</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<p><strong>关键点：</strong></p>
+<ul>
+<li>这是 <strong>最重要的 cuBLAS API</strong></li>
+<li><code>A</code>、<code>B</code>、<code>C</code> 都以
+<strong>列优先</strong> 布局存储</li>
+<li><code>m</code>、<code>n</code>、<code>k</code> 定义矩阵形状</li>
+<li>内部使用 <strong>平铺、共享内存和张量核心（如果可用）</strong></li>
+</ul>
+<p>GEMM 是深度学习和科学计算的性能支柱。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh/2026/01/26/11868-LLM-Sys/11868-LLM-SyS-GPU-Programming-Acceleration/">https://xloverflow.github.io/zh/2026/01/26/11868-LLM-Sys/11868-LLM-SyS-GPU-Programming-Acceleration/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://xloverflow.github.io/zh" target="_blank">Life is not a race, but a journey</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/zh/tags/CMU/">CMU</a><a class="post-meta__tags" href="/zh/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/zh/tags/LLM-Systems/">LLM Systems</a><a class="post-meta__tags" href="/zh/tags/GPU-Programming/">GPU Programming</a><a class="post-meta__tags" href="/zh/tags/11868/">11868</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/zh/2026/01/28/11868-LLM-Sys/11868-LLM-Sys-15642-ML-Sys-DL-Framworks-and-Auto-Differentiation/" title="11868 LLM Sys &amp; 15642 ML Sys: DL Frameworks and Auto Differentiation"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">11868 LLM Sys & 15642 ML Sys: DL Frameworks and Auto Differentiation</div></div><div class="info-2"><div class="info-item-1">关于CMU 11-868 LLM系统和15-642 ML系统课程的深度学习框架和自动微分的综合笔记。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理的笔记和总结。</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/zh/2026/01/28/11868-LLM-Sys/11868-LLM-Sys-15642-ML-Sys-DL-Framworks-and-Auto-Differentiation/" title="11868 LLM Sys &amp; 15642 ML Sys: DL Frameworks and Auto Differentiation"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-28</div><div class="info-item-2">11868 LLM Sys &amp; 15642 ML Sys: DL Frameworks and Auto Differentiation</div></div><div class="info-2"><div class="info-item-1">关于CMU 11-868 LLM系统和15-642 ML系统课程的深度学习框架和自动微分的综合笔记。</div></div></div></a><a class="pagination-related" href="/zh/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-12</div><div class="info-item-2">11868 LLM Sys: Tokenization and Embedding</div></div><div class="info-2"><div class="info-item-1">关于大语言模型的分词技术和词汇学习的综合笔记，包括BPE、VOLT以及多语言LLM的实际考虑。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">关于CMU 11-711高级自然语言处理的RNN架构、编码器-解码器模型和注意力机制的笔记。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-22</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/" title="11711 Advanced NLP: Learning &amp; Inference"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Learning &amp; Inference</div></div><div class="info-2"><div class="info-item-1">卡内基梅隆大学 11-711 高级自然语言处理的学习算法和推理方法笔记。</div></div></div></a><a class="pagination-related" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-14</div><div class="info-item-2">11711 Advanced NLP: Retrieval and RAG</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理中关于检索系统、检索器和检索增强生成（RAG）的笔记。</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li 的中文博客</div><div class="site-data"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">47</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">62</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">18</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#gpu-%E7%BC%96%E7%A8%8B"><span class="toc-number">1.</span> <span class="toc-text">GPU 编程</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E5%B1%82%E5%92%8C%E4%BD%8E%E7%BA%A7%E6%93%8D%E4%BD%9C"><span class="toc-number">1.1.</span> <span class="toc-text">神经网络层和低级操作</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#gpu-%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%9A%84%E7%BB%84%E6%88%90"><span class="toc-number">1.2.</span> <span class="toc-text">GPU 服务器的组成</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#gpu-%E6%9E%B6%E6%9E%84"><span class="toc-number">1.3.</span> <span class="toc-text">GPU 架构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9C%A8-gpu-%E4%B8%8A%E6%89%A7%E8%A1%8C%E7%A8%8B%E5%BA%8F"><span class="toc-number">1.4.</span> <span class="toc-text">在 GPU 上执行程序</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%85%E6%A0%B8%E7%BA%BF%E7%A8%8B%E7%9A%84%E6%89%A7%E8%A1%8C%E6%96%B9%E5%BC%8F"><span class="toc-number">1.4.1.</span> <span class="toc-text">内核线程的执行方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#sm-%E4%B8%8A%E7%9A%84-warp-%E6%89%A7%E8%A1%8C%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.4.2.</span> <span class="toc-text">SM 上的 Warp 执行模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#cpu-gpu-%E6%95%B0%E6%8D%AE%E7%A7%BB%E5%8A%A8"><span class="toc-number">1.4.3.</span> <span class="toc-text">CPU-GPU 数据移动</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#cuda-%E5%86%85%E6%A0%B8"><span class="toc-number">1.4.4.</span> <span class="toc-text">CUDA 内核</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E8%AF%91-cuda-%E4%BB%A3%E7%A0%81"><span class="toc-number">1.4.5.</span> <span class="toc-text">编译 CUDA 代码</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC-gpu-cuda-%E6%93%8D%E4%BD%9C"><span class="toc-number">1.5.</span> <span class="toc-text">基本 GPU CUDA 操作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#gpu-%E5%86%85%E5%AD%98"><span class="toc-number">1.5.1.</span> <span class="toc-text">GPU 内存</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E7%A7%BB%E5%8A%A8"><span class="toc-number">1.5.2.</span> <span class="toc-text">数据移动</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BB%E6%9C%BA%E8%AE%BE%E5%A4%87%E5%87%BD%E6%95%B0%E7%9A%84%E5%A3%B0%E6%98%8E"><span class="toc-number">1.5.3.</span> <span class="toc-text">主机&#x2F;设备函数的声明</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%90%E8%A1%8C%E6%97%B6%E8%B0%83%E7%94%A8%E5%86%85%E6%A0%B8"><span class="toc-number">1.5.4.</span> <span class="toc-text">运行时调用内核</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BE%E5%A4%87%E8%BF%90%E8%A1%8C%E6%97%B6%E5%8F%98%E9%87%8F"><span class="toc-number">1.5.5.</span> <span class="toc-text">设备运行时变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%8E-cpu-%E8%B0%83%E7%94%A8-cuda-%E5%86%85%E6%A0%B8"><span class="toc-number">1.5.6.</span> <span class="toc-text">从 CPU 调用 CUDA 内核</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#gpu-%E5%8A%A0%E9%80%9F"><span class="toc-number">2.</span> <span class="toc-text">GPU 加速</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E8%AE%BF%E9%97%AE%E6%95%88%E7%8E%87"><span class="toc-number">2.1.</span> <span class="toc-text">内存访问效率</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#cuda-%E8%AE%BE%E5%A4%87%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B"><span class="toc-number">2.2.</span> <span class="toc-text">CUDA 设备内存模型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9F%A9%E9%98%B5%E4%B9%98%E6%B3%95%E7%9A%84%E5%B9%B3%E9%93%BA"><span class="toc-number">2.3.</span> <span class="toc-text">矩阵乘法的平铺</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#gpu-%E4%B8%8A%E7%9A%84%E7%9F%A9%E9%98%B5%E8%BD%AC%E7%BD%AE%E5%90%88%E5%B9%B6%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98%E5%92%8C%E9%93%B6%E8%A1%8C%E5%86%B2%E7%AA%81"><span class="toc-number">2.4.</span> <span class="toc-text">GPU
+上的矩阵转置：合并、共享内存和银行冲突</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%88%E5%B9%B6%E8%BD%AC%E7%BD%AE%E5%86%85%E6%A0%B8"><span class="toc-number">2.4.1.</span> <span class="toc-text">合并转置内核</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98%E9%93%B6%E8%A1%8C%E7%9C%9F%E6%AD%A3%E7%9A%84%E7%93%B6%E9%A2%88"><span class="toc-number">2.4.2.</span> <span class="toc-text">共享内存银行：真正的瓶颈</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E5%A1%AB%E5%85%85%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98"><span class="toc-number">2.4.3.</span> <span class="toc-text">修复：填充共享内存</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A8%80%E7%96%8F%E7%9F%A9%E9%98%B5%E4%B9%98%E6%B3%95"><span class="toc-number">2.5.</span> <span class="toc-text">稀疏矩阵乘法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#cublas"><span class="toc-number">2.6.</span> <span class="toc-text">cuBLAS</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B"><span class="toc-number">2.6.1.</span> <span class="toc-text">编程模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC-1-%E7%BA%A7-blas%E5%90%91%E9%87%8F%E7%82%B9%E7%A7%AF"><span class="toc-number">2.6.2.</span> <span class="toc-text">第 1 级 BLAS：向量点积</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC-2-%E7%BA%A7-blas%E7%9F%A9%E9%98%B5-%E5%90%91%E9%87%8F%E4%B9%98%E6%B3%95"><span class="toc-number">2.6.3.</span> <span class="toc-text">第 2 级 BLAS：矩阵-向量乘法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC-3-%E7%BA%A7-blas%E7%9F%A9%E9%98%B5-%E7%9F%A9%E9%98%B5%E4%B9%98%E6%B3%95gemm"><span class="toc-number">2.6.4.</span> <span class="toc-text">第 3 级
+BLAS：矩阵-矩阵乘法（GEMM）</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11711 Advanced NLP: Retrieval and RAG"/></a><div class="content"><a class="title" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG">11711 Advanced NLP: Retrieval and RAG</a><time datetime="2026-02-14T22:08:21.000Z" title="发表于 2026-02-14 17:08:21">2026-02-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM系统：解码"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11868 LLM系统：解码"/></a><div class="content"><a class="title" href="/zh/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM系统：解码">11868 LLM系统：解码</a><time datetime="2026-02-13T01:00:00.000Z" title="发表于 2026-02-12 20:00:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11868 LLM Sys: Tokenization and Embedding"/></a><div class="content"><a class="title" href="/zh/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding">11868 LLM Sys: Tokenization and Embedding</a><time datetime="2026-02-12T20:30:00.000Z" title="发表于 2026-02-12 15:30:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 机器学习系统：Transformer、注意力机制与优化"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="15642 机器学习系统：Transformer、注意力机制与优化"/></a><div class="content"><a class="title" href="/zh/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 机器学习系统：Transformer、注意力机制与优化">15642 机器学习系统：Transformer、注意力机制与优化</a><time datetime="2026-02-09T19:30:00.000Z" title="发表于 2026-02-09 14:30:00">2026-02-09</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/09/CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch/" title="CS336 Assignment 1: Building a Transformer Language Model from Scratch"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="CS336 Assignment 1: Building a Transformer Language Model from Scratch"/></a><div class="content"><a class="title" href="/zh/2026/02/09/CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch/" title="CS336 Assignment 1: Building a Transformer Language Model from Scratch">CS336 Assignment 1: Building a Transformer Language Model from Scratch</a><time datetime="2026-02-09T04:05:02.000Z" title="发表于 2026-02-08 23:05:02">2026-02-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/zh/js/utils.js"></script><script src="/zh/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '7066702d3e7ebaf14ad3bf02cb00f263'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/zh/404.html') : window.location.href = '/zh/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

@@ -1,0 +1,509 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Git Remote Connection | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Establishing connection between git and github, uploading files">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Git Remote Connection">
+<meta property="og:url" content="https://xloverflow.github.io/zh/2022/07/17/Tools/Git%20Remote%20Connection/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Establishing connection between git and github, uploading files">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/david-kaloczi-012FTEA0ZQ0-unsplash.jpg">
+<meta property="article:published_time" content="2022-07-17T20:54:39.000Z">
+<meta property="article:modified_time" content="2026-02-15T05:04:17.032Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="Study Notes">
+<meta property="article:tag" content="git">
+<meta property="article:tag" content="CS Tools">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/david-kaloczi-012FTEA0ZQ0-unsplash.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Git Remote Connection",
+  "url": "https://xloverflow.github.io/zh/2022/07/17/Tools/Git%20Remote%20Connection/",
+  "image": "https://raw.githubusercontent.com/hustlixiang21/blog-image/main/david-kaloczi-012FTEA0ZQ0-unsplash.jpg",
+  "datePublished": "2022-07-17T20:54:39.000Z",
+  "dateModified": "2026-02-15T05:04:17.032Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io/zh"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/zh/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/zh/2022/07/17/Tools/Git%20Remote%20Connection/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/zh/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/zh/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Git Remote Connection',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">47</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">62</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">18</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/hustlixiang21/blog-image/main/david-kaloczi-012FTEA0ZQ0-unsplash.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/zh/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/zh/"><span class="site-name">Git Remote Connection</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/"><i class="fas fa-language fa-fw"></i><span> English</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Git Remote Connection</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-07-17T20:54:39.000Z" title="发表于 2022-07-17 16:54:39">2022-07-17</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-15T05:04:17.032Z" title="更新于 2026-02-15 00:04:17">2026-02-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/zh/categories/%E5%B7%A5%E5%85%B7%E4%B8%8E%E5%B7%A5%E4%BD%9C%E6%B5%81/">工具与工作流</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>这篇文章是基于之前的《Git
+入门》文章写的，主要是因为我在尝试将一些资源文件上传到 GitHub
+时遇到了不少问题。</p>
+<p>我认为目前可以实现的建立连接的方式有 <strong>两种</strong>。</p>
+<p>在描述实现方法之前，我认为我们应该了解
+<strong>远程操作命令</strong>。</p>
+<h2 id="常用-git-命令">常用 Git 命令</h2>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">git init                    //初始化本地仓库，生成 .git 文件夹，这是 git 的核心</span><br><span class="line"></span><br><span class="line">git add [target]            //将目标文件添加到暂存区</span><br><span class="line"></span><br><span class="line">git rm -f &lt;filename&gt;        //该命令将文件从暂存区和工作目录中删除</span><br><span class="line"></span><br><span class="line">git rm --cached &lt;filename&gt;  //当你添加了不想要的文件时，该命令可以从暂存区删除文件，但保留在工作目录中</span><br><span class="line"></span><br><span class="line">git commit                  //提交暂存区的文件，使用 -m [message] 添加必要信息（如果没有添加也可以自动弹出）</span><br><span class="line"></span><br><span class="line">git status                  //查看 git 状态</span><br><span class="line"></span><br><span class="line">git clone [url or ssh]      </span><br><span class="line">//非常重要的一点是直接克隆远程仓库，默认会自动连接到克隆的远程仓库，命名为 origin</span><br><span class="line"></span><br><span class="line">git pull origin master      </span><br><span class="line">//将远程仓库 &quot;origin&quot; 中对应的分支拉取到本地仓库的 master，通常在 push 之前需要先拉取最新的仓库</span><br><span class="line"></span><br><span class="line">git pull origin master --allow-unrelated-histories </span><br><span class="line">//如果本地和远程是两个独立的仓库，拉取时需要指定 &quot;allow unrelated histories merge&quot;，否则会失败</span><br><span class="line"></span><br><span class="line">git push origin master </span><br><span class="line">//将本地仓库的内容提交到远程仓库（origin 是远程分支名称，master 是当前分支名称。注意该命令并不完全完整，实际使用中，如果是第一次提交到远程，应该使用 [git push -u origin master]，如果不是第一次，则直接使用 git push）</span><br><span class="line"></span><br><span class="line">git remote add origin [url or ssh]</span><br><span class="line">//添加一个远程仓库连接并命名为 &quot;origin&quot;，当然也可以自定义其他名称，但一般命名为 origin</span><br><span class="line"></span><br><span class="line">git remote rm origin        //删除名为 &quot;origin&quot; 的远程仓库连接</span><br><span class="line"></span><br><span class="line">git remote set-url origin [url or ssh]</span><br><span class="line">//修改 &quot;origin&quot; 的 url（结合上面的命令，有两种修改远程仓库连接的方法：一种是删除再添加，另一种是直接修改）</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>URL 和 SSH 可以从仓库界面的代码按钮中查看和复制，SSH 更加安全。</p>
+</blockquote>
+<figure>
+<img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/20200213161009663.png"
+alt="原理" />
+<figcaption aria-hidden="true">原理</figcaption>
+</figure>
+<h3 id="git-add-.-和-git-add-的区别">git add . 和 git add * 的区别</h3>
+<p>git add . 会添加所有文件、文件夹和子文件夹，包括 .gitignore
+和任何其他以点开头的内容；</p>
+<p>git add *
+会添加任何文件、文件夹和子文件夹，但不包括以点开头的文件。</p>
+<p>git add . 也会遵循 .gitignore，而 git add * 在任何非点文件被
+gitignore 时会抛出错误。<u>使用 git add . 比 git add *
+要好得多</u>。</p>
+<p>* 不是 git 的一部分，它是由 shell 解释的通配符。 *
+扩展为当前目录中的所有文件，然后传递给 git，git 添加所有文件。 .
+是当前目录本身，git add 会添加它及其下的所有文件。</p>
+<p>add *
+意味着添加当前目录中的所有文件，除了名称以点开头的文件。这是一个 shell
+特性，Git 只接收文件列表。</p>
+<p>add . 在 shell 中没有特殊含义，因此 git
+会递归添加整个目录，几乎是一样的，但包括名称以点开头的文件。</p>
+<h3 id="删除远程仓库文件的方法">删除远程仓库文件的方法</h3>
+<p>删除时需要注意的一点是，暂存区中的文件
+<u>在提交后不会被清除</u>。同样，你删除的文件仍在暂存区，你需要
+<u>从暂存区移除已删除的文件</u>，才能提交。</p>
+<h4
+id="从当前工作目录和暂存区删除文件或目录">从当前工作目录和暂存区删除文件或目录。</h4>
+<p><code>git rm &lt;file&gt;</code>
+<code>git rm -r &lt;path&gt;</code></p>
+<h4 id="仅从暂存区删除文件或目录">仅从暂存区删除文件或目录。</h4>
+<p><code>git rm --cached &lt;file&gt;</code>
+<code>git rm -r --cached &lt;path&gt;</code></p>
+<h4 id="直接删除方法">直接删除方法</h4>
+<p>直接删除指定的文件或目录。适合需要删除的文件数量相对较少的情况。</p>
+<p><code>git rm -r --cached demo</code>
+<code>git commit -m '删除 demo 文件夹'</code>
+<code>git push -u origin master</code></p>
+<h4 id="过滤删除方法">过滤删除方法</h4>
+<p>在项目根目录添加 .gitignore
+文件以过滤掉不需要的文件，然后执行命令。该操作的原理是删除暂存区中的所有文件，然后通过
+git add . 命令将 .gitignore
+文件过滤的文件添加到暂存区。此方法适合批量删除文件。</p>
+<p><code>git rm -r --cached .</code> <code>git add .</code>
+<code>git commit</code> <code>git push  -u origin master</code></p>
+<p>无论是直接删除还是过滤删除，目的是删除暂存区中已删除文件的记录。</p>
+<p>PS：注意命令行提示中的各种信息</p>
+<h2 id="第一个实现方法-git-clone">第一个实现方法 (git clone)</h2>
+<h3 id="步骤1在-github-上创建一个名为-git_test-的仓库">步骤1：在 GitHub
+上创建一个名为 git_test 的仓库</h3>
+<p><img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/%E6%88%AA%E5%B1%8F2022-07-17%2017.12.03.png" /></p>
+<h3 id="步骤2进入一个文件夹并使用-git-clone">步骤2：进入一个文件夹并使用
+git clone <repository URL or SSH></h3>
+<p><img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/%E6%88%AA%E5%B1%8F2022-07-17%2019.28.52.png" /></p>
+<p>此时，git clone
+完全克隆了整个仓库到本地。它会生成一个与仓库同名的文件夹。进入该文件夹，你可以直接看到
+.git 文件。</p>
+<h3
+id="步骤3无需远程连接自动建立连接默认是-origin">步骤3：无需远程连接，自动建立连接（默认是
+origin）</h3>
+<p>使用 git remote -v 查看远程连接信息</p>
+<p><img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/%E6%88%AA%E5%B1%8F2022-07-17%2019.35.28.png" /></p>
+<h3
+id="步骤4创建测试文件并提交到远程仓库">步骤4：创建测试文件并提交到远程仓库</h3>
+<p><img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/%E6%88%AA%E5%B1%8F2022-07-17%2019.39.24.png" /></p>
+<p><img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/%E6%88%AA%E5%B1%8F2022-07-17%2019.42.25.png" /></p>
+<p>测试完成！</p>
+<h2 id="第二个实现方法-初始化本地仓库-手动添加连接">第二个实现方法
+(初始化本地仓库 + 手动添加连接)</h2>
+<h3 id="步骤1在-github-上创建一个新仓库同时初始化本地仓库">步骤1：在
+GitHub 上创建一个新仓库，同时初始化本地仓库</h3>
+<p>创建新仓库：</p>
+<p><img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/%E6%88%AA%E5%B1%8F2022-07-17%2019.52.37.png" /></p>
+<p>进入文件夹 ~/Desktop/git_freely 并使用 git init 初始化本地仓库</p>
+<p><img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/%E6%88%AA%E5%B1%8F2022-07-17%2019.54.27.png" /></p>
+<p>可以看到本地仓库尚未建立远程连接。</p>
+<h3 id="步骤2建立远程连接">步骤2：建立远程连接</h3>
+<p><img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/%E6%88%AA%E5%B1%8F2022-07-17%2019.56.10.png" /></p>
+<p>此时可以看到已经建立了远程连接，给远程仓库的名称其实可以随意（通常是
+origin），我命名为 lixiang。</p>
+<h3
+id="提问此时我们可以直接根据第一个实现方法创建测试文件然后-git-addcommitpush-吗"><u>提问：此时我们可以直接根据第一个实现方法创建测试文件，然后
+git add、commit、push 吗？</u></h3>
+<p>既然我提问了，那肯定是不可以的😄，如果你不相信我们来试试。</p>
+<p><img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/%E6%88%AA%E5%B1%8F2022-07-17%2020.02.15.png" /></p>
+<p>为什么？</p>
+<p>这可能需要理解一些 git
+的基本原理。我相信大家都听说过它被称为分布式版本控制。我们只关注“版本控制”这四个字。你的本地仓库是否有远程仓库的任何版本？你需要知道，当你在
+GitHub 上创建一个新仓库时，它有一个名为 <u>initial commit</u>
+的第一个版本（可能不叫这个），但总之，我想说的是创建伴随着第一次初始化提交，但本地没有。你可能会问，为什么没有，你怎么知道？我们来用
+git log 检查一下😜</p>
+<p><img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/%E6%88%AA%E5%B1%8F2022-07-17%2020.09.01.png" /></p>
+<p>让我解释一下，这是我为了演示我提到的反例而做的提交。实际上，应该是
+git log 后没有任何内容。</p>
+<h3 id="解决方案">解决方案：</h3>
+<p>只需拉取远程仓库的初始化版本，作为本地的基础版本，这就是版本控制的意义。git
+pull 是非常直观的</p>
+<p><img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/%E6%88%AA%E5%B1%8F2022-07-17%2020.13.45.png" /></p>
+<p>它提示该操作不成功，因为我有一个 test.txt
+文件，而本地仓库的第一次提交与远程仓库的初始版本不同，因此提示我有分歧的分支，等等，正如它的提示所说，你可以使用
+<code>git pull --rebase lixiang main</code></p>
+<p>你可能不知道这个 <code>--rebase</code>
+是做什么的，它实际上是分支合并提交，直接将远程仓库和本地仓库合并，而不管它，生成一个提交。</p>
+<p><img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/%E6%88%AA%E5%B1%8F2022-07-17%2020.22.04.png" /></p>
+<p>成功了！让我们用 git log 检查一下……</p>
+<p><img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/%E6%88%AA%E5%B1%8F2022-07-17%2020.23.03.png" /></p>
+<p>可以看到远程仓库的 Initial commit
+已经与我第一次的本地提交合并，但此时远程和本地仓库并不同步！需要上传到远程仓库。</p>
+<h3 id="步骤3git-push">步骤3：git push</h3>
+<p><img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/%E6%88%AA%E5%B1%8F2022-07-17%2020.28.42.png" /></p>
+<p><img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/%E6%88%AA%E5%B1%8F2022-07-17%2020.29.24.png" /></p>
+<p>成功了，有一个小问题是分支已经改变。这里的原因是本地初始化的默认分支是
+master，而远程仓库的默认分支是 main。但这不是大问题。</p>
+<p>修改默认分支的命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git config --global init.defaultBranch &lt;default branch name&gt;</span><br></pre></td></tr></table></figure>
+<p>如果你不理解上述过程，也没关系，我把它写得复杂了，实际上应该简单得多，没问题，让我写一个简单版本。</p>
+<h2 id="第二种方法的简化">第二种方法的简化</h2>
+<h3
+id="步骤1创建远程仓库并初始化本地仓库">步骤1：创建远程仓库并初始化本地仓库</h3>
+<p><img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/%E6%88%AA%E5%B1%8F2022-07-17%2020.35.31.png" /></p>
+<p><img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/%E6%88%AA%E5%B1%8F2022-07-17%2020.36.50.png" /></p>
+<h3 id="步骤2手动建立远程连接">步骤2：手动建立远程连接</h3>
+<p><img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/%E6%88%AA%E5%B1%8F2022-07-17%2020.43.25.png" /></p>
+<h3 id="步骤3拉取git-pull远程仓库的初始版本">步骤3：拉取（git
+pull）远程仓库的初始版本</h3>
+<p><img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/%E6%88%AA%E5%B1%8F2022-07-17%2020.44.13.png" /></p>
+<p>如果你看过我之前的解释，你会发现 <code>--rebase</code>
+参数并不需要，因为初始化后我什么都没做，提交记录是空的，空仓库当然在拉取任何东西时不会产生任何分歧。对于空仓库，根本不存在合并的问题！</p>
+<p>让我们用 git log 检查一下</p>
+<p><img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/%E6%88%AA%E5%B1%8F2022-07-17%2020.47.04.png" /></p>
+<p>正是如此！最后一步！😬</p>
+<h3
+id="步骤4创建测试文件后git-push-上传到远程仓库">步骤4：创建测试文件后，git
+push 上传到远程仓库</h3>
+<p><img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/%E6%88%AA%E5%B1%8F2022-07-17%2020.51.01.png" /></p>
+<p>让我们在 GitHub 上检查一下</p>
+<p><img
+src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/%E6%88%AA%E5%B1%8F2022-07-17%2020.51.47.png" /></p>
+<h2 id="总结">总结</h2>
+<p>我认为我所说的只是冰山一角，逐步教你如何连接本地和远程仓库并提交你想上传的文件。实际上，GitHub
+支持直接文件上传，见上图中的 <u>Add
+File</u>。我学习这个并没有特别的目的，只是觉得很有趣。如果你想更深入地了解，可以参考我之前的
+<a
+target="_blank" rel="noopener" href="https://hustlixiang21.github.io/2022/07/05/git入门/">博客文章</a></p>
+<p>顺便提一下，这篇文章基本上都是我自己写的，但我确实阅读了很多其他人的观点，并且自己不断犯错，但这就是学习的过程。我会在这里附上我参考的一些原创文章。</p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/359108193">知乎_Git
+使用（连接远程仓库）</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://blog.csdn.net/phily123/article/details/121160072">CSDN_删除远程仓库文件</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://blog.csdn.net/A496608119/article/details/123566231">CSDN_Git
+本地文件上传到远程仓库</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://blog.csdn.net/u014630142/article/details/120261403">CSDN_删除
+Git 远程仓库文件</a></p>
+<p>仔细看看他们写的内容，可能比我写的更清晰。我的目的仍然是通过我对原理和过程的理解，逐步建立连接。这可以说是我第一篇也有点像教程的博客文章。感谢观看！</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh/2022/07/17/Tools/Git%20Remote%20Connection/">https://xloverflow.github.io/zh/2022/07/17/Tools/Git%20Remote%20Connection/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://xloverflow.github.io/zh" target="_blank">Life is not a race, but a journey</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/zh/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/zh/tags/git/">git</a><a class="post-meta__tags" href="/zh/tags/CS-Tools/">CS Tools</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/david-kaloczi-012FTEA0ZQ0-unsplash.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/zh/2022/07/20/Blog/Blog%20Writing%20Tricks/" title="Blog Writing Tricks"><img class="cover" src="https://raw.githubusercontent.com/hustlixiang21/blog-image/main/colin-watts-6YcKNe4yOwE-unsplash.jpg" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Blog Writing Tricks</div></div><div class="info-2"><div class="info-item-1">Some writing techniques for the butterfly theme in markdown format</div></div></div></a><a class="pagination-related" href="/zh/2022/07/05/Tools/Git%20Introduction/" title="Git Introduction"><img class="cover" src="https://pic2.zhimg.com/80/v2-7cb1b45abcd853e66e024a802aa4fffc_1440w.jpeg" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Git Introduction</div></div><div class="info-2"><div class="info-item-1">Basic concepts and operations of git</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/zh/2022/07/05/Tools/Git%20Introduction/" title="Git Introduction"><img class="cover" src="https://pic2.zhimg.com/80/v2-7cb1b45abcd853e66e024a802aa4fffc_1440w.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-05</div><div class="info-item-2">Git Introduction</div></div><div class="info-2"><div class="info-item-1">Basic concepts and operations of git</div></div></div></a><a class="pagination-related" href="/zh/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">关于CMU 11-711高级自然语言处理的RNN架构、编码器-解码器模型和注意力机制的笔记。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-22</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/" title="11711 Advanced NLP: Learning &amp; Inference"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Learning &amp; Inference</div></div><div class="info-2"><div class="info-item-1">卡内基梅隆大学 11-711 高级自然语言处理的学习算法和推理方法笔记。</div></div></div></a><a class="pagination-related" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-14</div><div class="info-item-2">11711 Advanced NLP: Retrieval and RAG</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理中关于检索系统、检索器和检索增强生成（RAG）的笔记。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/26/11868-LLM-Sys/11868-LLM-SyS-GPU-Programming-Acceleration/" title="11868 LLM Sys: GPU Programming &amp; Acceleration"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-25</div><div class="info-item-2">11868 LLM Sys: GPU Programming &amp; Acceleration</div></div><div class="info-2"><div class="info-item-1">CMU 11-868 LLM系统：GPU编程与加速的笔记和总结。</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li 的中文博客</div><div class="site-data"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">47</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">62</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">18</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E7%94%A8-git-%E5%91%BD%E4%BB%A4"><span class="toc-number">1.</span> <span class="toc-text">常用 Git 命令</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#git-add-.-%E5%92%8C-git-add-%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">1.1.</span> <span class="toc-text">git add . 和 git add * 的区别</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A0%E9%99%A4%E8%BF%9C%E7%A8%8B%E4%BB%93%E5%BA%93%E6%96%87%E4%BB%B6%E7%9A%84%E6%96%B9%E6%B3%95"><span class="toc-number">1.2.</span> <span class="toc-text">删除远程仓库文件的方法</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BB%8E%E5%BD%93%E5%89%8D%E5%B7%A5%E4%BD%9C%E7%9B%AE%E5%BD%95%E5%92%8C%E6%9A%82%E5%AD%98%E5%8C%BA%E5%88%A0%E9%99%A4%E6%96%87%E4%BB%B6%E6%88%96%E7%9B%AE%E5%BD%95"><span class="toc-number">1.2.1.</span> <span class="toc-text">从当前工作目录和暂存区删除文件或目录。</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BB%85%E4%BB%8E%E6%9A%82%E5%AD%98%E5%8C%BA%E5%88%A0%E9%99%A4%E6%96%87%E4%BB%B6%E6%88%96%E7%9B%AE%E5%BD%95"><span class="toc-number">1.2.2.</span> <span class="toc-text">仅从暂存区删除文件或目录。</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%9B%B4%E6%8E%A5%E5%88%A0%E9%99%A4%E6%96%B9%E6%B3%95"><span class="toc-number">1.2.3.</span> <span class="toc-text">直接删除方法</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BF%87%E6%BB%A4%E5%88%A0%E9%99%A4%E6%96%B9%E6%B3%95"><span class="toc-number">1.2.4.</span> <span class="toc-text">过滤删除方法</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E4%B8%AA%E5%AE%9E%E7%8E%B0%E6%96%B9%E6%B3%95-git-clone"><span class="toc-number">2.</span> <span class="toc-text">第一个实现方法 (git clone)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A41%E5%9C%A8-github-%E4%B8%8A%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA%E5%90%8D%E4%B8%BA-git_test-%E7%9A%84%E4%BB%93%E5%BA%93"><span class="toc-number">2.1.</span> <span class="toc-text">步骤1：在 GitHub
+上创建一个名为 git_test 的仓库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A42%E8%BF%9B%E5%85%A5%E4%B8%80%E4%B8%AA%E6%96%87%E4%BB%B6%E5%A4%B9%E5%B9%B6%E4%BD%BF%E7%94%A8-git-clone"><span class="toc-number">2.2.</span> <span class="toc-text">步骤2：进入一个文件夹并使用
+git clone </span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A43%E6%97%A0%E9%9C%80%E8%BF%9C%E7%A8%8B%E8%BF%9E%E6%8E%A5%E8%87%AA%E5%8A%A8%E5%BB%BA%E7%AB%8B%E8%BF%9E%E6%8E%A5%E9%BB%98%E8%AE%A4%E6%98%AF-origin"><span class="toc-number">2.3.</span> <span class="toc-text">步骤3：无需远程连接，自动建立连接（默认是
+origin）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A44%E5%88%9B%E5%BB%BA%E6%B5%8B%E8%AF%95%E6%96%87%E4%BB%B6%E5%B9%B6%E6%8F%90%E4%BA%A4%E5%88%B0%E8%BF%9C%E7%A8%8B%E4%BB%93%E5%BA%93"><span class="toc-number">2.4.</span> <span class="toc-text">步骤4：创建测试文件并提交到远程仓库</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E4%B8%AA%E5%AE%9E%E7%8E%B0%E6%96%B9%E6%B3%95-%E5%88%9D%E5%A7%8B%E5%8C%96%E6%9C%AC%E5%9C%B0%E4%BB%93%E5%BA%93-%E6%89%8B%E5%8A%A8%E6%B7%BB%E5%8A%A0%E8%BF%9E%E6%8E%A5"><span class="toc-number">3.</span> <span class="toc-text">第二个实现方法
+(初始化本地仓库 + 手动添加连接)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A41%E5%9C%A8-github-%E4%B8%8A%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA%E6%96%B0%E4%BB%93%E5%BA%93%E5%90%8C%E6%97%B6%E5%88%9D%E5%A7%8B%E5%8C%96%E6%9C%AC%E5%9C%B0%E4%BB%93%E5%BA%93"><span class="toc-number">3.1.</span> <span class="toc-text">步骤1：在
+GitHub 上创建一个新仓库，同时初始化本地仓库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A42%E5%BB%BA%E7%AB%8B%E8%BF%9C%E7%A8%8B%E8%BF%9E%E6%8E%A5"><span class="toc-number">3.2.</span> <span class="toc-text">步骤2：建立远程连接</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8F%90%E9%97%AE%E6%AD%A4%E6%97%B6%E6%88%91%E4%BB%AC%E5%8F%AF%E4%BB%A5%E7%9B%B4%E6%8E%A5%E6%A0%B9%E6%8D%AE%E7%AC%AC%E4%B8%80%E4%B8%AA%E5%AE%9E%E7%8E%B0%E6%96%B9%E6%B3%95%E5%88%9B%E5%BB%BA%E6%B5%8B%E8%AF%95%E6%96%87%E4%BB%B6%E7%84%B6%E5%90%8E-git-addcommitpush-%E5%90%97"><span class="toc-number">3.3.</span> <span class="toc-text">提问：此时我们可以直接根据第一个实现方法创建测试文件，然后
+git add、commit、push 吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="toc-number">3.4.</span> <span class="toc-text">解决方案：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A43git-push"><span class="toc-number">3.5.</span> <span class="toc-text">步骤3：git push</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E7%A7%8D%E6%96%B9%E6%B3%95%E7%9A%84%E7%AE%80%E5%8C%96"><span class="toc-number">4.</span> <span class="toc-text">第二种方法的简化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A41%E5%88%9B%E5%BB%BA%E8%BF%9C%E7%A8%8B%E4%BB%93%E5%BA%93%E5%B9%B6%E5%88%9D%E5%A7%8B%E5%8C%96%E6%9C%AC%E5%9C%B0%E4%BB%93%E5%BA%93"><span class="toc-number">4.1.</span> <span class="toc-text">步骤1：创建远程仓库并初始化本地仓库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A42%E6%89%8B%E5%8A%A8%E5%BB%BA%E7%AB%8B%E8%BF%9C%E7%A8%8B%E8%BF%9E%E6%8E%A5"><span class="toc-number">4.2.</span> <span class="toc-text">步骤2：手动建立远程连接</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A43%E6%8B%89%E5%8F%96git-pull%E8%BF%9C%E7%A8%8B%E4%BB%93%E5%BA%93%E7%9A%84%E5%88%9D%E5%A7%8B%E7%89%88%E6%9C%AC"><span class="toc-number">4.3.</span> <span class="toc-text">步骤3：拉取（git
+pull）远程仓库的初始版本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A44%E5%88%9B%E5%BB%BA%E6%B5%8B%E8%AF%95%E6%96%87%E4%BB%B6%E5%90%8Egit-push-%E4%B8%8A%E4%BC%A0%E5%88%B0%E8%BF%9C%E7%A8%8B%E4%BB%93%E5%BA%93"><span class="toc-number">4.4.</span> <span class="toc-text">步骤4：创建测试文件后，git
+push 上传到远程仓库</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">5.</span> <span class="toc-text">总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11711 Advanced NLP: Retrieval and RAG"/></a><div class="content"><a class="title" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG">11711 Advanced NLP: Retrieval and RAG</a><time datetime="2026-02-14T22:08:21.000Z" title="发表于 2026-02-14 17:08:21">2026-02-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM系统：解码"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11868 LLM系统：解码"/></a><div class="content"><a class="title" href="/zh/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM系统：解码">11868 LLM系统：解码</a><time datetime="2026-02-13T01:00:00.000Z" title="发表于 2026-02-12 20:00:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11868 LLM Sys: Tokenization and Embedding"/></a><div class="content"><a class="title" href="/zh/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding">11868 LLM Sys: Tokenization and Embedding</a><time datetime="2026-02-12T20:30:00.000Z" title="发表于 2026-02-12 15:30:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 机器学习系统：Transformer、注意力机制与优化"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="15642 机器学习系统：Transformer、注意力机制与优化"/></a><div class="content"><a class="title" href="/zh/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 机器学习系统：Transformer、注意力机制与优化">15642 机器学习系统：Transformer、注意力机制与优化</a><time datetime="2026-02-09T19:30:00.000Z" title="发表于 2026-02-09 14:30:00">2026-02-09</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/09/CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch/" title="CS336 Assignment 1: Building a Transformer Language Model from Scratch"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="CS336 Assignment 1: Building a Transformer Language Model from Scratch"/></a><div class="content"><a class="title" href="/zh/2026/02/09/CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch/" title="CS336 Assignment 1: Building a Transformer Language Model from Scratch">CS336 Assignment 1: Building a Transformer Language Model from Scratch</a><time datetime="2026-02-09T04:05:02.000Z" title="发表于 2026-02-08 23:05:02">2026-02-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/zh/js/utils.js"></script><script src="/zh/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || 'd7f4d1077f70e69e7762a7ec40550cef'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/zh/404.html') : window.location.href = '/zh/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

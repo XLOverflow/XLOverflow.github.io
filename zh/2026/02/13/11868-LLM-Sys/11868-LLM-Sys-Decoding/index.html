@@ -1,0 +1,611 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>11868 LLM系统：解码 | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="CMU 11-868课程中关于LLM推理解码策略的笔记，涵盖高效采样、束搜索算法、推测性解码和EAGLE。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="11868 LLM系统：解码">
+<meta property="og:url" content="https://xloverflow.github.io/zh/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="CMU 11-868课程中关于LLM推理解码策略的笔记，涵盖高效采样、束搜索算法、推测性解码和EAGLE。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png">
+<meta property="article:published_time" content="2026-02-13T01:00:00.000Z">
+<meta property="article:modified_time" content="2026-02-13T01:00:00.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="11868">
+<meta property="article:tag" content="LLM系统">
+<meta property="article:tag" content="解码">
+<meta property="article:tag" content="推测性解码">
+<meta property="article:tag" content="学习笔记">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "11868 LLM系统：解码",
+  "url": "https://xloverflow.github.io/zh/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png",
+  "datePublished": "2026-02-13T01:00:00.000Z",
+  "dateModified": "2026-02-13T01:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io/zh"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/zh/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/zh/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/zh/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/zh/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '11868 LLM系统：解码',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">47</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">62</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">18</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/zh/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/zh/"><span class="site-name">11868 LLM系统：解码</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/"><i class="fas fa-language fa-fw"></i><span> English</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">11868 LLM系统：解码</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-02-13T01:00:00.000Z" title="发表于 2026-02-12 20:00:00">2026-02-12</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-13T01:00:00.000Z" title="更新于 2026-02-12 20:00:00">2026-02-12</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/zh/categories/CMU-11-868-LLM%E7%B3%BB%E7%BB%9F/">CMU 11-868 LLM系统</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="解码采样束搜索和推测性解码">解码：采样、束搜索和推测性解码</h1>
+<blockquote>
+<p>关于基础概念（贪婪解码、束搜索基础、采样方法、KV缓存、计算与内存限制分析），请参见我的<a
+href="https://xloverflow.github.io/zh/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/#Lec9-Decoding-Algorithms">11711高级NLP：解码算法</a>笔记。本文重点关注那里未涵盖的<strong>系统级</strong>细节。</p>
+</blockquote>
+<h2 id="高效离散采样">高效离散采样</h2>
+<p>在每个解码步骤中，我们需要从词汇表上的分类分布中进行采样。这是一个值得优化的系统瓶颈。</p>
+<h3 id="采样复杂度">采样复杂度</h3>
+<p>给定<span class="math inline">\(k\)</span>个类别，概率为<span
+class="math inline">\(p_1, p_2, \ldots, p_k\)</span>，需要抽取<span
+class="math inline">\(n\)</span>个样本：</p>
+<table>
+<thead>
+<tr class="header">
+<th>方法</th>
+<th>复杂度</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>直接采样</td>
+<td><span class="math inline">\(O(nk)\)</span></td>
+<td>每次线性扫描CDF</td>
+</tr>
+<tr class="even">
+<td>二分搜索</td>
+<td><span class="math inline">\(O(k + n \log k)\)</span></td>
+<td>构建一次CDF，每个样本二分搜索</td>
+</tr>
+<tr class="odd">
+<td>别名采样</td>
+<td><span class="math inline">\(O(k \log k + n)\)</span></td>
+<td>构建一次别名表，每个样本<span
+class="math inline">\(O(1)\)</span></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>别名采样注意事项</strong>：别名采样的<span
+class="math inline">\(O(1)\)</span>每样本优势仅在从<strong>同一分布抽取多个样本</strong>时才有效（例如蒙特卡洛模拟）。在LLM解码中，每步分布都会变化（每个分布<span
+class="math inline">\(n=1\)</span>），因此别名表无法重用，每次必须以<span
+class="math inline">\(O(k \log
+k)\)</span>的代价重建——没有任何好处。这促使了下面的Gumbel Max技巧。</p>
+</blockquote>
+<p>在PyTorch中，标准方法是： <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">probs = torch.softmax(logits, dim=-<span class="number">1</span>)</span><br><span class="line">next_token = torch.multinomial(probs, num_samples=<span class="number">1</span>)</span><br></pre></td></tr></table></figure></p>
+<h3 id="gumbel-max技巧">Gumbel Max技巧</h3>
+<p>一种更快的替代方法，<strong>完全避免计算softmax</strong>。</p>
+<p><strong>关键定理</strong>：从<span
+class="math inline">\(\text{Categorical}(\text{Softmax}(h))\)</span>采样等价于：</p>
+<p><span class="math display">\[
+x_i = h_i - \log(-\log(z_i)), \quad z_i \sim \text{Uniform}(0, 1)
+\]</span> <span class="math display">\[
+\text{采样的token} = \arg\max_i \; x_i
+\]</span></p>
+<p><strong>理论</strong>：<span
+class="math inline">\(x_i\)</span>服从Gumbel分布，且<span
+class="math inline">\(\arg\max_i x_i\)</span>服从<span
+class="math inline">\(\text{Categorical}\left(\frac{\exp(h_i)}{\sum_{j=1}^{k}
+\exp(h_j)}\right)\)</span>。</p>
+<p><strong>为什么有用</strong>：用加法 + argmax替换softmax +
+多项式采样，这对硬件更友好。Gumbel噪声可以<strong>预先计算</strong>。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">GumbelSampler</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, batch_size, vocab_size, device</span>):</span><br><span class="line">        <span class="variable language_">self</span>.batch_size = batch_size</span><br><span class="line">        <span class="variable language_">self</span>.vocab_size = vocab_size</span><br><span class="line">        <span class="comment"># 预计算噪声</span></span><br><span class="line">        <span class="variable language_">self</span>.noise = <span class="variable language_">self</span>._prepare_gumbel_noise(device)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">_prepare_gumbel_noise</span>(<span class="params">self, device</span>):</span><br><span class="line">        <span class="comment"># 一次性生成噪声张量</span></span><br><span class="line">        uniform_noise = torch.rand(</span><br><span class="line">            <span class="variable language_">self</span>.batch_size, <span class="variable language_">self</span>.vocab_size, device=device</span><br><span class="line">        )</span><br><span class="line">        <span class="keyword">return</span> -torch.log(-torch.log(uniform_noise))</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">sample</span>(<span class="params">self, logits</span>):</span><br><span class="line">        <span class="comment"># 不使用softmax直接采样</span></span><br><span class="line">        <span class="keyword">return</span> torch.argmax(logits + <span class="variable language_">self</span>.noise, dim=-<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><strong>参考</strong>：Kool等人。<em>“随机束及其寻找方法：无重复采样序列的Gumbel-Top-k技巧。”</em>
+ICML 2019。</p>
+</blockquote>
+<hr />
+<h2 id="束搜索算法细节与剪枝">束搜索：算法细节与剪枝</h2>
+<p>除了<a
+href="https://xloverflow.github.io/zh/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/#Approach-2-Beam-Search">基本束搜索概念</a>外，本节涵盖完整的算法实现和剪枝优化。</p>
+<h3 id="算法细节">算法细节</h3>
+<p>带优先队列的完整束搜索过程：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">best_scores = []</span><br><span class="line">将&#123;[BOS], 0.0&#125;添加到best_scores</span><br><span class="line"></span><br><span class="line">for i in 1 to max_length:</span><br><span class="line">    new_seqs = PriorityQueue()</span><br><span class="line">    for (candidate, s) in best_scores:</span><br><span class="line">        if candidate[-1] is EOS:</span><br><span class="line">            prob = 全部-inf</span><br><span class="line">            prob[EOS] = 0</span><br><span class="line">        else:</span><br><span class="line">            prob = model.forward(candidate)  # 下一个token的对数概率</span><br><span class="line"></span><br><span class="line">        从prob中选择top k分数</span><br><span class="line">        for each (score, index) in top-k:</span><br><span class="line">            new_candidate = candidate.append(index)</span><br><span class="line">            new_score = s + score</span><br><span class="line">            if not new_seqs.full():</span><br><span class="line">                将(new_candidate, new_score)添加到new_seqs</span><br><span class="line">            else if new_seqs.min_score &lt; new_score:</span><br><span class="line">                new_seqs.pop_min()</span><br><span class="line">                将(new_candidate, new_score)添加到new_seqs</span><br><span class="line"></span><br><span class="line">    best_scores = new_seqs</span><br></pre></td></tr></table></figure>
+<p>关键实现细节： - 使用大小为<span
+class="math inline">\(k\)</span>的<strong>最小堆</strong>优先队列——总是驱逐得分最低的候选
+- EOS终止的序列被保留但阻止扩展（为所有token分配<span
+class="math inline">\(-\infty\)</span>，EOS除外） -
+得分是<strong>累积对数概率</strong>（对数概率之和）</p>
+<h3 id="剪枝策略">剪枝策略</h3>
+<p>为了减少计算，可以提前剪枝候选（Freitag &amp; Al-Onaizan,
+2017）：</p>
+<p><strong>1. 相对阈值剪枝</strong></p>
+<p>给定剪枝阈值<span class="math inline">\(r_p\)</span>和候选集<span
+class="math inline">\(C\)</span>，如果以下条件成立则丢弃候选<span
+class="math inline">\(c\)</span>：</p>
+<p><span class="math display">\[
+\text{score}(c) \leq r_p \cdot \max_{c&#39; \in C} \text{score}(c&#39;)
+\]</span></p>
+<p><strong>2. 绝对阈值剪枝</strong></p>
+<p>如果以下条件成立则丢弃候选<span
+class="math inline">\(c\)</span>：</p>
+<p><span class="math display">\[
+\text{score}(c) \leq \max_{c&#39; \in C} \text{score}(c&#39;) - a_p
+\]</span></p>
+<p><strong>3. 相对局部阈值剪枝</strong></p>
+<p>在每个扩展步骤（局部）而非全局应用阈值。</p>
+<h3 id="结合采样和束搜索">结合采样和束搜索</h3>
+<p>一种混合方法： 1. <strong>采样</strong>前几个token（引入多样性） 2.
+<strong>束搜索</strong>剩余的token（确保质量）</p>
+<p><strong>为什么</strong>：纯束搜索倾向于产生重复、低多样性的输出。采样初始token创建多样化的前缀，束搜索将每个前缀细化为高质量的完成。</p>
+<h3 id="代码示例">代码示例</h3>
+<ul>
+<li><a
+target="_blank" rel="noopener" href="https://github.com/llmsystem/llmsys_code_examples/blob/main/decoding/decoding.ipynb">束搜索笔记本</a></li>
+</ul>
+<hr />
+<h2 id="推测性解码深入探讨">推测性解码：深入探讨</h2>
+<p>在<a
+href="https://xloverflow.github.io/zh/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/#Speeding-Up-a-Full-Sequence">基本推测性解码概念</a>的基础上，本节详细介绍验证机制、性能权衡和对齐考虑。</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260213004236882.png" alt="image-20260213004236882" style="zoom:50%;" /></p>
+<p>回顾核心流程：小型<strong>草稿模型</strong><span
+class="math inline">\(f_{\text{draft}}\)</span>生成<span
+class="math inline">\(N\)</span>个token <span
+class="math inline">\(y_{1:N} \sim f_{\text{draft}}(\cdot \mid
+x)\)</span>，然后大型<strong>目标模型</strong><span
+class="math inline">\(f_{\text{target}}\)</span>在单次前向传递中验证它们。</p>
+<h3 id="验证准则">验证准则</h3>
+<p>如果草稿token <span
+class="math inline">\(y_i\)</span>出现在目标模型的top-<span
+class="math inline">\(K\)</span>预测中，则接受：</p>
+<p><span class="math display">\[
+\text{接受} y_i \quad \text{如果} \quad y_i \in
+\text{TopK}\left(f_{\text{target}}(\cdot \mid x, y_{1:i-1})\right)
+\]</span></p>
+<p>目标模型为每个前缀计算<span
+class="math inline">\(f_{\text{target}}(\cdot \mid x,
+y_{1:i-1})\)</span>——但所有这些都在<strong>同一次前向传递</strong>中计算，因为因果注意力允许并行计算所有前缀位置的似然。</p>
+<h3 id="拒绝处理">拒绝处理</h3>
+<p>如果草稿token <span
+class="math inline">\(y_i\)</span>被<strong>拒绝</strong>，目标模型丢弃<span
+class="math inline">\(y_i\)</span>和所有后续的草稿token <span
+class="math inline">\(y_{i+1:N}\)</span>。然后目标模型从最后接受的位置开始生成。</p>
+<p><strong>最坏情况</strong>：所有<span
+class="math inline">\(N\)</span>个token被拒绝→退回到正常的自回归解码（没有质量损失，只是浪费了草稿计算）。</p>
+<h3 id="为什么更快">为什么更快？</h3>
+<p>关键洞察：<strong>验证<span
+class="math inline">\(N\)</span>个token比生成<span
+class="math inline">\(N\)</span>个token更便宜</strong>。</p>
+<ul>
+<li><strong>生成</strong><span
+class="math inline">\(N\)</span>个token：目标模型的<span
+class="math inline">\(N\)</span>次顺序前向传递</li>
+<li><strong>验证</strong><span
+class="math inline">\(N\)</span>个token：目标模型的<strong>1次</strong>前向传递（因果注意力同时计算所有位置的似然）</li>
+</ul>
+<p>草稿模型的前向传递很便宜（小模型）。所以总成本大约是：<span
+class="math inline">\(N\)</span>次便宜的草稿传递 +
+1次昂贵的目标传递，相比<span
+class="math inline">\(N\)</span>次昂贵的目标传递。</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260213004811526.png" alt="image-20260213004811526" style="zoom:30%;" /></p>
+<h3 id="选择n草稿长度">选择<span
+class="math inline">\(N\)</span>（草稿长度）</h3>
+<table>
+<thead>
+<tr class="header">
+<th>大<span class="math inline">\(N\)</span></th>
+<th>小<span class="math inline">\(N\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>✅ 更高的理论加速</td>
+<td>✅ 更低的拒绝成本</td>
+</tr>
+<tr class="even">
+<td>❌ 更高的拒绝概率</td>
+<td>❌ 更少的并行化收益</td>
+</tr>
+<tr class="odd">
+<td>❌ 更多的softmax计算（内存压力）</td>
+<td>✅ 更低的内存开销</td>
+</tr>
+<tr class="even">
+<td>❌ 实时应用的停顿时间更长</td>
+<td>✅ 更适合交互使用</td>
+</tr>
+</tbody>
+</table>
+<p><strong>流行选择</strong>：<span class="math inline">\(N =
+4\)</span>或<span class="math inline">\(N = 8\)</span>。</p>
+<h3 id="对齐考虑">对齐考虑</h3>
+<p><strong>草稿-目标对齐</strong>（草稿模型近似目标的程度）至关重要： -
+良好对齐→低拒绝率→高加速 - 差对齐→频繁拒绝→加速被抵消</p>
+<p><strong>最佳实践</strong>：从<strong>同一模型家族</strong>选择草稿和目标模型（例如，LLaMA-7B为LLaMA-70B起草）。</p>
+<h3 id="实证结果">实证结果</h3>
+<p>推测性解码已被证明： -
+生成与标准自回归解码<strong>质量相当</strong>的文本 -
+实现显著的<strong>时钟加速</strong>（通常为2-3倍），具体取决于草稿-目标对齐</p>
+<hr />
+<h2
+id="eagle更大语言模型效率的外推算法">EAGLE：更大语言模型效率的外推算法</h2>
+<p>EAGLE通过一个关键观察改进了普通推测性解码：<strong>预测下一个token的最终层特征比预测下一个token本身更容易</strong>。</p>
+<h3 id="动机">动机</h3>
+<p>普通推测性解码使用单独的小型LM作为草稿模型，它预测下一个<em>token</em>。但从完整词汇表预测离散token是困难的。EAGLE转而使用单个Transformer层预测下一个<strong>最终层特征向量</strong>，然后应用原始模型的LM
+head来获得token预测。</p>
+<h3 id="架构">架构</h3>
+<p>EAGLE重用原始LLM的两个组件： - <strong>嵌入层</strong>（token →
+向量） - <strong>LM head</strong>（特征 → logits）</p>
+<p>它添加<strong>一个小型Transformer层</strong>，其输入为： -
+token嵌入<span
+class="math inline">\(e_t\)</span>和目标模型的最终层特征<span
+class="math inline">\(f_t\)</span>的拼接</p>
+<p>并输出预测的特征<span
+class="math inline">\(\hat{f}_{t+1}\)</span>，LM
+head从中产生token预测。</p>
+<p><strong>为什么嵌入 + 特征？</strong>
+采样的token强烈影响最终层特征。例如，在”I
+am”之后，“excited”和”begin”的特征非常不同。token嵌入捕获这种离散选择，而最终层特征捕获上下文表示。</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260213005252300.png" alt="image-20260213005252300" style="zoom:50%;" /></p>
+<h3 id="树结构起草">树结构起草</h3>
+<p>EAGLE不是生成单一的线性草稿token链，而是生成候选继续的<strong>树</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">        &quot;How can&quot;</span><br><span class="line">       /        \</span><br><span class="line">    &quot;I&quot;          ...</span><br><span class="line">   /    \</span><br><span class="line">&quot;make&quot;  &quot;help&quot;</span><br><span class="line"> |       |</span><br><span class="line">&quot;a&quot;    &quot;with&quot;</span><br><span class="line">...     ...</span><br></pre></td></tr></table></figure>
+<p>实现使用<strong>树注意力</strong>：将所有候选展平为单个序列，使用树形注意力掩码，允许高效的并行计算。</p>
+<h3 id="训练">训练</h3>
+<p>EAGLE的草稿层使用组合损失训练：</p>
+<p><span class="math display">\[
+L = L_{\text{reg}} + w_{\text{cls}} \cdot L_{\text{cls}}
+\]</span></p>
+<p><strong>回归损失</strong>（特征预测）： <span class="math display">\[
+L_{\text{reg}} = \text{SmoothL1}\left(f_{i+1}, \;
+\text{DraftModel}(T_{2:i+1}, F_{1:i})\right)
+\]</span></p>
+<p>其中<span class="math inline">\(T_{2:i+1}\)</span>是token嵌入，<span
+class="math inline">\(F_{1:i} = (f_1, \ldots,
+f_i)\)</span>是目标模型特征。</p>
+<p><strong>分类损失</strong>（token预测）： <span
+class="math display">\[
+L_{\text{cls}} = \text{CrossEntropy}\left(p_{i+2}, \;
+\hat{p}_{i+2}\right)
+\]</span></p>
+<p>其中<span class="math inline">\(p_{i+2} =
+\text{Softmax}(\text{LMHead}(f_{i+1}))\)</span>和<span
+class="math inline">\(\hat{p}_{i+2} =
+\text{Softmax}(\text{LMHead}(\hat{f}_{i+1}))\)</span>。</p>
+<h3 id="结果">结果</h3>
+<p>EAGLE在MT-Bench上实现了比普通推测性解码显著更快的解码，质量退化极小。</p>
+<h3 id="进一步改进">进一步改进</h3>
+<ul>
+<li><strong>EAGLE-2</strong>：在草稿树中剪枝低置信度token，减少浪费的计算</li>
+<li><strong>EAGLE-3</strong>：将方法扩展到更大的训练数据集以获得更好的草稿质量</li>
+</ul>
+<h3 id="代码">代码</h3>
+<ul>
+<li><a
+target="_blank" rel="noopener" href="https://github.com/llmsystem/llmsys_code_examples/blob/main/speculative_decoding/Speculative_decoding_demo.ipynb">推测性解码演示</a></li>
+<li><a
+target="_blank" rel="noopener" href="https://github.com/llmsystem/llmsys_code_examples/blob/main/speculative_decoding/EAGLE/demo.py">EAGLE演示</a></li>
+</ul>
+<hr />
+<h2 id="总结">总结</h2>
+<table>
+<thead>
+<tr class="header">
+<th>方法</th>
+<th>类型</th>
+<th>关键思想</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Gumbel Max技巧</td>
+<td>高效采样</td>
+<td>用加法 + argmax替换softmax + 多项式</td>
+</tr>
+<tr class="even">
+<td>束搜索剪枝</td>
+<td>搜索优化</td>
+<td>提前丢弃低分候选</td>
+</tr>
+<tr class="odd">
+<td>推测性解码</td>
+<td>加速</td>
+<td>便宜起草，并行验证</td>
+</tr>
+<tr class="even">
+<td>EAGLE</td>
+<td>改进推测</td>
+<td>预测特征而非token，树结构草稿</td>
+</tr>
+</tbody>
+</table>
+<p><strong>关键要点</strong>：从系统角度来看，LLM解码的瓶颈是自回归生成的顺序、内存限制性质。推测性解码和EAGLE通过将串行生成转换为并行验证来解决这个问题——基本洞察是<strong>验证比生成更便宜</strong>（使用因果注意力）。</p>
+<h2 id="参考文献">参考文献</h2>
+<ol type="1">
+<li>Freitag &amp; Al-Onaizan。“神经机器翻译的束搜索策略。” 2017。</li>
+<li>Kool等人。“随机束及其寻找方法：无重复采样序列的Gumbel-Top-k技巧。”
+ICML 2019。</li>
+<li>Leviathan等人。“通过推测性解码实现Transformer的快速推理。” ICML
+2023。</li>
+<li>Li等人。“EAGLE：推测性采样需要重新思考特征不确定性。” ICML
+2024。</li>
+</ol>
+<hr />
+<p><em>本文基于CMU 11-868 LLM系统课程（Lei Li教授）的讲座材料。</em></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/">https://xloverflow.github.io/zh/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://xloverflow.github.io/zh" target="_blank">Life is not a race, but a journey</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/zh/tags/CMU/">CMU</a><a class="post-meta__tags" href="/zh/tags/11868/">11868</a><a class="post-meta__tags" href="/zh/tags/LLM%E7%B3%BB%E7%BB%9F/">LLM系统</a><a class="post-meta__tags" href="/zh/tags/%E8%A7%A3%E7%A0%81/">解码</a><a class="post-meta__tags" href="/zh/tags/%E6%8E%A8%E6%B5%8B%E6%80%A7%E8%A7%A3%E7%A0%81/">推测性解码</a><a class="post-meta__tags" href="/zh/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">学习笔记</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">11711 Advanced NLP: Retrieval and RAG</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理中关于检索系统、检索器和检索增强生成（RAG）的笔记。</div></div></div></a><a class="pagination-related" href="/zh/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">11868 LLM Sys: Tokenization and Embedding</div></div><div class="info-2"><div class="info-item-1">关于大语言模型的分词技术和词汇学习的综合笔记，包括BPE、VOLT以及多语言LLM的实际考虑。</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/zh/2026/01/26/11868-LLM-Sys/11868-LLM-SyS-GPU-Programming-Acceleration/" title="11868 LLM Sys: GPU Programming &amp; Acceleration"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-25</div><div class="info-item-2">11868 LLM Sys: GPU Programming &amp; Acceleration</div></div><div class="info-2"><div class="info-item-1">CMU 11-868 LLM系统：GPU编程与加速的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/28/11868-LLM-Sys/11868-LLM-Sys-15642-ML-Sys-DL-Framworks-and-Auto-Differentiation/" title="11868 LLM Sys &amp; 15642 ML Sys: DL Frameworks and Auto Differentiation"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-28</div><div class="info-item-2">11868 LLM Sys &amp; 15642 ML Sys: DL Frameworks and Auto Differentiation</div></div><div class="info-2"><div class="info-item-1">关于CMU 11-868 LLM系统和15-642 ML系统课程的深度学习框架和自动微分的综合笔记。</div></div></div></a><a class="pagination-related" href="/zh/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-12</div><div class="info-item-2">11868 LLM Sys: Tokenization and Embedding</div></div><div class="info-2"><div class="info-item-1">关于大语言模型的分词技术和词汇学习的综合笔记，包括BPE、VOLT以及多语言LLM的实际考虑。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">关于CMU 11-711高级自然语言处理的RNN架构、编码器-解码器模型和注意力机制的笔记。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-22</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/" title="11711 Advanced NLP: Learning &amp; Inference"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Learning &amp; Inference</div></div><div class="info-2"><div class="info-item-1">卡内基梅隆大学 11-711 高级自然语言处理的学习算法和推理方法笔记。</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li 的中文博客</div><div class="site-data"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">47</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">62</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">18</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%A7%A3%E7%A0%81%E9%87%87%E6%A0%B7%E6%9D%9F%E6%90%9C%E7%B4%A2%E5%92%8C%E6%8E%A8%E6%B5%8B%E6%80%A7%E8%A7%A3%E7%A0%81"><span class="toc-number">1.</span> <span class="toc-text">解码：采样、束搜索和推测性解码</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%AB%98%E6%95%88%E7%A6%BB%E6%95%A3%E9%87%87%E6%A0%B7"><span class="toc-number">1.1.</span> <span class="toc-text">高效离散采样</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%87%87%E6%A0%B7%E5%A4%8D%E6%9D%82%E5%BA%A6"><span class="toc-number">1.1.1.</span> <span class="toc-text">采样复杂度</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#gumbel-max%E6%8A%80%E5%B7%A7"><span class="toc-number">1.1.2.</span> <span class="toc-text">Gumbel Max技巧</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9D%9F%E6%90%9C%E7%B4%A2%E7%AE%97%E6%B3%95%E7%BB%86%E8%8A%82%E4%B8%8E%E5%89%AA%E6%9E%9D"><span class="toc-number">1.2.</span> <span class="toc-text">束搜索：算法细节与剪枝</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AE%97%E6%B3%95%E7%BB%86%E8%8A%82"><span class="toc-number">1.2.1.</span> <span class="toc-text">算法细节</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%89%AA%E6%9E%9D%E7%AD%96%E7%95%A5"><span class="toc-number">1.2.2.</span> <span class="toc-text">剪枝策略</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BB%93%E5%90%88%E9%87%87%E6%A0%B7%E5%92%8C%E6%9D%9F%E6%90%9C%E7%B4%A2"><span class="toc-number">1.2.3.</span> <span class="toc-text">结合采样和束搜索</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.2.4.</span> <span class="toc-text">代码示例</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8E%A8%E6%B5%8B%E6%80%A7%E8%A7%A3%E7%A0%81%E6%B7%B1%E5%85%A5%E6%8E%A2%E8%AE%A8"><span class="toc-number">1.3.</span> <span class="toc-text">推测性解码：深入探讨</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AA%8C%E8%AF%81%E5%87%86%E5%88%99"><span class="toc-number">1.3.1.</span> <span class="toc-text">验证准则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8B%92%E7%BB%9D%E5%A4%84%E7%90%86"><span class="toc-number">1.3.2.</span> <span class="toc-text">拒绝处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E6%9B%B4%E5%BF%AB"><span class="toc-number">1.3.3.</span> <span class="toc-text">为什么更快？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%89%E6%8B%A9n%E8%8D%89%E7%A8%BF%E9%95%BF%E5%BA%A6"><span class="toc-number">1.3.4.</span> <span class="toc-text">选择\(N\)（草稿长度）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%B9%E9%BD%90%E8%80%83%E8%99%91"><span class="toc-number">1.3.5.</span> <span class="toc-text">对齐考虑</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E8%AF%81%E7%BB%93%E6%9E%9C"><span class="toc-number">1.3.6.</span> <span class="toc-text">实证结果</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#eagle%E6%9B%B4%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B%E6%95%88%E7%8E%87%E7%9A%84%E5%A4%96%E6%8E%A8%E7%AE%97%E6%B3%95"><span class="toc-number">1.4.</span> <span class="toc-text">EAGLE：更大语言模型效率的外推算法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%A8%E6%9C%BA"><span class="toc-number">1.4.1.</span> <span class="toc-text">动机</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9E%B6%E6%9E%84"><span class="toc-number">1.4.2.</span> <span class="toc-text">架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%91%E7%BB%93%E6%9E%84%E8%B5%B7%E8%8D%89"><span class="toc-number">1.4.3.</span> <span class="toc-text">树结构起草</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%AD%E7%BB%83"><span class="toc-number">1.4.4.</span> <span class="toc-text">训练</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BB%93%E6%9E%9C"><span class="toc-number">1.4.5.</span> <span class="toc-text">结果</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9B%E4%B8%80%E6%AD%A5%E6%94%B9%E8%BF%9B"><span class="toc-number">1.4.6.</span> <span class="toc-text">进一步改进</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81"><span class="toc-number">1.4.7.</span> <span class="toc-text">代码</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.5.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">1.6.</span> <span class="toc-text">参考文献</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11711 Advanced NLP: Retrieval and RAG"/></a><div class="content"><a class="title" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG">11711 Advanced NLP: Retrieval and RAG</a><time datetime="2026-02-14T22:08:21.000Z" title="发表于 2026-02-14 17:08:21">2026-02-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM系统：解码"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11868 LLM系统：解码"/></a><div class="content"><a class="title" href="/zh/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM系统：解码">11868 LLM系统：解码</a><time datetime="2026-02-13T01:00:00.000Z" title="发表于 2026-02-12 20:00:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11868 LLM Sys: Tokenization and Embedding"/></a><div class="content"><a class="title" href="/zh/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding">11868 LLM Sys: Tokenization and Embedding</a><time datetime="2026-02-12T20:30:00.000Z" title="发表于 2026-02-12 15:30:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 机器学习系统：Transformer、注意力机制与优化"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="15642 机器学习系统：Transformer、注意力机制与优化"/></a><div class="content"><a class="title" href="/zh/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 机器学习系统：Transformer、注意力机制与优化">15642 机器学习系统：Transformer、注意力机制与优化</a><time datetime="2026-02-09T19:30:00.000Z" title="发表于 2026-02-09 14:30:00">2026-02-09</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/09/CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch/" title="CS336 Assignment 1: Building a Transformer Language Model from Scratch"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="CS336 Assignment 1: Building a Transformer Language Model from Scratch"/></a><div class="content"><a class="title" href="/zh/2026/02/09/CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch/" title="CS336 Assignment 1: Building a Transformer Language Model from Scratch">CS336 Assignment 1: Building a Transformer Language Model from Scratch</a><time datetime="2026-02-09T04:05:02.000Z" title="发表于 2026-02-08 23:05:02">2026-02-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/zh/js/utils.js"></script><script src="/zh/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '85883418c5619c10e794ab414d6339c4'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/zh/404.html') : window.location.href = '/zh/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

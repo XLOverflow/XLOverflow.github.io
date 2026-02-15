@@ -1,0 +1,1106 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>11711 Advanced NLP: Learning &amp; Inference | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Notes on learning algorithms and inference methods from CMU 11-711 Advanced NLP.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="11711 Advanced NLP: Learning &amp; Inference">
+<meta property="og:url" content="https://xloverflow.github.io/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Notes on learning algorithms and inference methods from CMU 11-711 Advanced NLP.">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png">
+<meta property="article:published_time" content="2026-01-29T20:46:34.000Z">
+<meta property="article:modified_time" content="2026-01-29T20:46:34.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="11711">
+<meta property="article:tag" content="AI">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="Natural Language Processing">
+<meta property="article:tag" content="Study Notes">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "11711 Advanced NLP: Learning & Inference",
+  "url": "https://xloverflow.github.io/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png",
+  "datePublished": "2026-01-29T20:46:34.000Z",
+  "dateModified": "2026-01-29T20:46:34.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '11711 Advanced NLP: Learning & Inference',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">11711 Advanced NLP: Learning &amp; Inference</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">11711 Advanced NLP: Learning &amp; Inference</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-01-29T20:46:34.000Z" title="Created 2026-01-29 15:46:34">2026-01-29</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-01-29T20:46:34.000Z" title="Updated 2026-01-29 15:46:34">2026-01-29</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CMU-11-711-Advanced-NLP/">CMU 11-711 Advanced NLP</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="lec6-pretraining">Lec6 Pretraining</h1>
+<h2 id="basic-idea">Basic Idea</h2>
+<p>The pretrained base model will be adapted to downstream tasks.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260130130847510.png" alt="image-20260130130847510" style="zoom: 33%;" /></p>
+<p>Transfer learning: take “knowledge” from one task and apply it to
+another task</p>
+<p><strong>•</strong> <strong>Less task data</strong>: use less data to
+reach a given level of performance</p>
+<p><strong>•</strong> <strong>Better task performance</strong>: reach
+higher performance than training from scratch</p>
+<p><strong>•</strong> <strong>One model, multiple tasks</strong>:
+convenient, amortizes cost, a starting point for many uses, …</p>
+<h2 id="major-factors">Major Factors</h2>
+<p>Each model is influenced by 4 major factors:</p>
+<p><strong>•</strong> <strong>Architecture:</strong> neural network
+architecture</p>
+<p><strong>•</strong> <strong>Task:</strong> what the model predicts
+(e.g. next-token)</p>
+<p><strong>•</strong> <strong>Data:</strong> the data used to train the
+model</p>
+<p><strong>•</strong> <strong>Hyper-parameters</strong>: e.g. learning
+rate, batch size</p>
+<h2 id="masked-language-modeling">Masked Language Modeling</h2>
+<p>Masked Language Modeling (MLM) trains a language model to
+<strong>predict masked tokens given the remaining visible
+context</strong>. This objective is widely used in bidirectional models
+such as BERT.</p>
+<p>The MLM loss is defined as:</p>
+<p><span class="math display">\[
+\mathcal{L}_{\text{MLM}}(\theta; D)
+=
+-\frac{1}{|D|}
+\sum_{x \in D}
+\;\mathbb{E}_{M \sim \text{corrupt}(x)}
+\sum_{t \in M}
+\log p_\theta(x_t \mid x_{-M})
+\]</span></p>
+<ul>
+<li><p><span class="math inline">\(x \in D\)</span>: an input sequence
+(sentence) from the dataset<br />
+</p></li>
+<li><p><span class="math inline">\(M\)</span>: a randomly sampled set of
+masked token positions<br />
+</p></li>
+<li><p><span class="math inline">\(\text{corrupt}(x)\)</span>: the
+masking (corruption) process applied to <span
+class="math inline">\(x\)</span><br />
+</p></li>
+<li><p><span class="math inline">\(x_{-M}\)</span>: all unmasked tokens
+in the sequence<br />
+</p></li>
+<li><p><span class="math inline">\(x_t\)</span>: the ground-truth token
+at position <span class="math inline">\(t\)</span><br />
+</p></li>
+<li><p><span class="math inline">\(p_\theta(x_t \mid x_{-M})\)</span>:
+model probability of predicting <span class="math inline">\(x_t\)</span>
+given the visible context</p></li>
+<li><p><strong>Denoising Perspective</strong> MLM can be viewed as a
+denoising autoencoder: the input is corrupted by masking tokens, and the
+model learns to reconstruct the original sequence.</p></li>
+<li><p><strong>Pseudo-likelihood Objective</strong>: Instead of modeling
+the full joint likelihood of the sequence, MLM maximizes the sum of
+conditional log-probabilities of masked tokens given the rest of the
+sequence. This corresponds to maximizing a <em>pseudo-likelihood</em>
+rather than a true joint likelihood.</p></li>
+</ul>
+<h2 id="autoregressive-language-modeling">Autoregressive Language
+Modeling</h2>
+<p>Predict the next token (x_t) given all previous tokens (x_{&lt;t}). [
+<em>{}(; D) = - </em>{x D} <em>{t=1}^{|x|} p</em>(x_t x_{&lt;t}) ]
+<strong>Key Properties</strong> - Maximizes the likelihood of the
+training data<br />
+- Fits the true data distribution (p_<em>)<br />
+- Equivalent to cross-entropy with a one-hot target distribution<br />
+- Can be interpreted as learning to <strong>compress</strong> data
+generated by (p_</em>)</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260130140511145.png" alt="image-20260130140511145" style="zoom:40%;" /></p>
+<h2 id="evaluate-a-model">Evaluate a model</h2>
+<ul>
+<li>Loss(traning, validation, test)
+<ul>
+<li>Diagnose training trajectory, compare models in the same family</li>
+</ul></li>
+<li>Few-shot prompting</li>
+<li>Fine-tuning</li>
+</ul>
+<h2 id="data">Data</h2>
+<ul>
+<li><strong>Quantity</strong>: How much data do I have?</li>
+<li><strong>Quality</strong>: Is it beneficial for training?
+(Extraction, Filtering, Deduplication)</li>
+<li><strong>Coverage</strong>: Does the data cover the domain(s) I care
+about, and in the right proportions?
+<ul>
+<li>We can train a classifier filtering to help us detect the
+content</li>
+</ul></li>
+</ul>
+<h1 id="lec7-scaling-laws-and-in-context-learning">Lec7 Scaling Laws and
+In-Context Learning</h1>
+<h2 id="scaling-laws">Scaling Laws</h2>
+<h3 id="training-spending-compute">Training = Spending Compute</h3>
+<p>Given a fixed pretraining budget, how should we allocate the budget
+to achieve the best possible model?</p>
+<p><img src="C:\Users\11946\AppData\Roaming\Typora\typora-user-images\image-20260206232739205.png" alt="image-20260206232739205" style="zoom:33%;" /></p>
+<p>Core approximation for transformer LMs (Kaplan et al. 2020): <span
+class="math display">\[
+C \approx 6ND
+\]</span></p>
+<ul>
+<li><strong>N</strong> = number of parameters, <strong>D</strong> =
+number of tokens, <strong>C</strong> = FLOPs</li>
+<li>Example: Llama 2 7B on 2T tokens → C ≈ 8.4 × 10²² FLOPs</li>
+</ul>
+<p><strong>Central question</strong>: Given fixed C, how to split
+between N and D?</p>
+<h3 id="power-laws">Power Laws</h3>
+<p><span class="math display">\[
+L = a \cdot x^{b} \quad \Rightarrow \quad \log L = \log a + b \cdot \log
+x
+\]</span></p>
+<p>Doubling x → L becomes L · 2ᵇ. With b = −0.095, doubling data only
+reduces loss by ~6.4%. <strong>Diminishing returns are severe</strong> —
+exponentially more resources for linear loss improvement.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260206233531669.png" alt="image-20260206233531669" style="zoom:40%;" /></p>
+<h3 id="data-scaling">Data Scaling</h3>
+<p><span class="math display">\[
+L = (D / D_c)^{-b}
+\]</span></p>
+<ul>
+<li>Three regions: small data → <strong>power-law region</strong> →
+irreducible error (bounded by data entropy)</li>
+<li>Repeated data: ~4 epochs ≈ new data; ~40 epochs → worthless
+(Muennighoff+ 2025)</li>
+<li>Different domains (Wikipedia, Books, Common Crawl) have different
+scaling curves</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260206233726326.png" alt="image-20260206233726326" style="zoom:40%;" /></p>
+<h3 id="model-size-scaling">Model Size Scaling</h3>
+<p><span class="math display">\[
+L = (N / N_c)^{-b}
+\]</span></p>
+<ul>
+<li>Larger models are more <strong>sample-efficient</strong> (reach
+lower loss with fewer tokens)</li>
+<li>Transformers scale significantly better than LSTMs</li>
+</ul>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260206233840078.png"
+alt="image-20260206233840078" />
+<figcaption aria-hidden="true">image-20260206233840078</figcaption>
+</figure>
+<h3 id="compute-optimal-training">Compute-Optimal Training</h3>
+<table>
+<colgroup>
+<col style="width: 48%" />
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 32%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Paper</th>
+<th>N_opt</th>
+<th>D_opt</th>
+<th>Implication</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Kaplan et al. 2020</td>
+<td>∝ C⁰·⁷³</td>
+<td>∝ C⁰·²⁷</td>
+<td>Prioritize bigger models</td>
+</tr>
+<tr class="even">
+<td><strong>Chinchilla</strong> (Hoffmann et al. 2022)</td>
+<td>∝ C⁰·⁵</td>
+<td>∝ C⁰·⁵</td>
+<td><strong>Scale N and D equally</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong><u>∝ means proportional to</u></strong></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260206234520100.png" alt="image-20260206234520100" style="zoom:40%;" /></p>
+<p>Chinchilla’s insight: many existing LLMs (e.g., Gopher 280B) were
+<strong>undertrained</strong>. This directly influenced LLaMA’s design —
+smaller models trained on much more data.</p>
+<blockquote>
+<p>Run small-scale experiments → fit scaling laws → extrapolate optimal
+hyperparameters (model size, tokens, batch size, learning rate) for the
+expensive target run.</p>
+</blockquote>
+<h2 id="prompting-and-in-context-learning">Prompting and In-Context
+Learning</h2>
+<h3 id="three-prompting-strategies">Three Prompting Strategies</h3>
+<table>
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 34%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Strategy</th>
+<th>Format</th>
+<th>Key Issue</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>No prompt</td>
+<td>Raw text completion</td>
+<td>Uncontrollable</td>
+</tr>
+<tr class="even">
+<td>Zero-shot</td>
+<td>Instruction + input</td>
+<td>Output format unstable; wording-sensitive</td>
+</tr>
+<tr class="odd">
+<td>Few-shot (ICL)</td>
+<td>Instruction + K examples + input</td>
+<td>Examples define format &amp; task; no param updates</td>
+</tr>
+</tbody>
+</table>
+<h3 id="icl-phenomena-agarwal-et-al.-2024">ICL Phenomena (Agarwal et
+al. 2024)</h3>
+<ul>
+<li><strong>Task retrieval</strong>: sometimes input-only examples work
+as well as (input, output) pairs — ICL partly “retrieves” pretraining
+patterns rather than learning new mappings</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260206235526522.png" alt="image-20260206235526522" style="zoom:40%;" /></p>
+<ul>
+<li><p><strong>Pretraining bias</strong>: default labels need few shots;
+flipped/abstract labels need many more to overcome built-in
+associations</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260206235557572.png" alt="image-20260206235557572" style="zoom:30%;" /></p></li>
+<li><p><strong>Sensitivity</strong>: example ordering, label balance,
+and label coverage all significantly affect performance (Lu et al. 2021;
+Zhang et al. 2022)</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260206235916474.png" alt="image-20260206235916474" style="zoom:30%;" /></p></li>
+<li><p><strong>Model variation</strong>: ability to benefit from
+many-shot varies greatly (Gemini 1.5 Pro improves up to 1024-shot;
+GPT-4-Turbo plateaus early)</p></li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260206235954906.png" alt="image-20260206235954906" style="zoom:33%;" /></p>
+<h3 id="chat-prompts">Chat Prompts</h3>
+<p>Messages format with <strong>system</strong> / <strong>user</strong>
+/ <strong>assistant</strong> roles → tokenizer converts to string with
+special tokens. System prompts define model behavior (reasoning
+strategy, safety rules, output format, etc.).</p>
+<h3 id="chain-of-thought-cot">Chain-of-Thought (CoT)</h3>
+<ul>
+<li><strong>Few-shot CoT</strong> (Wei et al. 2022): include reasoning
+steps in examples</li>
+<li><strong>Zero-shot CoT</strong> (Kojima et al. 2022): append “Let’s
+think step by step”</li>
+<li>Key insight: CoT gives the model <strong>adaptive computation
+time</strong> — each reasoning token is an extra forward pass</li>
+</ul>
+<h3 id="prompt-chains">Prompt Chains</h3>
+<p>Chain multiple LLM calls (with different prompts / external tools)
+sequentially:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">input → LLM₁ → intermediate → LLM₂ → intermediate → ... → output</span><br></pre></td></tr></table></figure>
+<p>Enables problem decomposition, tool use (search, code execution), and
+multi-step reasoning.</p>
+<hr />
+<h1 id="lec8-fine-tuning">Lec8 Fine-Tuning</h1>
+<h3 id="what-is-fine-tuning">What is Fine-Tuning?</h3>
+<p>Continued gradient-based training of a pre-trained model on
+task-specific data. Given pre-trained parameters θ₀ and dataset D = {(x,
+y)ₙ}: <span class="math display">\[
+\theta^* = \arg\min_\theta \mathbb{E}_{(x,y)\sim D}
+[\mathcal{L}(f_\theta(x), y)]
+\]</span> Also called <strong>Supervised Fine-Tuning (SFT)</strong>. Use
+regularization/dropout to prevent overfitting.</p>
+<h3 id="two-fine-tuning-paradigms">Two Fine-Tuning Paradigms</h3>
+<p><strong>Classification fine-tuning</strong>: Add a linear head on the
+last hidden state. <span class="math display">\[
+p_\theta(y \mid x) = \text{softmax}(Wh + b), \quad W \in \mathbb{R}^{K
+\times d}, \; b \in \mathbb{R}^K
+\]</span></p>
+<ul>
+<li>Loss: cross-entropy <span class="math inline">\(\mathcal{L} = -\log
+p_\theta(y \mid x)\)</span></li>
+<li>Update all parameters <span class="math inline">\(\theta =
+(\theta_0, W, b)\)</span></li>
+</ul>
+<p><strong>Language model fine-tuning</strong>: Keep the LM
+architecture, train on (input, output) pairs.</p>
+<p>Keep the LM architecture, train on (input, output) pairs. Concatenate
+as <code>[start] x [sep] y [end]</code>, compute loss <strong>only on
+output tokens</strong>:</p>
+<p><span class="math display">\[
+\mathcal{L}_{\text{MLE}} = -\sum_{t=1}^{T} \log p_\theta(y_t \mid x,
+y_{&lt;t})
+\]</span> No additional head needed — uses the existing LM head.</p>
+<h3 id="which-parameters-to-update">Which Parameters to Update?</h3>
+<table>
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 21%" />
+<col style="width: 7%" />
+<col style="width: 56%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Option</th>
+<th>What’s Updated</th>
+<th>Cost</th>
+<th>Trade-off</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Head only</td>
+<td><span class="math inline">\(K \times d + K\)</span> params</td>
+<td>Cheapest</td>
+<td>Assumes pre-trained representations are already linearly
+separable</td>
+</tr>
+<tr class="even">
+<td>Full fine-tuning</td>
+<td>All</td>
+<td><span class="math inline">\(\theta\)</span></td>
+<td>May lead to overfitting</td>
+</tr>
+<tr class="odd">
+<td><strong>PEFT</strong></td>
+<td>Small subset</td>
+<td><span class="math inline">\(\theta\)</span></td>
+<td>Can change the representations</td>
+</tr>
+</tbody>
+</table>
+<h3 id="lora-low-rank-adaptation-hu-et-al.-2021">LoRA (Low-Rank
+Adaptation) [Hu et al. 2021]</h3>
+<p>Key idea: approximate weight updates with low-rank matrices.</p>
+<p>For weight <span class="math inline">\(W_0 \in \mathbb{R}^{d \times
+d&#39;}\)</span>, decompose the update as:</p>
+<p><span class="math display">\[
+\Delta W = BA, \quad B \in \mathbb{R}^{d \times r}, \; A \in
+\mathbb{R}^{r \times d&#39;}, \; r \ll \min(d, d&#39;)
+\]</span></p>
+<ul>
+<li>Freeze <span class="math inline">\(W_0\)</span>, only train <span
+class="math inline">\(A\)</span> and <span
+class="math inline">\(B\)</span></li>
+<li>Final weight: <span class="math inline">\(W = W_0 + \frac{\alpha}{r}
+\cdot BA\)</span></li>
+<li>Typically applied to <span class="math inline">\(W_q\)</span> and
+<span class="math inline">\(W_v\)</span> in attention layers</li>
+<li>After training, merge <span class="math inline">\(\Delta W\)</span>
+into <span class="math inline">\(W_0\)</span> → <strong>no extra
+inference cost</strong></li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260207002605984.png" alt="image-20260207002605984" style="zoom:33%;" /></p>
+<h3 id="effects-of-fine-tuning">Effects of Fine-Tuning</h3>
+<p><strong>Data efficiency</strong>: Pre-trained models reach good
+performance with far fewer examples than training from scratch (Howard
+&amp; Ruder 2018 — ULMFiT).</p>
+<p><strong>Distribution narrowing</strong>: Fine-tuning minimizes <span
+class="math inline">\(D_{\text{KL}}(p_{\text{finetune}} \|
+p_\theta)\)</span> instead of <span
+class="math inline">\(D_{\text{KL}}(p_{\text{data}} \|
+p_\theta)\)</span>. The model’s distribution becomes narrower and
+specialized.</p>
+<p><strong>Side effects</strong>:</p>
+<ul>
+<li>Summarization model fails at translation (lost generality)</li>
+<li>Model becomes dependent on exact prompt formatting used during
+training</li>
+<li>Few-shot learning ability may degrade after fine-tunin</li>
+</ul>
+<hr />
+<h2 id="instruction-tuning">Instruction Tuning</h2>
+<p>Fine-tune a model on (instruction + input, output) pairs across
+<strong>multiple tasks</strong>, so it learns to follow instructions
+generically.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260207002839337.png" alt="image-20260207002839337" style="zoom: 33%;" /></p>
+<h3 id="chat-tuning">Chat Tuning</h3>
+<p>Chat is just instruction tuning with conversational format:</p>
+<ul>
+<li>System prompt + [user, assistant, user, assistant, …]</li>
+<li>Special tokens mark role boundaries (e.g.,
+<code>&lt;|start_header_id|&gt;user&lt;|end_header_id|&gt;</code>)</li>
+<li>Instruction + input are implicitly embedded in the conversation</li>
+</ul>
+<p><strong>Data sources</strong>: OpenOrca (16 hand-written system
+prompts, GPT-4 outputs, 2.9M examples), LMSys-1M (real user
+conversations from online LLM service)</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260207002950797.png" alt="image-20260207002950797" style="zoom:33%;" /></p>
+<h2 id="knowledge-distillation">Knowledge Distillation</h2>
+<p>Use a strong <strong>teacher</strong> model to train a smaller
+<strong>student</strong> model. Both approaches minimize <span
+class="math inline">\(D_{\text{KL}}(q \| p_\theta)\)</span> between
+teacher <span class="math inline">\(q\)</span> and student <span
+class="math inline">\(p_\theta\)</span>.</p>
+<h3 id="token-level-distillation-hinton-et-al.-2015">Token-Level
+Distillation [Hinton et al. 2015]</h3>
+<p>Student mimics teacher’s <strong>full probability
+distribution</strong> at each token position:</p>
+<p><span class="math display">\[
+\mathcal{L}_{\text{distill}} = -\sum_{y_t \in V} q(y_t \mid y_{&lt;t},
+x) \cdot \log p_\theta(y_t \mid y_{&lt;t}, x)
+\]</span></p>
+<ul>
+<li>Uses <strong>soft labels</strong> (teacher’s distribution) instead
+of hard one-hot labels</li>
+<li>Requires access to teacher’s logits</li>
+<li>Richer signal than standard cross-entropy (which only uses the
+correct token)</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260207003122001.png" alt="image-20260207003122001" style="zoom: 25%;" /></p>
+<h3 id="sequence-level-distillation-kim-rush-2016">Sequence-Level
+Distillation [Kim &amp; Rush 2016]</h3>
+<p>Teacher <strong>generates</strong> complete outputs; student
+fine-tunes on them:</p>
+<p><span class="math display">\[
+\mathcal{L}_{\text{seq}} = \mathbb{E}_{y \sim q(y|x)} \left[-\log
+p_\theta(y \mid x)\right]
+\]</span></p>
+<ul>
+<li>Only needs teacher’s generated text, not logits (black-box
+friendly)</li>
+<li>Example: DeepSeek-R1-Distill-Qwen-7B = Qwen-7B fine-tuned on
+DeepSeek-R1’s outputs</li>
+<li>Mathematically also minimizes <span
+class="math inline">\(D_{\text{KL}}(q \| p_\theta)\)</span>, just with
+Monte Carlo approximation</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260207003300579.png" alt="image-20260207003300579" style="zoom: 25%;" /></p>
+<h3 id="augmented-teacher-west-et-al.-2022">Augmented Teacher [West et
+al. 2022]</h3>
+<p>Teacher can be an <strong>augmented</strong> LLM:</p>
+<p><span class="math display">\[
+q \propto p_{\text{LLM}}(y \mid x) \cdot A(x, y)
+\]</span> where <span class="math inline">\(A\)</span> is a
+classifier/verifier. If the augmented teacher is better than <span
+class="math inline">\(p_{\text{LLM}}\)</span> alone, the distilled
+student can <strong>surpass</strong> <span
+class="math inline">\(p_{\text{LLM}}\)</span> — the student becomes
+better than its base teacher through filtered/verified data.</p>
+<h1 id="lec9-decoding-algorithms">Lec9 Decoding Algorithms</h1>
+<h2 id="basic-setup">Basic Setup</h2>
+<h3 id="autoregressive-language-model">Autoregressive Language
+Model</h3>
+<p><span class="math display">\[
+p_\theta(y_{1:T} | x) = \prod_{t=1}^{T} p_\theta(y_t | y_{&lt;t}, x)
+\]</span></p>
+<h3 id="next-token-distribution">Next-Token Distribution</h3>
+<p>Each term <span class="math inline">\(p_\theta(y_t | y_{&lt;t},
+x)\)</span> gives us a probability distribution over next tokens.</p>
+<p><strong>Decoding</strong>: Choose next tokens so that we end up with
+an output <span class="math inline">\(y_{1:T}\)</span>.</p>
+<hr />
+<h2 id="decoding-as-optimization">Decoding as Optimization</h2>
+<h3 id="goal-map-decoding">Goal: MAP Decoding</h3>
+<p>Find the most likely output: <span class="math display">\[
+\hat{y} = \arg\max_{y \in \mathcal{Y}} p_\theta(y | x)
+\]</span></p>
+<ul>
+<li>Also called <strong>mode-seeking</strong> or <strong>maximum
+a-posteriori (MAP)</strong></li>
+<li>Key challenge: output space <span
+class="math inline">\(\mathcal{Y}\)</span> is very large</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260210155455010.png" alt="image-20260210155455010" style="zoom:50%;" /></p>
+<h3 id="approach-1-greedy-decoding">Approach 1: Greedy Decoding</h3>
+<p>For <span class="math inline">\(t = 1 \ldots \text{End}\)</span>:
+<span class="math display">\[
+\hat{y}_t = \arg\max_{y_t \in V} p_\theta(y_t | \hat{y}_{&lt;t}, x)
+\]</span></p>
+<p><strong>Limitation</strong>: Does not guarantee the most-likely
+sequence.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260210155537243.png" alt="image-20260210155537243" style="zoom:30%;" /></p>
+<h3 id="approach-2-beam-search">Approach 2: Beam Search</h3>
+<ul>
+<li>Width-limited breadth-first search</li>
+<li>Maintain <span class="math inline">\(B\)</span> likely paths at each
+step</li>
+<li><span class="math inline">\(B = 1\)</span>: greedy decoding</li>
+<li><span class="math inline">\(B = |V|^{T_{\max}}\)</span>: exact MAP
+(intractable)</li>
+<li>In practice: <span class="math inline">\(B = 16\)</span>
+(hyperparameter)</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260210155609745.png" alt="image-20260210155609745" style="zoom:30%;" /></p>
+<p><strong>HuggingFace interface</strong>: <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Greedy</span></span><br><span class="line">model.generate(do_sample=<span class="literal">False</span>, num_beams=<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Beam search</span></span><br><span class="line">model.generate(do_sample=<span class="literal">False</span>, num_beams=<span class="number">16</span>)</span><br></pre></td></tr></table></figure></p>
+<h3 id="pitfalls-of-map-decoding">Pitfalls of MAP Decoding</h3>
+<p><strong>1. Degeneracy</strong> - <strong>Repetition traps</strong>:
+Models assign high probability to repetitive loops - <strong>Short
+sequences</strong>: Highest-probability sequence might be empty -
+Remedy: length normalization</p>
+<p><strong>2. Atypicality</strong> - Most likely outcome ≠ typical
+outcome - Example: Biased coin <span class="math inline">\(\Pr[H] =
+0.6\)</span>, most likely outcome of 100 flips is all heads
+(atypical!)</p>
+<p><strong>3. Probability spread</strong> - When multiple ways exist to
+express the same thing, probability spreads across variants -
+Highest-probability output may not be the “best”</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260210160105078.png" alt="image-20260210160105078" style="zoom:25%;" /></p>
+<hr />
+<h2 id="sampling">Sampling</h2>
+<h3 id="ancestral-sampling">Ancestral Sampling</h3>
+<p>For <span class="math inline">\(t = 1 \ldots \text{End}\)</span>:
+<span class="math display">\[
+\hat{y}_t \sim p_\theta(y_t | \hat{y}_{&lt;t}, x)
+\]</span></p>
+<ul>
+<li>Equivalent to sequence sampling: <span class="math inline">\(y_{1:T}
+\sim p_\theta(y_{1:T} | x)\)</span></li>
+<li>Implemented via categorical sampling (PyTorch, etc.)</li>
+</ul>
+<p><strong>HuggingFace interface</strong>:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">model.generate(do_sample=<span class="literal">True</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="problems-with-ancestral-sampling">Problems with Ancestral
+Sampling</h3>
+<p><strong>Heavy tail problem</strong>:</p>
+<ul>
+<li>Even if each bad token has small probability, sum of bad tokens has
+nontrivial probability</li>
+<li>Leads to incoherence</li>
+</ul>
+<p><strong>Compounding error</strong>: - Probability of sampling no bad
+tokens: <span class="math inline">\((1 - \epsilon)^T\)</span> - Example:
+<span class="math inline">\(\epsilon = 0.01, T = 128 \Rightarrow
+p(\text{no bad tokens}) = 0.276\)</span></p>
+<h3 id="workaround-truncate-the-tail">Workaround: Truncate the Tail</h3>
+<p><strong>Top-k Sampling</strong>: Sample only from <span
+class="math inline">\(k\)</span> most-probable tokens <span
+class="math display">\[
+\hat{y}_t \sim \begin{cases}
+p_\theta(y_t | y_{&lt;t}, x) / Z_t &amp; \text{if } y_t \text{ in top-}k
+\\
+0 &amp; \text{otherwise}
+\end{cases}
+\]</span></p>
+<p><strong>Top-p Sampling</strong>: Sample only from top <span
+class="math inline">\(p\)</span> probability mass</p>
+<p><strong>Temperature Sampling</strong>: Make distribution more peaked
+<span class="math display">\[
+\text{softmax}(x, \tau) = \frac{\exp(x/\tau)}{\sum_i \exp(x_i/\tau)}
+\]</span></p>
+<table>
+<thead>
+<tr class="header">
+<th>Temperature</th>
+<th>Parameter</th>
+<th>Pro</th>
+<th>Con</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>High</td>
+<td><span class="math inline">\(\tau \geq 1\)</span></td>
+<td>Diverse</td>
+<td>Incoherent</td>
+</tr>
+<tr class="even">
+<td>Low</td>
+<td><span class="math inline">\(\tau &lt; 1\)</span></td>
+<td>Coherent</td>
+<td>Repetitive</td>
+</tr>
+</tbody>
+</table>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260210161335068.png" alt="image-20260210161335068" style="zoom:30%;" /></p>
+<p><strong>HuggingFace interface</strong>:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Top-k</span></span><br><span class="line">model.generate(do_sample=<span class="literal">True</span>, top_k=<span class="number">20</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Top-p</span></span><br><span class="line">model.generate(do_sample=<span class="literal">True</span>, top_p=<span class="number">0.9</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Temperature</span></span><br><span class="line">model.generate(do_sample=<span class="literal">True</span>, temperature=<span class="number">0.7</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="other-truncation-strategies">Other Truncation Strategies</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Method</th>
+<th>Threshold Strategy</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Top-<span class="math inline">\(k\)</span></td>
+<td>Sample from <span
+class="math inline">\(k\)</span>-most-probable</td>
+</tr>
+<tr class="even">
+<td>Top-<span class="math inline">\(p\)</span></td>
+<td>Cumulative probability at most <span
+class="math inline">\(p\)</span></td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(\epsilon\)</span></td>
+<td>Probability at least <span
+class="math inline">\(\epsilon\)</span></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\eta\)</span></td>
+<td>Min prob. proportional to entropy</td>
+</tr>
+<tr class="odd">
+<td>Min-<span class="math inline">\(p\)</span></td>
+<td>Prob. at least <span class="math inline">\(p_{\min}\)</span> scaled
+by max token prob.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="speeding-up-decoding">Speeding Up Decoding</h2>
+<h3 id="why-is-decoding-slow">Why is Decoding Slow?</h3>
+<p><strong>Time bottleneck</strong>: <span class="math display">\[
+\text{time} =
+\max\left(\frac{\text{OperationFLOPs}}{\text{DeviceFLOP/s}},
+\frac{\text{DataTransferred(GB)}}{\text{MemoryBandwidth(GB/s)}}\right)
+\]</span></p>
+<ul>
+<li><strong>Compute-bound</strong>: e.g., <span class="math inline">\(A
+= BC\)</span> (matrix multiplication)</li>
+<li><strong>Memory-bound</strong>: e.g., <span class="math inline">\(a =
+Bx\)</span> (matrix-vector multiplication)</li>
+<li>Decoding one token is typically <strong>memory-bound</strong></li>
+</ul>
+<h3 id="metrics">Metrics</h3>
+<p><strong>Latency</strong>: How long does a user wait? - Time to first
+token, time per request</p>
+<p><strong>Throughput</strong>: How many requests completed per second?
+- Tokens per second, requests per second</p>
+<h3 id="key-value-cache">Key-Value Cache</h3>
+<p><strong>Problem</strong>: Without caching, computing attention
+requires <span class="math inline">\(O(T^2)\)</span> recomputation.</p>
+<p><strong>Solution</strong>: Store previously computed keys and
+values.</p>
+<p>At step <span class="math inline">\(t\)</span> of decoding (1 layer,
+1 head): <span class="math display">\[
+\begin{align}
+q_t &amp;= h_t W_q \in \mathbb{R}^{1 \times d_k} \\
+k_t &amp;= h_t W_K \in \mathbb{R}^{1 \times d_k} \\
+v_t &amp;= h_t W_V \in \mathbb{R}^{1 \times d_v}
+\end{align}
+\]</span></p>
+<p>Cached: <span class="math inline">\(K_{1:t-1} \in \mathbb{R}^{(t-1)
+\times d_k}\)</span>, <span class="math inline">\(V_{1:t-1} \in
+\mathbb{R}^{(t-1) \times d_v}\)</span></p>
+<p>Append <span class="math inline">\(k_t\)</span> to <span
+class="math inline">\(K_{1:t-1}\)</span> and <span
+class="math inline">\(v_t\)</span> to <span
+class="math inline">\(V_{1:t-1}\)</span>: <span class="math display">\[
+z_t = \text{softmax}\left(\frac{q_t K_{1:t}^T}{\sqrt{d_k}}\right)
+V_{1:t}
+\]</span></p>
+<p><strong>Speedup</strong>: Reduces <span
+class="math inline">\(O(T^2)\)</span> to <span
+class="math inline">\(O(T)\)</span> computation.</p>
+<h3 id="speeding-up-a-single-token">Speeding Up a Single Token</h3>
+<table>
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 38%" />
+<col style="width: 38%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Goal</th>
+<th>Strategy</th>
+<th>Examples</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Reduce memory bandwidth</td>
+<td>Quantization, distillation, architecture</td>
+<td>GPTQ, AWQ, GQA/MQA</td>
+</tr>
+<tr class="even">
+<td>Increase FLOP/s</td>
+<td>Optimize operations on hardware</td>
+<td>FlashAttention, torch.compile</td>
+</tr>
+<tr class="odd">
+<td>Decrease FLOPs</td>
+<td>Reduce FLOPs in architecture</td>
+<td>Mixture-of-Experts, Mamba</td>
+</tr>
+</tbody>
+</table>
+<h3 id="speeding-up-a-full-sequence">Speeding Up a Full Sequence</h3>
+<table>
+<colgroup>
+<col style="width: 38%" />
+<col style="width: 23%" />
+<col style="width: 38%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Strategy</th>
+<th>Idea</th>
+<th>Examples</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Parallelize over time</td>
+<td>Draft tokens cheaply, verify in parallel</td>
+<td>Speculative decoding</td>
+</tr>
+<tr class="even">
+<td>Parallelize over time</td>
+<td>Generate multiple tokens in parallel</td>
+<td>Non-autoregressive models</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Speculative Decoding</strong>: 1. Use small <strong>draft
+model</strong> <span class="math inline">\(q\)</span> to generate tokens
+ahead 2. Large model <span class="math inline">\(p\)</span> processes
+drafted tokens in parallel 3. Accept with probability: <span
+class="math inline">\(\alpha_i = \min\left(1, \frac{p(\text{token} |
+\ldots)}{q(\text{token} | \ldots)}\right)\)</span></p>
+<h3 id="speeding-up-multiple-sequences">Speeding Up Multiple
+Sequences</h3>
+<table>
+<colgroup>
+<col style="width: 38%" />
+<col style="width: 23%" />
+<col style="width: 38%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Strategy</th>
+<th>Idea</th>
+<th>Examples</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>State re-use</td>
+<td>Shared prefixes <span class="math inline">\(\Rightarrow\)</span>
+shared KV cache</td>
+<td>PagedAttention, RadixAttention</td>
+</tr>
+<tr class="even">
+<td>Improved batching</td>
+<td>Better scheduling</td>
+<td>Continuous batching</td>
+</tr>
+<tr class="odd">
+<td>Program-level optimization</td>
+<td>Optimize full generation graph</td>
+<td>SGLang, DSPy</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="summary">Summary</h2>
+<ol type="1">
+<li><strong>Decoding as optimization</strong>: Greedy, beam search, MAP
+(A fixed route the maxmize the probability )
+<ul>
+<li>Pitfalls: degeneracy, atypicality, probability spread</li>
+</ul></li>
+<li><strong>Sampling</strong>: Ancestral, top-k, top-p, temperature.
+(change the probability distribution for the following sampling)
+<ul>
+<li>Addresses tail probability and diversity issues</li>
+</ul></li>
+<li><strong>Efficient inference</strong>: KV cache, speculative
+decoding, batching
+<ul>
+<li>Critical for deployment at scale</li>
+</ul></li>
+</ol>
+<blockquote>
+<p>A key takeaway is that the Beam search or Greedy is search-based, it
+wants to get a fiexd optimized output, but Samlping introduces diversity
+or variance to generate more creative answers and may get different
+answers.</p>
+</blockquote>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/">https://xloverflow.github.io/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Natural-Language-Processing/">Natural Language Processing</a><a class="post-meta__tags" href="/tags/CMU/">CMU</a><a class="post-meta__tags" href="/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/tags/11711/">11711</a><a class="post-meta__tags" href="/tags/AI/">AI</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/01/31/15645-Database-Systems/15645-Database-systems-Storage/" title="15645 Database systems: Storage"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">15645 Database systems: Storage</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">Notes on RNN architectures, encoder-decoder models, and attention mechanisms from CMU 11-711 Advanced NLP.</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">Notes on RNN architectures, encoder-decoder models, and attention mechanisms from CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-22</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-14</div><div class="info-item-2">11711 Advanced NLP: Retrieval and RAG</div></div><div class="info-2"><div class="info-item-1">Notes on retrieval systems, retrievers, and retrieval-augmented generation (RAG) from CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/01/26/11868-LLM-Sys/11868-LLM-SyS-GPU-Programming-Acceleration/" title="11868 LLM Sys: GPU Programming &amp; Acceleration"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-25</div><div class="info-item-2">11868 LLM Sys: GPU Programming &amp; Acceleration</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 11-868 LLM Systems: GPU Programming & Acceleration.</div></div></div></a><a class="pagination-related" href="/2026/01/28/11868-LLM-Sys/11868-LLM-Sys-15642-ML-Sys-DL-Framworks-and-Auto-Differentiation/" title="11868 LLM Sys &amp; 15642 ML Sys: DL Frameworks and Auto Differentiation"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-28</div><div class="info-item-2">11868 LLM Sys &amp; 15642 ML Sys: DL Frameworks and Auto Differentiation</div></div><div class="info-2"><div class="info-item-1">Comprehensive notes on deep learning frameworks and automatic differentiation from CMU 11-868 LLM Systems and 15-642 ML Systems courses.</div></div></div></a><a class="pagination-related" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-12</div><div class="info-item-2">11868 LLM Sys: Decoding</div></div><div class="info-2"><div class="info-item-1">Notes on decoding strategies for LLM inference from CMU 11-868, covering efficient sampling, beam search algorithms, speculative decoding, and EAGLE.</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#lec6-pretraining"><span class="toc-number">1.</span> <span class="toc-text">Lec6 Pretraining</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#basic-idea"><span class="toc-number">1.1.</span> <span class="toc-text">Basic Idea</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#major-factors"><span class="toc-number">1.2.</span> <span class="toc-text">Major Factors</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#masked-language-modeling"><span class="toc-number">1.3.</span> <span class="toc-text">Masked Language Modeling</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#autoregressive-language-modeling"><span class="toc-number">1.4.</span> <span class="toc-text">Autoregressive Language
+Modeling</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#evaluate-a-model"><span class="toc-number">1.5.</span> <span class="toc-text">Evaluate a model</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#data"><span class="toc-number">1.6.</span> <span class="toc-text">Data</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#lec7-scaling-laws-and-in-context-learning"><span class="toc-number">2.</span> <span class="toc-text">Lec7 Scaling Laws and
+In-Context Learning</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#scaling-laws"><span class="toc-number">2.1.</span> <span class="toc-text">Scaling Laws</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#training-spending-compute"><span class="toc-number">2.1.1.</span> <span class="toc-text">Training &#x3D; Spending Compute</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#power-laws"><span class="toc-number">2.1.2.</span> <span class="toc-text">Power Laws</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#data-scaling"><span class="toc-number">2.1.3.</span> <span class="toc-text">Data Scaling</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#model-size-scaling"><span class="toc-number">2.1.4.</span> <span class="toc-text">Model Size Scaling</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#compute-optimal-training"><span class="toc-number">2.1.5.</span> <span class="toc-text">Compute-Optimal Training</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#prompting-and-in-context-learning"><span class="toc-number">2.2.</span> <span class="toc-text">Prompting and In-Context
+Learning</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#three-prompting-strategies"><span class="toc-number">2.2.1.</span> <span class="toc-text">Three Prompting Strategies</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#icl-phenomena-agarwal-et-al.-2024"><span class="toc-number">2.2.2.</span> <span class="toc-text">ICL Phenomena (Agarwal et
+al. 2024)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#chat-prompts"><span class="toc-number">2.2.3.</span> <span class="toc-text">Chat Prompts</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#chain-of-thought-cot"><span class="toc-number">2.2.4.</span> <span class="toc-text">Chain-of-Thought (CoT)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#prompt-chains"><span class="toc-number">2.2.5.</span> <span class="toc-text">Prompt Chains</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#lec8-fine-tuning"><span class="toc-number">3.</span> <span class="toc-text">Lec8 Fine-Tuning</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#what-is-fine-tuning"><span class="toc-number">3.1.</span> <span class="toc-text">What is Fine-Tuning?</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#two-fine-tuning-paradigms"><span class="toc-number">3.2.</span> <span class="toc-text">Two Fine-Tuning Paradigms</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#which-parameters-to-update"><span class="toc-number">3.3.</span> <span class="toc-text">Which Parameters to Update?</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#lora-low-rank-adaptation-hu-et-al.-2021"><span class="toc-number">3.4.</span> <span class="toc-text">LoRA (Low-Rank
+Adaptation) [Hu et al. 2021]</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#effects-of-fine-tuning"><span class="toc-number">3.5.</span> <span class="toc-text">Effects of Fine-Tuning</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#instruction-tuning"><span class="toc-number">3.6.</span> <span class="toc-text">Instruction Tuning</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#chat-tuning"><span class="toc-number">3.6.1.</span> <span class="toc-text">Chat Tuning</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#knowledge-distillation"><span class="toc-number">3.7.</span> <span class="toc-text">Knowledge Distillation</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#token-level-distillation-hinton-et-al.-2015"><span class="toc-number">3.7.1.</span> <span class="toc-text">Token-Level
+Distillation [Hinton et al. 2015]</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#sequence-level-distillation-kim-rush-2016"><span class="toc-number">3.7.2.</span> <span class="toc-text">Sequence-Level
+Distillation [Kim &amp; Rush 2016]</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#augmented-teacher-west-et-al.-2022"><span class="toc-number">3.7.3.</span> <span class="toc-text">Augmented Teacher [West et
+al. 2022]</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#lec9-decoding-algorithms"><span class="toc-number">4.</span> <span class="toc-text">Lec9 Decoding Algorithms</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#basic-setup"><span class="toc-number">4.1.</span> <span class="toc-text">Basic Setup</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#autoregressive-language-model"><span class="toc-number">4.1.1.</span> <span class="toc-text">Autoregressive Language
+Model</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#next-token-distribution"><span class="toc-number">4.1.2.</span> <span class="toc-text">Next-Token Distribution</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#decoding-as-optimization"><span class="toc-number">4.2.</span> <span class="toc-text">Decoding as Optimization</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#goal-map-decoding"><span class="toc-number">4.2.1.</span> <span class="toc-text">Goal: MAP Decoding</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#approach-1-greedy-decoding"><span class="toc-number">4.2.2.</span> <span class="toc-text">Approach 1: Greedy Decoding</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#approach-2-beam-search"><span class="toc-number">4.2.3.</span> <span class="toc-text">Approach 2: Beam Search</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#pitfalls-of-map-decoding"><span class="toc-number">4.2.4.</span> <span class="toc-text">Pitfalls of MAP Decoding</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#sampling"><span class="toc-number">4.3.</span> <span class="toc-text">Sampling</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#ancestral-sampling"><span class="toc-number">4.3.1.</span> <span class="toc-text">Ancestral Sampling</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#problems-with-ancestral-sampling"><span class="toc-number">4.3.2.</span> <span class="toc-text">Problems with Ancestral
+Sampling</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#workaround-truncate-the-tail"><span class="toc-number">4.3.3.</span> <span class="toc-text">Workaround: Truncate the Tail</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#other-truncation-strategies"><span class="toc-number">4.3.4.</span> <span class="toc-text">Other Truncation Strategies</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#speeding-up-decoding"><span class="toc-number">4.4.</span> <span class="toc-text">Speeding Up Decoding</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#why-is-decoding-slow"><span class="toc-number">4.4.1.</span> <span class="toc-text">Why is Decoding Slow?</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#metrics"><span class="toc-number">4.4.2.</span> <span class="toc-text">Metrics</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#key-value-cache"><span class="toc-number">4.4.3.</span> <span class="toc-text">Key-Value Cache</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#speeding-up-a-single-token"><span class="toc-number">4.4.4.</span> <span class="toc-text">Speeding Up a Single Token</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#speeding-up-a-full-sequence"><span class="toc-number">4.4.5.</span> <span class="toc-text">Speeding Up a Full Sequence</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#speeding-up-multiple-sequences"><span class="toc-number">4.4.6.</span> <span class="toc-text">Speeding Up Multiple
+Sequences</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#summary"><span class="toc-number">4.5.</span> <span class="toc-text">Summary</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Retrieval and RAG"/></a><div class="content"><a class="title" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG">11711 Advanced NLP: Retrieval and RAG</a><time datetime="2026-02-14T22:08:21.000Z" title="Created 2026-02-14 17:08:21">2026-02-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Distributed Training and Parallelization"/></a><div class="content"><a class="title" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization">15642 Machine Learning Systems: Distributed Training and Parallelization</a><time datetime="2026-02-13T21:00:00.000Z" title="Created 2026-02-13 16:00:00">2026-02-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Decoding"/></a><div class="content"><a class="title" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding">11868 LLM Sys: Decoding</a><time datetime="2026-02-13T01:00:00.000Z" title="Created 2026-02-12 20:00:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Tokenization and Embedding"/></a><div class="content"><a class="title" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding">11868 LLM Sys: Tokenization and Embedding</a><time datetime="2026-02-12T20:30:00.000Z" title="Created 2026-02-12 15:30:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"/></a><div class="content"><a class="title" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations">15642 Machine Learning Systems: Transformer, Attention, and Optimizations</a><time datetime="2026-02-09T19:30:00.000Z" title="Created 2026-02-09 14:30:00">2026-02-09</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '13bade830d23f68805a7853d70b466cb'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

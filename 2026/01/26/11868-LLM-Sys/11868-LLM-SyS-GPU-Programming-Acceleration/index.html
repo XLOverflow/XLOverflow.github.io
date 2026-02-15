@@ -1,0 +1,765 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>11868 LLM Sys: GPU Programming &amp; Acceleration | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Notes and summaries for CMU 11-868 LLM Systems: GPU Programming &amp; Acceleration.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="11868 LLM Sys: GPU Programming &amp; Acceleration">
+<meta property="og:url" content="https://xloverflow.github.io/2026/01/26/11868-LLM-Sys/11868-LLM-SyS-GPU-Programming-Acceleration/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Notes and summaries for CMU 11-868 LLM Systems: GPU Programming &amp; Acceleration.">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png">
+<meta property="article:published_time" content="2026-01-26T02:58:04.000Z">
+<meta property="article:modified_time" content="2026-01-26T02:58:04.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="11868">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="GPU Programming">
+<meta property="article:tag" content="LLM Systems">
+<meta property="article:tag" content="Study Notes">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "11868 LLM Sys: GPU Programming & Acceleration",
+  "url": "https://xloverflow.github.io/2026/01/26/11868-LLM-Sys/11868-LLM-SyS-GPU-Programming-Acceleration/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png",
+  "datePublished": "2026-01-26T02:58:04.000Z",
+  "dateModified": "2026-01-26T02:58:04.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2026/01/26/11868-LLM-Sys/11868-LLM-SyS-GPU-Programming-Acceleration/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '11868 LLM Sys: GPU Programming & Acceleration',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">11868 LLM Sys: GPU Programming &amp; Acceleration</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">11868 LLM Sys: GPU Programming &amp; Acceleration</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-01-26T02:58:04.000Z" title="Created 2026-01-25 21:58:04">2026-01-25</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-01-26T02:58:04.000Z" title="Updated 2026-01-25 21:58:04">2026-01-25</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CMU-11-868-LLM-Systems/">CMU 11-868 LLM Systems</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="gpu-programming">GPU Programming</h1>
+<h2 id="neural-network-layer-and-low-level-operators">Neural Network
+Layer and low-level operators</h2>
+<p>A simple feedforward neural network for text classification consists
+of a sequence of standard layers. The input text is first mapped to
+vectors using an <strong><u>embedding layer</u></strong>, followed by
+<strong><u>linear layers</u></strong> with <strong><u>ReLU
+activations</u></strong>. An <strong><u>average pooling</u></strong>
+operation aggregates token representations into a single vector, and a
+<strong><u>softmax layer</u></strong> produces the final class
+probabilities.</p>
+<p>At a lower level, these neural network layers are implemented using a
+small set of basic operations. <strong><u>Matrix
+multiplication</u></strong> is used in linear layers,
+<u><strong>element-wise operations</strong></u> handle activations, and
+<u><strong>reduction operations</strong></u> such as averaging are used
+for pooling. Efficient execution of these operations relies heavily on
+<u><strong>GPUs</strong></u>.</p>
+<h2 id="components-of-a-gpu-server">Components of A GPU Server</h2>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260125221821311.png" alt="image-20260125221821311" style="zoom:40%;" /></p>
+<p>This figure illustrates a modern 4U computing server designed for
+high-performance and AI workloads. It combines dual AMD EPYC CPUs with
+<strong><u>multiple NVIDIA GPUs connected via PCIe and
+NVLink</u></strong>, alongside high-bandwidth DDR5 memory and NVMe
+storage to support large-scale parallel computation.</p>
+<h2 id="gpu-architecture">GPU Architecture</h2>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260125221946137.png" alt="image-20260125221946137" style="zoom:40%;" /></p>
+<p>Modern GPUs achieve high performance by prioritizing
+<strong>throughput-oriented parallelism</strong> rather than
+single-thread latency. Instead of a few complex cores like CPUs, a GPU
+consists of many <strong>Streaming Multiprocessors (SMs)</strong>, each
+of which contains a large number of simple compute cores designed to
+execute the same operations in parallel.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260125222912708.png" alt="image-20260125222912708" style="zoom:70%;" /></p>
+<p>An SM is the fundamental execution unit of a GPU. Each SM is divided
+into <strong>four partitions</strong>, and each partition contains
+<strong>32 CUDA cores</strong>, matching the size of a
+<strong>warp</strong>, which is the basic scheduling and execution unit
+in NVIDIA GPUs. A warp consists of <strong>32 threads that execute the
+same instruction in lockstep</strong> (SIMT: Single Instruction,
+Multiple Threads). As a result, a single SM contains <strong>128
+cores</strong> and can execute up to <strong>128 FP32 operations per
+cycle</strong> under ideal conditions.</p>
+<p>Within each partition, a <strong>warp scheduler</strong> selects a
+ready warp every cycle, while the <strong>dispatch unit</strong> issues
+its instruction to the appropriate execution units (e.g., FP32 cores,
+Tensor Cores, or load/store units). GPUs do not schedule individual
+threads; instead, they schedule warps. When one warp stalls due to
+memory access, the scheduler can immediately switch to another ready
+warp with negligible overhead, allowing GPUs to effectively <strong>hide
+memory latency</strong> through massive concurrency.</p>
+<p>Each SM also contains a large <strong>register file</strong> (the
+fastest on-chip storage) and a shared <strong>L1 cache / shared
+memory</strong>, which enable fast data reuse and communication between
+threads within a block. Newer architectures such as NVIDIA H100
+significantly increase the L1/shared memory capacity and enhance Tensor
+Cores, further optimizing the SM for large-scale matrix and tensor
+computations commonly found in deep learning workloads.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260125223615074.png" alt="image-20260125223615074" style="zoom:50%;" /></p>
+<p>H100 introduces FP8 to further improve throughput and reduce memory
+bandwidth requirements for large-scale AI workloads. By
+<strong><u>supporting multiple FP8 formats and accumulating results in
+higher precision</u></strong>, the architecture achieves both high
+performance and numerical stability.</p>
+<blockquote>
+<p>Transformer Engine is a hardware–software co-designed system in H100
+that automatically manages precision, scaling, and accumulation to
+safely use FP8 for Transformer workloads.</p>
+</blockquote>
+<p><strong>CPU vs. GPU</strong></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260125223107120.png" alt="image-20260125223107120" style="zoom: 33%;" /></p>
+<h2 id="program-execution-on-gpu">Program Execution on GPU</h2>
+<p>In the CUDA programming model, the <strong><u>CPU acts as the host
+that controls execution and launches GPU kernels</u></strong>, while the
+<strong><u>GPU serves as a device optimized for massively parallel
+computation</u></strong>. Kernels are executed using a SIMT model, where
+threads are organized into blocks and grids and mapped onto multiple SMs
+for parallel execution.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260125224122973.png" alt="image-20260125224122973" style="zoom: 33%;" /></p>
+<h3 id="how-kernel-threads-are-executed">How Kernel Threads are
+Executed</h3>
+<p>When a CUDA kernel is launched, threads are first organized into
+<strong>thread blocks</strong>, which are then assigned to
+<strong>Streaming Multiprocessors (SMs)</strong>. Within an SM, each
+thread block is further <strong>partitioned into warps</strong>, and
+<u><strong>warp</strong> is the fundamental unit used by the GPU to
+create, manage, schedule, and execute threads.</u></p>
+<p>A <strong>warp</strong> consists of <strong>32 threads</strong>. All
+threads in a warp start execution at the same program address, but
+<u>each thread maintains its own <strong>program counter and register
+state</strong></u>. At any given cycle, a warp executes <strong>one
+common instruction across all 32 threads</strong>, following the SIMT
+(Single Instruction, Multiple Threads) execution model. Although threads
+within a warp can take different control-flow paths due to branching,
+divergent paths are serialized by the hardware, which can reduce
+performance.</p>
+<h3 id="warp-execution-model-on-an-sm">Warp Execution Model on an
+SM</h3>
+<p>Once a warp is assigned to an SM, <u>its <strong>execution context
+remains resident on the SM for the entire lifetime of the
+warp</strong></u>. This context includes the program counter, register
+values, and any shared memory used by the warp. Because all active warps
+keep their contexts on-chip, <strong><u>switching between warps does not
+require saving or restoring state</u></strong>, making warp-to-warp
+context switching effectively instantaneous.</p>
+<p>At runtime, each SM contains one or more <strong>warp
+schedulers</strong>, which continuously select a warp with active and
+ready threads. The selected warp’s next instruction is then
+<strong>issued (dispatched)</strong> to the appropriate execution units,
+such as FP32 cores, Tensor Cores, or load/store units. If a warp stalls
+due to a long-latency operation (e.g., global memory access), the
+scheduler can immediately switch to another ready warp, allowing the SM
+to hide memory latency through concurrency.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260125224641812.png" alt="image-20260125224641812" style="zoom:40%;" /></p>
+<blockquote>
+<p>Although NVIDIA GPUs expose a SIMT programming model, warp execution
+is implemented using SIMD-style vector execution with predication and
+masking at the hardware level.</p>
+</blockquote>
+<h3 id="cpu-gpu-data-movement">CPU-GPU Data Movement</h3>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260125224832439.png" alt="image-20260125224832439" style="zoom:33%;" /></p>
+<h3 id="cuda-kernel">CUDA Kernel</h3>
+<p>A CUDA <strong>kernel</strong> is a function that runs on the GPU.
+From a programming perspective, a kernel describes the execution logic
+for <strong>a single thread</strong>, and the code itself is written in
+a <strong>serial manner</strong>. Parallelism does not come from the
+code structure, but from the fact that the kernel is executed
+simultaneously by a large number of threads.</p>
+<p>When a kernel is launched, <strong>thousands of threads</strong> may
+execute the same kernel function concurrently. Each thread uses its
+<strong>thread index</strong> (e.g., <code>threadIdx</code>,
+<code>blockIdx</code>) to determine which portion of the data it
+operates on. This follows the SPMD (Single Program, Multiple Data)
+model: the same program is replicated across many threads, each working
+on different data elements.</p>
+<p>Key characteristics of CUDA kernels:</p>
+<ul>
+<li>The kernel code is <strong>serial per thread</strong></li>
+<li>Massive parallelism is achieved by <strong>many threads executing
+the same kernel</strong></li>
+<li>Thread indices are used to map threads to data</li>
+<li>The programmer expresses <em>what one thread does</em>, not how
+threads are scheduled</li>
+</ul>
+<h3 id="compiling-cuda-code">Compiling CUDA Code</h3>
+<p>CUDA programs follow a <strong>heterogeneous programming
+model</strong>, where <u>a single source file contains both <strong>host
+(CPU)</strong> code and <strong>device (GPU)</strong> code.</u> The CUDA
+compiler, <strong>NVCC</strong>, acts as a compiler driver that
+separates these two parts and compiles them differently.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260125225428030.png" alt="image-20260125225428030" style="zoom:50%;" /></p>
+<p>During compilation:</p>
+<ul>
+<li><strong>Host code</strong> is passed to a standard C/C++ compiler
+(e.g., <code>gcc</code> or <code>clang</code>) and compiled into
+CPU-executable code.</li>
+<li><strong>Device code</strong> (CUDA kernels) is compiled into
+<strong>PTX</strong>, an intermediate representation for NVIDIA
+GPUs.</li>
+</ul>
+<p>At runtime, the PTX code is <strong>just-in-time (JIT)
+compiled</strong> by the NVIDIA driver into machine code specific to the
+target GPU architecture. This design allows the same CUDA binary to run
+on different GPU generations without recompiling the source code.</p>
+<blockquote>
+<p>PTX serves as an intermediate representation rather than final
+machine code. At runtime, the NVIDIA driver JIT-compiles PTX into
+architecture-specific GPU instructions, enabling the same CUDA binary to
+run across different GPU generations.</p>
+</blockquote>
+<h2 id="basic-gpu-cuda-operations">Basic GPU CUDA operations</h2>
+<p>In CUDA, all GPU operations are orchestrated by the CPU. The host
+explicitly allocates device memory using <code>cudaMalloc</code>,
+transfers data between host and device with <code>cudaMemcpy</code>,
+launches GPU kernels, and finally releases device memory with
+<code>cudaFree</code>. This explicit memory management model reflects
+CUDA’s heterogeneous design, where the GPU acts as a compute accelerator
+controlled by the CPU.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260125230332427.png" alt="image-20260125230332427" style="zoom:33%;" /></p>
+<h3 id="gpu-memory">GPU Memory</h3>
+<p>CUDA provides a hierarchical memory model. Each thread has
+<strong>private registers</strong>, which are the fastest memory to
+access.</p>
+<p>Threads within the same <strong>thread block</strong> can communicate
+through <strong><u>shared memory</u></strong>, which is explicitly
+declared with <code>__shared__</code> and has much lower latency than
+global memory.</p>
+<p>In contrast, <strong><u>global memory</u></strong> is accessible by
+all threads across all blocks and persists across kernel launches, but
+it has the highest access latency.</p>
+<h3 id="data-movement">Data Movement</h3>
+<p>Data movement between the CPU and GPU is explicitly managed by the
+programmer using <code>cudaMemcpy</code>. Memory can be copied
+<strong>from host to device</strong> or <strong>from device to
+host</strong>, with the transfer size specified in bytes. Since CPU–GPU
+data transfers are relatively expensive, performance-critical
+applications aim to minimize such transfers and maximize data reuse on
+the GPU.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260125230847834.png" alt="image-20260125230847834" style="zoom: 40%;" /></p>
+<p>On each Streaming Multiprocessor (SM), instructions are issued to
+execution units through a limited number of <strong>issue slots</strong>
+per cycle. An issue slot represents the hardware capacity to dispatch an
+instruction from a warp in a given cycle, and thus directly limits
+instruction throughput on the SM.</p>
+<p>In pre-Hopper architectures (e.g., A100), warps waiting for memory
+operations—such as <strong><u>asynchronous copies into shared
+memory</u></strong>—still participate in scheduling. Even when a warp is
+stalled on a barrier, it repeatedly checks readiness, occupying issue
+slots and reducing overall SM utilization.</p>
+<p>Hopper introduces a key change in this execution model. With the
+<strong><u>Tensor Memory Accelerator (TMA)</u></strong>, memory
+transfers are offloaded to a dedicated hardware unit, and warps waiting
+on copy completion are put into a <strong>sleep state</strong>.
+<strong><u>Sleeping warps are removed from the scheduler’s active set
+and no longer consume issue slots</u></strong>. As a result, issue slots
+are exclusively used by warps that are ready to execute computation,
+enabling higher instruction throughput and more effective overlap
+between memory movement and compute.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260125232105257.png" alt="image-20260125232105257" style="zoom: 40%;" /></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260125232132936.png" alt="image-20260125232132936" style="zoom:50%;" /></p>
+<h3 id="declaration-of-hostdevice-function">Declaration of Host/Device
+function</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Keyword</th>
+<th>Call on</th>
+<th>Execute On</th>
+<th>Used</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>__global__</code></td>
+<td>host（CPU）</td>
+<td>device（GPU）</td>
+<td><strong>GPU kernel</strong></td>
+</tr>
+<tr class="even">
+<td><code>__device__</code></td>
+<td>device</td>
+<td>device</td>
+<td>GPU Func</td>
+</tr>
+<tr class="odd">
+<td><code>__host__</code></td>
+<td>host</td>
+<td>host</td>
+<td>Normal CPU Func</td>
+</tr>
+</tbody>
+</table>
+<p>CUDA distinguishes host and device functions using explicit
+qualifiers. A <code>__global__</code> function defines a GPU kernel,
+which is launched from the CPU but executed in parallel by many threads
+on the GPU. Each thread runs the same kernel code and uses its thread
+and block indices to determine which portion of the data it
+processes.</p>
+<h3 id="calling-kernel-at-runtime">Calling Kernel at Runtime</h3>
+<p>In CUDA, a kernel’s parallel execution configuration is
+<strong>specified at runtime by the host (CPU)</strong> rather than
+being fixed at compile time. When launching a kernel, the host
+explicitly defines the <strong>grid–block–thread hierarchy</strong>,
+which determines how many GPU threads will execute the kernel.</p>
+<p>A kernel is launched using the special syntax:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kernelFunc&lt;&lt;&lt;Dg, Db&gt;&gt;&gt;(args);</span><br></pre></td></tr></table></figure>
+<p>Here, <code>Dg</code> (grid dimension) and <code>Db</code> (block
+dimension) can be specified either as integers or as <code>dim3</code>
+objects:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">dim3 <span class="title">Dg</span><span class="params">(<span class="number">4</span>, <span class="number">2</span>, <span class="number">1</span>)</span></span>;</span><br><span class="line"><span class="function">dim3 <span class="title">Db</span><span class="params">(<span class="number">8</span>, <span class="number">8</span>, <span class="number">1</span>)</span></span>;</span><br><span class="line">kernelFunc&lt;&lt;&lt;Dg, Db&gt;&gt;&gt;(args);</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>Dg</code> defines the <strong>size of the grid</strong>, i.e.,
+the number of thread blocks.</li>
+<li><code>Db</code> defines the <strong>size of each block</strong>,
+i.e., the number of threads per block.</li>
+</ul>
+<p>The total number of blocks is <code>Dg.x * Dg.y * Dg.z</code>, and
+the total number of threads per block is
+<code>Db.x * Db.y * Db.z</code>, which must not exceed 1024 on current
+NVIDIA GPUs.</p>
+<h3 id="device-runtime-variables">Device Runtime Variables</h3>
+<p>Once a kernel is launched, each thread executing on the GPU must be
+able to identify <strong>which block it belongs to and which thread it
+is within that block</strong>. CUDA provides a set of built-in
+device-side variables for this purpose, which are automatically
+generated by the compiler.</p>
+<p>These variables include:</p>
+<ul>
+<li><code>gridDim</code> (<code>dim3</code>): dimensions of the
+grid</li>
+<li><code>blockIdx</code> (<code>uint3</code>): index of the current
+block within the grid</li>
+<li><code>blockDim</code> (<code>dim3</code>): dimensions of a
+block</li>
+<li><code>threadIdx</code> (<code>uint3</code>): index of the current
+thread within the block</li>
+</ul>
+<p>All kernel threads execute the same code, but by using these
+variables, each thread can compute a unique global index. A common
+pattern is:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">int i = blockIdx.x * blockDim.x + threadIdx.x;</span><br></pre></td></tr></table></figure>
+<p>This allows threads to map naturally to elements of arrays or other
+data structures stored in global memory.</p>
+<h3 id="calling-a-cuda-kernel-from-the-cpu">Calling a CUDA Kernel from
+the CPU</h3>
+<p>In practice, the host typically computes the grid and block sizes
+based on the input problem size. For example, when processing a vector
+of length <code>n</code>, a common approach is to choose a fixed number
+of threads per block and compute the number of required blocks using
+integer division with rounding up:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> n = <span class="number">1024</span>;</span><br><span class="line"><span class="type">int</span> threads_per_block = <span class="number">256</span>;</span><br><span class="line"><span class="type">int</span> num_blocks = (n + threads_per_block - <span class="number">1</span>) / threads_per_block;</span><br><span class="line"></span><br><span class="line">VecAddKernel&lt;&lt;&lt;num_blocks, threads_per_block&gt;&gt;&gt;(dA, dB, dC, n);</span><br></pre></td></tr></table></figure>
+<p>When this launch occurs:</p>
+<ol type="1">
+<li>The CPU issues the kernel launch with the specified grid and block
+configuration.</li>
+<li>The GPU creates the grid of blocks and schedules them onto available
+Streaming Multiprocessors (SMs).</li>
+<li>Each block is further divided into warps, and threads execute the
+kernel code in parallel.</li>
+<li>Each thread determines which data element it operates on using
+<code>blockIdx</code>, <code>blockDim</code>, and
+<code>threadIdx</code>.</li>
+</ol>
+<h1 id="gpu-acceleration">GPU Acceleration</h1>
+<h2 id="memory-access-efficiency">Memory Access Efficiency</h2>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260126001922475.png" alt="image-20260126001922475" style="zoom:50%;" /></p>
+<h2 id="cuda-device-memory-model">CUDA Device Memory Model</h2>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260126002047948.png" alt="image-20260126002047948" style="zoom: 33%;" /></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260126003051375.png" alt="image-20260126003051375" style="zoom: 33%;" /></p>
+<h2 id="tiling-for-matrix-multiplication">Tiling for Matrix
+Multiplication</h2>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260126131507652.png" alt="image-20260126131507652" style="zoom:50%;" /></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260126131528542.png" alt="image-20260126131528542" style="zoom:50%;" /></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260126131541664.png" alt="image-20260126131541664" style="zoom:50%;" /></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260126131553021.png" alt="image-20260126131553021" style="zoom:50%;" /></p>
+<p>A implement in cuda cpp:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">__global__ <span class="type">void</span> <span class="title">MatrixMultiplyKernel</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">float</span> *out,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">const</span> <span class="type">int</span> *out_shape,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">const</span> <span class="type">int</span> *out_strides,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">float</span> *a_storage,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">const</span> <span class="type">int</span> *a_shape,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">const</span> <span class="type">int</span> *a_strides,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">float</span> *b_storage,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">const</span> <span class="type">int</span> *b_shape,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">const</span> <span class="type">int</span> *b_strides)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * Multiply two (compact) matrices into an output (also comapct) matrix. Matrix a and b are both in a batch</span></span><br><span class="line"><span class="comment">   * format, with shape [batch_size, m, n], [batch_size, n, p].</span></span><br><span class="line"><span class="comment">   * Requirements:</span></span><br><span class="line"><span class="comment">   * - All data must be first moved to shared memory.</span></span><br><span class="line"><span class="comment">   * - Only read each cell in a and b once.</span></span><br><span class="line"><span class="comment">   * - Only write to global memory once per kernel.</span></span><br><span class="line"><span class="comment">   * There is guarantee that a_shape[0] == b_shape[0], a_shape[2] == b_shape[1],</span></span><br><span class="line"><span class="comment">   * and out_shape[0] == a_shape[0], out_shape[1] == a_shape[1], out_shape[2] == b_shape[2].</span></span><br><span class="line"><span class="comment">   *</span></span><br><span class="line"><span class="comment">   * Args:</span></span><br><span class="line"><span class="comment">   *   out: compact 1D array of size batch_size x m x p to write the output to</span></span><br><span class="line"><span class="comment">   *   out_shape: shape of the output array</span></span><br><span class="line"><span class="comment">   *   out_strides: strides of the output array</span></span><br><span class="line"><span class="comment">   *   a_storage: compact 1D array of size batch_size x m x n</span></span><br><span class="line"><span class="comment">   *   a_shape: shape of the a array</span></span><br><span class="line"><span class="comment">   *   a_strides: strides of the a array</span></span><br><span class="line"><span class="comment">   *   b_storage: comapct 2D array of size batch_size x n x p</span></span><br><span class="line"><span class="comment">   *   b_shape: shape of the b array</span></span><br><span class="line"><span class="comment">   *   b_strides: strides of the b array</span></span><br><span class="line"><span class="comment">   *</span></span><br><span class="line"><span class="comment">   * Returns:</span></span><br><span class="line"><span class="comment">   *   None (Fills in out array)</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line"></span><br><span class="line">  __shared__ <span class="type">float</span> a_shared[TILE][TILE];</span><br><span class="line">  __shared__ <span class="type">float</span> b_shared[TILE][TILE];</span><br><span class="line"></span><br><span class="line">  <span class="comment">// In each block, we will compute a batch of the output matrix</span></span><br><span class="line">  <span class="comment">// All the threads in the block will work together to compute this batch</span></span><br><span class="line">  <span class="type">int</span> batch = blockIdx.z;</span><br><span class="line">  <span class="type">int</span> a_batch_stride = a_shape[<span class="number">0</span>] &gt; <span class="number">1</span> ? a_strides[<span class="number">0</span>] : <span class="number">0</span>;</span><br><span class="line">  <span class="type">int</span> b_batch_stride = b_shape[<span class="number">0</span>] &gt; <span class="number">1</span> ? b_strides[<span class="number">0</span>] : <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/// BEGIN HW1_4</span></span><br><span class="line">  <span class="comment">/// TODO</span></span><br><span class="line">  <span class="comment">// Hints:</span></span><br><span class="line">  <span class="comment">// 1. Compute the row and column of the output matrix this block will compute</span></span><br><span class="line">  <span class="type">int</span> row = blockIdx.y * TILE + threadIdx.y;</span><br><span class="line">  <span class="type">int</span> col = blockIdx.x * TILE + threadIdx.x;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Get matrix dimensions: A[batch, m, n] × B[batch, n, p] = C[batch, m, p]</span></span><br><span class="line">  <span class="type">int</span> m = a_shape[<span class="number">1</span>];</span><br><span class="line">  <span class="type">int</span> n = a_shape[<span class="number">2</span>];</span><br><span class="line">  <span class="type">int</span> p = b_shape[<span class="number">2</span>];</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 2. Compute the position in the output array that this thread will write to</span></span><br><span class="line">  <span class="comment">// (moved to step 7 for bounds checking)</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// Accumulator for dot product</span></span><br><span class="line">  <span class="type">float</span> sum = <span class="number">0.0f</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 3. Iterate over tiles of the two input matrices, read the data into shared memory</span></span><br><span class="line">  <span class="type">int</span> num_tiles = (n + TILE - <span class="number">1</span>) / TILE;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (<span class="type">int</span> t = <span class="number">0</span>; t &lt; num_tiles; t++) &#123;</span><br><span class="line">    <span class="comment">// Load A tile: A[row, t*TILE + threadIdx.x]</span></span><br><span class="line">    <span class="type">int</span> a_col = t * TILE + threadIdx.x;</span><br><span class="line">    <span class="keyword">if</span> (row &lt; m &amp;&amp; a_col &lt; n) &#123;</span><br><span class="line">      a_shared[threadIdx.y][threadIdx.x] = a_storage[batch * a_batch_stride + row * a_strides[<span class="number">1</span>] + a_col * a_strides[<span class="number">2</span>]];</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      a_shared[threadIdx.y][threadIdx.x] = <span class="number">0.0f</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Load B tile: B[t*TILE + threadIdx.y, col]</span></span><br><span class="line">    <span class="type">int</span> b_row = t * TILE + threadIdx.y;</span><br><span class="line">    <span class="keyword">if</span> (b_row &lt; n &amp;&amp; col &lt; p) &#123;</span><br><span class="line">      b_shared[threadIdx.y][threadIdx.x] = b_storage[batch * b_batch_stride + b_row * b_strides[<span class="number">1</span>] + col * b_strides[<span class="number">2</span>]];</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      b_shared[threadIdx.y][threadIdx.x] = <span class="number">0.0f</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 4. Synchronize to make sure the data is available to all threads</span></span><br><span class="line">    __syncthreads();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 5. Compute the output tile for this thread block</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> k = <span class="number">0</span>; k &lt; TILE; k++) &#123;</span><br><span class="line">      sum += a_shared[threadIdx.y][k] * b_shared[k][threadIdx.x];</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 6. Synchronize to make sure all threads are done computing the output tile for (row, col)</span></span><br><span class="line">    __syncthreads();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 7. Write the output to global memory</span></span><br><span class="line">  <span class="keyword">if</span> (row &lt; m &amp;&amp; col &lt; p) &#123;</span><br><span class="line">    <span class="type">int</span> out_pos = batch * out_strides[<span class="number">0</span>] + row * out_strides[<span class="number">1</span>] + col * out_strides[<span class="number">2</span>];</span><br><span class="line">    out[out_pos] = sum;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">/// END HW1_4</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2
+id="matrix-transpose-on-gpu-coalescing-shared-memory-and-bank-conflicts">Matrix
+Transpose on GPU: Coalescing, Shared Memory, and Bank Conflicts</h2>
+<h3 id="a-coalesced-transpose-kernel">A Coalesced Transpose Kernel</h3>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">__global__ <span class="type">void</span> <span class="title">smem_cuda_transpose</span><span class="params">(<span class="type">int</span> m, <span class="type">float</span>* a, <span class="type">float</span>* c)</span> </span>&#123;</span><br><span class="line">    __shared__ <span class="type">float</span> smem[BLOCK_X][BLOCK_Y];</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> tileCol = blockDim.x * blockIdx.x;</span><br><span class="line">    <span class="type">int</span> tileRow = blockDim.y * blockIdx.y;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Load from global memory → shared memory</span></span><br><span class="line">    smem[threadIdx.x][threadIdx.y] =</span><br><span class="line">        a[(tileRow + threadIdx.y) * m + (tileCol + threadIdx.x)];</span><br><span class="line"></span><br><span class="line">    __syncthreads();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Store from shared memory → global memory</span></span><br><span class="line">    c[(tileCol + threadIdx.y) * m + (tileRow + threadIdx.x)] =</span><br><span class="line">        smem[threadIdx.y][threadIdx.x];</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>What this fixes</p>
+<p>✅ Global memory reads are coalesced ✅ Global memory writes are
+coalesced</p>
+<p>But…</p>
+<p>❌ <strong>Shared memory bank conflicts appear</strong></p>
+<h3 id="shared-memory-banks-the-real-bottleneck">Shared Memory Banks:
+The Real Bottleneck</h3>
+<ul>
+<li>Shared memory is divided into <strong>32 banks</strong></li>
+<li>Each bank serves <strong>one 32-bit word per cycle</strong></li>
+<li>A warp can access shared memory in <strong>1 cycle</strong> <em>only
+if</em>:
+<ul>
+<li>Each thread accesses a <strong>different bank</strong></li>
+</ul></li>
+</ul>
+<p><code>smem[threadIdx.x][threadIdx.y]</code> this code actually cause
+the bank conflict.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260126142048710.png" alt="image-20260126142048710" style="zoom: 40%;" /></p>
+<h3 id="the-fix-padding-shared-memory">The Fix: Padding Shared
+Memory</h3>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">__global__ <span class="type">void</span> <span class="title">smem_cuda_transpose</span><span class="params">(<span class="type">int</span> m, <span class="type">float</span>* a, <span class="type">float</span>* c)</span> </span>&#123;</span><br><span class="line">    __shared__ <span class="type">float</span> smem[BLOCK_X][BLOCK_Y + <span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> tileCol = blockDim.x * blockIdx.x;</span><br><span class="line">    <span class="type">int</span> tileRow = blockDim.y * blockIdx.y;</span><br><span class="line"></span><br><span class="line">    smem[threadIdx.x][threadIdx.y] =</span><br><span class="line">        a[(tileRow + threadIdx.y) * m + (tileCol + threadIdx.x)];</span><br><span class="line"></span><br><span class="line">    __syncthreads();</span><br><span class="line"></span><br><span class="line">    c[(tileCol + threadIdx.y) * m + (tileRow + threadIdx.x)] =</span><br><span class="line">        smem[threadIdx.y][threadIdx.x];</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260126142323660.png" alt="image-20260126142323660" style="zoom:40%;" /></p>
+<h2 id="sparse-matrix-multiplication">Sparse Matrix Multiplication</h2>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260126150918193.png" alt="image-20260126150918193" style="zoom:80%;" /></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">__global__ <span class="type">void</span> <span class="title">SpMVCSRKernel</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">float</span>* data,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">int</span>*   col_index,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">int</span>*   row_ptr,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">float</span>* x,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">float</span>* y,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">int</span>    num_rows</span></span></span><br><span class="line"><span class="params"><span class="function">)</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> row = blockIdx.x * blockDim.x + threadIdx.x;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (row &lt; num_rows) &#123;</span><br><span class="line">        <span class="type">float</span> dot = <span class="number">0.0f</span>;</span><br><span class="line"></span><br><span class="line">        <span class="type">int</span> row_start = row_ptr[row];</span><br><span class="line">        <span class="type">int</span> row_end   = row_ptr[row + <span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> elem = row_start; elem &lt; row_end; ++elem) &#123;</span><br><span class="line">            dot += x[col_index[elem]] * data[elem];</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        y[row] += dot;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="cublas">cuBLAS</h2>
+<p><strong>cuBLAS</strong> stands for <strong>CUDA Basic Linear Algebra
+Subroutines</strong>.</p>
+<p>It is NVIDIA’s highly optimized GPU implementation of the classic
+<strong>BLAS</strong> interface, targeting operations such as:</p>
+<ul>
+<li>Vector operations (Level-1 BLAS)</li>
+<li>Matrix-vector operations (Level-2 BLAS)</li>
+<li>Matrix-matrix operations (Level-3 BLAS, especially GEMM)</li>
+</ul>
+<h3 id="programming-model">Programming Model</h3>
+<p>cuBLAS uses a <strong>handle-based API</strong>:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">cublasHandle_t handle;</span><br><span class="line"><span class="built_in">cublasCreate</span>(&amp;handle);</span><br><span class="line"></span><br><span class="line"><span class="comment">// cuBLAS calls</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">cublasDestroy</span>(handle);</span><br></pre></td></tr></table></figure>
+<p>All cuBLAS operations require a valid <code>cublasHandle_t</code>,
+which stores execution context such as the CUDA stream and math
+mode.</p>
+<h3 id="level-1-blas-vector-dot-product">Level-1 BLAS: Vector Dot
+Product</h3>
+<p>Compute the dot product of two vectors: <span class="math display">\[
+\text{result} = x^T y
+\]</span></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">cublasStatus_t cublasSdot(</span><br><span class="line">    cublasHandle_t handle,</span><br><span class="line">    int n,</span><br><span class="line">    const float* x, int incx,</span><br><span class="line">    const float* y, int incy,</span><br><span class="line">    float* result</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<p><strong>Key points:</strong></p>
+<ul>
+<li><code>n</code> is the number of elements</li>
+<li><code>incx</code>, <code>incy</code> specify the stride between
+elements</li>
+<li><code>x</code> and <code>y</code> must reside in <strong>device
+memory</strong></li>
+<li><code>result</code> is written to <strong>host memory</strong></li>
+</ul>
+<p>This is a basic building block for norms, projections, and
+reductions.</p>
+<hr />
+<h3 id="level-2-blas-matrixvector-multiplication">Level-2 BLAS:
+Matrix–Vector Multiplication</h3>
+<p>Compute: <span class="math display">\[
+y = \alpha A x + \beta y
+\]</span></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">cublasStatus_t cublasSgemv(</span><br><span class="line">    cublasHandle_t handle,</span><br><span class="line">    cublasOperation_t trans,</span><br><span class="line">    int m, int n,</span><br><span class="line">    const float* alpha,</span><br><span class="line">    const float* A, int lda,</span><br><span class="line">    const float* x, int incx,</span><br><span class="line">    const float* beta,</span><br><span class="line">    float* y, int incy</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<p><strong>Key points:</strong></p>
+<ul>
+<li><code>A</code> is an <span class="math inline">\(m \times n\)</span>
+matrix stored in <strong>column-major</strong> order</li>
+<li><code>trans</code> controls whether <code>A</code> is
+transposed</li>
+<li><code>lda</code> is the leading dimension of <code>A</code></li>
+<li>All vectors and matrices are in <strong>device memory</strong></li>
+</ul>
+<p>This operation is common in iterative solvers and neural network
+layers.</p>
+<hr />
+<h3 id="level-3-blas-matrixmatrix-multiplication-gemm">Level-3 BLAS:
+Matrix–Matrix Multiplication (GEMM)</h3>
+<p>Compute: <span class="math display">\[
+C = \alpha A B + \beta C
+\]</span></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">cublasStatus_t cublasSgemm(</span><br><span class="line">    cublasHandle_t handle,</span><br><span class="line">    cublasOperation_t transA,</span><br><span class="line">    cublasOperation_t transB,</span><br><span class="line">    int m, int n, int k,</span><br><span class="line">    const float* alpha,</span><br><span class="line">    const float* A, int lda,</span><br><span class="line">    const float* B, int ldb,</span><br><span class="line">    const float* beta,</span><br><span class="line">    float* C, int ldc</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<p><strong>Key points:</strong></p>
+<ul>
+<li>This is the <strong>most important cuBLAS API</strong></li>
+<li><code>A</code>, <code>B</code>, <code>C</code> are all stored in
+<strong>column-major</strong> layout</li>
+<li><code>m</code>, <code>n</code>, <code>k</code> define matrix
+shapes</li>
+<li>Internally uses <strong>tiling, shared memory, and Tensor Cores
+(when available)</strong></li>
+</ul>
+<p>GEMM is the performance backbone of deep learning and scientific
+computing.</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2026/01/26/11868-LLM-Sys/11868-LLM-SyS-GPU-Programming-Acceleration/">https://xloverflow.github.io/2026/01/26/11868-LLM-Sys/11868-LLM-SyS-GPU-Programming-Acceleration/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/CMU/">CMU</a><a class="post-meta__tags" href="/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/tags/LLM-Systems/">LLM Systems</a><a class="post-meta__tags" href="/tags/GPU-Programming/">GPU Programming</a><a class="post-meta__tags" href="/tags/11868/">11868</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/01/28/11868-LLM-Sys/11868-LLM-Sys-15642-ML-Sys-DL-Framworks-and-Auto-Differentiation/" title="11868 LLM Sys &amp; 15642 ML Sys: DL Frameworks and Auto Differentiation"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">11868 LLM Sys & 15642 ML Sys: DL Frameworks and Auto Differentiation</div></div><div class="info-2"><div class="info-item-1">Comprehensive notes on deep learning frameworks and automatic differentiation from CMU 11-868 LLM Systems and 15-642 ML Systems courses.</div></div></div></a><a class="pagination-related" href="/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 11-711 Advanced NLP.</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/01/28/11868-LLM-Sys/11868-LLM-Sys-15642-ML-Sys-DL-Framworks-and-Auto-Differentiation/" title="11868 LLM Sys &amp; 15642 ML Sys: DL Frameworks and Auto Differentiation"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-28</div><div class="info-item-2">11868 LLM Sys &amp; 15642 ML Sys: DL Frameworks and Auto Differentiation</div></div><div class="info-2"><div class="info-item-1">Comprehensive notes on deep learning frameworks and automatic differentiation from CMU 11-868 LLM Systems and 15-642 ML Systems courses.</div></div></div></a><a class="pagination-related" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-12</div><div class="info-item-2">11868 LLM Sys: Decoding</div></div><div class="info-2"><div class="info-item-1">Notes on decoding strategies for LLM inference from CMU 11-868, covering efficient sampling, beam search algorithms, speculative decoding, and EAGLE.</div></div></div></a><a class="pagination-related" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-12</div><div class="info-item-2">11868 LLM Sys: Tokenization and Embedding</div></div><div class="info-2"><div class="info-item-1">Comprehensive notes on tokenization techniques and vocabulary learning for Large Language Models, covering BPE, VOLT, and practical considerations in multilingual LLMs.</div></div></div></a><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">Notes on RNN architectures, encoder-decoder models, and attention mechanisms from CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-22</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/" title="11711 Advanced NLP: Learning &amp; Inference"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Learning &amp; Inference</div></div><div class="info-2"><div class="info-item-1">Notes on learning algorithms and inference methods from CMU 11-711 Advanced NLP.</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#gpu-programming"><span class="toc-number">1.</span> <span class="toc-text">GPU Programming</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#neural-network-layer-and-low-level-operators"><span class="toc-number">1.1.</span> <span class="toc-text">Neural Network
+Layer and low-level operators</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#components-of-a-gpu-server"><span class="toc-number">1.2.</span> <span class="toc-text">Components of A GPU Server</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#gpu-architecture"><span class="toc-number">1.3.</span> <span class="toc-text">GPU Architecture</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#program-execution-on-gpu"><span class="toc-number">1.4.</span> <span class="toc-text">Program Execution on GPU</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#how-kernel-threads-are-executed"><span class="toc-number">1.4.1.</span> <span class="toc-text">How Kernel Threads are
+Executed</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#warp-execution-model-on-an-sm"><span class="toc-number">1.4.2.</span> <span class="toc-text">Warp Execution Model on an
+SM</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#cpu-gpu-data-movement"><span class="toc-number">1.4.3.</span> <span class="toc-text">CPU-GPU Data Movement</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#cuda-kernel"><span class="toc-number">1.4.4.</span> <span class="toc-text">CUDA Kernel</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#compiling-cuda-code"><span class="toc-number">1.4.5.</span> <span class="toc-text">Compiling CUDA Code</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#basic-gpu-cuda-operations"><span class="toc-number">1.5.</span> <span class="toc-text">Basic GPU CUDA operations</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#gpu-memory"><span class="toc-number">1.5.1.</span> <span class="toc-text">GPU Memory</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#data-movement"><span class="toc-number">1.5.2.</span> <span class="toc-text">Data Movement</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#declaration-of-hostdevice-function"><span class="toc-number">1.5.3.</span> <span class="toc-text">Declaration of Host&#x2F;Device
+function</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#calling-kernel-at-runtime"><span class="toc-number">1.5.4.</span> <span class="toc-text">Calling Kernel at Runtime</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#device-runtime-variables"><span class="toc-number">1.5.5.</span> <span class="toc-text">Device Runtime Variables</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#calling-a-cuda-kernel-from-the-cpu"><span class="toc-number">1.5.6.</span> <span class="toc-text">Calling a CUDA Kernel from
+the CPU</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#gpu-acceleration"><span class="toc-number">2.</span> <span class="toc-text">GPU Acceleration</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#memory-access-efficiency"><span class="toc-number">2.1.</span> <span class="toc-text">Memory Access Efficiency</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#cuda-device-memory-model"><span class="toc-number">2.2.</span> <span class="toc-text">CUDA Device Memory Model</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#tiling-for-matrix-multiplication"><span class="toc-number">2.3.</span> <span class="toc-text">Tiling for Matrix
+Multiplication</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#matrix-transpose-on-gpu-coalescing-shared-memory-and-bank-conflicts"><span class="toc-number">2.4.</span> <span class="toc-text">Matrix
+Transpose on GPU: Coalescing, Shared Memory, and Bank Conflicts</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#a-coalesced-transpose-kernel"><span class="toc-number">2.4.1.</span> <span class="toc-text">A Coalesced Transpose Kernel</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#shared-memory-banks-the-real-bottleneck"><span class="toc-number">2.4.2.</span> <span class="toc-text">Shared Memory Banks:
+The Real Bottleneck</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#the-fix-padding-shared-memory"><span class="toc-number">2.4.3.</span> <span class="toc-text">The Fix: Padding Shared
+Memory</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#sparse-matrix-multiplication"><span class="toc-number">2.5.</span> <span class="toc-text">Sparse Matrix Multiplication</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#cublas"><span class="toc-number">2.6.</span> <span class="toc-text">cuBLAS</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#programming-model"><span class="toc-number">2.6.1.</span> <span class="toc-text">Programming Model</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#level-1-blas-vector-dot-product"><span class="toc-number">2.6.2.</span> <span class="toc-text">Level-1 BLAS: Vector Dot
+Product</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#level-2-blas-matrixvector-multiplication"><span class="toc-number">2.6.3.</span> <span class="toc-text">Level-2 BLAS:
+Matrix–Vector Multiplication</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#level-3-blas-matrixmatrix-multiplication-gemm"><span class="toc-number">2.6.4.</span> <span class="toc-text">Level-3 BLAS:
+Matrix–Matrix Multiplication (GEMM)</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Retrieval and RAG"/></a><div class="content"><a class="title" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG">11711 Advanced NLP: Retrieval and RAG</a><time datetime="2026-02-14T22:08:21.000Z" title="Created 2026-02-14 17:08:21">2026-02-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Distributed Training and Parallelization"/></a><div class="content"><a class="title" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization">15642 Machine Learning Systems: Distributed Training and Parallelization</a><time datetime="2026-02-13T21:00:00.000Z" title="Created 2026-02-13 16:00:00">2026-02-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Decoding"/></a><div class="content"><a class="title" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding">11868 LLM Sys: Decoding</a><time datetime="2026-02-13T01:00:00.000Z" title="Created 2026-02-12 20:00:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Tokenization and Embedding"/></a><div class="content"><a class="title" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding">11868 LLM Sys: Tokenization and Embedding</a><time datetime="2026-02-12T20:30:00.000Z" title="Created 2026-02-12 15:30:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"/></a><div class="content"><a class="title" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations">15642 Machine Learning Systems: Transformer, Attention, and Optimizations</a><time datetime="2026-02-09T19:30:00.000Z" title="Created 2026-02-09 14:30:00">2026-02-09</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '9c08d6c1b80047b9d13c9d0156b35bd6'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

@@ -1,0 +1,666 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>11868 LLM Sys: Tokenization and Embedding | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Comprehensive notes on tokenization techniques and vocabulary learning for Large Language Models, covering BPE, VOLT, and practical considerations in multilingual LLMs.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="11868 LLM Sys: Tokenization and Embedding">
+<meta property="og:url" content="https://xloverflow.github.io/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Comprehensive notes on tokenization techniques and vocabulary learning for Large Language Models, covering BPE, VOLT, and practical considerations in multilingual LLMs.">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png">
+<meta property="article:published_time" content="2026-02-12T20:30:00.000Z">
+<meta property="article:modified_time" content="2026-02-12T20:30:00.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="11868">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="LLM Systems">
+<meta property="article:tag" content="NLP">
+<meta property="article:tag" content="Study Notes">
+<meta property="article:tag" content="Tokenization">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "11868 LLM Sys: Tokenization and Embedding",
+  "url": "https://xloverflow.github.io/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png",
+  "datePublished": "2026-02-12T20:30:00.000Z",
+  "dateModified": "2026-02-12T20:30:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '11868 LLM Sys: Tokenization and Embedding',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">11868 LLM Sys: Tokenization and Embedding</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">11868 LLM Sys: Tokenization and Embedding</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-02-12T20:30:00.000Z" title="Created 2026-02-12 15:30:00">2026-02-12</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-02-12T20:30:00.000Z" title="Updated 2026-02-12 15:30:00">2026-02-12</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CMU-11-868-LLM-Systems/">CMU 11-868 LLM Systems</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="tokenization-and-embedding">Tokenization and Embedding</h1>
+<h2 id="what-is-tokenization">What is Tokenization?</h2>
+<p>Tokenization is the process of splitting text into basic units
+(tokens) that can be processed by language models. Many words don’t map
+to a single token - for example, “indivisible” might be split into
+multiple subword tokens.</p>
+<p>The general pipeline is: 1. <strong>Tokenizer</strong>: Split text
+into token IDs 2. <strong>Embedding table lookup</strong>: Convert token
+IDs to vector representations</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260212204629477.png" alt="image-20260212204629477" style="zoom:30%;" /></p>
+<h2 id="simple-tokenization-approaches">Simple Tokenization
+Approaches</h2>
+<h3 id="word-level-tokenization">Word-level Tokenization</h3>
+<p><strong>Approach</strong>: Break text by spaces and punctuation</p>
+<p><strong>Examples</strong>: - English, French, German, Spanish work
+well - Special treatment: numbers replaced by special token
+<code>[number]</code></p>
+<p><strong>Example</strong>: <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&quot;The most eager is Oregon which is enlisting 5,000 drivers in the country&#x27;s biggest experiment.&quot;</span><br><span class="line">↓</span><br><span class="line">[&quot;The&quot;, &quot;most&quot;, &quot;eager&quot;, &quot;is&quot;, &quot;Oregon&quot;, &quot;which&quot;, &quot;is&quot;, &quot;enlisting&quot;, &quot;5,000&quot;, &quot;drivers&quot;, ...]</span><br></pre></td></tr></table></figure></p>
+<p><strong>Challenge</strong>: What exactly is a “word”? - Clitics:
+“Bob’s” - Compounds: “handyman” - Multi-word expressions:
+“do-it-yourself” - Contractions: “isn’t”</p>
+<p><strong>Pros and Cons</strong>: - ✅ Easy to implement - ❌
+Out-of-vocabulary (OOV) tokens (e.g., “Covid”) - ❌ Tradeoff between
+vocabulary size and unknown tokens: - Smaller vocab → fewer parameters,
+more OOV - Larger vocab → more parameters, less OOV - ❌ Hard for
+languages without spaces (Chinese, Japanese, Korean, Khmer)</p>
+<h3 id="character-level-tokenization">Character-level Tokenization</h3>
+<p><strong>Approach</strong>: Each letter and punctuation is a token</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&quot;The most eager is Oreg...&quot;</span><br><span class="line">↓</span><br><span class="line">[&quot;T&quot;, &quot;h&quot;, &quot;e&quot;, &quot; &quot;, &quot;m&quot;, &quot;o&quot;, &quot;s&quot;, &quot;t&quot;, &quot; &quot;, &quot;e&quot;, &quot;a&quot;, &quot;g&quot;, &quot;e&quot;, &quot;r&quot;, ...]</span><br></pre></td></tr></table></figure>
+<p><strong>Pros</strong>: - ✅ Very small vocabulary (except for
+languages like Chinese) - ✅ No OOV tokens</p>
+<p><strong>Cons</strong>: - ❌ Longer sequences - ❌ Tokens don’t
+represent semantic meaning</p>
+<h2 id="subword-level-tokenization">Subword-level Tokenization</h2>
+<h3 id="goal">Goal</h3>
+<ul>
+<li>Moderate size vocabulary</li>
+<li>No OOV tokens</li>
+<li>Represent rare words by sequences of subwords</li>
+</ul>
+<h3 id="byte-pair-encoding-bpe">Byte Pair Encoding (BPE)</h3>
+<p><strong>Origin</strong>: Originally developed for data compression by
+Philip Gage (1994)</p>
+<p><strong>Algorithm for Building Vocabulary</strong>: 1. Initialize
+vocabulary with all characters as tokens (plus end-of-word symbol) and
+their frequencies 2. Loop until vocabulary size reaches capacity: 1.
+Count successive pairs of tokens in corpus 2. Rank and select the most
+frequent pair 3. Merge the pair to form a new token, add to vocabulary
+3. Output final vocabulary</p>
+<p><strong>Example</strong>:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">Initial corpus:</span><br><span class="line">cat: 90</span><br><span class="line">catch: 50</span><br><span class="line">rat: 80</span><br><span class="line">rattle: 40</span><br><span class="line"></span><br><span class="line">Step 1: Start with characters</span><br><span class="line">Vocab: &#123;a, c, e, h, l, t&#125;</span><br><span class="line"></span><br><span class="line">Step 2: Merge &#x27;a&#x27; + &#x27;t&#x27; (most frequent)</span><br><span class="line">Vocab: &#123;a, c, e, h, l, t, at&#125;</span><br><span class="line"></span><br><span class="line">Step 3: Merge &#x27;c&#x27; + &#x27;at&#x27;</span><br><span class="line">Vocab: &#123;a, c, e, h, l, t, at, cat&#125;</span><br><span class="line"></span><br><span class="line">Step 4: Merge &#x27;r&#x27; + &#x27;at&#x27;</span><br><span class="line">Vocab: &#123;a, c, e, h, l, t, at, cat, rat&#125;</span><br><span class="line"></span><br><span class="line">Step 5: Merge &#x27;cat&#x27; + &#x27;c&#x27;</span><br><span class="line">Vocab: &#123;a, c, e, h, l, t, at, cat, rat, catc&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>Tokenization Process</strong>: 1. Split text by space or
+other delimiters 2. Repeat: - Greedily find the longest prefix that
+matches a token in BPE dictionary - Split and process remaining parts
+until no more text left</p>
+<p><strong>Example Output</strong>: <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&quot;The most eager is Oregon which is enlisting 5,000 drivers in the country&#x27;s biggest experiment.&quot;</span><br><span class="line">↓</span><br><span class="line">[&quot;The&quot;, &quot;most&quot;, &quot;eager&quot;, &quot;is&quot;, &quot;Oregon&quot;, &quot;which&quot;, &quot;is&quot;, &quot;en&quot;, &quot;listing&quot;, &quot;5,000&quot;, &quot;driver&quot;, &quot;s&quot;, &quot;in&quot;, &quot;the&quot;, &quot;country&quot;, &quot;&#x27;s&quot;, &quot;big&quot;, &quot;g&quot;, &quot;est&quot;, &quot;experiment&quot;, &quot;.&quot;]</span><br></pre></td></tr></table></figure></p>
+<p><strong>Code Examples</strong>:</p>
+<ul>
+<li>Official example: <a
+target="_blank" rel="noopener" href="https://github.com/llmsystem/llmsys_code_examples/blob/main/tokenization/tokenization.ipynb">llmsys_code_examples/tokenization</a></li>
+<li><strong>My implementation</strong>: See <a
+href="../CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch.html#2-bpe-tokenizer">CS336
+Assignment 1: BPE Tokenizer</a> for a complete from-scratch
+implementation with parallel pre-tokenization, including:
+<ul>
+<li>BPE training algorithm with incremental pair updates</li>
+<li>Parallel corpus processing using multiprocessing</li>
+<li>Memory optimization techniques</li>
+<li>Full encoder/decoder implementation</li>
+<li>Code: <a
+target="_blank" rel="noopener" href="https://github.com/XLOverflow/CS336_Transformer_from_Scratch">GitHub
+- CS336 Transformer</a></li>
+</ul></li>
+</ul>
+<h2 id="information-theoretic-vocabulary-volt">Information-Theoretic
+Vocabulary (VOLT)</h2>
+<h3 id="motivation">Motivation</h3>
+<p>Finding the optimal vocabulary traditionally requires: - Multiple
+full training and testing cycles - Trying different vocabulary sizes
+(1k, 10k, 30k tokens) - Evaluating NLG/MT performance for each
+configuration</p>
+<p><strong>Challenge</strong>: Can we predict good vocabulary without
+full training?</p>
+<h3 id="measuring-vocabulary-quality">Measuring Vocabulary Quality</h3>
+<p><strong>1. Compression Metrics</strong>: - <strong>Bytes Per Token
+(BPT)</strong>: <span class="math display">\[BPT = \frac{\text{utf8
+bytes}}{\text{tokens}}\]</span></p>
+<ul>
+<li><strong>Normalized Sequence Length (NSL)</strong>: <span
+class="math display">\[NSL = \frac{\text{tokens}}{\text{tokens in
+LLaMA}}\]</span></li>
+</ul>
+<p><strong>2. Normalized Entropy</strong>: <span
+class="math display">\[\mathcal{H}(v) = -\frac{1}{l_v}\sum_{i \in v}
+P(i)\log P(i)\]</span></p>
+<p>where <span class="math inline">\(l_v\)</span> is the average number
+of characters for all tokens in vocabulary <span
+class="math inline">\(v\)</span>.</p>
+<p><strong>Interpretation</strong>: Measures
+semantic-information-per-character. Smaller is better (less ambiguity,
+easier to generate).</p>
+<p><strong>Example</strong>: <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Vocabulary 1: &#123;a: 200, e: 90, c: 30, t: 30, s: 90&#125;</span><br><span class="line">→ H(v) = 1.37</span><br><span class="line"></span><br><span class="line">Vocabulary 2: &#123;a: 100, aes: 90, cat: 30&#125;</span><br><span class="line">→ H(v) = 0.14 ✓ Better!</span><br></pre></td></tr></table></figure></p>
+<h3 id="marginal-utility-of-vocabulary-muv">Marginal Utility of
+Vocabulary (MUV)</h3>
+<p><strong>Definition</strong>: <span class="math display">\[M_{v_k
+\rightarrow v_{k+m}} = -\frac{H(v_k) - H(v_{k+m})}{m}\]</span></p>
+<ul>
+<li><strong>Value</strong>: Normalized Entropy (semantic
+information)</li>
+<li><strong>Cost</strong>: Vocabulary size</li>
+<li><strong>MUV</strong>: Negative gradient of normalized entropy with
+respect to size</li>
+<li><strong>Interpretation</strong>: How much value each added token
+brings</li>
+</ul>
+<h3 id="key-finding-muv-predicts-performance">Key Finding: MUV Predicts
+Performance</h3>
+<p>Empirical observations: - <strong>Maximum MUV correlates with best
+BLEU scores</strong> - MUV and BLEU are correlated on ~2/3 of tasks -
+MUV serves as a <strong>coarse-grained evaluation metric</strong> for
+vocabulary quality</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260212205224848.png" alt="image-20260212205224848" style="zoom:30%;" /></p>
+<h2 id="practical-considerations-in-llms">Practical Considerations in
+LLMs</h2>
+<h3 id="corpus-deduplication-and-filtering">1. Corpus Deduplication and
+Filtering</h3>
+<p><strong>LLaMA 3 Deduplication Strategy</strong>: - <strong>URL-level
+dedup</strong>: Remove duplicate URLs - <strong>Document-level
+dedup</strong>: Using MinHash - <strong>Line-level dedup</strong>: Using
+SHA-1 64-bit hash for every 30M docs - Removes boilerplate (navigation
+menus, cookie warnings, contact info)</p>
+<p><strong>Filtering</strong>: - N-gram repeats within one line - “Dirty
+word” counting - Token distribution KL divergence too different from
+corpus</p>
+<h3 id="modern-subword-tokenization-methods">2. Modern Subword
+Tokenization Methods</h3>
+<p><strong>Byte-level BPE (BBPE)</strong>: - Treats language as sequence
+of Unicode bytes - Universal for all languages - No need for
+language-specific preprocessing</p>
+<p><strong>WordPiece</strong>: - Similar to BPE, but merges pairs that
+maximize <span class="math inline">\(P(b|a)\)</span> - Used in BERT</p>
+<p><strong>SentencePiece</strong>: - Uniform treatment of spaces and
+punctuation - Replaces space ’ ’ with _ (U+2581) - Then splits into
+characters and applies BPE - Language-agnostic approach</p>
+<h3 id="handling-code-pre-tokenization">3. Handling Code:
+Pre-tokenization</h3>
+<p>Use regular expressions to split sequences intelligently:</p>
+<p><strong>GPT-4 Pattern</strong>: <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(?i:&#x27;s|&#x27;t|&#x27;re|&#x27;ve|&#x27;m|&#x27;ll|&#x27;d)|[^\r\n\p&#123;L&#125;\p&#123;N&#125;]?\p&#123;L&#125;+|\p&#123;N&#125;&#123;1,3&#125;|...</span><br></pre></td></tr></table></figure></p>
+<p>Components: - English contractions - Words (with optional leading
+non-alphanumeric) - Digits (1-3 at a time) - Non-alphanumeric characters
+- Line breaks - Trailing whitespace</p>
+<p><strong>Example</strong>: <code>.append</code> → single token (keeps
+method names intact)</p>
+<h3 id="handling-numbers">4. Handling Numbers</h3>
+<p><strong>Challenge</strong>: Traditional tokenization treats each
+digit separately, making arithmetic difficult.</p>
+<p><strong>xVal Approach</strong> (Golkar et al., 2023): - Replace
+numbers with special <code>[NUM]</code> token - Add continuous numerical
+embedding alongside discrete token embedding - Dual-head decoder: -
+<strong>Token head</strong>: Predicts next token (logits) -
+<strong>Number head</strong>: Predicts numerical value</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260212205430637.png" alt="image-20260212205430637" style="zoom:50%;" /></p>
+<h3 id="multilingual-vocabulary">5. Multilingual Vocabulary</h3>
+<p><strong>LLaMA 3 Evolution</strong>: - LLaMA 2: 32k tokens - LLaMA
+3.1: 128k tokens - 100k from OpenAI’s tiktoken (reduced from 200k) - 28k
+allocated to multilingual support</p>
+<p><strong>Construction Methods</strong>:</p>
+<ol type="1">
+<li><strong>Joint BPE</strong>: Combine documents from multiple
+languages (176 in LLaMA 3), apply BPE on joint corpus</li>
+<li><strong>Per-language BPE + Merge</strong>: Generate same number of
+tokens for each language, then merge</li>
+<li><strong>ALP Balancing</strong>: Allocate capacity by balancing
+Average Log Probability across languages</li>
+</ol>
+<p><strong>Vocabulary Sharing Benefits</strong>:</p>
+<p>Shared tokens enable cross-lingual transfer. Example - “television”
+in multiple languages: <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">English: television      Spanish: televisión</span><br><span class="line">French: television       Italian: television</span><br><span class="line">Dutch: televisie        Portuguese: televisão</span><br><span class="line">Swedish: television     Finnish: televisio</span><br></pre></td></tr></table></figure></p>
+<p>Similar spellings → shared subword tokens → multilingual
+understanding</p>
+<h2 id="vocabulary-sharing-and-multilingual-performance">Vocabulary
+Sharing and Multilingual Performance</h2>
+<h3 id="experimental-setup">Experimental Setup</h3>
+<p>Research by Yuan et al. (ACL 2024) investigated: 1. Construct 10k
+instruction fine-tuning dataset using bilingual parallel data 2.
+Fine-tune LLaMA-7B embedding layer only 3. Evaluate translation
+performance: - <strong>Bilingual</strong>: Supervised language pair -
+<strong>Multilingual</strong>: All other directions</p>
+<h3 id="four-quadrants-of-performance">Four Quadrants of
+Performance</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Quadrant</th>
+<th>Bilingual Perf.</th>
+<th>Multilingual Perf.</th>
+<th>Example Languages</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Reciprocal</strong></td>
+<td>↑</td>
+<td>↑</td>
+<td>cs, da, fr, de</td>
+</tr>
+<tr class="even">
+<td><strong>Altruistic</strong></td>
+<td>↓</td>
+<td>↑</td>
+<td>ar, vi, zh, ko</td>
+</tr>
+<tr class="odd">
+<td><strong>Stagnant</strong></td>
+<td>↓</td>
+<td>↓</td>
+<td>km, lo, gu, te</td>
+</tr>
+<tr class="even">
+<td><strong>Selfish</strong></td>
+<td>↑</td>
+<td>↓</td>
+<td>hi</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key Insight</strong>: Fine-tuning on bilingual data doesn’t
+always benefit the supervised direction!</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260212205611162.png" alt="image-20260212205611162" style="zoom:30%;" /></p>
+<h3 id="language-families-matter">Language Families Matter</h3>
+<ul>
+<li><strong>Indo-European languages</strong>: Mostly in Reciprocal
+quadrant</li>
+<li><strong>Non-Indo-European languages</strong>: More varied
+distribution, including Altruistic and Stagnant quadrants</li>
+</ul>
+<h3 id="stagnant-quadrant-over-tokenization-problem">Stagnant Quadrant:
+Over-tokenization Problem</h3>
+<p><strong>Root Cause</strong>: Byte-BPE produces longer byte sequences
+than character counts for some languages.</p>
+<p><strong>Example</strong>: <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">饕 [tāo] (gluttonous) → three tokens: [227, 234, 260]</span><br></pre></td></tr></table></figure></p>
+<p><strong>Solution - Shortening</strong>: - Remove common byte prefixes
+(e.g., 227 for many Chinese characters) - Improves both bilingual and
+multilingual performance</p>
+<p><strong>Experimental Results</strong>: <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Direction: en→km   en→lo   en→gu   en→te</span><br><span class="line">Full FT:   10.1    7.0     10.0    17.0</span><br><span class="line">Extend:    11.9    6.9     0.5     7.2</span><br><span class="line">Shorten:   12.7    9.4     11.3    21.6  ✓ Best</span><br></pre></td></tr></table></figure></p>
+<p><strong>Recommendation</strong>: Shortening is more effective than
+extending vocabulary for over-tokenized languages.</p>
+<h2
+id="tokenizer-free-models-byte-latent-transformer-blt">Tokenizer-free
+Models: Byte Latent Transformer (BLT)</h2>
+<p><strong>Motivation</strong>: Eliminate tokenizer entirely, work
+directly with bytes.</p>
+<p><strong>Architecture</strong> (Pagnoni et al., 2024):</p>
+<ol type="1">
+<li><strong>Byte-Level Small Transformer</strong>: Encodes byte
+stream</li>
+<li><strong>Entropy-Based Grouping</strong>: Groups bytes into patches
+via cross-attention</li>
+<li><strong>Large Latent Transformer</strong>: Predicts next patch (main
+computation)</li>
+<li><strong>Unpatching</strong>: Converts patches back to byte sequence
+via cross-attention</li>
+<li><strong>Small Byte-Level Transformer</strong>: Makes next-byte
+prediction</li>
+</ol>
+<p><strong>Key Benefits</strong>: - ✅ No tokenizer training needed - ✅
+Universal across all languages - ✅ Handles any byte stream (text, code,
+data) - ✅ Dynamic granularity (entropy-based patching)</p>
+<p><strong>Trade-offs</strong>: - More complex architecture - Two-level
+transformer hierarchy - Cross-attention overhead</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260212205638769.png" alt="image-20260212205638769" style="zoom:40%;" /></p>
+<h2 id="summary">Summary</h2>
+<h3 id="key-takeaways">Key Takeaways</h3>
+<ol type="1">
+<li><strong>Subword Tokenization (BPE)</strong>:
+<ul>
+<li>Iteratively merges most frequent token pairs</li>
+<li>Balances vocabulary size and OOV rate</li>
+<li>Widely used (GPT, LLaMA, etc.)</li>
+</ul></li>
+<li><strong>Information-Theoretic Vocabulary (VOLT)</strong>:
+<ul>
+<li>Uses normalized entropy to measure vocabulary quality</li>
+<li>MUV (Marginal Utility of Vocabulary) predicts performance</li>
+<li>Solves entropy-constrained optimal transport problem</li>
+<li>Avoids expensive grid search</li>
+</ul></li>
+<li><strong>Practical Considerations</strong>:
+<ul>
+<li>Pre-tokenization with regex for code</li>
+<li>Special handling for numbers (xVal approach)</li>
+<li>Corpus deduplication at multiple levels</li>
+<li>Multilingual vocabulary allocation</li>
+</ul></li>
+<li><strong>Multilingual Challenges</strong>:
+<ul>
+<li>Vocabulary sharing enables cross-lingual transfer</li>
+<li>Over-tokenization hurts some languages (stagnant quadrant)</li>
+<li>Shortening byte sequences more effective than extending
+vocabulary</li>
+<li>Language families affect sharing benefits</li>
+</ul></li>
+<li><strong>Future Direction</strong>:
+<ul>
+<li>Tokenizer-free models (BLT) show promise</li>
+<li>Trade-off between simplicity and efficiency</li>
+<li>Dynamic granularity via entropy-based patching</li>
+</ul></li>
+</ol>
+<h2 id="references">References</h2>
+<ol type="1">
+<li>Rico Sennrich et al. “Neural Machine Translation of Rare Words with
+Subword Units.” ACL 2016.</li>
+<li>Xu, Zhou, Gan, Zheng, Li. “Vocabulary Learning via Optimal Transport
+for Neural Machine Translation.” ACL 2021.</li>
+<li>Kudo and Richardson. “SentencePiece: A simple and language
+independent approach to subword tokenization.” EMNLP 2018.</li>
+<li>Dagan et al. “Getting the most out of your tokenizer for
+pre-training and domain adaptation.” ICML 2024.</li>
+<li>Golkar et al. “xVal: A Continuous Numerical Tokenization for
+Scientific Language Models.” 2023.</li>
+<li>Zheng et al. “Allocating large vocabulary capacity for cross-lingual
+language model pre-training.” EMNLP 2021.</li>
+<li>Liang et al. “XLM-V: Overcoming the Vocabulary Bottleneck in
+Multilingual Masked Language Models.” EMNLP 2023.</li>
+<li>Yuan et al. “How Vocabulary Sharing Facilitates Multilingualism in
+LLaMA?” ACL 2024.</li>
+<li>Pagnoni et al. “Byte Latent Transformer: Patches Scale Better Than
+Tokens.” 2024.</li>
+</ol>
+<h2 id="demo-tools">Demo Tools</h2>
+<p>Interactive tokenizer demos: - <a
+target="_blank" rel="noopener" href="https://belladorai.github.io/llama-tokenizer-js/example-demo/build/">LLaMA
+Tokenizer</a> - <a target="_blank" rel="noopener" href="https://koala.sh/tools/free-gpt-tokenizer">GPT
+Tokenizer</a></p>
+<hr />
+<p><em>This post is based on lecture materials from CMU 11-868 LLM
+Systems by Lei Li.</em></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/">https://xloverflow.github.io/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/CMU/">CMU</a><a class="post-meta__tags" href="/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/tags/LLM-Systems/">LLM Systems</a><a class="post-meta__tags" href="/tags/11868/">11868</a><a class="post-meta__tags" href="/tags/Tokenization/">Tokenization</a><a class="post-meta__tags" href="/tags/NLP/">NLP</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">11868 LLM Sys: Decoding</div></div><div class="info-2"><div class="info-item-1">Notes on decoding strategies for LLM inference from CMU 11-868, covering efficient sampling, beam search algorithms, speculative decoding, and EAGLE.</div></div></div></a><a class="pagination-related" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">15642 Machine Learning Systems: Transformer, Attention, and Optimizations</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-642 Machine Learning Systems on Transformer architecture, attention mechanisms, and GPU optimizations including FlashAttention.</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/01/26/11868-LLM-Sys/11868-LLM-SyS-GPU-Programming-Acceleration/" title="11868 LLM Sys: GPU Programming &amp; Acceleration"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-25</div><div class="info-item-2">11868 LLM Sys: GPU Programming &amp; Acceleration</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 11-868 LLM Systems: GPU Programming & Acceleration.</div></div></div></a><a class="pagination-related" href="/2026/01/28/11868-LLM-Sys/11868-LLM-Sys-15642-ML-Sys-DL-Framworks-and-Auto-Differentiation/" title="11868 LLM Sys &amp; 15642 ML Sys: DL Frameworks and Auto Differentiation"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-28</div><div class="info-item-2">11868 LLM Sys &amp; 15642 ML Sys: DL Frameworks and Auto Differentiation</div></div><div class="info-2"><div class="info-item-1">Comprehensive notes on deep learning frameworks and automatic differentiation from CMU 11-868 LLM Systems and 15-642 ML Systems courses.</div></div></div></a><a class="pagination-related" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-12</div><div class="info-item-2">11868 LLM Sys: Decoding</div></div><div class="info-2"><div class="info-item-1">Notes on decoding strategies for LLM inference from CMU 11-868, covering efficient sampling, beam search algorithms, speculative decoding, and EAGLE.</div></div></div></a><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">Notes on RNN architectures, encoder-decoder models, and attention mechanisms from CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-22</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/" title="11711 Advanced NLP: Learning &amp; Inference"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Learning &amp; Inference</div></div><div class="info-2"><div class="info-item-1">Notes on learning algorithms and inference methods from CMU 11-711 Advanced NLP.</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#tokenization-and-embedding"><span class="toc-number">1.</span> <span class="toc-text">Tokenization and Embedding</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#what-is-tokenization"><span class="toc-number">1.1.</span> <span class="toc-text">What is Tokenization?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#simple-tokenization-approaches"><span class="toc-number">1.2.</span> <span class="toc-text">Simple Tokenization
+Approaches</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#word-level-tokenization"><span class="toc-number">1.2.1.</span> <span class="toc-text">Word-level Tokenization</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#character-level-tokenization"><span class="toc-number">1.2.2.</span> <span class="toc-text">Character-level Tokenization</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#subword-level-tokenization"><span class="toc-number">1.3.</span> <span class="toc-text">Subword-level Tokenization</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#goal"><span class="toc-number">1.3.1.</span> <span class="toc-text">Goal</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#byte-pair-encoding-bpe"><span class="toc-number">1.3.2.</span> <span class="toc-text">Byte Pair Encoding (BPE)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#information-theoretic-vocabulary-volt"><span class="toc-number">1.4.</span> <span class="toc-text">Information-Theoretic
+Vocabulary (VOLT)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#motivation"><span class="toc-number">1.4.1.</span> <span class="toc-text">Motivation</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#measuring-vocabulary-quality"><span class="toc-number">1.4.2.</span> <span class="toc-text">Measuring Vocabulary Quality</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#marginal-utility-of-vocabulary-muv"><span class="toc-number">1.4.3.</span> <span class="toc-text">Marginal Utility of
+Vocabulary (MUV)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#key-finding-muv-predicts-performance"><span class="toc-number">1.4.4.</span> <span class="toc-text">Key Finding: MUV Predicts
+Performance</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#practical-considerations-in-llms"><span class="toc-number">1.5.</span> <span class="toc-text">Practical Considerations in
+LLMs</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#corpus-deduplication-and-filtering"><span class="toc-number">1.5.1.</span> <span class="toc-text">1. Corpus Deduplication and
+Filtering</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#modern-subword-tokenization-methods"><span class="toc-number">1.5.2.</span> <span class="toc-text">2. Modern Subword
+Tokenization Methods</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#handling-code-pre-tokenization"><span class="toc-number">1.5.3.</span> <span class="toc-text">3. Handling Code:
+Pre-tokenization</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#handling-numbers"><span class="toc-number">1.5.4.</span> <span class="toc-text">4. Handling Numbers</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#multilingual-vocabulary"><span class="toc-number">1.5.5.</span> <span class="toc-text">5. Multilingual Vocabulary</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#vocabulary-sharing-and-multilingual-performance"><span class="toc-number">1.6.</span> <span class="toc-text">Vocabulary
+Sharing and Multilingual Performance</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#experimental-setup"><span class="toc-number">1.6.1.</span> <span class="toc-text">Experimental Setup</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#four-quadrants-of-performance"><span class="toc-number">1.6.2.</span> <span class="toc-text">Four Quadrants of
+Performance</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#language-families-matter"><span class="toc-number">1.6.3.</span> <span class="toc-text">Language Families Matter</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#stagnant-quadrant-over-tokenization-problem"><span class="toc-number">1.6.4.</span> <span class="toc-text">Stagnant Quadrant:
+Over-tokenization Problem</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#tokenizer-free-models-byte-latent-transformer-blt"><span class="toc-number">1.7.</span> <span class="toc-text">Tokenizer-free
+Models: Byte Latent Transformer (BLT)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#summary"><span class="toc-number">1.8.</span> <span class="toc-text">Summary</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#key-takeaways"><span class="toc-number">1.8.1.</span> <span class="toc-text">Key Takeaways</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#references"><span class="toc-number">1.9.</span> <span class="toc-text">References</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#demo-tools"><span class="toc-number">1.10.</span> <span class="toc-text">Demo Tools</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Retrieval and RAG"/></a><div class="content"><a class="title" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG">11711 Advanced NLP: Retrieval and RAG</a><time datetime="2026-02-14T22:08:21.000Z" title="Created 2026-02-14 17:08:21">2026-02-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Distributed Training and Parallelization"/></a><div class="content"><a class="title" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization">15642 Machine Learning Systems: Distributed Training and Parallelization</a><time datetime="2026-02-13T21:00:00.000Z" title="Created 2026-02-13 16:00:00">2026-02-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Decoding"/></a><div class="content"><a class="title" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding">11868 LLM Sys: Decoding</a><time datetime="2026-02-13T01:00:00.000Z" title="Created 2026-02-12 20:00:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Tokenization and Embedding"/></a><div class="content"><a class="title" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding">11868 LLM Sys: Tokenization and Embedding</a><time datetime="2026-02-12T20:30:00.000Z" title="Created 2026-02-12 15:30:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"/></a><div class="content"><a class="title" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations">15642 Machine Learning Systems: Transformer, Attention, and Optimizations</a><time datetime="2026-02-09T19:30:00.000Z" title="Created 2026-02-09 14:30:00">2026-02-09</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || 'a4733dc7008a56a2f9000678990e92aa'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

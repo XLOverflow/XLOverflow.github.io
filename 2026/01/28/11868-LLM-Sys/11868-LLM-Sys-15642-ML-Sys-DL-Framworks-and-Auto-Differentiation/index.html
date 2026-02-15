@@ -1,0 +1,763 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>11868 LLM Sys &amp; 15642 ML Sys: DL Frameworks and Auto Differentiation | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Comprehensive notes on deep learning frameworks and automatic differentiation from CMU 11-868 LLM Systems and 15-642 ML Systems courses.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="11868 LLM Sys &amp; 15642 ML Sys: DL Frameworks and Auto Differentiation">
+<meta property="og:url" content="https://xloverflow.github.io/2026/01/28/11868-LLM-Sys/11868-LLM-Sys-15642-ML-Sys-DL-Framworks-and-Auto-Differentiation/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Comprehensive notes on deep learning frameworks and automatic differentiation from CMU 11-868 LLM Systems and 15-642 ML Systems courses.">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png">
+<meta property="article:published_time" content="2026-01-28T17:53:13.000Z">
+<meta property="article:modified_time" content="2026-01-28T17:53:13.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="11868">
+<meta property="article:tag" content="15642">
+<meta property="article:tag" content="Auto Differentiation">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="Deep Learning">
+<meta property="article:tag" content="LLM Systems">
+<meta property="article:tag" content="ML Systems">
+<meta property="article:tag" content="Study Notes">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "11868 LLM Sys & 15642 ML Sys: DL Frameworks and Auto Differentiation",
+  "url": "https://xloverflow.github.io/2026/01/28/11868-LLM-Sys/11868-LLM-Sys-15642-ML-Sys-DL-Framworks-and-Auto-Differentiation/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png",
+  "datePublished": "2026-01-28T17:53:13.000Z",
+  "dateModified": "2026-01-28T17:53:13.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2026/01/28/11868-LLM-Sys/11868-LLM-Sys-15642-ML-Sys-DL-Framworks-and-Auto-Differentiation/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '11868 LLM Sys & 15642 ML Sys: DL Frameworks and Auto Differentiation',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">11868 LLM Sys &amp; 15642 ML Sys: DL Frameworks and Auto Differentiation</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">11868 LLM Sys &amp; 15642 ML Sys: DL Frameworks and Auto Differentiation</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-01-28T17:53:13.000Z" title="Created 2026-01-28 12:53:13">2026-01-28</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-01-28T17:53:13.000Z" title="Updated 2026-01-28 12:53:13">2026-01-28</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CMU-11-868-LLM-Systems/">CMU 11-868 LLM Systems</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="automatic-differentiation-deep-learning-frameworks">Automatic
+Differentiation &amp; Deep Learning Frameworks</h1>
+<hr />
+<h2 id="the-learning-problem-gradient-descent">1. The Learning Problem
+&amp; Gradient Descent</h2>
+<p>Given a training set <strong>D = {(xₙ, yₙ)}</strong>, the goal is to
+find model parameters <strong>θ</strong> that minimize a loss function:
+<span class="math display">\[
+\min_{\theta} \mathcal{L}(\theta), \quad \mathcal{L} : \mathbb{R}^d \to
+\mathbb{R}
+\]</span> For classification, the standard loss is
+<strong>cross-entropy</strong>. PyTorch’s <code>CrossEntropyLoss</code>
+applies negative log-likelihood directly on raw logits (before softmax),
+which is numerically stable.</p>
+<h3 id="why-gradient-descent">Why Gradient Descent?</h3>
+<p>Using a first-order Taylor expansion around the current parameters
+xₜ: <span class="math display">\[
+f(x_t + \Delta x) \approx f(x_t) + \Delta x^T \nabla f \big|_{x_t}
+\]</span> To make f decrease, we want the second term to be as negative
+as possible. By Cauchy–Schwarz, the optimal direction is
+<strong>opposite to the gradient</strong>, giving us the SGD update
+rule: <span class="math display">\[
+x_{t+1} = x_t - \eta \cdot \nabla f \big|_{x_t}
+\]</span> where <strong>η</strong> is the learning rate
+hyperparameter.</p>
+<h3 id="sgd-algorithm">SGD Algorithm</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">set learning rate η</span><br><span class="line">1. initialize θ ← θ₀</span><br><span class="line">2. for epoch = 1 to maxEpoch:</span><br><span class="line">3.     for each mini-batch in data:</span><br><span class="line">4.         total_g = 0</span><br><span class="line">5.         for each (x, y) in batch:</span><br><span class="line">6.             compute error: err(f(x; θ), y)</span><br><span class="line">7.             compute gradient: g = ∂err/∂θ</span><br><span class="line">8.             total_g += g</span><br><span class="line">9.         update: θ = θ - η * total_g / N</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><strong>Key Question:</strong> How do we efficiently compute ∂ℒ/∂θ
+for <em>every</em> parameter in an arbitrarily deep network? This is
+exactly what automatic differentiation solves.</p>
+</blockquote>
+<hr />
+<h2 id="computation-graphs">2. Computation Graphs</h2>
+<p>A <strong>computation graph</strong> is a directed acyclic graph
+(DAG) where:</p>
+<ul>
+<li><strong>Nodes</strong> represent variables (inputs, parameters,
+intermediates) or operations.</li>
+<li><strong>Directed edges</strong> indicate data flow — the inputs to
+each operation.</li>
+</ul>
+<h3 id="forward-evaluation-via-topological-sort">Forward Evaluation via
+Topological Sort</h3>
+<p>To evaluate the graph:</p>
+<ol type="1">
+<li>Put all nodes in an unprocessed queue.</li>
+<li>Repeatedly find a node whose inputs are all already computed.</li>
+<li>Evaluate it, move it to the processed set.</li>
+<li>Repeat until all nodes are evaluated.</li>
+</ol>
+<p>This guarantees every node is computed exactly once in a valid
+dependency order.</p>
+<hr />
+<h2 id="differentiation-methods-a-taxonomy">3. Differentiation Methods:
+A Taxonomy</h2>
+<table>
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 36%" />
+<col style="width: 15%" />
+<col style="width: 36%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Method</th>
+<th>How It Works</th>
+<th>Cost for f: ℝⁿ → ℝ</th>
+<th>Practical Use</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Numerical</strong></td>
+<td>Evaluate f at perturbed points; finite differences</td>
+<td>O(n) forward passes</td>
+<td>Gradient checking only — too slow &amp; unstable for training</td>
+</tr>
+<tr class="even">
+<td><strong>Symbolic</strong></td>
+<td>Algebraically apply sum/product/chain rules</td>
+<td>Can blow up exponentially</td>
+<td>CAS tools (Mathematica). Expression swell is impractical for large
+models</td>
+</tr>
+<tr class="odd">
+<td><strong>Forward-mode AD</strong></td>
+<td>Propagate derivative “tangents” alongside values in one forward
+pass</td>
+<td>O(n) forward passes</td>
+<td>Good when n is small (e.g., Hessian-vector products)</td>
+</tr>
+<tr class="even">
+<td><strong>Reverse-mode AD</strong></td>
+<td>Run forward, then propagate “adjoints” backward</td>
+<td><strong>O(1) backward passes</strong></td>
+<td>The workhorse of deep learning — one pass gives all ∂ℒ/∂θ</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Key Insight:</strong> For f: ℝⁿ → ℝ (scalar loss, many
+parameters), reverse-mode AD computes the full gradient in time
+proportional to a <em>single</em> forward pass. Forward mode would need
+n passes.</p>
+</blockquote>
+<hr />
+<h2 id="forward-mode-automatic-differentiation">4. Forward-Mode
+Automatic Differentiation</h2>
+<p>Forward-mode AD computes derivatives by carrying a
+<strong>tangent</strong> (derivative value) alongside each intermediate
+value, propagating in the same direction as the forward computation.</p>
+<h3 id="definition">Definition</h3>
+<p>For each intermediate value vᵢ, define: <span class="math display">\[
+\dot{v}_i = \frac{\partial v_i}{\partial x_1}
+\]</span></p>
+<h3 id="worked-example">Worked Example</h3>
+<p><code>y = ln(x₁) + x₁·x₂ − sin(x₂)</code>, computing ∂y/∂x₁:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Forward evaluation trace (values)</span></span><br><span class="line">v1 = x1              <span class="comment"># = 2</span></span><br><span class="line">v2 = x2              <span class="comment"># = 5</span></span><br><span class="line">v3 = ln(v1)          <span class="comment"># = 0.693</span></span><br><span class="line">v4 = v1 * v2         <span class="comment"># = 10</span></span><br><span class="line">v5 = sin(v2)         <span class="comment"># = −0.959</span></span><br><span class="line">v6 = v3 + v4         <span class="comment"># = 10.693</span></span><br><span class="line">v7 = v6 − v5         <span class="comment"># = 11.652  →  y</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Forward AD trace (tangents, seeded for ∂/∂x₁)</span></span><br><span class="line">v1_dot = <span class="number">1</span>                            <span class="comment"># seed</span></span><br><span class="line">v2_dot = <span class="number">0</span>                            <span class="comment"># not differentiating w.r.t. x₂</span></span><br><span class="line">v3_dot = v1_dot / v1                  <span class="comment"># = 0.5   (chain rule on ln)</span></span><br><span class="line">v4_dot = v1_dot*v2 + v2_dot*v1        <span class="comment"># = 5.0   (product rule)</span></span><br><span class="line">v5_dot = v2_dot * cos(v2)             <span class="comment"># = 0.0</span></span><br><span class="line">v6_dot = v3_dot + v4_dot              <span class="comment"># = 5.5</span></span><br><span class="line">v7_dot = v6_dot − v5_dot              <span class="comment"># = 5.5   →  ∂y/∂x₁</span></span><br></pre></td></tr></table></figure>
+<h3 id="limitation">Limitation</h3>
+<p>To get ∂y/∂x₂, we need to re-run the entire trace with a different
+seed (v̇₁=0, v̇₂=1). For a network with millions of parameters, this is
+prohibitively expensive — hence reverse mode.</p>
+<hr />
+<h2 id="reverse-mode-automatic-differentiation">5. Reverse-Mode
+Automatic Differentiation</h2>
+<p>Reverse-mode AD is the engine behind <code>loss.backward()</code> in
+PyTorch. It computes gradients w.r.t. <strong>all</strong> inputs in a
+single backward pass.</p>
+<h3 id="definition-1">Definition</h3>
+<p>Define the <strong>adjoint</strong> of each node vᵢ:</p>
+<p><span class="math display">\[\bar{v}_i = \frac{\partial y}{\partial
+v_i}\]</span></p>
+<p>Seed v̄_output = 1, then traverse the graph in <strong>reverse
+topological order</strong>.</p>
+<h3 id="worked-example-same-function">Worked Example (same
+function)</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Reverse AD trace (adjoints)</span></span><br><span class="line">v7_bar = <span class="number">1</span>                                   <span class="comment"># seed: ∂y/∂y = 1</span></span><br><span class="line">v6_bar = v7_bar * <span class="number">1</span>                          <span class="comment"># ∂v7/∂v6 = 1  (subtraction)</span></span><br><span class="line">v5_bar = v7_bar * (-<span class="number">1</span>)                       <span class="comment"># ∂v7/∂v5 = −1</span></span><br><span class="line">v4_bar = v6_bar * <span class="number">1</span>                          <span class="comment"># ∂v6/∂v4 = 1  (addition)</span></span><br><span class="line">v3_bar = v6_bar * <span class="number">1</span>                          <span class="comment"># ∂v6/∂v3 = 1</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Nodes with MULTIPLE outgoing edges: sum contributions</span></span><br><span class="line">v2_bar = v5_bar * cos(v2) + v4_bar * v1      <span class="comment"># ≈ 1.716</span></span><br><span class="line">v1_bar = v4_bar * v2     + v3_bar / v1       <span class="comment"># = 5.5</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Result: ∂y/∂x₁ = 5.5,  ∂y/∂x₂ ≈ 1.716  (both in one pass!)</span></span><br></pre></td></tr></table></figure>
+<h3 id="multiple-pathway-rule">Multiple Pathway Rule</h3>
+<p>When a node vᵢ feeds into multiple downstream nodes, its adjoint is
+the <strong>sum</strong> of partial contributions:</p>
+<p><span class="math display">\[\bar{v}*i = \sum*{j \in \text{next}(i)}
+\bar{v}_j \cdot \frac{\partial v_j}{\partial v_i}\]</span></p>
+<h3 id="reverse-ad-algorithm">Reverse AD Algorithm</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">gradient</span>(<span class="params">out</span>):</span><br><span class="line">    node_to_grad = &#123;out: [<span class="number">1</span>]&#125;                  <span class="comment"># seed</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> reverse_topo_order(out):</span><br><span class="line">        v_bar_i = <span class="built_in">sum</span>(node_to_grad[i])         <span class="comment"># sum partial adjoints</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> k <span class="keyword">in</span> inputs(i):</span><br><span class="line">            <span class="comment"># compute partial adjoint: v̄ᵢ · ∂vᵢ/∂vₖ</span></span><br><span class="line">            v_k_to_i = v_bar_i * local_grad(i, k)</span><br><span class="line">            node_to_grad[k].append(v_k_to_i)   <span class="comment"># accumulate</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> adjoint of <span class="built_in">input</span></span><br></pre></td></tr></table></figure>
+<hr />
+<h2 id="vector-jacobian-products-tensor-adjoints">6. Vector-Jacobian
+Products &amp; Tensor Adjoints</h2>
+<p>In practice, nodes hold <strong>tensors</strong> (matrices, vectors),
+not scalars. We generalize using the <strong>Jacobian</strong> and
+<strong>VJP</strong>.</p>
+<h3 id="jacobian">Jacobian</h3>
+<p>For y ∈ ℝᵐ, x ∈ ℝⁿ: <span class="math display">\[
+J = \frac{\partial y}{\partial x} = \begin{bmatrix} \partial
+y_1/\partial x_1 &amp; \partial y_1/\partial x_2 \ \partial y_2/\partial
+x_1 &amp; \partial y_2/\partial x_2 \end{bmatrix}
+\]</span> We <strong>never</strong> explicitly form J (it can be
+enormous). Instead, we compute the <strong>Vector-Jacobian Product
+(VJP)</strong>: <span class="math display">\[
+\bar{x} = J^T \bar{y}
+\]</span></p>
+<h3 id="example-linear-layer">Example: Linear Layer</h3>
+<p>For <code>y = Wx</code>:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Gradient</th>
+<th>Formula</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>w.r.t. input x</td>
+<td>x̄ = Wᵀ ȳ</td>
+</tr>
+<tr class="even">
+<td>w.r.t. weight W</td>
+<td>W̄ = ȳ xᵀ</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Implementation Pattern:</strong> Every primitive op ships
+with both a <code>forward()</code> and a <code>vjp()</code> function.
+The framework only needs to know these primitives; everything else is
+handled by graph traversal.</p>
+</blockquote>
+<h2 id="backprop-vs.-reverse-mode-ad-graph-extension">7. Backprop
+vs. Reverse-Mode AD: Graph Extension</h2>
+<p>There are two implementation strategies, and the distinction matters
+for higher-order derivatives.</p>
+<h3 id="backpropagation-1st-generation">Backpropagation (1st
+generation)</h3>
+<ul>
+<li>Runs backward operations <strong>directly on the forward
+graph</strong>.</li>
+<li>Computes adjoint <em>values</em> by hand, node by node.</li>
+<li>Used in early frameworks: Caffe, cuda-convnet.</li>
+<li><strong>Cannot</strong> naturally support gradient-of-gradient.</li>
+</ul>
+<h3 id="reverse-mode-ad-by-graph-extension-modern">Reverse-Mode AD by
+Graph Extension (modern)</h3>
+<ul>
+<li><strong>Constructs new graph nodes</strong> for each adjoint
+computation.</li>
+<li>The backward pass itself becomes a computation graph.</li>
+<li>You can run another backward pass on top → <strong>higher-order
+derivatives</strong>.</li>
+<li>Used by PyTorch, JAX, modern TensorFlow.</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># The gradient function returns a computation graph, not just a value.</span></span><br><span class="line"><span class="comment"># We can compose and differentiate again:</span></span><br><span class="line"></span><br><span class="line">grad_fn    = grad(loss_fn)          <span class="comment"># first-order gradient (a graph)</span></span><br><span class="line">hessian_fn = grad(grad_fn)          <span class="comment"># second-order — differentiate the gradient!</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># JAX makes this particularly clean:</span></span><br><span class="line"><span class="keyword">import</span> jax</span><br><span class="line">hessian = jax.grad(jax.grad(loss_fn))</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><strong>Key Takeaway:</strong> Reverse-mode AD by graph extension is
+strictly more powerful than classic backprop. It’s the reason modern
+frameworks can compute Hessians, higher-order gradients, and
+meta-learning objectives.</p>
+</blockquote>
+<hr />
+<h2 id="putting-it-together-a-deep-learning-framework">8. Putting It
+Together: A Deep Learning Framework</h2>
+<p>A DL framework needs to be: <strong>expressive</strong> (any network
+architecture), <strong>productive</strong> (hide CUDA,
+auto-differentiate), and <strong>efficient</strong> (scale to large
+models, auto hardware acceleration).</p>
+<h3 id="design-principles">Design Principles</h3>
+<ol type="1">
+<li><strong>Define</strong> the program as a symbolic dataflow graph
+with placeholders, variables, and operations.</li>
+<li><strong>Execute</strong> an optimized version of that graph on
+available devices.</li>
+</ol>
+<h3 id="basic-components-tensorflow-style">Basic Components
+(TensorFlow-style)</h3>
+<table>
+<colgroup>
+<col style="width: 13%" />
+<col style="width: 51%" />
+<col style="width: 34%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Component</th>
+<th>Role</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Placeholder</strong></td>
+<td>Input data fed at runtime</td>
+<td><code>tf.placeholder(tf.float32, (1, 784))</code></td>
+</tr>
+<tr class="even">
+<td><strong>Variable</strong></td>
+<td>Stateful node for parameters; persists across executions</td>
+<td><code>tf.Variable(tf.zeros((100,)))</code></td>
+</tr>
+<tr class="odd">
+<td><strong>Constant</strong></td>
+<td>Static data</td>
+<td><code>tf.constant([[1, 2], [3, 4]])</code></td>
+</tr>
+<tr class="even">
+<td><strong>Operation</strong></td>
+<td>Math ops; must define forward + backward</td>
+<td><code>tf.nn.relu(...)</code>, <code>tf.matmul(...)</code></td>
+</tr>
+<tr class="odd">
+<td><strong>Session</strong></td>
+<td>Execution context binding graph to a device (CPU/GPU)</td>
+<td><code>tf.Session()</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="implementing-an-operation">Implementing an Operation</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">AddOperation</span>(<span class="title class_ inherited__">Operation</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;Define the Add operation: output = a + b&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, a, b</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__([a, b])       <span class="comment"># a, b are input nodes</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, a, b</span>):</span><br><span class="line">        <span class="keyword">return</span> a + b</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">backward</span>(<span class="params">self, upstream_grad</span>):</span><br><span class="line">        <span class="comment"># ∂(a+b)/∂a = 1,  ∂(a+b)/∂b = 1</span></span><br><span class="line">        <span class="keyword">return</span> upstream_grad, upstream_grad</span><br></pre></td></tr></table></figure>
+<h3 id="full-training-loop-using-autograd">Full Training Loop (using
+AutoGrad)</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Define training objective</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">objective</span>(<span class="params">params, <span class="built_in">iter</span></span>):</span><br><span class="line">    idx = batch_indices(<span class="built_in">iter</span>)</span><br><span class="line">    <span class="keyword">return</span> -log_posterior(params, train_images[idx], train_labels[idx], L2_reg)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Get gradient via autograd</span></span><br><span class="line">objective_grad = grad(objective)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Neural network forward pass</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">neural_net_predict</span>(<span class="params">params, inputs</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;params: list of (W, b) tuples. inputs: (N x D) matrix.&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">for</span> W, b <span class="keyword">in</span> params:</span><br><span class="line">        outputs = np.dot(inputs, W) + b</span><br><span class="line">        inputs  = np.tanh(outputs)</span><br><span class="line">    <span class="keyword">return</span> outputs - logsumexp(outputs, axis=<span class="number">1</span>, keepdims=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Log posterior = log prior + log likelihood</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">log_posterior</span>(<span class="params">params, inputs, targets, L2_reg</span>):</span><br><span class="line">    log_prior = -L2_reg * l2_norm(params)</span><br><span class="line">    log_lik   = np.<span class="built_in">sum</span>(neural_net_predict(params, inputs) * targets)</span><br><span class="line">    <span class="keyword">return</span> log_prior + log_lik</span><br></pre></td></tr></table></figure>
+<h3 id="implementing-session-execution">Implementing Session
+(Execution)</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">run_session</span>(<span class="params">end_node, feed_dict</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;Execute the computation graph.&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">for</span> node <span class="keyword">in</span> topological_sort(end_node):</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">isinstance</span>(node, Placeholder):</span><br><span class="line">            node.value = feed_dict[node]</span><br><span class="line">        <span class="keyword">elif</span> <span class="built_in">isinstance</span>(node, (Variable, Constant)):</span><br><span class="line">            <span class="keyword">pass</span>                           <span class="comment"># value already set</span></span><br><span class="line">        <span class="keyword">elif</span> <span class="built_in">isinstance</span>(node, Operation):</span><br><span class="line">            inputs = [n.value <span class="keyword">for</span> n <span class="keyword">in</span> node.input_nodes]</span><br><span class="line">            node.value = node.forward(*inputs)</span><br><span class="line">    <span class="keyword">return</span> end_node.value</span><br></pre></td></tr></table></figure>
+<hr />
+<h2 id="framework-comparison-pytorch-tensorflow-jax">9. Framework
+Comparison: PyTorch, TensorFlow, JAX</h2>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 22%" />
+<col style="width: 24%" />
+<col style="width: 26%" />
+<col style="width: 10%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Aspect</th>
+<th>PyTorch</th>
+<th>TensorFlow</th>
+<th>JAX</th>
+<th>NumPy</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Paradigm</strong></td>
+<td>Dynamic (eager)</td>
+<td>Static graph / Eager</td>
+<td>Functional transformations</td>
+<td>Procedural</td>
+</tr>
+<tr class="even">
+<td><strong>Autograd</strong></td>
+<td>Dynamic comp graph</td>
+<td>Static comp graph</td>
+<td>Functional (<code>grad</code>/<code>jit</code>)</td>
+<td>None</td>
+</tr>
+<tr class="odd">
+<td><strong>Hardware</strong></td>
+<td>CPU, GPU, TPU</td>
+<td>CPU, GPU, TPU</td>
+<td>CPU, GPU, TPU</td>
+<td>CPU only</td>
+</tr>
+<tr class="even">
+<td><strong>Ease of Use</strong></td>
+<td>Pythonic</td>
+<td>Steeper learning curve</td>
+<td>Pythonic + functional</td>
+<td>Very easy</td>
+</tr>
+<tr class="odd">
+<td><strong>Parallelism</strong></td>
+<td><code>DataParallel</code> / DDP</td>
+<td><code>tf.distribute</code></td>
+<td><code>pmap</code></td>
+<td>None</td>
+</tr>
+<tr class="even">
+<td><strong>Ecosystem</strong></td>
+<td>Lightning, TorchVision</td>
+<td>TensorBoard, TF Extended</td>
+<td>Integrates with NumPy</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h3 id="dynamic-vs.-static-graphs">Dynamic vs. Static Graphs</h3>
+<ul>
+<li><strong>PyTorch (dynamic/eager):</strong> The computation graph is
+built on-the-fly as you write Python code. Easy to debug with standard
+print statements. The graph can change every iteration (e.g., different
+sequence lengths in an RNN).</li>
+<li><strong>TensorFlow v1 (static):</strong> You first <em>define</em>
+the graph symbolically, then <em>execute</em> it in a session. Enables
+more aggressive optimization but harder to debug.</li>
+<li><strong>JAX (functional):</strong> No explicit graph object. You
+write pure functions and use transformations (<code>jax.grad</code>,
+<code>jax.jit</code>, <code>jax.vmap</code>) to get gradients, JIT
+compilation, and vectorization.</li>
+</ul>
+<hr />
+<h2 id="gradient-checking-debugging">10. Gradient Checking &amp;
+Debugging</h2>
+<p>When implementing custom backward passes, numerical gradient checking
+is your best friend.</p>
+<h3 id="centered-finite-differences">Centered Finite Differences</h3>
+<p><span class="math display">\[\frac{\partial f(x_1, x_2)}{\partial
+x_1} \approx \frac{f(x_1 + h,, x_2) - f(x_1 - h,, x_2)}{2h}\]</span></p>
+<p>This is more accurate than the one-sided formula (error is O(h²)
+vs. O(h)).</p>
+<h3 id="best-practices">Best Practices</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Gradient checking recipe:</span></span><br><span class="line"><span class="comment"># 1. Use double precision (float64) — float32 errors dominate</span></span><br><span class="line"><span class="comment"># 2. Pick a small h (e.g., 1e-6)</span></span><br><span class="line"><span class="comment"># 3. Compute forward difference through the graph twice</span></span><br><span class="line"><span class="comment"># 4. Compare with your analytical gradient</span></span><br><span class="line"></span><br><span class="line">h = <span class="number">1e-6</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">numerical_grad</span>(<span class="params">f, x, i</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;Compute ∂f/∂xᵢ via centered differences.&quot;&quot;&quot;</span></span><br><span class="line">    x_plus  = x.copy(); x_plus[i]  += h</span><br><span class="line">    x_minus = x.copy(); x_minus[i] -= h</span><br><span class="line">    <span class="keyword">return</span> (f(x_plus) - f(x_minus)) / (<span class="number">2</span> * h)</span><br><span class="line"></span><br><span class="line"><span class="comment"># More general: pick a random direction δ, check directional derivative</span></span><br><span class="line"><span class="comment"># δᵀ ∇f(θ) ≈ (f(θ + εδ) − f(θ − εδ)) / 2ε</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><strong>Tip:</strong> If your analytical gradient and numerical
+gradient disagree by more than ~1e-5 (relative error), there’s likely a
+bug in your VJP implementation. Check edge cases like zero inputs and
+boundary conditions.</p>
+</blockquote>
+<hr />
+<h2 id="summary">Summary</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 74%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Concept</th>
+<th>What It Does</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Computation Graph</strong></td>
+<td>DAG representing the program; enables both forward eval and backward
+differentiation</td>
+</tr>
+<tr class="even">
+<td><strong>Topological Sort</strong></td>
+<td>Defines a valid execution order for the graph</td>
+</tr>
+<tr class="odd">
+<td><strong>Forward-mode AD</strong></td>
+<td>Propagates tangents forward; O(n) passes for n inputs</td>
+</tr>
+<tr class="even">
+<td><strong>Reverse-mode AD</strong></td>
+<td>Propagates adjoints backward; O(1) passes for scalar output — the
+key to efficient training</td>
+</tr>
+<tr class="odd">
+<td><strong>VJP</strong></td>
+<td>The primitive operation of reverse AD on tensors; avoids forming the
+full Jacobian</td>
+</tr>
+<tr class="even">
+<td><strong>Graph Extension</strong></td>
+<td>Modern technique: backward pass builds a new graph, enabling
+higher-order derivatives</td>
+</tr>
+<tr class="odd">
+<td><strong>DL Framework</strong></td>
+<td>Combines: symbolic graph definition → automatic differentiation →
+optimized execution on hardware</td>
+</tr>
+</tbody>
+</table>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2026/01/28/11868-LLM-Sys/11868-LLM-Sys-15642-ML-Sys-DL-Framworks-and-Auto-Differentiation/">https://xloverflow.github.io/2026/01/28/11868-LLM-Sys/11868-LLM-Sys-15642-ML-Sys-DL-Framworks-and-Auto-Differentiation/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/CMU/">CMU</a><a class="post-meta__tags" href="/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/tags/LLM-Systems/">LLM Systems</a><a class="post-meta__tags" href="/tags/11868/">11868</a><a class="post-meta__tags" href="/tags/ML-Systems/">ML Systems</a><a class="post-meta__tags" href="/tags/Deep-Learning/">Deep Learning</a><a class="post-meta__tags" href="/tags/Auto-Differentiation/">Auto Differentiation</a><a class="post-meta__tags" href="/tags/15642/">15642</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">Notes on RNN architectures, encoder-decoder models, and attention mechanisms from CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/01/26/11868-LLM-Sys/11868-LLM-SyS-GPU-Programming-Acceleration/" title="11868 LLM Sys: GPU Programming &amp; Acceleration"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">11868 LLM Sys: GPU Programming & Acceleration</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 11-868 LLM Systems: GPU Programming & Acceleration.</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/01/26/11868-LLM-Sys/11868-LLM-SyS-GPU-Programming-Acceleration/" title="11868 LLM Sys: GPU Programming &amp; Acceleration"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-25</div><div class="info-item-2">11868 LLM Sys: GPU Programming &amp; Acceleration</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 11-868 LLM Systems: GPU Programming & Acceleration.</div></div></div></a><a class="pagination-related" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-12</div><div class="info-item-2">11868 LLM Sys: Decoding</div></div><div class="info-2"><div class="info-item-1">Notes on decoding strategies for LLM inference from CMU 11-868, covering efficient sampling, beam search algorithms, speculative decoding, and EAGLE.</div></div></div></a><a class="pagination-related" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-12</div><div class="info-item-2">11868 LLM Sys: Tokenization and Embedding</div></div><div class="info-2"><div class="info-item-1">Comprehensive notes on tokenization techniques and vocabulary learning for Large Language Models, covering BPE, VOLT, and practical considerations in multilingual LLMs.</div></div></div></a><a class="pagination-related" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-13</div><div class="info-item-2">15642 Machine Learning Systems: Distributed Training and Parallelization</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-642 Machine Learning Systems on distributed training techniques including data parallelism, model parallelism, pipeline parallelism, and optimization strategies like ZeRO for training large-scale models.</div></div></div></a><a class="pagination-related" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-09</div><div class="info-item-2">15642 Machine Learning Systems: Transformer, Attention, and Optimizations</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-642 Machine Learning Systems on Transformer architecture, attention mechanisms, and GPU optimizations including FlashAttention.</div></div></div></a><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">Notes on RNN architectures, encoder-decoder models, and attention mechanisms from CMU 11-711 Advanced NLP.</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">48</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">70</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">15</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#automatic-differentiation-deep-learning-frameworks"><span class="toc-number">1.</span> <span class="toc-text">Automatic
+Differentiation &amp; Deep Learning Frameworks</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#the-learning-problem-gradient-descent"><span class="toc-number">1.1.</span> <span class="toc-text">1. The Learning Problem
+&amp; Gradient Descent</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#why-gradient-descent"><span class="toc-number">1.1.1.</span> <span class="toc-text">Why Gradient Descent?</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#sgd-algorithm"><span class="toc-number">1.1.2.</span> <span class="toc-text">SGD Algorithm</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#computation-graphs"><span class="toc-number">1.2.</span> <span class="toc-text">2. Computation Graphs</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#forward-evaluation-via-topological-sort"><span class="toc-number">1.2.1.</span> <span class="toc-text">Forward Evaluation via
+Topological Sort</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#differentiation-methods-a-taxonomy"><span class="toc-number">1.3.</span> <span class="toc-text">3. Differentiation Methods:
+A Taxonomy</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#forward-mode-automatic-differentiation"><span class="toc-number">1.4.</span> <span class="toc-text">4. Forward-Mode
+Automatic Differentiation</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#definition"><span class="toc-number">1.4.1.</span> <span class="toc-text">Definition</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#worked-example"><span class="toc-number">1.4.2.</span> <span class="toc-text">Worked Example</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#limitation"><span class="toc-number">1.4.3.</span> <span class="toc-text">Limitation</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#reverse-mode-automatic-differentiation"><span class="toc-number">1.5.</span> <span class="toc-text">5. Reverse-Mode
+Automatic Differentiation</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#definition-1"><span class="toc-number">1.5.1.</span> <span class="toc-text">Definition</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#worked-example-same-function"><span class="toc-number">1.5.2.</span> <span class="toc-text">Worked Example (same
+function)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#multiple-pathway-rule"><span class="toc-number">1.5.3.</span> <span class="toc-text">Multiple Pathway Rule</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#reverse-ad-algorithm"><span class="toc-number">1.5.4.</span> <span class="toc-text">Reverse AD Algorithm</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#vector-jacobian-products-tensor-adjoints"><span class="toc-number">1.6.</span> <span class="toc-text">6. Vector-Jacobian
+Products &amp; Tensor Adjoints</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#jacobian"><span class="toc-number">1.6.1.</span> <span class="toc-text">Jacobian</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#example-linear-layer"><span class="toc-number">1.6.2.</span> <span class="toc-text">Example: Linear Layer</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#backprop-vs.-reverse-mode-ad-graph-extension"><span class="toc-number">1.7.</span> <span class="toc-text">7. Backprop
+vs. Reverse-Mode AD: Graph Extension</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#backpropagation-1st-generation"><span class="toc-number">1.7.1.</span> <span class="toc-text">Backpropagation (1st
+generation)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#reverse-mode-ad-by-graph-extension-modern"><span class="toc-number">1.7.2.</span> <span class="toc-text">Reverse-Mode AD by
+Graph Extension (modern)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#putting-it-together-a-deep-learning-framework"><span class="toc-number">1.8.</span> <span class="toc-text">8. Putting It
+Together: A Deep Learning Framework</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#design-principles"><span class="toc-number">1.8.1.</span> <span class="toc-text">Design Principles</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#basic-components-tensorflow-style"><span class="toc-number">1.8.2.</span> <span class="toc-text">Basic Components
+(TensorFlow-style)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#implementing-an-operation"><span class="toc-number">1.8.3.</span> <span class="toc-text">Implementing an Operation</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#full-training-loop-using-autograd"><span class="toc-number">1.8.4.</span> <span class="toc-text">Full Training Loop (using
+AutoGrad)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#implementing-session-execution"><span class="toc-number">1.8.5.</span> <span class="toc-text">Implementing Session
+(Execution)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#framework-comparison-pytorch-tensorflow-jax"><span class="toc-number">1.9.</span> <span class="toc-text">9. Framework
+Comparison: PyTorch, TensorFlow, JAX</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#dynamic-vs.-static-graphs"><span class="toc-number">1.9.1.</span> <span class="toc-text">Dynamic vs. Static Graphs</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#gradient-checking-debugging"><span class="toc-number">1.10.</span> <span class="toc-text">10. Gradient Checking &amp;
+Debugging</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#centered-finite-differences"><span class="toc-number">1.10.1.</span> <span class="toc-text">Centered Finite Differences</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#best-practices"><span class="toc-number">1.10.2.</span> <span class="toc-text">Best Practices</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#summary"><span class="toc-number">1.11.</span> <span class="toc-text">Summary</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Retrieval and RAG"/></a><div class="content"><a class="title" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG">11711 Advanced NLP: Retrieval and RAG</a><time datetime="2026-02-14T22:08:21.000Z" title="Created 2026-02-14 17:08:21">2026-02-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Distributed Training and Parallelization"/></a><div class="content"><a class="title" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization">15642 Machine Learning Systems: Distributed Training and Parallelization</a><time datetime="2026-02-13T21:00:00.000Z" title="Created 2026-02-13 16:00:00">2026-02-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Decoding"/></a><div class="content"><a class="title" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding">11868 LLM Sys: Decoding</a><time datetime="2026-02-13T01:00:00.000Z" title="Created 2026-02-12 20:00:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Tokenization and Embedding"/></a><div class="content"><a class="title" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding">11868 LLM Sys: Tokenization and Embedding</a><time datetime="2026-02-12T20:30:00.000Z" title="Created 2026-02-12 15:30:00">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"/></a><div class="content"><a class="title" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations">15642 Machine Learning Systems: Transformer, Attention, and Optimizations</a><time datetime="2026-02-09T19:30:00.000Z" title="Created 2026-02-09 14:30:00">2026-02-09</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || 'da63b92ed8e98b5741f5e98602c1b428'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
