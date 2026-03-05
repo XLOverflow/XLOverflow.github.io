@@ -1,0 +1,731 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>11711 Advanced NLP：评测与实验设计 | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="CMU 11-711 Advanced NLP 课程关于 NLP 评测、基准测试与实验设计的笔记，涵盖损失指标、任务指标、LLM 评判、统计检验与标注质量。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="11711 Advanced NLP：评测与实验设计">
+<meta property="og:url" content="https://xloverflow.github.io/zh/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="CMU 11-711 Advanced NLP 课程关于 NLP 评测、基准测试与实验设计的笔记，涵盖损失指标、任务指标、LLM 评判、统计检验与标注质量。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png">
+<meta property="article:published_time" content="2026-03-05T17:00:00.000Z">
+<meta property="article:modified_time" content="2026-03-05T17:00:00.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="11711">
+<meta property="article:tag" content="AI">
+<meta property="article:tag" content="自然语言处理">
+<meta property="article:tag" content="学习笔记">
+<meta property="article:tag" content="评测">
+<meta property="article:tag" content="基准测试">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "11711 Advanced NLP：评测与实验设计",
+  "url": "https://xloverflow.github.io/zh/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png",
+  "datePublished": "2026-03-05T17:00:00.000Z",
+  "dateModified": "2026-03-05T17:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io/zh"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/zh/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/zh/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/zh/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/zh/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '11711 Advanced NLP：评测与实验设计',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">52</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">82</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">20</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/zh/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/zh/"><span class="site-name">11711 Advanced NLP：评测与实验设计</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/"><i class="fas fa-language fa-fw"></i><span> English</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">11711 Advanced NLP：评测与实验设计</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-03-05T17:00:00.000Z" title="发表于 2026-03-05 12:00:00">2026-03-05</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-03-05T17:00:00.000Z" title="更新于 2026-03-05 12:00:00">2026-03-05</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/zh/categories/CMU-11-711-Advanced-NLP/">CMU 11-711 Advanced NLP</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="lec13-评测与基准测试">Lec13 评测与基准测试</h1>
+<h2 id="为什么评测很重要">为什么评测很重要</h2>
+<p>评测是我们在 NLP 领域宣称取得进展的核心机制。糟糕的评测会导致：</p>
+<ul>
+<li>对模型能力得出误导性结论。</li>
+<li>模型在不代表真实能力的指标上刷高分。</li>
+<li>跨系统、跨论文无法进行有效比较。</li>
+</ul>
+<h2 id="两类评测方式">两类评测方式</h2>
+<h3 id="基于损失的评测loss-based-evaluation">基于损失的评测（Loss-Based
+Evaluation）</h3>
+<p>训练阶段（以及验证集上）使用模型自身的损失：</p>
+<p><span class="math display">\[
+\mathcal{L} = -\sum_{t} \log p_\theta(x_t \mid x_{&lt;t})
+\]</span></p>
+<p>通常以<strong>困惑度（Perplexity）</strong>形式报告：</p>
+<p><span class="math display">\[
+\text{PPL} = \exp\!\left(\frac{1}{T}\sum_{t=1}^{T} -\log p_\theta(x_t
+\mid x_{&lt;t})\right)
+\]</span></p>
+<ul>
+<li>PPL 越低，语言建模效果越好。</li>
+<li>计算速度快，与训练目标直接相关。</li>
+<li>问题：PPL 不一定与下游任务性能正相关。</li>
+</ul>
+<h3
+id="基于任务指标的评测task-metric-based-evaluation">基于任务指标的评测（Task-Metric-Based
+Evaluation）</h3>
+<p>在保留测试集上使用任务特定指标进行评测：</p>
+<table>
+<thead>
+<tr class="header">
+<th>指标</th>
+<th>任务</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>精确匹配（EM）</td>
+<td>问答、代码</td>
+<td>二值，严格</td>
+</tr>
+<tr class="even">
+<td>pass@K</td>
+<td>代码生成</td>
+<td>K 次采样中是否有通过测试的</td>
+</tr>
+<tr class="odd">
+<td>ROUGE-L</td>
+<td>摘要生成</td>
+<td>最长公共子序列 F1</td>
+</tr>
+<tr class="even">
+<td>BLEU</td>
+<td>机器翻译</td>
+<td>n-gram 精度 + 简短惩罚</td>
+</tr>
+<tr class="odd">
+<td>Accuracy</td>
+<td>分类、选择题</td>
+<td>正确比例</td>
+</tr>
+</tbody>
+</table>
+<h2 id="基准测试benchmarks">基准测试（Benchmarks）</h2>
+<h3 id="好的基准测试的特征">好的基准测试的特征</h3>
+<p>一个好的 Benchmark 应该：</p>
+<ul>
+<li><strong>有效（Valid）</strong>——真实衡量其声称衡量的能力。</li>
+<li><strong>可靠（Reliable）</strong>——跨运行/标注者方差低。</li>
+<li><strong>判别力强（Discriminative）</strong>——能区分当前前沿模型。</li>
+<li><strong>未饱和（Not
+Saturated）</strong>——顶级模型不应已达天花板。</li>
+<li><strong>无污染（Contamination-Free）</strong>——测试样本不应出现在训练数据中。</li>
+</ul>
+<h3 id="课程中讨论的核心基准">课程中讨论的核心基准</h3>
+<p><strong>MMLU（大规模多任务语言理解）</strong></p>
+<ul>
+<li>涵盖 STEM、人文、法律等 57 个学科。</li>
+<li>四选一选择题，以准确率评测。</li>
+<li>曾经极具挑战性，但前沿模型已接近饱和。</li>
+</ul>
+<p><strong>HumanEval</strong></p>
+<ul>
+<li>164 道 Python 编程题。</li>
+<li>使用 <strong>pass@K</strong> 评测：</li>
+</ul>
+<p><span class="math display">\[
+\text{pass@}k = \mathbb{E}_{\text{problems}}\!\left[1 -
+\frac{\binom{n-c}{k}}{\binom{n}{k}}\right]
+\]</span></p>
+<p>其中 <span class="math inline">\(n\)</span> 为总采样次数，<span
+class="math inline">\(c\)</span> 为通过单元测试的次数，<span
+class="math inline">\(k\)</span> 为采样预算。</p>
+<ul>
+<li>通过单元测试验证功能正确性。</li>
+</ul>
+<p><strong>GSM8k</strong></p>
+<ul>
+<li>8500 道小学数学应用题。</li>
+<li>需要多步算术推理。</li>
+<li>链式思维（chain-of-thought）提示下效果显著；大模型已趋于饱和。</li>
+</ul>
+<h2 id="任务指标详解">任务指标详解</h2>
+<h3 id="精确匹配exact-match">精确匹配（Exact Match）</h3>
+<p><span class="math display">\[
+\text{EM}(y, \hat{y}) = \mathbf{1}[y = \hat{y}]
+\]</span></p>
+<p>简单但严格，对细微措辞差异非常敏感。</p>
+<h3 id="rouge">ROUGE</h3>
+<p>ROUGE-N 召回率（参考答案 <span
+class="math inline">\(r\)</span>，候选答案 <span
+class="math inline">\(c\)</span>）：</p>
+<p><span class="math display">\[
+\text{ROUGE-N} = \frac{\sum_{s \in r} \sum_{\text{gram}_n \in s}
+\text{Count}_{\text{match}}(\text{gram}_n)}
+{\sum_{s \in r} \sum_{\text{gram}_n \in s} \text{Count}(\text{gram}_n)}
+\]</span></p>
+<p>ROUGE-L 使用最长公共子序列代替 n-gram。</p>
+<h3 id="bleu">BLEU</h3>
+<p><span class="math display">\[
+\text{BLEU} = \text{BP} \cdot \exp\!\left(\sum_{n=1}^{N} w_n \log
+p_n\right)
+\]</span></p>
+<p>其中 <span class="math inline">\(p_n\)</span> 为截断 n-gram 精度，BP
+为简短惩罚因子。</p>
+<ul>
+<li>BLEU 是语料库级指标。</li>
+<li>被批评为无法捕捉语义相似性。</li>
+</ul>
+<h2 id="llm-作为评判者llm-as-judge">LLM 作为评判者（LLM-as-Judge）</h2>
+<p>用一个强大的 LLM 代替固定指标来对输出打分或排名。</p>
+<p><strong>成对比较模式：</strong></p>
+<p>给定提示 <span class="math inline">\(x\)</span> 和两个回答 <span
+class="math inline">\(a\)</span>、<span
+class="math inline">\(b\)</span>，让评判模型判断：</p>
+<blockquote>
+<p>“哪个回答更好？A、B 还是平局？”</p>
+</blockquote>
+<p><strong>绝对打分模式：</strong></p>
+<blockquote>
+<p>“请从 1 到 10 对这个回答的有用性打分。”</p>
+</blockquote>
+<p><strong>主要问题：</strong></p>
+<ul>
+<li>位置偏差（评判模型偏向第一个/第二个回答）。</li>
+<li>自我增强偏差（GPT-4 偏向 GPT-4 风格的输出）。</li>
+<li>冗长偏差（评判模型倾向于给更长的回答打高分）。</li>
+</ul>
+<p><strong>缓解方法：</strong></p>
+<ul>
+<li>交换顺序并取平均。</li>
+<li>使用多个评判模型。</li>
+<li>用人工标注进行校准。</li>
+</ul>
+<h2
+id="基于清单的评测checklist-based-evaluation">基于清单的评测（Checklist-Based
+Evaluation）</h2>
+<p>Lee 等人（2025）提出将评测分解为细粒度标准：</p>
+<ol type="1">
+<li>为任务定义<strong>评测清单</strong>（一组期望标准）。</li>
+<li>让 LLM 评判者逐条独立检查每个标准。</li>
+<li>汇总二值通过/失败信号。</li>
+</ol>
+<p>优势：可解释性更强；能揭示模型在<em>哪里</em>失败，而不仅仅是是否失败。</p>
+<h2 id="人工评测">人工评测</h2>
+<h3 id="众包标注">众包标注</h3>
+<ul>
+<li>大规模收集人类偏好判断。</li>
+<li>需要精心设计标注指南和质量控制流程。</li>
+</ul>
+<h3 id="lmsys-chatbot-arena">LMSys Chatbot Arena</h3>
+<ul>
+<li>开源平台，匿名用户对比不同模型输出。</li>
+<li>使用 <strong>Bradley-Terry</strong> 模型估计 ELO 风格评级：</li>
+</ul>
+<p><span class="math display">\[
+P(\text{模型 A 胜出}) = \frac{e^{\beta_A}}{e^{\beta_A} + e^{\beta_B}}
+\]</span></p>
+<ul>
+<li>来自真实用户的大量比较数据，提示词多样。</li>
+<li>局限性：提示词分布不受控；用户自我选择偏差。</li>
+</ul>
+<h2 id="lec13-小结">Lec13 小结</h2>
+<ul>
+<li>基于损失的指标（PPL）计算廉价，但并不总能预测下游质量。</li>
+<li>好的基准必须有效、有判别力且无污染。</li>
+<li>没有单一完美指标，应使用多种指标综合判断。</li>
+<li>LLM-as-Judge 越来越实用，但需要仔细处理偏差。</li>
+</ul>
+<hr />
+<h1 id="lec14-研究方法与实验设计">Lec14 研究方法与实验设计</h1>
+<h2 id="nlp-中的科学方法">NLP 中的科学方法</h2>
+<p>做 NLP 研究就是做科学：</p>
+<ol type="1">
+<li><strong>观察</strong>现象或研究空白。</li>
+<li><strong>提出假设</strong>——机制或解决方案。</li>
+<li><strong>设计实验</strong>来检验假设。</li>
+<li><strong>收集数据 / 运行模型。</strong></li>
+<li>用合适的统计方法<strong>分析结果</strong>。</li>
+<li><strong>得出结论</strong>并进行交流。</li>
+</ol>
+<p>常见失误：在没有明确步骤 2–3 的情况下直接跳到步骤 4。</p>
+<h2 id="形成研究假设">形成研究假设</h2>
+<p>好的假设应该：</p>
+<ul>
+<li><strong>可证伪（Falsifiable）</strong>——实验有可能证明其错误。</li>
+<li><strong>具体（Specific）</strong>——明确自变量、因变量和预期方向。</li>
+<li><strong>有依据（Motivated）</strong>——基于已有工作或理论原因。</li>
+</ul>
+<p>示例：</p>
+<blockquote>
+<p>“与标准 SFT 相比，基于链式思维数据的微调将提高 GSM8k
+准确率，因为逐步监督能减少推理时的分布偏移。”</p>
+</blockquote>
+<h2 id="统计分析">统计分析</h2>
+<h3 id="标准误与置信区间">标准误与置信区间</h3>
+<p>对于由 <span class="math inline">\(n\)</span>
+个独立同分布样本估计的指标 <span
+class="math inline">\(\mu\)</span>：</p>
+<p><span class="math display">\[
+\text{SE} = \frac{\sigma}{\sqrt{n}}
+\]</span></p>
+<p>95% 置信区间（大样本，正态近似）：</p>
+<p><span class="math display">\[
+\hat{\mu} \pm 1.96 \cdot \text{SE}
+\]</span></p>
+<p>务必在点估计旁报告置信区间。没有不确定性的结果不是可靠结果。</p>
+<h3 id="假设检验">假设检验</h3>
+<p><strong>零假设</strong> <span
+class="math inline">\(H_0\)</span>：系统 A 和系统 B 之间没有差异。</p>
+<p><strong>p 值</strong>：假设 <span class="math inline">\(H_0\)</span>
+成立时，观察到至少和测量值一样大的差异的概率。</p>
+<p>常用阈值：<span class="math inline">\(p &lt;
+0.05\)</span>（但这不应是唯一标准）。</p>
+<h3 id="配对检验-vs-非配对检验">配对检验 vs 非配对检验</h3>
+<table>
+<thead>
+<tr class="header">
+<th>场景</th>
+<th>检验方法</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>同一测试集，两个模型</td>
+<td>配对检验（McNemar、Wilcoxon 符号秩）</td>
+</tr>
+<tr class="even">
+<td>独立测试集</td>
+<td>非配对检验（t 检验、Mann-Whitney U）</td>
+</tr>
+</tbody>
+</table>
+<p>当配对有效时（相同输入评测两次），配对检验通常功效更强。</p>
+<p><strong>分类任务 McNemar 检验：</strong></p>
+<p><span class="math display">\[
+\chi^2 = \frac{(b - c)^2}{b + c}
+\]</span></p>
+<p>其中 <span class="math inline">\(b\)</span> = A 对 B
+错的样本数；<span class="math inline">\(c\)</span> = A 错 B
+对的样本数。</p>
+<h3 id="bootstrap-置信区间">Bootstrap 置信区间</h3>
+<p>对测试集有放回地重采样 <span class="math inline">\(B\)</span>
+次；在每次重采样上计算指标：</p>
+<p><span class="math display">\[
+\hat{\mu}^{*(b)} = \text{metric}(\text{resample}_b)
+\]</span></p>
+<p>将 <span class="math inline">\(\{\hat{\mu}^{*(b)}\}\)</span> 的 2.5
+到 97.5 百分位作为 95% CI。</p>
+<p>非参数方法，适用于任意指标。</p>
+<h2 id="数据污染data-contamination">数据污染（Data Contamination）</h2>
+<h3 id="问题所在">问题所在</h3>
+<p>如果测试样本（逐字或改写后）出现在预训练数据中，报告的准确率会虚高。</p>
+<h3 id="时间分割temporal-split">时间分割（Temporal Split）</h3>
+<p>以时间点 <span class="math inline">\(T\)</span> 为界，<span
+class="math inline">\(T\)</span> 之前的数据用于训练，<span
+class="math inline">\(T\)</span> 之后的数据用于评测。</p>
+<ul>
+<li>从根本上杜绝前瞻性污染。</li>
+<li>GSM8k 风格的时间保留集采用此方法。</li>
+</ul>
+<h3 id="n-gram-重叠检查">N-gram 重叠检查</h3>
+<p>计算训练集与测试集之间的 n-gram 重叠，标记高重叠样本。</p>
+<h2 id="统计功效分析power-analysis">统计功效分析（Power Analysis）</h2>
+<p>在实验前确定所需样本量 <span
+class="math inline">\(n\)</span>，以检测到真实效应。</p>
+<p>在显著性水平 <span class="math inline">\(\alpha\)</span> 和功效 <span
+class="math inline">\(1-\beta\)</span> 下的两样本检验：</p>
+<p><span class="math display">\[
+n = \frac{(z_{\alpha/2} + z_\beta)^2 \cdot 2\sigma^2}{\delta^2}
+\]</span></p>
+<p>其中 <span class="math inline">\(\delta\)</span>
+为最小可检测效应量。</p>
+<p>核心洞见：<strong>功效不足的实验浪费资源并产生误导</strong>。如果
+<span class="math inline">\(n\)</span>
+太小，可能错过真实效应（第二类错误），或在多重检验下报告假阳性。</p>
+<h2 id="标注质量">标注质量</h2>
+<p>构建带有人工标签的数据集时，需要衡量标注者之间的一致性。</p>
+<h3 id="cohens-kappa2-名标注者">Cohen’s Kappa（2 名标注者）</h3>
+<p><span class="math display">\[
+\kappa = \frac{p_o - p_e}{1 - p_e}
+\]</span></p>
+<p>其中 <span class="math inline">\(p_o\)</span> = 实际一致率，<span
+class="math inline">\(p_e\)</span> = 随机一致的期望比例。</p>
+<ul>
+<li><span class="math inline">\(\kappa = 1\)</span>：完全一致。</li>
+<li><span class="math inline">\(\kappa =
+0\)</span>：随机水平的一致。</li>
+<li><span class="math inline">\(\kappa &lt;
+0\)</span>：低于随机水平。</li>
+</ul>
+<h3 id="fleiss-kappa多名标注者">Fleiss’ Kappa（多名标注者）</h3>
+<p>Cohen’s Kappa 对 <span class="math inline">\(k\)</span>
+名评分者的推广：</p>
+<p><span class="math display">\[
+\bar{\kappa} = \frac{\bar{P} - \bar{P}_e}{1 - \bar{P}_e}
+\]</span></p>
+<h3 id="krippendorffs-alpha">Krippendorff’s Alpha</h3>
+<p>更通用：适用于有序、区间、比例尺度，支持缺失数据，适用于任意数量的标注者。</p>
+<p>对于名义量表，<span class="math inline">\(\alpha\)</span> 退化为类似
+Fleiss’ <span class="math inline">\(\kappa\)</span> 的形式。</p>
+<p><strong>一致性解读（Landis &amp; Koch 量表）：</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th><span class="math inline">\(\kappa\)</span> 范围</th>
+<th>解读</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">\(&lt; 0.20\)</span></td>
+<td>轻微</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(0.21\)</span>–<span
+class="math inline">\(0.40\)</span></td>
+<td>一般</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(0.41\)</span>–<span
+class="math inline">\(0.60\)</span></td>
+<td>中等</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(0.61\)</span>–<span
+class="math inline">\(0.80\)</span></td>
+<td>较好</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(&gt; 0.80\)</span></td>
+<td>几乎完全一致</td>
+</tr>
+</tbody>
+</table>
+<p>可发表的标注质量目标：<span class="math inline">\(\kappa \geq
+0.6\)</span>。</p>
+<h2 id="方差减少variance-reduction">方差减少（Variance Reduction）</h2>
+<p>比较模型时，降低方差使比较更清晰。</p>
+<h3 id="控制变量">控制变量</h3>
+<p>在比较模型时，尽可能使用相同的随机种子、相同的测试集、相同的 batch
+顺序。</p>
+<h3 id="分层采样">分层采样</h3>
+<p>确保测试集覆盖不同难度层级；在汇总结果的同时报告各层级结果。</p>
+<h3 id="多次运行">多次运行</h3>
+<p>报告 <span class="math inline">\(k\)</span>
+个随机种子下的均值和标准差：</p>
+<p><span class="math display">\[
+\bar{m} \pm \text{std}(m_1,\dots,m_k)
+\]</span></p>
+<h2 id="实验设计检查清单">实验设计检查清单</h2>
+<p>实验前确认：</p>
+<ul class="task-list">
+<li><label><input type="checkbox" />假设已清晰陈述。</label></li>
+<li><label><input
+type="checkbox" />评测指标已选定并有理由支撑。</label></li>
+<li><label><input type="checkbox" />基线已定义且公平。</label></li>
+<li><label><input
+type="checkbox" />测试集严格保留，未泄露。</label></li>
+<li><label><input
+type="checkbox" />样本量足够（功效分析或参照已有工作）。</label></li>
+<li><label><input type="checkbox" />已检查数据污染情况。</label></li>
+<li><label><input
+type="checkbox" />统计检验方法和显著性阈值已事先确定。</label></li>
+</ul>
+<h2 id="lec14-小结">Lec14 小结</h2>
+<ul>
+<li>明确的假设是实验成功的一半。</li>
+<li>始终在点估计旁报告不确定性（SE、CI）。</li>
+<li>配对有效时使用配对检验，功效更强。</li>
+<li>数据收集前做功效分析，避免功效不足。</li>
+<li>高标注一致性（<span class="math inline">\(\kappa \geq
+0.6\)</span>）是可信数据集的必要条件。</li>
+<li>数据污染是基准有效性面临的严重而常被低估的威胁。</li>
+</ul>
+<hr />
+<h2 id="总结">总结</h2>
+<ul>
+<li><strong>Lec13：</strong> NLP
+评测需要仔细选择指标。基准测试必须有效、有判别力且无污染。LLM-as-Judge
+功能强大但需缓解偏差。人工评测（Chatbot
+Arena）在大规模下提供真实参考。</li>
+<li><strong>Lec14：</strong>
+好的实验设计始于可证伪的假设。统计严谨性（置信区间、假设检验、功效分析）和高标注质量（<span
+class="math inline">\(\kappa\)</span>）是 NLP
+可信研究不可或缺的要素。</li>
+</ul>
+<p><em>本文基于 CMU 11-711 Advanced NLP 课程讲义（Lec13
+评测与基准测试、Lec14 研究方法与实验设计，Sean Welleck）。</em></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/">https://xloverflow.github.io/zh/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://xloverflow.github.io/zh" target="_blank">Life is not a race, but a journey</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/zh/tags/CMU/">CMU</a><a class="post-meta__tags" href="/zh/tags/11711/">11711</a><a class="post-meta__tags" href="/zh/tags/AI/">AI</a><a class="post-meta__tags" href="/zh/tags/%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/">自然语言处理</a><a class="post-meta__tags" href="/zh/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">学习笔记</a><a class="post-meta__tags" href="/zh/tags/%E8%AF%84%E6%B5%8B/">评测</a><a class="post-meta__tags" href="/zh/tags/%E5%9F%BA%E5%87%86%E6%B5%8B%E8%AF%95/">基准测试</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/zh/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Multimodal/" title="11711 Advanced NLP: Multimodal Modeling"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">11711 Advanced NLP: Multimodal Modeling</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理中多模态建模的笔记，涵盖 ViT、CLIP、LLaVA 风格对接以及 VQ-VAE/VQ-GAN 图像生成。</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/zh/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">关于CMU 11-711高级自然语言处理的RNN架构、编码器-解码器模型和注意力机制的笔记。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-22</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/" title="11711 Advanced NLP: Learning &amp; Inference"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Learning &amp; Inference</div></div><div class="info-2"><div class="info-item-1">卡内基梅隆大学 11-711 高级自然语言处理的学习算法和推理方法笔记。</div></div></div></a><a class="pagination-related" href="/zh/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Multimodal/" title="11711 Advanced NLP: Multimodal Modeling"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-04</div><div class="info-item-2">11711 Advanced NLP: Multimodal Modeling</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理中多模态建模的笔记，涵盖 ViT、CLIP、LLaVA 风格对接以及 VQ-VAE/VQ-GAN 图像生成。</div></div></div></a><a class="pagination-related" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-14</div><div class="info-item-2">11711 Advanced NLP: Retrieval and RAG</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理中关于检索系统、检索器和检索增强生成（RAG）的笔记。</div></div></div></a><a class="pagination-related" href="/zh/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM系统：解码"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-12</div><div class="info-item-2">11868 LLM系统：解码</div></div><div class="info-2"><div class="info-item-1">CMU 11-868课程中关于LLM推理解码策略的笔记，涵盖高效采样、束搜索算法、推测性解码和EAGLE。</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li 的中文博客</div><div class="site-data"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">52</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">82</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">20</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#lec13-%E8%AF%84%E6%B5%8B%E4%B8%8E%E5%9F%BA%E5%87%86%E6%B5%8B%E8%AF%95"><span class="toc-number">1.</span> <span class="toc-text">Lec13 评测与基准测试</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%AF%84%E6%B5%8B%E5%BE%88%E9%87%8D%E8%A6%81"><span class="toc-number">1.1.</span> <span class="toc-text">为什么评测很重要</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%A4%E7%B1%BB%E8%AF%84%E6%B5%8B%E6%96%B9%E5%BC%8F"><span class="toc-number">1.2.</span> <span class="toc-text">两类评测方式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E4%BA%8E%E6%8D%9F%E5%A4%B1%E7%9A%84%E8%AF%84%E6%B5%8Bloss-based-evaluation"><span class="toc-number">1.2.1.</span> <span class="toc-text">基于损失的评测（Loss-Based
+Evaluation）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E4%BA%8E%E4%BB%BB%E5%8A%A1%E6%8C%87%E6%A0%87%E7%9A%84%E8%AF%84%E6%B5%8Btask-metric-based-evaluation"><span class="toc-number">1.2.2.</span> <span class="toc-text">基于任务指标的评测（Task-Metric-Based
+Evaluation）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E5%87%86%E6%B5%8B%E8%AF%95benchmarks"><span class="toc-number">1.3.</span> <span class="toc-text">基准测试（Benchmarks）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A5%BD%E7%9A%84%E5%9F%BA%E5%87%86%E6%B5%8B%E8%AF%95%E7%9A%84%E7%89%B9%E5%BE%81"><span class="toc-number">1.3.1.</span> <span class="toc-text">好的基准测试的特征</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%BE%E7%A8%8B%E4%B8%AD%E8%AE%A8%E8%AE%BA%E7%9A%84%E6%A0%B8%E5%BF%83%E5%9F%BA%E5%87%86"><span class="toc-number">1.3.2.</span> <span class="toc-text">课程中讨论的核心基准</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%BB%E5%8A%A1%E6%8C%87%E6%A0%87%E8%AF%A6%E8%A7%A3"><span class="toc-number">1.4.</span> <span class="toc-text">任务指标详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B2%BE%E7%A1%AE%E5%8C%B9%E9%85%8Dexact-match"><span class="toc-number">1.4.1.</span> <span class="toc-text">精确匹配（Exact Match）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#rouge"><span class="toc-number">1.4.2.</span> <span class="toc-text">ROUGE</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#bleu"><span class="toc-number">1.4.3.</span> <span class="toc-text">BLEU</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#llm-%E4%BD%9C%E4%B8%BA%E8%AF%84%E5%88%A4%E8%80%85llm-as-judge"><span class="toc-number">1.5.</span> <span class="toc-text">LLM 作为评判者（LLM-as-Judge）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E4%BA%8E%E6%B8%85%E5%8D%95%E7%9A%84%E8%AF%84%E6%B5%8Bchecklist-based-evaluation"><span class="toc-number">1.6.</span> <span class="toc-text">基于清单的评测（Checklist-Based
+Evaluation）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%BA%E5%B7%A5%E8%AF%84%E6%B5%8B"><span class="toc-number">1.7.</span> <span class="toc-text">人工评测</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BC%97%E5%8C%85%E6%A0%87%E6%B3%A8"><span class="toc-number">1.7.1.</span> <span class="toc-text">众包标注</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#lmsys-chatbot-arena"><span class="toc-number">1.7.2.</span> <span class="toc-text">LMSys Chatbot Arena</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#lec13-%E5%B0%8F%E7%BB%93"><span class="toc-number">1.8.</span> <span class="toc-text">Lec13 小结</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#lec14-%E7%A0%94%E7%A9%B6%E6%96%B9%E6%B3%95%E4%B8%8E%E5%AE%9E%E9%AA%8C%E8%AE%BE%E8%AE%A1"><span class="toc-number">2.</span> <span class="toc-text">Lec14 研究方法与实验设计</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#nlp-%E4%B8%AD%E7%9A%84%E7%A7%91%E5%AD%A6%E6%96%B9%E6%B3%95"><span class="toc-number">2.1.</span> <span class="toc-text">NLP 中的科学方法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BD%A2%E6%88%90%E7%A0%94%E7%A9%B6%E5%81%87%E8%AE%BE"><span class="toc-number">2.2.</span> <span class="toc-text">形成研究假设</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%9F%E8%AE%A1%E5%88%86%E6%9E%90"><span class="toc-number">2.3.</span> <span class="toc-text">统计分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%87%E5%87%86%E8%AF%AF%E4%B8%8E%E7%BD%AE%E4%BF%A1%E5%8C%BA%E9%97%B4"><span class="toc-number">2.3.1.</span> <span class="toc-text">标准误与置信区间</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%81%87%E8%AE%BE%E6%A3%80%E9%AA%8C"><span class="toc-number">2.3.2.</span> <span class="toc-text">假设检验</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%85%8D%E5%AF%B9%E6%A3%80%E9%AA%8C-vs-%E9%9D%9E%E9%85%8D%E5%AF%B9%E6%A3%80%E9%AA%8C"><span class="toc-number">2.3.3.</span> <span class="toc-text">配对检验 vs 非配对检验</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#bootstrap-%E7%BD%AE%E4%BF%A1%E5%8C%BA%E9%97%B4"><span class="toc-number">2.3.4.</span> <span class="toc-text">Bootstrap 置信区间</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E6%B1%A1%E6%9F%93data-contamination"><span class="toc-number">2.4.</span> <span class="toc-text">数据污染（Data Contamination）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E6%89%80%E5%9C%A8"><span class="toc-number">2.4.1.</span> <span class="toc-text">问题所在</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%97%B6%E9%97%B4%E5%88%86%E5%89%B2temporal-split"><span class="toc-number">2.4.2.</span> <span class="toc-text">时间分割（Temporal Split）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#n-gram-%E9%87%8D%E5%8F%A0%E6%A3%80%E6%9F%A5"><span class="toc-number">2.4.3.</span> <span class="toc-text">N-gram 重叠检查</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%9F%E8%AE%A1%E5%8A%9F%E6%95%88%E5%88%86%E6%9E%90power-analysis"><span class="toc-number">2.5.</span> <span class="toc-text">统计功效分析（Power Analysis）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A0%87%E6%B3%A8%E8%B4%A8%E9%87%8F"><span class="toc-number">2.6.</span> <span class="toc-text">标注质量</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#cohens-kappa2-%E5%90%8D%E6%A0%87%E6%B3%A8%E8%80%85"><span class="toc-number">2.6.1.</span> <span class="toc-text">Cohen’s Kappa（2 名标注者）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#fleiss-kappa%E5%A4%9A%E5%90%8D%E6%A0%87%E6%B3%A8%E8%80%85"><span class="toc-number">2.6.2.</span> <span class="toc-text">Fleiss’ Kappa（多名标注者）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#krippendorffs-alpha"><span class="toc-number">2.6.3.</span> <span class="toc-text">Krippendorff’s Alpha</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%B9%E5%B7%AE%E5%87%8F%E5%B0%91variance-reduction"><span class="toc-number">2.7.</span> <span class="toc-text">方差减少（Variance Reduction）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8E%A7%E5%88%B6%E5%8F%98%E9%87%8F"><span class="toc-number">2.7.1.</span> <span class="toc-text">控制变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%86%E5%B1%82%E9%87%87%E6%A0%B7"><span class="toc-number">2.7.2.</span> <span class="toc-text">分层采样</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%9A%E6%AC%A1%E8%BF%90%E8%A1%8C"><span class="toc-number">2.7.3.</span> <span class="toc-text">多次运行</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C%E8%AE%BE%E8%AE%A1%E6%A3%80%E6%9F%A5%E6%B8%85%E5%8D%95"><span class="toc-number">2.8.</span> <span class="toc-text">实验设计检查清单</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#lec14-%E5%B0%8F%E7%BB%93"><span class="toc-number">2.9.</span> <span class="toc-text">Lec14 小结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">2.10.</span> <span class="toc-text">总结</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/" title="11711 Advanced NLP：评测与实验设计"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11711 Advanced NLP：评测与实验设计"/></a><div class="content"><a class="title" href="/zh/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/" title="11711 Advanced NLP：评测与实验设计">11711 Advanced NLP：评测与实验设计</a><time datetime="2026-03-05T17:00:00.000Z" title="发表于 2026-03-05 12:00:00">2026-03-05</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Multimodal/" title="11711 Advanced NLP: Multimodal Modeling"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11711 Advanced NLP: Multimodal Modeling"/></a><div class="content"><a class="title" href="/zh/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Multimodal/" title="11711 Advanced NLP: Multimodal Modeling">11711 Advanced NLP: Multimodal Modeling</a><time datetime="2026-03-05T04:40:00.000Z" title="发表于 2026-03-04 23:40:00">2026-03-04</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11711 Advanced NLP: Retrieval and RAG"/></a><div class="content"><a class="title" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG">11711 Advanced NLP: Retrieval and RAG</a><time datetime="2026-02-14T22:08:21.000Z" title="发表于 2026-02-14 17:08:21">2026-02-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 机器学习系统：分布式训练与并行化"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="15642 机器学习系统：分布式训练与并行化"/></a><div class="content"><a class="title" href="/zh/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 机器学习系统：分布式训练与并行化">15642 机器学习系统：分布式训练与并行化</a><time datetime="2026-02-13T21:00:00.000Z" title="发表于 2026-02-13 16:00:00">2026-02-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM系统：解码"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11868 LLM系统：解码"/></a><div class="content"><a class="title" href="/zh/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM系统：解码">11868 LLM系统：解码</a><time datetime="2026-02-13T01:00:00.000Z" title="发表于 2026-02-12 20:00:00">2026-02-12</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/zh/js/utils.js"></script><script src="/zh/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '597a5b8b8b86a65beb3c9f3ff7637d80'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/zh/404.html') : window.location.href = '/zh/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

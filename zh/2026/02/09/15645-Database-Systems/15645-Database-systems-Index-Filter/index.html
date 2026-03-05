@@ -1,0 +1,612 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>15645 Database systems: Index &amp; Filter | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="CMU 15-645 数据库系统的笔记和总结。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="15645 Database systems: Index &amp; Filter">
+<meta property="og:url" content="https://xloverflow.github.io/zh/2026/02/09/15645-Database-Systems/15645-Database-systems-Index-Filter/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="CMU 15-645 数据库系统的笔记和总结。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png">
+<meta property="article:published_time" content="2026-02-09T19:09:42.000Z">
+<meta property="article:modified_time" content="2026-02-16T20:10:00.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="Study Notes">
+<meta property="article:tag" content="Database Systems">
+<meta property="article:tag" content="15645">
+<meta property="article:tag" content="Index">
+<meta property="article:tag" content="Filter">
+<meta property="article:tag" content="B+Tree">
+<meta property="article:tag" content="Bloom Filter">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "15645 Database systems: Index & Filter",
+  "url": "https://xloverflow.github.io/zh/2026/02/09/15645-Database-Systems/15645-Database-systems-Index-Filter/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png",
+  "datePublished": "2026-02-09T19:09:42.000Z",
+  "dateModified": "2026-02-16T20:10:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io/zh"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/zh/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/zh/2026/02/09/15645-Database-Systems/15645-Database-systems-Index-Filter/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/zh/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/zh/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '15645 Database systems: Index & Filter',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">52</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">82</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">20</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/zh/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/zh/"><span class="site-name">15645 Database systems: Index &amp; Filter</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/"><i class="fas fa-language fa-fw"></i><span> English</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">15645 Database systems: Index &amp; Filter</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-02-09T19:09:42.000Z" title="发表于 2026-02-09 14:09:42">2026-02-09</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-16T20:10:00.000Z" title="更新于 2026-02-16 15:10:00">2026-02-16</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/zh/categories/CMU-15-645-%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/">CMU 15-645 数据库系统</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="lec-8-9-索引与过滤器">Lec 8-9 索引与过滤器</h1>
+<h2 id="学习地图">0. 学习地图</h2>
+<p>这篇笔记围绕一个问题展开：<strong>「针对这种查询类型，应该选哪种数据结构？」</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th>查询意图</th>
+<th>首选结构</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>结构化键上的点查 / 范围查</td>
+<td>B+Tree</td>
+<td>有序、精确、更新友好</td>
+</tr>
+<tr class="even">
+<td>快速“不存在”预检查</td>
+<td>Bloom 类过滤器</td>
+<td>低成本过滤负例</td>
+</tr>
+<tr class="odd">
+<td>内存中的有序集合</td>
+<td>Skip List</td>
+<td>更新简单，期望 <code>O(log n)</code></td>
+</tr>
+<tr class="even">
+<td>前缀 / 数字化键查找</td>
+<td>Trie / Radix</td>
+<td>按键的位/前缀逐层匹配</td>
+</tr>
+<tr class="odd">
+<td>全文关键词检索</td>
+<td>倒排索引</td>
+<td><code>term -&gt; posting list</code></td>
+</tr>
+<tr class="even">
+<td>语义相似度检索</td>
+<td>向量索引（IVF/HNSW）</td>
+<td>在嵌入空间做 ANN</td>
+</tr>
+</tbody>
+</table>
+<h1 id="btreelec-8-核心">1. B+Tree（Lec 8 核心）</h1>
+<h2 id="核心思想">1.1 核心思想</h2>
+<p>B+Tree 是 DBMS
+里的默认有序索引：一个结构同时支持<strong>点查询</strong>和<strong>范围扫描</strong>，并且在磁盘场景下表现稳定。</p>
+<h2 id="物理结构">1.2 物理结构</h2>
+<ul>
+<li><strong>内部节点（Inner node）</strong>：路由键 + 子指针。</li>
+<li><strong>叶子节点（Leaf node）</strong>：键 + 负载（RID / 主键 /
+元组数据）。</li>
+<li><strong>叶子兄弟指针</strong>：让有序扫描更高效。</li>
+</ul>
+<h3 id="b-tree-vs-btree">B-Tree vs B+Tree</h3>
+<table>
+<thead>
+<tr class="header">
+<th>维度</th>
+<th>B-Tree</th>
+<th>B+Tree</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>值存储位置</td>
+<td>各层都存</td>
+<td>仅叶子层</td>
+</tr>
+<tr class="even">
+<td>范围扫描</td>
+<td>不够自然</td>
+<td>通过叶子链天然支持</td>
+</tr>
+<tr class="odd">
+<td>工程实践</td>
+<td>较少用</td>
+<td>主流选择</td>
+</tr>
+</tbody>
+</table>
+<h2 id="更新逻辑写入时会发生什么">1.3 更新逻辑（写入时会发生什么）</h2>
+<h3 id="插入">插入</h3>
+<ol type="1">
+<li>向下遍历到目标叶子。</li>
+<li>按序插入键。</li>
+<li>若溢出则分裂节点。</li>
+<li>将分隔键上推到父节点。</li>
+<li>若父节点也溢出，继续向上级联。</li>
+</ol>
+<h3 id="删除">删除</h3>
+<ol type="1">
+<li>在叶子删除目标键。</li>
+<li>若低于阈值，先尝试向兄弟借键。</li>
+<li>借不到则与兄弟合并。</li>
+<li>更新父节点分隔键。</li>
+<li>若父节点下溢，继续向上级联。</li>
+</ol>
+<h3 id="重复键">重复键</h3>
+<ul>
+<li>推荐：存 <code>(key, rid)</code> 以保证唯一性。</li>
+<li>不推荐：溢出链（overflow chain），维护成本高。</li>
+</ul>
+<h2 id="设计旋钮design-knobs">1.4 设计旋钮（Design Knobs）</h2>
+<table>
+<thead>
+<tr class="header">
+<th>旋钮</th>
+<th>常见选择</th>
+<th>权衡</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>节点大小</td>
+<td>慢介质更大</td>
+<td>I/O 更少，但节点内扫描更重</td>
+</tr>
+<tr class="even">
+<td>合并阈值</td>
+<td>不一定“半满就合并”</td>
+<td>写放大更低，但会暂时更稀疏</td>
+</tr>
+<tr class="odd">
+<td>变长键存储</td>
+<td>指针/变长节点/填充/间接映射</td>
+<td>空间效率 vs 实现复杂度</td>
+</tr>
+<tr class="even">
+<td>节点内搜索</td>
+<td>线性(SIMD)/二分/插值</td>
+<td>CPU 效率 vs 分布假设</td>
+</tr>
+</tbody>
+</table>
+<h2 id="工程优化">1.5 工程优化</h2>
+<ul>
+<li><strong>Pointer swizzling</strong>：页常驻缓冲池时用原始指针替代
+page id。</li>
+<li><strong>写优化
+B+Tree</strong>：内部节点先缓冲更新，再批量下推。</li>
+<li><strong>Partial index</strong>：只给满足谓词的子集建索引。</li>
+<li><strong>Include columns</strong>：支持 index-only scan。</li>
+<li><strong>前缀压缩 / 去重 / 后缀截断</strong>：降低索引体积。</li>
+<li><strong>Bulk build</strong>：先排序，再自底向上建树。</li>
+</ul>
+<h2 id="何时优先用-btree">1.6 何时优先用 B+Tree</h2>
+<p>当你需要以下能力时，B+Tree 应该是第一选择：</p>
+<ul>
+<li>精确点查 + 范围查询</li>
+<li>频繁更新</li>
+<li>可预测的事务行为</li>
+</ul>
+<h1 id="过滤器lec-9-part-a">2. 过滤器（Lec 9 Part A）</h1>
+<h2 id="bloom-filter">2.1 Bloom Filter</h2>
+<h3 id="核心思想-1">核心思想</h3>
+<p>位图 + <code>k</code> 个哈希函数，用于成员关系判断。</p>
+<h3 id="语义保证">语义保证</h3>
+<ul>
+<li>假阴性（False negative）：不会发生</li>
+<li>假阳性（False positive）：可能发生</li>
+</ul>
+<h3 id="操作">操作</h3>
+<ul>
+<li><code>Insert(x)</code>：置位 <code>k</code> 个比特。</li>
+<li><code>Lookup(x)</code>：只要有一位为 <code>0</code>
+就一定不存在；全为 <code>1</code> 则“可能存在”。</li>
+</ul>
+<h3 id="最佳用途">最佳用途</h3>
+<p>放在昂贵索引/表访问之前，先做廉价预过滤。</p>
+<h2 id="其他过滤器">2.2 其他过滤器</h2>
+<ul>
+<li><strong>Counting Bloom</strong>：用计数器代替比特，支持删除。</li>
+<li><strong>Cuckoo Filter</strong>：基于
+fingerprint，支持动态增删。</li>
+<li><strong>SuRF</strong>：压缩的静态 trie
+类过滤器，支持近似点查/范围过滤。</li>
+</ul>
+<h1 id="有序结构替代方案lec-9-part-b">3. 有序结构替代方案（Lec 9 Part
+B）</h1>
+<h2 id="skip-list">3.1 Skip List</h2>
+<h3 id="核心思想-2">核心思想</h3>
+<p>多层链表，键的“层高”通过随机方式决定。</p>
+<h3 id="存在意义">存在意义</h3>
+<ul>
+<li>更新路径比严格平衡树更简单</li>
+<li>期望复杂度为 <code>O(log n)</code></li>
+</ul>
+<h3 id="权衡">权衡</h3>
+<ul>
+<li>在内存场景很好用（如 MemTable）</li>
+<li>在磁盘/缓存局部性上通常不如 B+Tree</li>
+</ul>
+<h2 id="trie-radix-tree">3.2 Trie / Radix Tree</h2>
+<h3 id="trie">Trie</h3>
+<ul>
+<li>按键的位/前缀逐步匹配。</li>
+<li>复杂度 <code>O(k)</code>，<code>k</code> 为键长度。</li>
+<li>结构依赖键前缀，不依赖插入顺序。</li>
+</ul>
+<h3 id="radixpatricia">Radix（Patricia）</h3>
+<ul>
+<li>压缩单子路径。</li>
+<li>比普通 trie 更省空间。</li>
+<li>某些压缩路径匹配可能需要回表/回键验证。</li>
+</ul>
+<h1 id="文本检索倒排索引lec-9-part-c">4. 文本检索：倒排索引（Lec 9 Part
+C）</h1>
+<h2 id="核心结构">4.1 核心结构</h2>
+<ul>
+<li>词典（Dictionary）</li>
+<li>每个词对应的 posting list</li>
+</ul>
+<p>对于 <code>contains keyword</code> 这类查询，倒排索引通常比
+<code>B+Tree + LIKE '%...%'</code> 更合适。</p>
+<h2 id="课程中提到的系统">4.2 课程中提到的系统</h2>
+<ul>
+<li><strong>Lucene</strong>：FST 词典 + 分段 + 后台合并。</li>
+<li><strong>PostgreSQL GIN</strong>：词典 + posting list/tree + pending
+list。</li>
+</ul>
+<h2 id="检索质量层">4.3 检索质量层</h2>
+<ul>
+<li>排序：TF-IDF / BM25</li>
+<li>分词：n-gram / trigram</li>
+<li>归一化：标点、空格等变体处理</li>
+</ul>
+<h1 id="语义检索向量索引lec-9-part-d">5. 语义检索：向量索引（Lec 9 Part
+D）</h1>
+<h2 id="为什么需要向量索引">5.1 为什么需要向量索引</h2>
+<p>关键词重合不足以表达语义相似。先把文本/对象映射成
+embedding，再做最近邻检索。</p>
+<h2 id="ivf-风格向量检索">5.2 IVF 风格向量检索</h2>
+<ul>
+<li>先把向量聚类到若干中心。</li>
+<li>建立 <code>中心 -&gt; 向量列表</code> 映射。</li>
+<li>查询时先探测最近簇，再对候选重排。</li>
+</ul>
+<h2 id="图索引风格hnsw">5.3 图索引风格（HNSW）</h2>
+<ul>
+<li>在向量之间建近邻图。</li>
+<li>从入口点做贪心导航，逐步靠近查询向量。</li>
+<li>多层图结构提升速度与质量。</li>
+</ul>
+<h2 id="实践提示">5.4 实践提示</h2>
+<p>向量检索通常会和元数据过滤（前置或后置）组合使用。</p>
+<h1 id="最终选型指南">6. 最终选型指南</h1>
+<table>
+<thead>
+<tr class="header">
+<th>如果你的查询是…</th>
+<th>先用</th>
+<th>再叠加</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>a = ?</code> 或 <code>a between ? and ?</code></td>
+<td>B+Tree</td>
+<td>Partial/Covering 索引</td>
+</tr>
+<tr class="even">
+<td>“这个键大概率存在吗？”</td>
+<td>Bloom Filter</td>
+<td>对阳性再走主索引</td>
+</tr>
+<tr class="odd">
+<td>“找包含某个词的文档”</td>
+<td>倒排索引</td>
+<td>BM25 + 分词调优</td>
+</tr>
+<tr class="even">
+<td>“找语义相似内容”</td>
+<td>向量索引（IVF/HNSW）</td>
+<td>元数据过滤 + 重排</td>
+</tr>
+<tr class="odd">
+<td>前缀密集的键检索</td>
+<td>Trie/Radix</td>
+<td>压缩与自适应节点布局</td>
+</tr>
+</tbody>
+</table>
+<h2 id="快速总结">快速总结</h2>
+<ol type="1">
+<li>B+Tree 仍然是有序索引的基线。</li>
+<li>过滤器负责减少无效探测，但不负责定位记录。</li>
+<li>倒排索引解决关键词检索，向量索引解决语义检索。</li>
+<li>真实系统通常把多种结构组合到同一条查询链路里。</li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh/2026/02/09/15645-Database-Systems/15645-Database-systems-Index-Filter/">https://xloverflow.github.io/zh/2026/02/09/15645-Database-Systems/15645-Database-systems-Index-Filter/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://xloverflow.github.io/zh" target="_blank">Life is not a race, but a journey</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/zh/tags/CMU/">CMU</a><a class="post-meta__tags" href="/zh/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/zh/tags/Database-Systems/">Database Systems</a><a class="post-meta__tags" href="/zh/tags/15645/">15645</a><a class="post-meta__tags" href="/zh/tags/Index/">Index</a><a class="post-meta__tags" href="/zh/tags/Filter/">Filter</a><a class="post-meta__tags" href="/zh/tags/B-Tree/">B+Tree</a><a class="post-meta__tags" href="/zh/tags/Bloom-Filter/">Bloom Filter</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/zh/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 机器学习系统：Transformer、注意力机制与优化"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">15642 机器学习系统：Transformer、注意力机制与优化</div></div><div class="info-2"><div class="info-item-1">CMU 15-642 机器学习系统课程笔记：Transformer架构、注意力机制以及包括FlashAttention在内的GPU优化技术。</div></div></div></a><a class="pagination-related" href="/zh/2026/02/09/Blog/TinyKV-A-Raft-Based-KV-Storage-System/" title="TinyKV: 基于 Raft 的 KV 存储系统"><img class="cover" src="https://pic1.zhimg.com/80/v2-9f7c5ea8719df399f0b661e61506a285_1440w.jpeg" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">TinyKV: 基于 Raft 的 KV 存储系统</div></div><div class="info-2"><div class="info-item-1">TinyKV 的实现与架构详解，一个基于 Raft 的分布式键值存储系统，涵盖 Multi-Raft、MVCC 事务、调度器等核心模块。</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/zh/2026/01/16/15645-Database-Systems/15645-Database-Systems-relational-model-and-SQL/" title="15645 Database Systems Lecture Notes"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-15</div><div class="info-item-2">15645 Database Systems Lecture Notes</div></div><div class="info-2"><div class="info-item-1">CMU 15-645 数据库系统的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/02/07/15645-Database-Systems/15645-Database-systems-Hash-Tables/" title="15645 Database systems: Hash Tables"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-07</div><div class="info-item-2">15645 Database systems: Hash Tables</div></div><div class="info-2"><div class="info-item-1">CMU 15-645 数据库系统的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/31/15645-Database-Systems/15645-Database-systems-Storage/" title="15645 Database systems: Storage"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-31</div><div class="info-item-2">15645 Database systems: Storage</div></div><div class="info-2"><div class="info-item-1">CMU 15-645 数据库系统的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">关于CMU 11-711高级自然语言处理的RNN架构、编码器-解码器模型和注意力机制的笔记。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-22</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/" title="11711 Advanced NLP: Learning &amp; Inference"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Learning &amp; Inference</div></div><div class="info-2"><div class="info-item-1">卡内基梅隆大学 11-711 高级自然语言处理的学习算法和推理方法笔记。</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li 的中文博客</div><div class="site-data"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">52</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">82</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">20</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#lec-8-9-%E7%B4%A2%E5%BC%95%E4%B8%8E%E8%BF%87%E6%BB%A4%E5%99%A8"><span class="toc-number">1.</span> <span class="toc-text">Lec 8-9 索引与过滤器</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%A6%E4%B9%A0%E5%9C%B0%E5%9B%BE"><span class="toc-number">1.1.</span> <span class="toc-text">0. 学习地图</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#btreelec-8-%E6%A0%B8%E5%BF%83"><span class="toc-number">2.</span> <span class="toc-text">1. B+Tree（Lec 8 核心）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3"><span class="toc-number">2.1.</span> <span class="toc-text">1.1 核心思想</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%89%A9%E7%90%86%E7%BB%93%E6%9E%84"><span class="toc-number">2.2.</span> <span class="toc-text">1.2 物理结构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#b-tree-vs-btree"><span class="toc-number">2.2.1.</span> <span class="toc-text">B-Tree vs B+Tree</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E9%80%BB%E8%BE%91%E5%86%99%E5%85%A5%E6%97%B6%E4%BC%9A%E5%8F%91%E7%94%9F%E4%BB%80%E4%B9%88"><span class="toc-number">2.3.</span> <span class="toc-text">1.3 更新逻辑（写入时会发生什么）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8F%92%E5%85%A5"><span class="toc-number">2.3.1.</span> <span class="toc-text">插入</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A0%E9%99%A4"><span class="toc-number">2.3.2.</span> <span class="toc-text">删除</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%87%8D%E5%A4%8D%E9%94%AE"><span class="toc-number">2.3.3.</span> <span class="toc-text">重复键</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%BE%E8%AE%A1%E6%97%8B%E9%92%AEdesign-knobs"><span class="toc-number">2.4.</span> <span class="toc-text">1.4 设计旋钮（Design Knobs）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B7%A5%E7%A8%8B%E4%BC%98%E5%8C%96"><span class="toc-number">2.5.</span> <span class="toc-text">1.5 工程优化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%95%E6%97%B6%E4%BC%98%E5%85%88%E7%94%A8-btree"><span class="toc-number">2.6.</span> <span class="toc-text">1.6 何时优先用 B+Tree</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%BF%87%E6%BB%A4%E5%99%A8lec-9-part-a"><span class="toc-number">3.</span> <span class="toc-text">2. 过滤器（Lec 9 Part A）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#bloom-filter"><span class="toc-number">3.1.</span> <span class="toc-text">2.1 Bloom Filter</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3-1"><span class="toc-number">3.1.1.</span> <span class="toc-text">核心思想</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%AD%E4%B9%89%E4%BF%9D%E8%AF%81"><span class="toc-number">3.1.2.</span> <span class="toc-text">语义保证</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%93%8D%E4%BD%9C"><span class="toc-number">3.1.3.</span> <span class="toc-text">操作</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E4%BD%B3%E7%94%A8%E9%80%94"><span class="toc-number">3.1.4.</span> <span class="toc-text">最佳用途</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B6%E4%BB%96%E8%BF%87%E6%BB%A4%E5%99%A8"><span class="toc-number">3.2.</span> <span class="toc-text">2.2 其他过滤器</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%9C%89%E5%BA%8F%E7%BB%93%E6%9E%84%E6%9B%BF%E4%BB%A3%E6%96%B9%E6%A1%88lec-9-part-b"><span class="toc-number">4.</span> <span class="toc-text">3. 有序结构替代方案（Lec 9 Part
+B）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#skip-list"><span class="toc-number">4.1.</span> <span class="toc-text">3.1 Skip List</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3-2"><span class="toc-number">4.1.1.</span> <span class="toc-text">核心思想</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%98%E5%9C%A8%E6%84%8F%E4%B9%89"><span class="toc-number">4.1.2.</span> <span class="toc-text">存在意义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9D%83%E8%A1%A1"><span class="toc-number">4.1.3.</span> <span class="toc-text">权衡</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#trie-radix-tree"><span class="toc-number">4.2.</span> <span class="toc-text">3.2 Trie &#x2F; Radix Tree</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#trie"><span class="toc-number">4.2.1.</span> <span class="toc-text">Trie</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#radixpatricia"><span class="toc-number">4.2.2.</span> <span class="toc-text">Radix（Patricia）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%96%87%E6%9C%AC%E6%A3%80%E7%B4%A2%E5%80%92%E6%8E%92%E7%B4%A2%E5%BC%95lec-9-part-c"><span class="toc-number">5.</span> <span class="toc-text">4. 文本检索：倒排索引（Lec 9 Part
+C）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E7%BB%93%E6%9E%84"><span class="toc-number">5.1.</span> <span class="toc-text">4.1 核心结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%BE%E7%A8%8B%E4%B8%AD%E6%8F%90%E5%88%B0%E7%9A%84%E7%B3%BB%E7%BB%9F"><span class="toc-number">5.2.</span> <span class="toc-text">4.2 课程中提到的系统</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A3%80%E7%B4%A2%E8%B4%A8%E9%87%8F%E5%B1%82"><span class="toc-number">5.3.</span> <span class="toc-text">4.3 检索质量层</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%AF%AD%E4%B9%89%E6%A3%80%E7%B4%A2%E5%90%91%E9%87%8F%E7%B4%A2%E5%BC%95lec-9-part-d"><span class="toc-number">6.</span> <span class="toc-text">5. 语义检索：向量索引（Lec 9 Part
+D）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%90%91%E9%87%8F%E7%B4%A2%E5%BC%95"><span class="toc-number">6.1.</span> <span class="toc-text">5.1 为什么需要向量索引</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ivf-%E9%A3%8E%E6%A0%BC%E5%90%91%E9%87%8F%E6%A3%80%E7%B4%A2"><span class="toc-number">6.2.</span> <span class="toc-text">5.2 IVF 风格向量检索</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%BE%E7%B4%A2%E5%BC%95%E9%A3%8E%E6%A0%BChnsw"><span class="toc-number">6.3.</span> <span class="toc-text">5.3 图索引风格（HNSW）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E8%B7%B5%E6%8F%90%E7%A4%BA"><span class="toc-number">6.4.</span> <span class="toc-text">5.4 实践提示</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%9C%80%E7%BB%88%E9%80%89%E5%9E%8B%E6%8C%87%E5%8D%97"><span class="toc-number">7.</span> <span class="toc-text">6. 最终选型指南</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BF%AB%E9%80%9F%E6%80%BB%E7%BB%93"><span class="toc-number">7.1.</span> <span class="toc-text">快速总结</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/" title="11711 Advanced NLP：评测与实验设计"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11711 Advanced NLP：评测与实验设计"/></a><div class="content"><a class="title" href="/zh/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/" title="11711 Advanced NLP：评测与实验设计">11711 Advanced NLP：评测与实验设计</a><time datetime="2026-03-05T17:00:00.000Z" title="发表于 2026-03-05 12:00:00">2026-03-05</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Multimodal/" title="11711 Advanced NLP: Multimodal Modeling"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11711 Advanced NLP: Multimodal Modeling"/></a><div class="content"><a class="title" href="/zh/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Multimodal/" title="11711 Advanced NLP: Multimodal Modeling">11711 Advanced NLP: Multimodal Modeling</a><time datetime="2026-03-05T04:40:00.000Z" title="发表于 2026-03-04 23:40:00">2026-03-04</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11711 Advanced NLP: Retrieval and RAG"/></a><div class="content"><a class="title" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG">11711 Advanced NLP: Retrieval and RAG</a><time datetime="2026-02-14T22:08:21.000Z" title="发表于 2026-02-14 17:08:21">2026-02-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 机器学习系统：分布式训练与并行化"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="15642 机器学习系统：分布式训练与并行化"/></a><div class="content"><a class="title" href="/zh/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 机器学习系统：分布式训练与并行化">15642 机器学习系统：分布式训练与并行化</a><time datetime="2026-02-13T21:00:00.000Z" title="发表于 2026-02-13 16:00:00">2026-02-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM系统：解码"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11868 LLM系统：解码"/></a><div class="content"><a class="title" href="/zh/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM系统：解码">11868 LLM系统：解码</a><time datetime="2026-02-13T01:00:00.000Z" title="发表于 2026-02-12 20:00:00">2026-02-12</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/zh/js/utils.js"></script><script src="/zh/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || 'ccb2426652afeba16479f9426d8e01d8'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/zh/404.html') : window.location.href = '/zh/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

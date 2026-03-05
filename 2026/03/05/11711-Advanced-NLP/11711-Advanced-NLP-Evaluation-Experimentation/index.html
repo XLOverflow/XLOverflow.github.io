@@ -1,0 +1,784 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>11711 Advanced NLP: Evaluation &amp; Experimental Design | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Notes on NLP evaluation, benchmarks, and experimental design from CMU 11-711 Advanced NLP, covering loss-based metrics, task metrics, LLM-as-judge, statistical testing, and annotation quality.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="11711 Advanced NLP: Evaluation &amp; Experimental Design">
+<meta property="og:url" content="https://xloverflow.github.io/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Notes on NLP evaluation, benchmarks, and experimental design from CMU 11-711 Advanced NLP, covering loss-based metrics, task metrics, LLM-as-judge, statistical testing, and annotation quality.">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png">
+<meta property="article:published_time" content="2026-03-05T17:00:00.000Z">
+<meta property="article:modified_time" content="2026-03-05T17:00:00.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="11711">
+<meta property="article:tag" content="AI">
+<meta property="article:tag" content="Benchmarks">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="Evaluation">
+<meta property="article:tag" content="Natural Language Processing">
+<meta property="article:tag" content="Study Notes">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "11711 Advanced NLP: Evaluation & Experimental Design",
+  "url": "https://xloverflow.github.io/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png",
+  "datePublished": "2026-03-05T17:00:00.000Z",
+  "dateModified": "2026-03-05T17:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '11711 Advanced NLP: Evaluation & Experimental Design',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">52</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">83</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">16</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">11711 Advanced NLP: Evaluation &amp; Experimental Design</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">11711 Advanced NLP: Evaluation &amp; Experimental Design</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-03-05T17:00:00.000Z" title="Created 2026-03-05 12:00:00">2026-03-05</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-03-05T17:00:00.000Z" title="Updated 2026-03-05 12:00:00">2026-03-05</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CMU-11-711-Advanced-NLP/">CMU 11-711 Advanced NLP</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="lec13-evaluation-and-benchmarks">Lec13 Evaluation and
+Benchmarks</h1>
+<h2 id="why-evaluation-matters">Why Evaluation Matters</h2>
+<p>Evaluation is the mechanism by which we make progress claims in NLP.
+Poor evaluation leads to:</p>
+<ul>
+<li>Misleading conclusions about model capability.</li>
+<li>Models that game metrics without real improvement.</li>
+<li>Inability to compare across systems or papers.</li>
+</ul>
+<h2 id="two-families-of-evaluation">Two Families of Evaluation</h2>
+<h3 id="loss-based-evaluation">Loss-Based Evaluation</h3>
+<p>During training (and sometimes validation), we use the model’s own
+loss:</p>
+<p><span class="math display">\[
+\mathcal{L} = -\sum_{t} \log p_\theta(x_t \mid x_{&lt;t})
+\]</span></p>
+<p>Commonly reported as <strong>perplexity</strong>:</p>
+<p><span class="math display">\[
+\text{PPL} = \exp\!\left(\frac{1}{T}\sum_{t=1}^{T} -\log p_\theta(x_t
+\mid x_{&lt;t})\right)
+\]</span></p>
+<ul>
+<li>Lower PPL = better language modeling.</li>
+<li>Fast to compute; directly tied to training objective.</li>
+<li>Problem: PPL does not always correlate with downstream task
+performance.</li>
+</ul>
+<h3 id="task-metric-based-evaluation">Task-Metric-Based Evaluation</h3>
+<p>Evaluate on held-out tasks using task-specific metrics.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Metric</th>
+<th>Task</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Exact Match (EM)</td>
+<td>QA, code</td>
+<td>Binary; strict</td>
+</tr>
+<tr class="even">
+<td>pass@K</td>
+<td>Code generation</td>
+<td>Does any of K samples pass tests?</td>
+</tr>
+<tr class="odd">
+<td>ROUGE-L</td>
+<td>Summarization</td>
+<td>Longest common subsequence F1</td>
+</tr>
+<tr class="even">
+<td>BLEU</td>
+<td>Translation</td>
+<td>n-gram precision with brevity penalty</td>
+</tr>
+<tr class="odd">
+<td>Accuracy</td>
+<td>Classification, MCQ</td>
+<td>Fraction correct</td>
+</tr>
+</tbody>
+</table>
+<h2 id="benchmarks">Benchmarks</h2>
+<h3 id="properties-of-a-good-benchmark">Properties of a Good
+Benchmark</h3>
+<p>A benchmark should be:</p>
+<ul>
+<li><strong>Valid</strong> — actually measures the capability it claims
+to.</li>
+<li><strong>Reliable</strong> — low variance across
+runs/annotators.</li>
+<li><strong>Discriminative</strong> — separates models at the current
+frontier.</li>
+<li><strong>Not saturated</strong> — top models should not already be at
+ceiling.</li>
+<li><strong>Contamination-free</strong> — test examples not in training
+data.</li>
+</ul>
+<h3 id="key-benchmarks-discussed">Key Benchmarks Discussed</h3>
+<p><strong>MMLU (Massive Multitask Language Understanding)</strong></p>
+<ul>
+<li>57 subjects across STEM, humanities, law, etc.</li>
+<li>Multiple-choice (4 options), evaluated by accuracy.</li>
+<li>Originally challenging; frontier models now saturate it.</li>
+</ul>
+<p><strong>HumanEval</strong></p>
+<ul>
+<li>164 Python programming problems.</li>
+<li>Evaluated with <strong>pass@K</strong>:</li>
+</ul>
+<p><span class="math display">\[
+\text{pass@}k = \mathbb{E}_{\text{problems}}\!\left[1 -
+\frac{\binom{n-c}{k}}{\binom{n}{k}}\right]
+\]</span></p>
+<p>where <span class="math inline">\(n\)</span> = total samples
+generated, <span class="math inline">\(c\)</span> = correct samples,
+<span class="math inline">\(k\)</span> = budget.</p>
+<ul>
+<li>Tests functional correctness via unit tests.</li>
+</ul>
+<p><strong>GSM8k</strong></p>
+<ul>
+<li>8,500 grade-school math word problems.</li>
+<li>Requires multi-step arithmetic reasoning.</li>
+<li>Solved via chain-of-thought prompting; now also approaching
+saturation for large models.</li>
+</ul>
+<h2 id="task-metrics-in-detail">Task Metrics in Detail</h2>
+<h3 id="exact-match">Exact Match</h3>
+<p><span class="math display">\[
+\text{EM}(y, \hat{y}) = \mathbf{1}[y = \hat{y}]
+\]</span></p>
+<p>Simple but harsh; sensitive to minor phrasing differences.</p>
+<h3 id="rouge">ROUGE</h3>
+<p>ROUGE-N recall (reference <span class="math inline">\(r\)</span>,
+candidate <span class="math inline">\(c\)</span>):</p>
+<p><span class="math display">\[
+\text{ROUGE-N} = \frac{\sum_{s \in r} \sum_{\text{gram}_n \in s}
+\text{Count}_{\text{match}}(\text{gram}_n)}
+{\sum_{s \in r} \sum_{\text{gram}_n \in s} \text{Count}(\text{gram}_n)}
+\]</span></p>
+<p>ROUGE-L uses longest common subsequence instead of n-grams.</p>
+<h3 id="bleu">BLEU</h3>
+<p><span class="math display">\[
+\text{BLEU} = \text{BP} \cdot \exp\!\left(\sum_{n=1}^{N} w_n \log
+p_n\right)
+\]</span></p>
+<p>where <span class="math inline">\(p_n\)</span> is clipped n-gram
+precision and BP is the brevity penalty.</p>
+<ul>
+<li>BLEU is a corpus-level metric.</li>
+<li>Criticized for not capturing semantic similarity.</li>
+</ul>
+<h2 id="llm-as-judge">LLM-as-Judge</h2>
+<p>Instead of a fixed metric, use a strong LLM to score or compare
+outputs.</p>
+<p><strong>Pairwise setting:</strong></p>
+<p>Given prompt <span class="math inline">\(x\)</span> and two responses
+<span class="math inline">\(a\)</span>, <span
+class="math inline">\(b\)</span>, ask a judge model:</p>
+<blockquote>
+<p>“Which response is better? A, B, or tie?”</p>
+</blockquote>
+<p><strong>Absolute scoring:</strong></p>
+<blockquote>
+<p>“Rate this response from 1 to 10 on helpfulness.”</p>
+</blockquote>
+<p><strong>Concerns:</strong></p>
+<ul>
+<li>Position bias (judge favors first/second response).</li>
+<li>Self-enhancement bias (GPT-4 prefers GPT-4 style).</li>
+<li>Verbosity bias (judges often prefer longer responses).</li>
+</ul>
+<p><strong>Mitigation:</strong></p>
+<ul>
+<li>Swap order and average.</li>
+<li>Use multiple judge models.</li>
+<li>Calibrate against human ratings.</li>
+</ul>
+<h2 id="checklist-based-evaluation">Checklist-Based Evaluation</h2>
+<p>Lee et al. (2025) propose decomposing evaluation into fine-grained
+criteria:</p>
+<ol type="1">
+<li>Define a <strong>checklist</strong> of desiderata for a task.</li>
+<li>Ask the LLM judge to check each criterion independently.</li>
+<li>Aggregate binary pass/fail signals.</li>
+</ol>
+<p>Advantage: More interpretable; reveals <em>where</em> a model fails
+rather than just whether it fails.</p>
+<h2 id="human-evaluation">Human Evaluation</h2>
+<h3 id="crowd-sourced-annotation">Crowd-sourced Annotation</h3>
+<ul>
+<li>Collect human preference judgments at scale.</li>
+<li>Use careful guidelines and quality control.</li>
+</ul>
+<h3 id="lmsys-chatbot-arena">LMSys Chatbot Arena</h3>
+<ul>
+<li>Open-source platform where anonymous users compare model
+outputs.</li>
+<li>Uses <strong>Bradley-Terry</strong> model to estimate ELO-style
+ratings:</li>
+</ul>
+<p><span class="math display">\[
+P(\text{model A beats B}) = \frac{e^{\beta_A}}{e^{\beta_A} +
+e^{\beta_B}}
+\]</span></p>
+<ul>
+<li>Large volume of real-user comparisons; diverse prompts.</li>
+<li>Limitations: prompt distribution not controlled; users
+self-select.</li>
+</ul>
+<h2 id="lec13-takeaways">Lec13 Takeaways</h2>
+<ul>
+<li>Loss-based metrics (PPL) are cheap but not always predictive of
+downstream quality.</li>
+<li>Good benchmarks must be valid, discriminative, and
+contamination-free.</li>
+<li>No single metric is perfect; triangulate with multiple signals.</li>
+<li>LLM-as-judge is increasingly practical but requires careful bias
+mitigation.</li>
+</ul>
+<hr />
+<h1 id="lec14-research-skills-experimental-design">Lec14 Research Skills
+&amp; Experimental Design</h1>
+<h2 id="the-scientific-method-in-nlp">The Scientific Method in NLP</h2>
+<p>Doing NLP research is doing science:</p>
+<ol type="1">
+<li><strong>Observe</strong> a phenomenon or gap.</li>
+<li><strong>Hypothesize</strong> a mechanism or solution.</li>
+<li><strong>Design an experiment</strong> to test the hypothesis.</li>
+<li><strong>Collect data / run models.</strong></li>
+<li><strong>Analyze results</strong> with appropriate statistics.</li>
+<li><strong>Conclude</strong> and communicate.</li>
+</ol>
+<p>A common failure mode: jumping to step 4 without clearly stating
+steps 2–3.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260305180526244.png" alt="image-20260305180526244" style="zoom:20%;" /></p>
+<h2 id="forming-a-research-hypothesis">Forming a Research
+Hypothesis</h2>
+<p>A good hypothesis is:</p>
+<ul>
+<li><strong>Falsifiable</strong> — can be shown wrong by an
+experiment.</li>
+<li><strong>Specific</strong> — names the independent variable,
+dependent variable, and expected direction.</li>
+<li><strong>Motivated</strong> — connects to prior work or a theoretical
+reason.</li>
+</ul>
+<p>Example:</p>
+<blockquote>
+<p>“Fine-tuning on chain-of-thought data will improve accuracy on GSM8k
+compared to standard SFT, because step-by-step supervision reduces
+distribution shift at inference.”</p>
+</blockquote>
+<h2 id="statistical-analysis">Statistical Analysis</h2>
+<h3 id="standard-error-and-confidence-intervals">Standard Error and
+Confidence Intervals</h3>
+<p>For metric <span class="math inline">\(\mu\)</span> estimated from
+<span class="math inline">\(n\)</span> i.i.d. samples:</p>
+<p><span class="math display">\[
+\text{SE} = \frac{\sigma}{\sqrt{n}}
+\]</span></p>
+<p>95% confidence interval (large-sample, Normal approximation):</p>
+<p><span class="math display">\[
+\hat{\mu} \pm 1.96 \cdot \text{SE}
+\]</span></p>
+<p>Always report CIs alongside point estimates. A result without
+uncertainty is not a result.</p>
+<h3 id="hypothesis-testing">Hypothesis Testing</h3>
+<p><strong>Null hypothesis</strong> <span
+class="math inline">\(H_0\)</span>: no difference between system A and
+system B.</p>
+<p><strong>p-value</strong>: probability of observing a difference at
+least as large as measured, assuming <span
+class="math inline">\(H_0\)</span>.</p>
+<p>Common threshold: <span class="math inline">\(p &lt; 0.05\)</span>
+(but this should not be the only criterion).</p>
+<h3 id="paired-vs.-unpaired-tests">Paired vs. Unpaired Tests</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Setting</th>
+<th>Test</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Same test set, two models</td>
+<td>Paired (McNemar’s, Wilcoxon signed-rank)</td>
+</tr>
+<tr class="even">
+<td>Independent test sets</td>
+<td>Unpaired (t-test, Mann-Whitney U)</td>
+</tr>
+</tbody>
+</table>
+<p>Paired tests are generally more powerful when the pairing is valid
+(same inputs evaluated twice).</p>
+<p><strong>McNemar’s test</strong> for classification:</p>
+<p><span class="math display">\[
+\chi^2 = \frac{(b - c)^2}{b + c}
+\]</span></p>
+<p>where <span class="math inline">\(b\)</span> = # examples where A
+correct, B wrong; <span class="math inline">\(c\)</span> = vice
+versa.</p>
+<h3 id="bootstrap-confidence-intervals">Bootstrap Confidence
+Intervals</h3>
+<p>Resample the test set with replacement <span
+class="math inline">\(B\)</span> times; compute metric on each
+resample:</p>
+<p><span class="math display">\[
+\hat{\mu}^{*(b)} = \text{metric}(\text{resample}_b)
+\]</span></p>
+<p>Report the 2.5th–97.5th percentile of <span
+class="math inline">\(\{\hat{\mu}^{*(b)}\}\)</span> as the 95% CI.</p>
+<p>Non-parametric; works for any metric.</p>
+<h2 id="data-contamination">Data Contamination</h2>
+<h3 id="the-problem">The Problem</h3>
+<p>If test examples appear (verbatim or paraphrased) in pretraining
+data, reported accuracy is inflated.</p>
+<h3 id="temporal-split">Temporal Split</h3>
+<p>Train on data before date <span class="math inline">\(T\)</span>;
+evaluate on data after <span class="math inline">\(T\)</span>.</p>
+<ul>
+<li>Guarantees no look-ahead contamination.</li>
+<li>Used by GSM8k-style temporal holdouts.</li>
+</ul>
+<h3 id="n-gram-overlap-checks">N-gram Overlap Checks</h3>
+<p>Compute n-gram overlap between train and test; flag high-overlap
+examples.</p>
+<h2 id="power-analysis">Power Analysis</h2>
+<p>Before running an experiment, determine the sample size <span
+class="math inline">\(n\)</span> needed to detect an effect.</p>
+<p>For a two-sample test at significance level <span
+class="math inline">\(\alpha\)</span> and power <span
+class="math inline">\(1-\beta\)</span>:</p>
+<p><span class="math display">\[
+n = \frac{(z_{\alpha/2} + z_\beta)^2 \cdot 2\sigma^2}{\delta^2}
+\]</span></p>
+<p>where <span class="math inline">\(\delta\)</span> is the minimum
+detectable effect size.</p>
+<p>Key insight: <strong>underpowered experiments waste resources and
+mislead</strong>. If <span class="math inline">\(n\)</span> is too
+small, you may fail to detect a real effect (Type II error) or report a
+false positive (Type II error inflated under multiple testing).</p>
+<h2 id="annotation-quality">Annotation Quality</h2>
+<p>When building datasets with human labels, measure inter-annotator
+agreement.</p>
+<h3 id="cohens-kappa-2-annotators">Cohen’s Kappa (2 annotators)</h3>
+<p><span class="math display">\[
+\kappa = \frac{p_o - p_e}{1 - p_e}
+\]</span></p>
+<p>where <span class="math inline">\(p_o\)</span> = observed agreement,
+<span class="math inline">\(p_e\)</span> = expected agreement by
+chance.</p>
+<ul>
+<li><span class="math inline">\(\kappa = 1\)</span>: perfect
+agreement.</li>
+<li><span class="math inline">\(\kappa = 0\)</span>: agreement at chance
+level.</li>
+<li><span class="math inline">\(\kappa &lt; 0\)</span>: worse than
+chance.</li>
+</ul>
+<h3 id="fleiss-kappa-multiple-annotators">Fleiss’ Kappa (multiple
+annotators)</h3>
+<p>Generalization of Cohen’s Kappa to <span
+class="math inline">\(k\)</span> raters:</p>
+<p><span class="math display">\[
+\bar{\kappa} = \frac{\bar{P} - \bar{P}_e}{1 - \bar{P}_e}
+\]</span></p>
+<h3 id="krippendorffs-alpha">Krippendorff’s Alpha</h3>
+<p>More general: handles ordinal, interval, and ratio scales, missing
+data, and any number of annotators.</p>
+<p>For nominal scale, <span class="math inline">\(\alpha\)</span>
+reduces to a form similar to Fleiss’ <span
+class="math inline">\(\kappa\)</span>.</p>
+<p><strong>Guideline (Landis &amp; Koch scale):</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th><span class="math inline">\(\kappa\)</span> range</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">\(&lt; 0.20\)</span></td>
+<td>Slight</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(0.21\)</span>–<span
+class="math inline">\(0.40\)</span></td>
+<td>Fair</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(0.41\)</span>–<span
+class="math inline">\(0.60\)</span></td>
+<td>Moderate</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(0.61\)</span>–<span
+class="math inline">\(0.80\)</span></td>
+<td>Substantial</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(&gt; 0.80\)</span></td>
+<td>Almost perfect</td>
+</tr>
+</tbody>
+</table>
+<p>Target <span class="math inline">\(\kappa \geq 0.6\)</span> for
+publishable annotation quality.</p>
+<h2 id="variance-reduction">Variance Reduction</h2>
+<p>When comparing models, reduce variance to make comparisons
+sharper.</p>
+<h3 id="control-variates">Control Variates</h3>
+<p>Use the same random seeds, same test set, same batch order across
+compared models when possible.</p>
+<h3 id="stratified-sampling">Stratified Sampling</h3>
+<p>Ensure test set covers different difficulty strata; report per-strata
+results alongside aggregate.</p>
+<h3 id="multiple-runs">Multiple Runs</h3>
+<p>Report mean and standard deviation across <span
+class="math inline">\(k\)</span> random seeds:</p>
+<p><span class="math display">\[
+\bar{m} \pm \text{std}(m_1,\dots,m_k)
+\]</span></p>
+<h2 id="experimental-design-checklist">Experimental Design
+Checklist</h2>
+<p>Before running experiments:</p>
+<ul class="task-list">
+<li><label><input type="checkbox" />Hypothesis is clearly
+stated.</label></li>
+<li><label><input type="checkbox" />Evaluation metric is chosen and
+justified.</label></li>
+<li><label><input type="checkbox" />Baseline is defined and
+fair.</label></li>
+<li><label><input type="checkbox" />Test set is held out
+strictly.</label></li>
+<li><label><input type="checkbox" />Sample size is adequate (power
+analysis or prior work).</label></li>
+<li><label><input type="checkbox" />Contamination has been
+checked.</label></li>
+<li><label><input type="checkbox" />Statistical test and significance
+threshold are decided.</label></li>
+</ul>
+<h2 id="lec14-takeaways">Lec14 Takeaways</h2>
+<ul>
+<li>A well-posed hypothesis is half the experiment.</li>
+<li>Always report uncertainty (SE, CI) alongside point estimates.</li>
+<li>Use paired tests when the pairing is valid; they are more
+powerful.</li>
+<li>Power analysis before data collection prevents underpowered
+studies.</li>
+<li>High annotation agreement (<span class="math inline">\(\kappa \geq
+0.6\)</span>) is necessary for trustworthy datasets.</li>
+<li>Data contamination is a serious, underreported threat to benchmark
+validity.</li>
+</ul>
+<hr />
+<h2 id="final-summary">Final Summary</h2>
+<ul>
+<li><strong>Lec13:</strong> NLP evaluation requires careful metric
+choice. Benchmarks must be valid, discriminative, and uncontaminated.
+LLM-as-judge is powerful but needs bias mitigation. Human evaluation
+(Chatbot Arena) provides ground truth at scale.</li>
+<li><strong>Lec14:</strong> Good experimental design starts with a
+falsifiable hypothesis. Statistical rigor (CIs, hypothesis tests, power
+analysis) and high annotation quality (<span
+class="math inline">\(\kappa\)</span>) are non-negotiable in credible
+NLP research.</li>
+</ul>
+<p><em>This post is based on CMU 11-711 Advanced NLP lecture materials
+(Evaluation and Benchmarks, Lec13; Research Skills &amp; Experimental
+Design, Lec14; Sean Welleck).</em></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/">https://xloverflow.github.io/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Natural-Language-Processing/">Natural Language Processing</a><a class="post-meta__tags" href="/tags/CMU/">CMU</a><a class="post-meta__tags" href="/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/tags/11711/">11711</a><a class="post-meta__tags" href="/tags/AI/">AI</a><a class="post-meta__tags" href="/tags/Evaluation/">Evaluation</a><a class="post-meta__tags" href="/tags/Benchmarks/">Benchmarks</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Multimodal/" title="11711 Advanced NLP: Multimodal Modeling"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">11711 Advanced NLP: Multimodal Modeling</div></div><div class="info-2"><div class="info-item-1">Notes on multimodal modeling from CMU 11-711 Advanced NLP, covering ViT, CLIP, LLaVA-style integration, and image generation with VQ-VAE/VQ-GAN.</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">Notes on RNN architectures, encoder-decoder models, and attention mechanisms from CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-22</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/" title="11711 Advanced NLP: Learning &amp; Inference"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Learning &amp; Inference</div></div><div class="info-2"><div class="info-item-1">Notes on learning algorithms and inference methods from CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Multimodal/" title="11711 Advanced NLP: Multimodal Modeling"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-04</div><div class="info-item-2">11711 Advanced NLP: Multimodal Modeling</div></div><div class="info-2"><div class="info-item-1">Notes on multimodal modeling from CMU 11-711 Advanced NLP, covering ViT, CLIP, LLaVA-style integration, and image generation with VQ-VAE/VQ-GAN.</div></div></div></a><a class="pagination-related" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-14</div><div class="info-item-2">11711 Advanced NLP: Retrieval and RAG</div></div><div class="info-2"><div class="info-item-1">Notes on retrieval systems, retrievers, and retrieval-augmented generation (RAG) from CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-12</div><div class="info-item-2">11868 LLM Sys: Tokenization and Embedding</div></div><div class="info-2"><div class="info-item-1">Comprehensive notes on tokenization techniques and vocabulary learning for Large Language Models, covering BPE, VOLT, and practical considerations in multilingual LLMs.</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">52</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">83</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">16</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#lec13-evaluation-and-benchmarks"><span class="toc-number">1.</span> <span class="toc-text">Lec13 Evaluation and
+Benchmarks</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#why-evaluation-matters"><span class="toc-number">1.1.</span> <span class="toc-text">Why Evaluation Matters</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#two-families-of-evaluation"><span class="toc-number">1.2.</span> <span class="toc-text">Two Families of Evaluation</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#loss-based-evaluation"><span class="toc-number">1.2.1.</span> <span class="toc-text">Loss-Based Evaluation</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#task-metric-based-evaluation"><span class="toc-number">1.2.2.</span> <span class="toc-text">Task-Metric-Based Evaluation</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#benchmarks"><span class="toc-number">1.3.</span> <span class="toc-text">Benchmarks</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#properties-of-a-good-benchmark"><span class="toc-number">1.3.1.</span> <span class="toc-text">Properties of a Good
+Benchmark</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#key-benchmarks-discussed"><span class="toc-number">1.3.2.</span> <span class="toc-text">Key Benchmarks Discussed</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#task-metrics-in-detail"><span class="toc-number">1.4.</span> <span class="toc-text">Task Metrics in Detail</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#exact-match"><span class="toc-number">1.4.1.</span> <span class="toc-text">Exact Match</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#rouge"><span class="toc-number">1.4.2.</span> <span class="toc-text">ROUGE</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#bleu"><span class="toc-number">1.4.3.</span> <span class="toc-text">BLEU</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#llm-as-judge"><span class="toc-number">1.5.</span> <span class="toc-text">LLM-as-Judge</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#checklist-based-evaluation"><span class="toc-number">1.6.</span> <span class="toc-text">Checklist-Based Evaluation</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#human-evaluation"><span class="toc-number">1.7.</span> <span class="toc-text">Human Evaluation</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#crowd-sourced-annotation"><span class="toc-number">1.7.1.</span> <span class="toc-text">Crowd-sourced Annotation</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#lmsys-chatbot-arena"><span class="toc-number">1.7.2.</span> <span class="toc-text">LMSys Chatbot Arena</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#lec13-takeaways"><span class="toc-number">1.8.</span> <span class="toc-text">Lec13 Takeaways</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#lec14-research-skills-experimental-design"><span class="toc-number">2.</span> <span class="toc-text">Lec14 Research Skills
+&amp; Experimental Design</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#the-scientific-method-in-nlp"><span class="toc-number">2.1.</span> <span class="toc-text">The Scientific Method in NLP</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#forming-a-research-hypothesis"><span class="toc-number">2.2.</span> <span class="toc-text">Forming a Research
+Hypothesis</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#statistical-analysis"><span class="toc-number">2.3.</span> <span class="toc-text">Statistical Analysis</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#standard-error-and-confidence-intervals"><span class="toc-number">2.3.1.</span> <span class="toc-text">Standard Error and
+Confidence Intervals</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#hypothesis-testing"><span class="toc-number">2.3.2.</span> <span class="toc-text">Hypothesis Testing</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#paired-vs.-unpaired-tests"><span class="toc-number">2.3.3.</span> <span class="toc-text">Paired vs. Unpaired Tests</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#bootstrap-confidence-intervals"><span class="toc-number">2.3.4.</span> <span class="toc-text">Bootstrap Confidence
+Intervals</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#data-contamination"><span class="toc-number">2.4.</span> <span class="toc-text">Data Contamination</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#the-problem"><span class="toc-number">2.4.1.</span> <span class="toc-text">The Problem</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#temporal-split"><span class="toc-number">2.4.2.</span> <span class="toc-text">Temporal Split</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#n-gram-overlap-checks"><span class="toc-number">2.4.3.</span> <span class="toc-text">N-gram Overlap Checks</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#power-analysis"><span class="toc-number">2.5.</span> <span class="toc-text">Power Analysis</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#annotation-quality"><span class="toc-number">2.6.</span> <span class="toc-text">Annotation Quality</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#cohens-kappa-2-annotators"><span class="toc-number">2.6.1.</span> <span class="toc-text">Cohen’s Kappa (2 annotators)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#fleiss-kappa-multiple-annotators"><span class="toc-number">2.6.2.</span> <span class="toc-text">Fleiss’ Kappa (multiple
+annotators)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#krippendorffs-alpha"><span class="toc-number">2.6.3.</span> <span class="toc-text">Krippendorff’s Alpha</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#variance-reduction"><span class="toc-number">2.7.</span> <span class="toc-text">Variance Reduction</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#control-variates"><span class="toc-number">2.7.1.</span> <span class="toc-text">Control Variates</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#stratified-sampling"><span class="toc-number">2.7.2.</span> <span class="toc-text">Stratified Sampling</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#multiple-runs"><span class="toc-number">2.7.3.</span> <span class="toc-text">Multiple Runs</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#experimental-design-checklist"><span class="toc-number">2.8.</span> <span class="toc-text">Experimental Design
+Checklist</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#lec14-takeaways"><span class="toc-number">2.9.</span> <span class="toc-text">Lec14 Takeaways</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#final-summary"><span class="toc-number">2.10.</span> <span class="toc-text">Final Summary</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/" title="11711 Advanced NLP: Evaluation &amp; Experimental Design"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Evaluation &amp; Experimental Design"/></a><div class="content"><a class="title" href="/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/" title="11711 Advanced NLP: Evaluation &amp; Experimental Design">11711 Advanced NLP: Evaluation &amp; Experimental Design</a><time datetime="2026-03-05T17:00:00.000Z" title="Created 2026-03-05 12:00:00">2026-03-05</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Multimodal/" title="11711 Advanced NLP: Multimodal Modeling"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Multimodal Modeling"/></a><div class="content"><a class="title" href="/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Multimodal/" title="11711 Advanced NLP: Multimodal Modeling">11711 Advanced NLP: Multimodal Modeling</a><time datetime="2026-03-05T04:40:00.000Z" title="Created 2026-03-04 23:40:00">2026-03-04</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Retrieval and RAG"/></a><div class="content"><a class="title" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG">11711 Advanced NLP: Retrieval and RAG</a><time datetime="2026-02-14T22:08:21.000Z" title="Created 2026-02-14 17:08:21">2026-02-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15642 Machine Learning Systems: Distributed Training and Parallelization"/></a><div class="content"><a class="title" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization">15642 Machine Learning Systems: Distributed Training and Parallelization</a><time datetime="2026-02-13T21:00:00.000Z" title="Created 2026-02-13 16:00:00">2026-02-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Decoding"/></a><div class="content"><a class="title" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding">11868 LLM Sys: Decoding</a><time datetime="2026-02-13T01:00:00.000Z" title="Created 2026-02-12 20:00:00">2026-02-12</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '2d34050638b237cb5f5b357a45975593'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
