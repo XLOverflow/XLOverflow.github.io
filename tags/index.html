@@ -1,0 +1,286 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>tags | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta property="og:type" content="website">
+<meta property="og:title" content="tags">
+<meta property="og:url" content="https://xloverflow.github.io/tags/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg">
+<meta property="article:published_time" content="2022-05-22T21:36:17.000Z">
+<meta property="article:modified_time" content="2026-03-11T18:46:51.795Z">
+<meta property="article:author" content="Xiang Li">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg"><script type="application/ld+json"></script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/tags/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'tags',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'tags'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">56</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">98</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="page type-tags" id="body-wrap"><header class="not-home-page" id="page-header" style="background-image: url(https://pic1.zhimg.com/80/v2-41a768719fe07abaf1a4886dcc6e6f7a_1440w.jpeg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="page-site-info"><h1 id="site-title">tags</h1></div></header><main class="layout" id="content-inner"><div id="page"><div class="tag-cloud-list text-center"><a href="/tags/Natural-Language-Processing/" style="font-size: 1.35em; color: rgb(147, 50, 50);">Natural Language Processing</a><a href="/tags/CMU/" style="font-size: 1.47em; color: rgb(50, 50, 168);">CMU</a><a href="/tags/Study-Notes/" style="font-size: 1.5em; color: rgb(50, 91, 50);">Study Notes</a><a href="/tags/11711/" style="font-size: 1.35em; color: rgb(68, 63, 151);">11711</a><a href="/tags/AI/" style="font-size: 1.44em; color: rgb(93, 99, 193);">AI</a><a href="/tags/Evaluation/" style="font-size: 1.2em; color: rgb(183, 169, 160);">Evaluation</a><a href="/tags/Benchmarks/" style="font-size: 1.2em; color: rgb(70, 50, 101);">Benchmarks</a><a href="/tags/Multimodal/" style="font-size: 1.2em; color: rgb(51, 163, 106);">Multimodal</a><a href="/tags/Vision/" style="font-size: 1.2em; color: rgb(50, 116, 112);">Vision</a><a href="/tags/LLM-Systems/" style="font-size: 1.29em; color: rgb(50, 98, 180);">LLM Systems</a><a href="/tags/GPU-Programming/" style="font-size: 1.2em; color: rgb(50, 76, 94);">GPU Programming</a><a href="/tags/11868/" style="font-size: 1.29em; color: rgb(50, 141, 152);">11868</a><a href="/tags/Tokenization/" style="font-size: 1.23em; color: rgb(189, 111, 54);">Tokenization</a><a href="/tags/NLP/" style="font-size: 1.2em; color: rgb(50, 50, 192);">NLP</a><a href="/tags/15618/" style="font-size: 1.23em; color: rgb(50, 50, 50);">15618</a><a href="/tags/Parallel-Programming/" style="font-size: 1.23em; color: rgb(71, 174, 139);">Parallel Programming</a><a href="/tags/Assignment/" style="font-size: 1.23em; color: rgb(55, 188, 190);">Assignment</a><a href="/tags/SIMD/" style="font-size: 1.2em; color: rgb(151, 50, 123);">SIMD</a><a href="/tags/Pthreads/" style="font-size: 1.2em; color: rgb(74, 167, 112);">Pthreads</a><a href="/tags/Systems/" style="font-size: 1.2em; color: rgb(50, 50, 50);">Systems</a><a href="/tags/Performance-Optimization/" style="font-size: 1.2em; color: rgb(199, 195, 93);">Performance Optimization</a><a href="/tags/15642/" style="font-size: 1.26em; color: rgb(137, 160, 173);">15642</a><a href="/tags/ML-Systems/" style="font-size: 1.26em; color: rgb(188, 139, 50);">ML Systems</a><a href="/tags/Data-Parallelism/" style="font-size: 1.2em; color: rgb(87, 131, 54);">Data Parallelism</a><a href="/tags/Model-Parallelism/" style="font-size: 1.2em; color: rgb(50, 197, 195);">Model Parallelism</a><a href="/tags/Pipeline-Parallelism/" style="font-size: 1.2em; color: rgb(50, 196, 50);">Pipeline Parallelism</a><a href="/tags/ZeRO/" style="font-size: 1.2em; color: rgb(91, 179, 160);">ZeRO</a><a href="/tags/AllReduce/" style="font-size: 1.2em; color: rgb(91, 142, 129);">AllReduce</a><a href="/tags/Distributed-Training/" style="font-size: 1.2em; color: rgb(144, 177, 110);">Distributed Training</a><a href="/tags/Transformer/" style="font-size: 1.29em; color: rgb(50, 146, 140);">Transformer</a><a href="/tags/Attention/" style="font-size: 1.2em; color: rgb(122, 93, 103);">Attention</a><a href="/tags/FlashAttention/" style="font-size: 1.2em; color: rgb(103, 188, 120);">FlashAttention</a><a href="/tags/GPU-Optimization/" style="font-size: 1.2em; color: rgb(161, 50, 88);">GPU Optimization</a><a href="/tags/Database-Systems/" style="font-size: 1.35em; color: rgb(164, 103, 107);">Database Systems</a><a href="/tags/Database/" style="font-size: 1.23em; color: rgb(60, 50, 50);">Database</a><a href="/tags/15645/" style="font-size: 1.38em; color: rgb(81, 50, 50);">15645</a><a href="/tags/Hash-Tables/" style="font-size: 1.2em; color: rgb(50, 72, 191);">Hash Tables</a><a href="/tags/Concurrency-Control/" style="font-size: 1.2em; color: rgb(50, 58, 126);">Concurrency Control</a><a href="/tags/Latches/" style="font-size: 1.2em; color: rgb(122, 166, 104);">Latches</a><a href="/tags/B-Tree/" style="font-size: 1.23em; color: rgb(173, 50, 74);">B+Tree</a><a href="/tags/Hash-Table/" style="font-size: 1.2em; color: rgb(157, 156, 126);">Hash Table</a><a href="/tags/Index/" style="font-size: 1.2em; color: rgb(50, 50, 179);">Index</a><a href="/tags/Filter/" style="font-size: 1.2em; color: rgb(50, 106, 151);">Filter</a><a href="/tags/Bloom-Filter/" style="font-size: 1.2em; color: rgb(165, 51, 174);">Bloom Filter</a><a href="/tags/Join/" style="font-size: 1.2em; color: rgb(96, 93, 190);">Join</a><a href="/tags/Hash-Join/" style="font-size: 1.2em; color: rgb(115, 119, 146);">Hash Join</a><a href="/tags/Sort-Merge-Join/" style="font-size: 1.2em; color: rgb(50, 50, 50);">Sort-Merge Join</a><a href="/tags/Sorting/" style="font-size: 1.2em; color: rgb(144, 50, 111);">Sorting</a><a href="/tags/Aggregation/" style="font-size: 1.2em; color: rgb(145, 193, 182);">Aggregation</a><a href="/tags/Query-Execution/" style="font-size: 1.2em; color: rgb(191, 50, 50);">Query Execution</a><a href="/tags/Storage/" style="font-size: 1.2em; color: rgb(104, 50, 171);">Storage</a><a href="/tags/B-Tree/" style="font-size: 1.2em; color: rgb(159, 189, 50);">B-Tree</a><a href="/tags/AI-Agent/" style="font-size: 1.26em; color: rgb(50, 114, 130);">AI Agent</a><a href="/tags/LLM/" style="font-size: 1.35em; color: rgb(111, 115, 107);">LLM</a><a href="/tags/Engineering-Design/" style="font-size: 1.2em; color: rgb(126, 50, 137);">Engineering Design</a><a href="/tags/Claude-Code/" style="font-size: 1.2em; color: rgb(122, 174, 67);">Claude Code</a><a href="/tags/OpenAI-Codex/" style="font-size: 1.2em; color: rgb(156, 178, 178);">OpenAI Codex</a><a href="/tags/Memory-System/" style="font-size: 1.2em; color: rgb(112, 147, 65);">Memory System</a><a href="/tags/Context-Management/" style="font-size: 1.2em; color: rgb(139, 143, 50);">Context Management</a><a href="/tags/Technical-Reading/" style="font-size: 1.2em; color: rgb(87, 64, 50);">Technical Reading</a><a href="/tags/Blog-Writing-Tips/" style="font-size: 1.2em; color: rgb(60, 101, 171);">Blog Writing Tips</a><a href="/tags/Learning/" style="font-size: 1.23em; color: rgb(50, 131, 67);">Learning</a><a href="/tags/C-Programming/" style="font-size: 1.41em; color: rgb(50, 177, 147);">C++ Programming</a><a href="/tags/C-Language/" style="font-size: 1.44em; color: rgb(115, 169, 94);">C++ Language</a><a href="/tags/TinyKV/" style="font-size: 1.2em; color: rgb(100, 81, 122);">TinyKV</a><a href="/tags/Distributed-Systems/" style="font-size: 1.2em; color: rgb(68, 53, 50);">Distributed Systems</a><a href="/tags/KV-Storage/" style="font-size: 1.2em; color: rgb(151, 178, 196);">KV Storage</a><a href="/tags/Raft/" style="font-size: 1.2em; color: rgb(79, 167, 139);">Raft</a><a href="/tags/Consensus/" style="font-size: 1.2em; color: rgb(80, 178, 178);">Consensus</a><a href="/tags/UI-Programming/" style="font-size: 1.2em; color: rgb(177, 50, 155);">UI Programming</a><a href="/tags/Deep-Learning/" style="font-size: 1.26em; color: rgb(99, 146, 50);">Deep Learning</a><a href="/tags/CNN/" style="font-size: 1.23em; color: rgb(50, 134, 50);">CNN</a><a href="/tags/CMU-11-785/" style="font-size: 1.23em; color: rgb(168, 50, 161);">CMU 11-785</a><a href="/tags/CS336/" style="font-size: 1.32em; color: rgb(97, 50, 50);">CS336</a><a href="/tags/Stanford/" style="font-size: 1.32em; color: rgb(144, 51, 114);">Stanford</a><a href="/tags/PyTorch/" style="font-size: 1.23em; color: rgb(55, 154, 50);">PyTorch</a><a href="/tags/Architectures/" style="font-size: 1.2em; color: rgb(70, 188, 160);">Architectures</a><a href="/tags/Hyperparameters/" style="font-size: 1.2em; color: rgb(114, 126, 85);">Hyperparameters</a><a href="/tags/Mixture-of-Experts/" style="font-size: 1.2em; color: rgb(132, 50, 50);">Mixture of Experts</a><a href="/tags/Course-Experiments/" style="font-size: 1.32em; color: rgb(169, 141, 50);">Course Experiments</a><a href="/tags/Operating-System/" style="font-size: 1.23em; color: rgb(92, 190, 166);">Operating System</a><a href="/tags/%E4%B8%AA%E4%BA%BA%E5%8F%8D%E6%80%9D/" style="font-size: 1.2em; color: rgb(50, 186, 50);">个人反思</a><a href="/tags/%E7%94%9F%E6%B4%BB/" style="font-size: 1.2em; color: rgb(80, 112, 86);">生活</a><a href="/tags/Technical-Blog/" style="font-size: 1.2em; color: rgb(185, 152, 194);">Technical Blog</a><a href="/tags/Code-Agent/" style="font-size: 1.2em; color: rgb(147, 175, 50);">Code Agent</a><a href="/tags/Engineering-Experience/" style="font-size: 1.2em; color: rgb(120, 159, 182);">Engineering Experience</a><a href="/tags/%E9%9D%A2%E7%BB%8F/" style="font-size: 1.2em; color: rgb(76, 62, 50);">面经</a><a href="/tags/Computer-Networks-Campus-Network-Routing/" style="font-size: 1.2em; color: rgb(77, 50, 50);">Computer Networks - Campus Network - Routing</a><a href="/tags/git/" style="font-size: 1.23em; color: rgb(147, 77, 50);">git</a><a href="/tags/CS-Tools/" style="font-size: 1.26em; color: rgb(79, 50, 86);">CS Tools</a><a href="/tags/Study/" style="font-size: 1.2em; color: rgb(74, 54, 95);">Study</a><a href="/tags/Computer-Networks/" style="font-size: 1.2em; color: rgb(50, 80, 82);">Computer Networks</a><a href="/tags/Makefile-Basics/" style="font-size: 1.2em; color: rgb(105, 116, 61);">Makefile Basics</a><a href="/tags/Auto-Differentiation/" style="font-size: 1.2em; color: rgb(95, 50, 157);">Auto Differentiation</a><a href="/tags/Retrieval/" style="font-size: 1.2em; color: rgb(78, 129, 168);">Retrieval</a><a href="/tags/RAG/" style="font-size: 1.2em; color: rgb(116, 50, 182);">RAG</a><a href="/tags/Decoding/" style="font-size: 1.2em; color: rgb(50, 53, 111);">Decoding</a><a href="/tags/Speculative-Decoding/" style="font-size: 1.2em; color: rgb(177, 56, 72);">Speculative Decoding</a></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">56</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">98</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/03/10/AI-Agent/AI-Agent-Engineering-Design-Curated-Reading-List/" title="AI Agent Engineering Design: A Curated Reading List"><img src="https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="AI Agent Engineering Design: A Curated Reading List"/></a><div class="content"><a class="title" href="/2026/03/10/AI-Agent/AI-Agent-Engineering-Design-Curated-Reading-List/" title="AI Agent Engineering Design: A Curated Reading List">AI Agent Engineering Design: A Curated Reading List</a><time datetime="2026-03-10T04:00:00.000Z" title="Created 2026-03-10 00:00:00">2026-03-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Join-Algorithms/" title="15645 Database systems: Join Algorithms"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Join Algorithms"/></a><div class="content"><a class="title" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Join-Algorithms/" title="15645 Database systems: Join Algorithms">15645 Database systems: Join Algorithms</a><time datetime="2026-03-08T14:40:00.000Z" title="Created 2026-03-08 10:40:00">2026-03-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Sorting-Aggregation/" title="15645 Database systems: Sorting &amp; Aggregation"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Sorting &amp; Aggregation"/></a><div class="content"><a class="title" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Sorting-Aggregation/" title="15645 Database systems: Sorting &amp; Aggregation">15645 Database systems: Sorting &amp; Aggregation</a><time datetime="2026-03-08T14:35:00.000Z" title="Created 2026-03-08 10:35:00">2026-03-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/" title="15645 Database systems: Index Concurrency Control"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Index Concurrency Control"/></a><div class="content"><a class="title" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/" title="15645 Database systems: Index Concurrency Control">15645 Database systems: Index Concurrency Control</a><time datetime="2026-03-08T14:30:00.000Z" title="Created 2026-03-08 10:30:00">2026-03-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/" title="11711 Advanced NLP: Evaluation &amp; Experimental Design"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Evaluation &amp; Experimental Design"/></a><div class="content"><a class="title" href="/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/" title="11711 Advanced NLP: Evaluation &amp; Experimental Design">11711 Advanced NLP: Evaluation &amp; Experimental Design</a><time datetime="2026-03-05T17:00:00.000Z" title="Created 2026-03-05 12:00:00">2026-03-05</time></div></div></div></div><div class="card-widget card-categories"><div class="item-headline">
+            <i class="fas fa-folder-open"></i>
+            <span>Categories</span>
+            <a class="card-more-btn" href="/categories/" title="View More">
+      <i class="fas fa-angle-right"></i></a>
+          </div>
+          <ul class="card-category-list" id="aside-cat-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/AI-Agent/"><span class="card-category-list-name">AI Agent</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Blog-Setup/"><span class="card-category-list-name">Blog Setup</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/C-C-Programming/"><span class="card-category-list-name">C/C++ Programming</span><span class="card-category-list-count">10</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/CMU-11-711-Advanced-NLP/"><span class="card-category-list-name">CMU 11-711 Advanced NLP</span><span class="card-category-list-count">6</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/CMU-11-868-LLM-Systems/"><span class="card-category-list-name">CMU 11-868 LLM Systems</span><span class="card-category-list-count">4</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/CMU-15-618-Parallel-Programming/"><span class="card-category-list-name">CMU 15-618 Parallel Programming</span><span class="card-category-list-count">2</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/CMU-15-642-ML-Systems/"><span class="card-category-list-name">CMU 15-642 ML Systems</span><span class="card-category-list-count">2</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/CMU-15-645-Database-Systems/"><span class="card-category-list-name">CMU 15-645 Database Systems</span><span class="card-category-list-count">7</span></a></li>
+          </ul></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>Tags</span></div><div class="card-tag-cloud"><a href="/tags/Hyperparameters/" style="font-size: 1.1em; color: #999">Hyperparameters</a> <a href="/tags/Filter/" style="font-size: 1.1em; color: #999">Filter</a> <a href="/tags/KV-Storage/" style="font-size: 1.1em; color: #999">KV Storage</a> <a href="/tags/11868/" style="font-size: 1.25em; color: #999fa7">11868</a> <a href="/tags/Decoding/" style="font-size: 1.1em; color: #999">Decoding</a> <a href="/tags/CS336/" style="font-size: 1.3em; color: #99a1ac">CS336</a> <a href="/tags/%E7%94%9F%E6%B4%BB/" style="font-size: 1.1em; color: #999">生活</a> <a href="/tags/Storage/" style="font-size: 1.1em; color: #999">Storage</a> <a href="/tags/Consensus/" style="font-size: 1.1em; color: #999">Consensus</a> <a href="/tags/CS-Tools/" style="font-size: 1.2em; color: #999da3">CS Tools</a> <a href="/tags/LLM-Systems/" style="font-size: 1.25em; color: #999fa7">LLM Systems</a> <a href="/tags/C-Programming/" style="font-size: 1.45em; color: #99a7ba">C++ Programming</a> <a href="/tags/C-Language/" style="font-size: 1.5em; color: #99a9bf">C++ Language</a> <a href="/tags/Latches/" style="font-size: 1.1em; color: #999">Latches</a> <a href="/tags/Bloom-Filter/" style="font-size: 1.1em; color: #999">Bloom Filter</a> <a href="/tags/AI/" style="font-size: 1.5em; color: #99a9bf">AI</a> <a href="/tags/Technical-Reading/" style="font-size: 1.1em; color: #999">Technical Reading</a> <a href="/tags/Hash-Tables/" style="font-size: 1.1em; color: #999">Hash Tables</a> <a href="/tags/Sort-Merge-Join/" style="font-size: 1.1em; color: #999">Sort-Merge Join</a> <a href="/tags/11711/" style="font-size: 1.35em; color: #99a3b1">11711</a> <a href="/tags/Database/" style="font-size: 1.15em; color: #999b9e">Database</a> <a href="/tags/Retrieval/" style="font-size: 1.1em; color: #999">Retrieval</a> <a href="/tags/UI-Programming/" style="font-size: 1.1em; color: #999">UI Programming</a> <a href="/tags/GPU-Optimization/" style="font-size: 1.1em; color: #999">GPU Optimization</a> <a href="/tags/Natural-Language-Processing/" style="font-size: 1.35em; color: #99a3b1">Natural Language Processing</a> <a href="/tags/SIMD/" style="font-size: 1.1em; color: #999">SIMD</a> <a href="/tags/15645/" style="font-size: 1.4em; color: #99a5b6">15645</a> <a href="/tags/Auto-Differentiation/" style="font-size: 1.1em; color: #999">Auto Differentiation</a> <a href="/tags/Vision/" style="font-size: 1.1em; color: #999">Vision</a> <a href="/tags/Speculative-Decoding/" style="font-size: 1.1em; color: #999">Speculative Decoding</a> <a href="/tags/Memory-System/" style="font-size: 1.1em; color: #999">Memory System</a> <a href="/tags/Transformer/" style="font-size: 1.25em; color: #999fa7">Transformer</a> <a href="/tags/Makefile-Basics/" style="font-size: 1.1em; color: #999">Makefile Basics</a> <a href="/tags/NLP/" style="font-size: 1.1em; color: #999">NLP</a> <a href="/tags/ZeRO/" style="font-size: 1.1em; color: #999">ZeRO</a> <a href="/tags/Stanford/" style="font-size: 1.3em; color: #99a1ac">Stanford</a> <a href="/tags/LLM/" style="font-size: 1.35em; color: #99a3b1">LLM</a> <a href="/tags/Aggregation/" style="font-size: 1.1em; color: #999">Aggregation</a> <a href="/tags/Sorting/" style="font-size: 1.1em; color: #999">Sorting</a> <a href="/tags/CMU-11-785/" style="font-size: 1.15em; color: #999b9e">CMU 11-785</a></div></div><div class="card-widget card-archives">
+    <div class="item-headline">
+      <i class="fas fa-archive"></i>
+      <span>Archives</span>
+      <a class="card-more-btn" href="/archives/"
+            title="View More">
+            <i class="fas fa-angle-right"></i>
+          </a>
+    </div>
+  
+    <ul class="card-archive-list">
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2026/03/">
+            <span class="card-archive-list-date">
+              March 2026
+            </span>
+            <span class="card-archive-list-count">6</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2026/02/">
+            <span class="card-archive-list-date">
+              February 2026
+            </span>
+            <span class="card-archive-list-count">9</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2026/01/">
+            <span class="card-archive-list-date">
+              January 2026
+            </span>
+            <span class="card-archive-list-count">10</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/12/">
+            <span class="card-archive-list-date">
+              December 2025
+            </span>
+            <span class="card-archive-list-count">5</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/10/">
+            <span class="card-archive-list-date">
+              October 2025
+            </span>
+            <span class="card-archive-list-count">2</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2024/09/">
+            <span class="card-archive-list-date">
+              September 2024
+            </span>
+            <span class="card-archive-list-count">3</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2023/12/">
+            <span class="card-archive-list-date">
+              December 2023
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2023/11/">
+            <span class="card-archive-list-date">
+              November 2023
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+    </ul>
+  </div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>Website Info</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">Article Count :</div><div class="item-count">56</div></div><div class="webinfo-item"><div class="item-name">Unique Visitors :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">Page Views :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">Last Update :</div><div class="item-count" id="last-push-date" data-lastPushDate="2026-03-11T18:47:49.734Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

@@ -1,0 +1,546 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>11711 Advanced NLP: Multimodal Modeling | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Notes on multimodal modeling from CMU 11-711 Advanced NLP, covering ViT, CLIP, LLaVA-style integration, and image generation with VQ-VAE&#x2F;VQ-GAN.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="11711 Advanced NLP: Multimodal Modeling">
+<meta property="og:url" content="https://xloverflow.github.io/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Multimodal/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Notes on multimodal modeling from CMU 11-711 Advanced NLP, covering ViT, CLIP, LLaVA-style integration, and image generation with VQ-VAE&#x2F;VQ-GAN.">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png">
+<meta property="article:published_time" content="2026-03-05T04:40:00.000Z">
+<meta property="article:modified_time" content="2026-03-05T04:40:00.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="11711">
+<meta property="article:tag" content="AI">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="Multimodal">
+<meta property="article:tag" content="Natural Language Processing">
+<meta property="article:tag" content="Study Notes">
+<meta property="article:tag" content="Vision">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "11711 Advanced NLP: Multimodal Modeling",
+  "url": "https://xloverflow.github.io/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Multimodal/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png",
+  "datePublished": "2026-03-05T04:40:00.000Z",
+  "dateModified": "2026-03-05T04:40:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Multimodal/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '11711 Advanced NLP: Multimodal Modeling',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">56</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">98</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">11711 Advanced NLP: Multimodal Modeling</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">11711 Advanced NLP: Multimodal Modeling</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-03-05T04:40:00.000Z" title="Created 2026-03-04 23:40:00">2026-03-04</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-03-05T04:40:00.000Z" title="Updated 2026-03-04 23:40:00">2026-03-04</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CMU-11-711-Advanced-NLP/">CMU 11-711 Advanced NLP</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="lec11-multimodal-modeling-i-multi-to-text">Lec11 Multimodal
+Modeling I (Multi-to-Text)</h1>
+<h2 id="big-picture">Big Picture</h2>
+<p>This part of the course focuses on <strong>multi-to-text</strong>
+systems:</p>
+<ul>
+<li>Input can include images (and text).</li>
+<li>Output is text.</li>
+<li>Core challenge: map image content into a sequence of vectors a
+language model can use.</li>
+</ul>
+<h2 id="representing-images-as-tokens">Representing Images as
+Tokens</h2>
+<p>For text, we already have token embeddings.<br />
+For images, we need an encoder: <span class="math display">\[
+f_{\text{enc}}(x_{\text{image}}) \rightarrow z_1,\dots,z_L
+\]</span> where each <span class="math inline">\(z_i\)</span> is a
+vector token.</p>
+<h2 id="vision-transformer-vit">Vision Transformer (ViT)</h2>
+<p>ViT turns an image into a sequence of patch embeddings, then applies
+a standard Transformer.</p>
+<p>Given: <span class="math display">\[
+x_{\text{image}} \in \mathbb{R}^{H \times W \times C}
+\]</span></p>
+<p>Split into patches of size <span class="math inline">\(P \times
+P\)</span>: <span class="math display">\[
+N=\frac{HW}{P^2}, \quad x_p \in \mathbb{R}^{N \times (P^2C)}
+\]</span></p>
+<p>Project each patch to model dimension <span
+class="math inline">\(D\)</span>: <span class="math display">\[
+x = x_p W_e, \quad W_e \in \mathbb{R}^{(P^2C)\times D}, \quad x \in
+\mathbb{R}^{N\times D}
+\]</span></p>
+<p>Then add position embeddings and process with Transformer layers.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260304233101190.png" alt="image-20260304233101190" style="zoom:50%;" /></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260304231918596.png" alt="image-20260304231918596" style="zoom:50%;" /></p>
+<p>Key intuition from lecture:</p>
+<ul>
+<li>Early layers capture local/structural signals.</li>
+<li>Later layers attend to broader semantic regions.</li>
+<li>ViT scales well with pretraining compute.</li>
+</ul>
+<h2 id="clip-learn-vision-from-language-supervision">CLIP: Learn Vision
+from Language Supervision</h2>
+<p>CLIP (Radford et al., 2021) learns a shared embedding space for
+images and text.</p>
+<ul>
+<li>Image encoder: <span class="math inline">\(f_I(x)\)</span></li>
+<li>Text encoder: <span class="math inline">\(f_T(y)\)</span></li>
+<li>Paired image-text should be close; mismatched pairs should be
+far.</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260304233640564.png" alt="image-20260304233640564" style="zoom:50%;" /></p>
+<p>For a batch of <span class="math inline">\(N\)</span> aligned pairs
+<span class="math inline">\((x_n,y_n)\)</span>, define similarities:
+<span class="math display">\[
+s_{ij}=\frac{f_I(x_i)^\top f_T(y_j)}{\tau}
+\]</span></p>
+<p>Symmetric contrastive objective: <span class="math display">\[
+\mathcal{L}_{\text{img}}=-\frac{1}{N}\sum_{i=1}^N \log
+\frac{e^{s_{ii}}}{\sum_j e^{s_{ij}}},
+\quad
+\mathcal{L}_{\text{text}}=-\frac{1}{N}\sum_{i=1}^N \log
+\frac{e^{s_{ii}}}{\sum_j e^{s_{ji}}}
+\]</span> <span class="math display">\[
+\mathcal{L}_{\text{CLIP}}=\frac{1}{2}\left(\mathcal{L}_{\text{img}}+\mathcal{L}_{\text{text}}\right)
+\]</span></p>
+<p>Why it mattered:</p>
+<ul>
+<li>Uses natural language descriptions instead of only class
+labels.</li>
+<li>Scales to web-scale image-text data.</li>
+<li>Enables strong zero-shot transfer.</li>
+</ul>
+<h2 id="llava-style-combination-with-a-language-model">LLaVA-style
+Combination with a Language Model</h2>
+<p>General pipeline from lecture:</p>
+<ol type="1">
+<li>Preprocess image (patching/cropping).</li>
+<li>Encode image with a vision encoder (often CLIP ViT).</li>
+<li>Linearly project vision features to LM embedding dimension.</li>
+<li>Concatenate visual tokens with text tokens.</li>
+<li>Train/fine-tune on image-text instruction data.</li>
+<li>For image positions, skip token-level LM loss.</li>
+</ol>
+<p>A simple form: <span class="math display">\[
+h_v=\text{Proj}(f_I(x_{\text{image}})), \quad
+p_\theta(y_t\mid y_{&lt;t},x_{\text{text}},h_v)
+\]</span></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260304234617658.png" alt="image-20260304234617658" style="zoom:50%;" /></p>
+<h2 id="case-notes-mentioned-in-lecture">Case Notes Mentioned in
+Lecture</h2>
+<ul>
+<li><strong>Molmo (AI2):</strong> CLIP ViT-L/14 (336px), then
+pooling/projection before feeding LM; uses full image + crops.</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260305002752174.png" alt="image-20260305002752174" style="zoom:50%;" /></p>
+<ul>
+<li><strong>PaliGemma (Google):</strong> lecture highlighted that
+jointly updating vision encoder + LM can outperform freezing one
+side.</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260305002723839.png" alt="image-20260305002723839" style="zoom:50%;" /></p>
+<h2 id="lec11-takeaways">Lec11 Takeaways</h2>
+<ul>
+<li>ViT gives a clean tokenization interface for images.</li>
+<li>CLIP gives strong, scalable image representations through
+contrastive learning.</li>
+<li>Multimodal assistants are mostly about <strong>interface
+design</strong> between vision tokens and LM tokens.</li>
+</ul>
+<hr />
+<h1 id="lec12-multimodal-modeling-ii-generating-images">Lec12 Multimodal
+Modeling II (Generating Images)</h1>
+<h2 id="generative-paradigms">Generative Paradigms</h2>
+<p>Lecture compared four families:</p>
+<ul>
+<li><p><strong>Autoregressive (AR):</strong> model <span
+class="math inline">\(p(x_t\mid x_{&lt;t})\)</span>.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260305020958065.png" alt="image-20260305020958065" style="zoom:20%;" /></p></li>
+<li><p><strong>VAE:</strong> encode to latent <span
+class="math inline">\(z\)</span>, decode back.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260305021020096.png" alt="image-20260305021020096" style="zoom:20%;" /></p></li>
+<li><p><strong>GAN:</strong> generator vs discriminator game.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260305021040054.png" alt="image-20260305021040054" style="zoom:20%;" /></p></li>
+<li><p><strong>Diffusion:</strong> denoise from noise to data.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260305021103664.png" alt="image-20260305021103664" style="zoom:20%;" /></p></li>
+</ul>
+<h2 id="attempt-1-pixel-level-autoregression">Attempt 1: Pixel-level
+Autoregression</h2>
+<p>Flatten image into a long sequence of pixel values: <span
+class="math display">\[
+x_{\text{img}} \rightarrow (x_1,\dots,x_T),\quad x_t\in\{0,\dots,255\}
+\]</span> <span class="math display">\[
+\mathcal{L}_{\text{MLE}}=-\sum_{t=1}^{T}\log p_\theta(x_t\mid x_{&lt;t})
+\]</span></p>
+<p>Examples discussed: PixelRNN, Image Transformer, iGPT.</p>
+<p>Main bottlenecks:</p>
+<ul>
+<li>Sequence length explodes (e.g., <span
+class="math inline">\(1024\times1024\times3\approx 3\)</span>M
+tokens).</li>
+<li>Pixel tokens are low-level; learning semantics is data-hungry.</li>
+</ul>
+<h2 id="attempt-2-learn-discrete-image-tokens">Attempt 2: Learn Discrete
+Image Tokens</h2>
+<p>Core idea: learn an image tokenizer/de-tokenizer so the LM models a
+shorter, semantic token sequence.</p>
+<h3 id="vae-refresher">VAE Refresher</h3>
+<p>Standard objective: <span class="math display">\[
+\mathcal{L}_{\text{VAE}}(x)=
+-\mathbb{E}_{q_{\theta_{\text{enc}}}(z\mid x)}[\log
+p_{\theta_{\text{dec}}}(x\mid z)]
++D_{\text{KL}}\!\left(q_{\theta_{\text{enc}}}(z\mid x)\|p(z)\right)
+\]</span></p>
+<p>Equivalent view via ELBO: <span class="math display">\[
+\log p(x)\ge
+\mathbb{E}_{q(z\mid x)}[\log p(x\mid z)]
+-D_{\text{KL}}(q(z\mid x)\|p(z))
+\]</span></p>
+<h3 id="vq-vae-continuous-to-discrete">VQ-VAE: Continuous to
+Discrete</h3>
+<p>Encoder gives continuous latent: <span class="math display">\[
+z_e(x)\in\mathbb{R}^{d}
+\]</span></p>
+<p>Quantize by nearest codebook entry: <span class="math display">\[
+k^*=\arg\min_j\|z_e(x)-e_j\|_2,\quad z_q(x)=e_{k^*}
+\]</span></p>
+<p>Train with reconstruction + codebook + commitment terms: <span
+class="math display">\[
+\mathcal{L}=
+-\log p(x\mid z_q(x))
++\|\text{sg}[z_e(x)]-e\|_2^2
++\beta\|z_e(x)-\text{sg}[e]\|_2^2
+\]</span></p>
+<p>Then model discrete image tokens autoregressively.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260305173246620.png" alt="image-20260305173246620" style="zoom:20%;" /></p>
+<h3 id="vq-gan">VQ-GAN</h3>
+<p>VQ-GAN improves VQ-VAE by adding adversarial/perceptual signals in
+tokenizer training, then training an AR Transformer on resulting token
+sequences.</p>
+<p>Practical gain from lecture:</p>
+<ul>
+<li>Sequence becomes much shorter (example: <span
+class="math inline">\(32\times32=1024\)</span> tokens) than raw
+pixels.</li>
+<li>Better tradeoff between generation quality and AR modeling
+feasibility.</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260305175540139.png" alt="image-20260305175540139" style="zoom:30%;" /></p>
+<h2 id="unifying-text-and-image-tokens">Unifying Text and Image
+Tokens</h2>
+<p>After tokenizer training:</p>
+<ol type="1">
+<li>Add image tokens to LM vocabulary.</li>
+<li>Train/fine-tune on mixed text+image token streams.</li>
+<li>Decode image tokens back to pixels using de-tokenizer.</li>
+</ol>
+<p>Examples discussed: DALL-E (2021), Chameleon (Meta, 2024).</p>
+<h2 id="lec12-takeaways">Lec12 Takeaways</h2>
+<ul>
+<li>Pure pixel AR is conceptually simple but hard to scale.</li>
+<li>Discrete tokenizers (VQ-VAE/VQ-GAN) are the key bridge for AR
+multimodal models.</li>
+<li>Tradeoff: unified token modeling vs information loss from
+tokenization.</li>
+</ul>
+<h2 id="final-summary">Final Summary</h2>
+<ul>
+<li><strong>Lec11:</strong> how to encode images for text generation
+(ViT + CLIP + LM integration).</li>
+<li><strong>Lec12:</strong> how to generate images with token-based
+generative modeling.</li>
+<li>Together they frame multimodal systems as:<br />
+<strong>representation (encode) + alignment (shared space) + generation
+(decode)</strong>.</li>
+</ul>
+<p><em>This post is based on CMU 11-711 Advanced NLP lecture materials
+(Multimodal Modeling I &amp; II, Sean Welleck).</em></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Multimodal/">https://xloverflow.github.io/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Multimodal/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Natural-Language-Processing/">Natural Language Processing</a><a class="post-meta__tags" href="/tags/CMU/">CMU</a><a class="post-meta__tags" href="/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/tags/11711/">11711</a><a class="post-meta__tags" href="/tags/AI/">AI</a><a class="post-meta__tags" href="/tags/Multimodal/">Multimodal</a><a class="post-meta__tags" href="/tags/Vision/">Vision</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/" title="11711 Advanced NLP: Evaluation &amp; Experimental Design"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">11711 Advanced NLP: Evaluation & Experimental Design</div></div><div class="info-2"><div class="info-item-1">Notes on NLP evaluation, benchmarks, and experimental design from CMU 11-711 Advanced NLP, covering loss-based metrics, task metrics, LLM-as-judge, statistical testing, and annotation quality.</div></div></div></a><a class="pagination-related" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">11711 Advanced NLP: Retrieval and RAG</div></div><div class="info-2"><div class="info-item-1">Notes on retrieval systems, retrievers, and retrieval-augmented generation (RAG) from CMU 11-711 Advanced NLP.</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">Notes on RNN architectures, encoder-decoder models, and attention mechanisms from CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/" title="11711 Advanced NLP: Evaluation &amp; Experimental Design"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-05</div><div class="info-item-2">11711 Advanced NLP: Evaluation &amp; Experimental Design</div></div><div class="info-2"><div class="info-item-1">Notes on NLP evaluation, benchmarks, and experimental design from CMU 11-711 Advanced NLP, covering loss-based metrics, task metrics, LLM-as-judge, statistical testing, and annotation quality.</div></div></div></a><a class="pagination-related" href="/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-22</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/" title="11711 Advanced NLP: Learning &amp; Inference"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Learning &amp; Inference</div></div><div class="info-2"><div class="info-item-1">Notes on learning algorithms and inference methods from CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-14</div><div class="info-item-2">11711 Advanced NLP: Retrieval and RAG</div></div><div class="info-2"><div class="info-item-1">Notes on retrieval systems, retrievers, and retrieval-augmented generation (RAG) from CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/01/26/11868-LLM-Sys/11868-LLM-SyS-GPU-Programming-Acceleration/" title="11868 LLM Sys: GPU Programming &amp; Acceleration"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-25</div><div class="info-item-2">11868 LLM Sys: GPU Programming &amp; Acceleration</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 11-868 LLM Systems: GPU Programming & Acceleration.</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">56</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">98</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#lec11-multimodal-modeling-i-multi-to-text"><span class="toc-number">1.</span> <span class="toc-text">Lec11 Multimodal
+Modeling I (Multi-to-Text)</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#big-picture"><span class="toc-number">1.1.</span> <span class="toc-text">Big Picture</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#representing-images-as-tokens"><span class="toc-number">1.2.</span> <span class="toc-text">Representing Images as
+Tokens</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#vision-transformer-vit"><span class="toc-number">1.3.</span> <span class="toc-text">Vision Transformer (ViT)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#clip-learn-vision-from-language-supervision"><span class="toc-number">1.4.</span> <span class="toc-text">CLIP: Learn Vision
+from Language Supervision</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#llava-style-combination-with-a-language-model"><span class="toc-number">1.5.</span> <span class="toc-text">LLaVA-style
+Combination with a Language Model</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#case-notes-mentioned-in-lecture"><span class="toc-number">1.6.</span> <span class="toc-text">Case Notes Mentioned in
+Lecture</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#lec11-takeaways"><span class="toc-number">1.7.</span> <span class="toc-text">Lec11 Takeaways</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#lec12-multimodal-modeling-ii-generating-images"><span class="toc-number">2.</span> <span class="toc-text">Lec12 Multimodal
+Modeling II (Generating Images)</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#generative-paradigms"><span class="toc-number">2.1.</span> <span class="toc-text">Generative Paradigms</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#attempt-1-pixel-level-autoregression"><span class="toc-number">2.2.</span> <span class="toc-text">Attempt 1: Pixel-level
+Autoregression</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#attempt-2-learn-discrete-image-tokens"><span class="toc-number">2.3.</span> <span class="toc-text">Attempt 2: Learn Discrete
+Image Tokens</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#vae-refresher"><span class="toc-number">2.3.1.</span> <span class="toc-text">VAE Refresher</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#vq-vae-continuous-to-discrete"><span class="toc-number">2.3.2.</span> <span class="toc-text">VQ-VAE: Continuous to
+Discrete</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#vq-gan"><span class="toc-number">2.3.3.</span> <span class="toc-text">VQ-GAN</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#unifying-text-and-image-tokens"><span class="toc-number">2.4.</span> <span class="toc-text">Unifying Text and Image
+Tokens</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#lec12-takeaways"><span class="toc-number">2.5.</span> <span class="toc-text">Lec12 Takeaways</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#final-summary"><span class="toc-number">2.6.</span> <span class="toc-text">Final Summary</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/03/10/AI-Agent/AI-Agent-Engineering-Design-Curated-Reading-List/" title="AI Agent Engineering Design: A Curated Reading List"><img src="https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="AI Agent Engineering Design: A Curated Reading List"/></a><div class="content"><a class="title" href="/2026/03/10/AI-Agent/AI-Agent-Engineering-Design-Curated-Reading-List/" title="AI Agent Engineering Design: A Curated Reading List">AI Agent Engineering Design: A Curated Reading List</a><time datetime="2026-03-10T04:00:00.000Z" title="Created 2026-03-10 00:00:00">2026-03-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Join-Algorithms/" title="15645 Database systems: Join Algorithms"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Join Algorithms"/></a><div class="content"><a class="title" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Join-Algorithms/" title="15645 Database systems: Join Algorithms">15645 Database systems: Join Algorithms</a><time datetime="2026-03-08T14:40:00.000Z" title="Created 2026-03-08 10:40:00">2026-03-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Sorting-Aggregation/" title="15645 Database systems: Sorting &amp; Aggregation"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Sorting &amp; Aggregation"/></a><div class="content"><a class="title" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Sorting-Aggregation/" title="15645 Database systems: Sorting &amp; Aggregation">15645 Database systems: Sorting &amp; Aggregation</a><time datetime="2026-03-08T14:35:00.000Z" title="Created 2026-03-08 10:35:00">2026-03-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/" title="15645 Database systems: Index Concurrency Control"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Index Concurrency Control"/></a><div class="content"><a class="title" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/" title="15645 Database systems: Index Concurrency Control">15645 Database systems: Index Concurrency Control</a><time datetime="2026-03-08T14:30:00.000Z" title="Created 2026-03-08 10:30:00">2026-03-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/" title="11711 Advanced NLP: Evaluation &amp; Experimental Design"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Evaluation &amp; Experimental Design"/></a><div class="content"><a class="title" href="/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/" title="11711 Advanced NLP: Evaluation &amp; Experimental Design">11711 Advanced NLP: Evaluation &amp; Experimental Design</a><time datetime="2026-03-05T17:00:00.000Z" title="Created 2026-03-05 12:00:00">2026-03-05</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '8a7d1d1f652f8b4bd7198c7aa0f25f38'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

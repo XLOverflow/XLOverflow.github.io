@@ -1,0 +1,756 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>15645 Database systems: Index Concurrency Control | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Notes and summaries for CMU 15-645 Database Systems.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="15645 Database systems: Index Concurrency Control">
+<meta property="og:url" content="https://xloverflow.github.io/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Notes and summaries for CMU 15-645 Database Systems.">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png">
+<meta property="article:published_time" content="2026-03-08T14:30:00.000Z">
+<meta property="article:modified_time" content="2026-03-08T14:30:00.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="15645">
+<meta property="article:tag" content="B+Tree">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="Concurrency Control">
+<meta property="article:tag" content="Database Systems">
+<meta property="article:tag" content="Hash Table">
+<meta property="article:tag" content="Latches">
+<meta property="article:tag" content="Study Notes">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "15645 Database systems: Index Concurrency Control",
+  "url": "https://xloverflow.github.io/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png",
+  "datePublished": "2026-03-08T14:30:00.000Z",
+  "dateModified": "2026-03-08T14:30:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '15645 Database systems: Index Concurrency Control',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">56</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">98</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">15645 Database systems: Index Concurrency Control</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">15645 Database systems: Index Concurrency Control</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-03-08T14:30:00.000Z" title="Created 2026-03-08 10:30:00">2026-03-08</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-03-08T14:30:00.000Z" title="Updated 2026-03-08 10:30:00">2026-03-08</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CMU-15-645-Database-Systems/">CMU 15-645 Database Systems</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="lec-10-index-concurrency-control">Lec 10 Index Concurrency
+Control</h1>
+<h2 id="study-map">0. Study Map</h2>
+<p>This lecture is about one practical question: <strong>how do we let
+many workers touch the same index without corrupting it?</strong></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Structure / Pattern</th>
+<th>Why Concurrency Is Hard</th>
+<th>Standard Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Hash table lookup/insert</td>
+<td>Workers touch shared buckets</td>
+<td>Latch at table/page/slot granularity</td>
+</tr>
+<tr class="even">
+<td>B+Tree search/update</td>
+<td>Traversal can race with split/merge</td>
+<td>Latch crabbing (coupling)</td>
+</tr>
+<tr class="odd">
+<td>Leaf-to-leaf scan</td>
+<td>Traversal is no longer strictly top-down</td>
+<td>No-wait sibling latch protocol</td>
+</tr>
+</tbody>
+</table>
+<h3 id="complexity-cheat-sheet">Complexity Cheat Sheet</h3>
+<p>Let:</p>
+<ul>
+<li><code>n</code> = number of indexed entries</li>
+<li><code>f</code> = effective fanout of the B+Tree</li>
+<li><code>h</code> = tree height, so <code>h = O(\log_f n)</code></li>
+</ul>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Structure / Operation</th>
+<th>Expected Complexity</th>
+<th>Worst / Important Caveat</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Hash table lookup</td>
+<td><code>O(1)</code></td>
+<td><code>O(n)</code> under extreme collision/pathology</td>
+</tr>
+<tr class="even">
+<td>Hash table insert</td>
+<td><code>O(1)</code> amortized</td>
+<td>resize requires global coordination</td>
+</tr>
+<tr class="odd">
+<td>B+Tree point lookup</td>
+<td><code>O(h) = O(\log_f n)</code></td>
+<td>one latch per level on the path</td>
+</tr>
+<tr class="even">
+<td>B+Tree insert/delete</td>
+<td><code>O(h)</code> common case</td>
+<td>split/merge can cascade up to <code>O(h)</code> levels</td>
+</tr>
+<tr class="odd">
+<td>Leaf range scan</td>
+<td><code>O(h + \#leaf\_pages\_touched)</code></td>
+<td>sibling-latch restarts can add retries</td>
+</tr>
+</tbody>
+</table>
+<h2 id="correctness-locks-vs.-latches">1. Correctness: Locks
+vs. Latches</h2>
+<p>Concurrency control in a DBMS has two different goals:</p>
+<ul>
+<li><strong>Logical correctness:</strong> a worker sees the data it is
+supposed to see.</li>
+<li><strong>Physical correctness:</strong> the internal representation
+of the structure stays valid.</li>
+</ul>
+<p>This lecture focuses on <strong>latches</strong>, not transaction
+locks.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Aspect</th>
+<th>Locks</th>
+<th>Latches</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Protect</td>
+<td>Logical database contents</td>
+<td>In-memory DBMS data structures</td>
+</tr>
+<tr class="even">
+<td>Held by</td>
+<td>Transactions</td>
+<td>Workers / threads</td>
+</tr>
+<tr class="odd">
+<td>Lifetime</td>
+<td>Transaction duration</td>
+<td>Critical section / operation duration</td>
+</tr>
+<tr class="even">
+<td>Modes</td>
+<td>Shared / exclusive / intention…</td>
+<td>Usually read / write</td>
+</tr>
+<tr class="odd">
+<td>Deadlock handling</td>
+<td>Detection + resolution</td>
+<td>Mostly avoidance by coding discipline</td>
+</tr>
+</tbody>
+</table>
+<h3 id="latch-modes">Latch Modes</h3>
+<ul>
+<li><strong>Read latch:</strong> many readers can hold it together.</li>
+<li><strong>Write latch:</strong> only one worker can hold it, and no
+readers may coexist.</li>
+</ul>
+<h2 id="latch-design-and-implementations">2. Latch Design and
+Implementations</h2>
+<h3 id="design-goals">Design Goals</h3>
+<p>A good latch should have:</p>
+<ul>
+<li>small memory footprint</li>
+<li>fast uncontended path</li>
+<li>decentralized management</li>
+<li>minimal OS/system-call overhead</li>
+</ul>
+<h3 id="common-implementations">Common Implementations</h3>
+<h4 id="test-and-set-spin-latch">Test-and-Set Spin Latch</h4>
+<ul>
+<li>Extremely fast in the uncontended case.</li>
+<li>Usually implemented with a single atomic instruction.</li>
+<li>Bad under contention because workers keep spinning and bouncing
+cache lines.</li>
+<li>Not cache-friendly and not OS-friendly.</li>
+</ul>
+<h3 id="compare-and-swap-cas">Compare-and-Swap (CAS)</h3>
+<p>CAS is the hardware primitive behind many latch implementations:</p>
+<ul>
+<li>compare memory location <code>M</code> with expected value
+<code>V</code></li>
+<li>if equal, install new value <code>V'</code></li>
+<li>otherwise fail and retry or fall back</li>
+</ul>
+<h4 id="blocking-os-mutex">Blocking OS Mutex</h4>
+<ul>
+<li>Simple programming model.</li>
+<li>Better behaved than pure spinning when contention is high.</li>
+<li>But lock/unlock is more expensive and may involve the OS.</li>
+</ul>
+<h4 id="reader-writer-latch">Reader-Writer Latch</h4>
+<ul>
+<li>Allows concurrent readers.</li>
+<li>Useful for tree traversals where reads are common.</li>
+<li>More metadata and queue management are needed.</li>
+<li>Must avoid reader or writer starvation.</li>
+</ul>
+<h2 id="hash-table-latching">3. Hash Table Latching</h2>
+<p>Hash tables are comparatively easy to latch:</p>
+<ul>
+<li>workers move in one direction through the structure</li>
+<li>they usually touch only one page or slot at a time</li>
+<li>deadlocks are therefore much less likely</li>
+</ul>
+<p>If the DBMS must <strong>resize</strong> the table, it usually takes
+a <strong>global write latch</strong> on the whole table.</p>
+<h3 id="granularity-choices">Granularity Choices</h3>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Approach</th>
+<th>Idea</th>
+<th>Benefit</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Global latch</td>
+<td>One latch protects entire table</td>
+<td>Simple</td>
+<td>Terrible concurrency</td>
+</tr>
+<tr class="even">
+<td>Page/block latch</td>
+<td>One latch per page/bucket block</td>
+<td>Good compromise</td>
+<td>Workers still block on hot pages</td>
+</tr>
+<tr class="odd">
+<td>Slot latch</td>
+<td>One latch per slot</td>
+<td>Highest concurrency</td>
+<td>More metadata / bookkeeping</td>
+</tr>
+</tbody>
+</table>
+<h3 id="practical-takeaway">Practical Takeaway</h3>
+<ul>
+<li>Use coarse latches when implementation simplicity matters.</li>
+<li>Use page or slot latches when bucket contention dominates.</li>
+<li>Keep resize rare because it needs a global critical section.</li>
+</ul>
+<h2 id="why-btree-concurrency-is-harder">4. Why B+Tree Concurrency Is
+Harder</h2>
+<p>A B+Tree has two simultaneous problems:</p>
+<ul>
+<li>two workers may modify the same node at once</li>
+<li>one worker may traverse the tree while another splits or merges
+nodes</li>
+</ul>
+<p>That second problem is what makes B+Tree latching harder than
+hash-table latching.</p>
+<h2 id="latch-crabbing-coupling">5. Latch Crabbing / Coupling</h2>
+<p>The standard protocol is <strong>latch crabbing</strong>:</p>
+<ol type="1">
+<li>Latch the parent.</li>
+<li>Latch the child.</li>
+<li>Release the parent once the child is known to be safe.</li>
+</ol>
+<h3 id="safe-node">Safe Node</h3>
+<p>A node is <strong>safe</strong> if the current update will not force
+structural change:</p>
+<ul>
+<li><strong>Insert:</strong> safe means the node will <strong>not
+split</strong>.</li>
+<li><strong>Delete:</strong> safe means the node will <strong>not merge
+/ underflow</strong>.</li>
+</ul>
+<p>If a node can hold at most <code>m</code> keys, then the usual
+textbook-safe conditions are:</p>
+<p><span class="math display">\[
+\text{Insert safe} \iff \text{occupancy} &lt; m
+\]</span></p>
+<p><span class="math display">\[
+\text{Delete safe} \iff \text{occupancy} &gt; \left\lceil \frac{m}{2}
+\right\rceil
+\]</span></p>
+<p>Real systems may replace the half-full rule with a merge threshold,
+but the idea is the same: safe means <strong>no structural change is
+needed</strong>.</p>
+<h3 id="search-protocol">Search Protocol</h3>
+<p>For <code>Find</code>:</p>
+<ol type="1">
+<li>Start at the root.</li>
+<li>Acquire a <strong>read</strong> latch on the child.</li>
+<li>Release the parent.</li>
+<li>Repeat until the target leaf.</li>
+</ol>
+<p>This gives concurrency because readers do not keep the whole path
+latched.</p>
+<p>Complexity:</p>
+<p><span class="math display">\[
+O(h) = O(\log_f n)
+\]</span></p>
+<p>because the worker only walks one root-to-leaf path.</p>
+<h3 id="insertdelete-protocol">Insert/Delete Protocol</h3>
+<p>For writes:</p>
+<ol type="1">
+<li>Start at the root with <strong>write</strong> latches as
+needed.</li>
+<li>Move down to the child.</li>
+<li>If the child is safe, release ancestor latches.</li>
+<li>Keep the latches you still need for nodes that may split or
+merge.</li>
+</ol>
+<p>This is the pessimistic but safe version.</p>
+<p>Common-case complexity is still:</p>
+<p><span class="math display">\[
+O(h)
+\]</span></p>
+<p>but the update may also trigger up to <code>O(h)</code> node
+splits/merges in the worst case because structural changes can cascade
+to the root.</p>
+<h2 id="better-btree-latching">6. Better B+Tree Latching</h2>
+<p>The lecture points out a bottleneck: many updates begin by taking a
+<strong>write latch on the root</strong>.</p>
+<p>That is wasteful because most inserts/deletes only change a leaf and
+do <strong>not</strong> trigger split/merge.</p>
+<h3 id="optimistic-protocol">Optimistic Protocol</h3>
+<p>Use a two-stage idea:</p>
+<ol type="1">
+<li>Traverse like a search with <strong>read latches</strong>.</li>
+<li>At the leaf, upgrade to / acquire a <strong>write
+latch</strong>.</li>
+<li>If the leaf is safe, finish there.</li>
+<li>If the leaf is not safe, release latches and restart with the
+pessimistic write-latch protocol.</li>
+</ol>
+<p>This improves throughput because the common case never holds the root
+in write mode for long.</p>
+<p>You can think of the optimistic algorithm as:</p>
+<ul>
+<li><strong>common case:</strong> one root-to-leaf traversal, about
+<code>O(h)</code></li>
+<li><strong>wrong guess:</strong> one read-latch traversal plus one
+restarted write-latch traversal, still <code>O(h)</code> asymptotically
+but with roughly <code>2h</code> path work</li>
+</ul>
+<h2 id="leaf-node-scans">7. Leaf Node Scans</h2>
+<p>All previous examples are <strong>top-down</strong>. Range scans
+break that assumption because they move from one leaf to its
+sibling.</p>
+<p>That introduces a new problem:</p>
+<ul>
+<li>worker <code>T1</code> may hold a write latch on one leaf during
+delete/merge</li>
+<li>worker <code>T2</code> may hold a read latch and want to step
+sideways to the sibling</li>
+<li>if sibling latching waits blindly, the code can deadlock</li>
+</ul>
+<h3 id="required-rule">Required Rule</h3>
+<p>Sibling-latch acquisition for leaf scans must support <strong>no-wait
+mode</strong>.</p>
+<p>If the next sibling latch is unavailable:</p>
+<ul>
+<li>do not wait indefinitely</li>
+<li>restart, abort, or otherwise recover in a way the data structure
+understands</li>
+</ul>
+<p>This is a coding-discipline rule because latches generally do not
+provide the same deadlock machinery as locks.</p>
+<p>If the scan returns <code>k</code> leaf pages after the initial
+search, then the traversal cost is roughly:</p>
+<p><span class="math display">\[
+O(h + k)
+\]</span></p>
+<p>with the understanding that failed no-wait sibling acquisitions can
+force retries.</p>
+<h2 id="cost-summary">8. Cost Summary</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Operation</th>
+<th>Latch Pattern</th>
+<th>Time / Path Cost</th>
+<th>Main Risk</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Hash table lookup</td>
+<td>page/slot latch</td>
+<td>expected <code>O(1)</code></td>
+<td>hot bucket contention</td>
+</tr>
+<tr class="even">
+<td>B+Tree search</td>
+<td>read latches top-down</td>
+<td><code>O(\log_f n)</code></td>
+<td>none if path only goes downward</td>
+</tr>
+<tr class="odd">
+<td>B+Tree insert/delete</td>
+<td>pessimistic crabbing</td>
+<td><code>O(\log_f n)</code> common case</td>
+<td>cascading split/merge</td>
+</tr>
+<tr class="even">
+<td>B+Tree insert/delete</td>
+<td>optimistic first pass</td>
+<td><code>O(\log_f n)</code> common case</td>
+<td>restart if leaf not safe</td>
+</tr>
+<tr class="odd">
+<td>Leaf range scan</td>
+<td>read latch + no-wait sibling</td>
+<td><code>O(\log_f n + k)</code></td>
+<td>deadlock if sibling waits are allowed</td>
+</tr>
+</tbody>
+</table>
+<h2 id="write-set-discipline">9. Write-Set Discipline</h2>
+<p>For B+Tree write operations, each worker keeps a <strong>private
+write-set</strong> of modified nodes during the operation.</p>
+<ul>
+<li>Hold write latches on modified nodes until the operation
+finishes.</li>
+<li>Never expose partial structural updates to other workers.</li>
+<li>If a needed write latch cannot be acquired, roll back the
+modifications in the write-set and release latches.</li>
+</ul>
+<p>This is the practical rule that turns “physical correctness” into
+something implementable.</p>
+<h2 id="final-takeaways">10. Final Takeaways</h2>
+<ol type="1">
+<li>Latches protect physical structure; locks protect logical database
+contents.</li>
+<li>Hash tables are easier because access patterns are simpler and
+mostly one-directional.</li>
+<li>B+Tree concurrency relies on <strong>latch crabbing</strong> and the
+notion of a <strong>safe node</strong>.</li>
+<li>Optimistic tree latching is important because root write latches
+become a bottleneck.</li>
+<li>Leaf scans need a <strong>no-wait sibling protocol</strong>, or the
+code will eventually deadlock.</li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/">https://xloverflow.github.io/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/CMU/">CMU</a><a class="post-meta__tags" href="/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/tags/Database-Systems/">Database Systems</a><a class="post-meta__tags" href="/tags/15645/">15645</a><a class="post-meta__tags" href="/tags/Concurrency-Control/">Concurrency Control</a><a class="post-meta__tags" href="/tags/Latches/">Latches</a><a class="post-meta__tags" href="/tags/B-Tree/">B+Tree</a><a class="post-meta__tags" href="/tags/Hash-Table/">Hash Table</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Sorting-Aggregation/" title="15645 Database systems: Sorting &amp; Aggregation"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">15645 Database systems: Sorting & Aggregation</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/" title="11711 Advanced NLP: Evaluation &amp; Experimental Design"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">11711 Advanced NLP: Evaluation & Experimental Design</div></div><div class="info-2"><div class="info-item-1">Notes on NLP evaluation, benchmarks, and experimental design from CMU 11-711 Advanced NLP, covering loss-based metrics, task metrics, LLM-as-judge, statistical testing, and annotation quality.</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/02/09/15645-Database-Systems/15645-Database-systems-Index-Filter/" title="15645 Database systems: Index &amp; Filter"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-09</div><div class="info-item-2">15645 Database systems: Index &amp; Filter</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/01/16/15645-Database-Systems/15645-Database-Systems-relational-model-and-SQL/" title="15645 Database systems: Relational Model and SQL"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-15</div><div class="info-item-2">15645 Database systems: Relational Model and SQL</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/02/07/15645-Database-Systems/15645-Database-systems-Hash-Tables/" title="15645 Database systems: Hash Tables"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-07</div><div class="info-item-2">15645 Database systems: Hash Tables</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Join-Algorithms/" title="15645 Database systems: Join Algorithms"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-08</div><div class="info-item-2">15645 Database systems: Join Algorithms</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Sorting-Aggregation/" title="15645 Database systems: Sorting &amp; Aggregation"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-08</div><div class="info-item-2">15645 Database systems: Sorting &amp; Aggregation</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">Notes on RNN architectures, encoder-decoder models, and attention mechanisms from CMU 11-711 Advanced NLP.</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">56</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">98</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#lec-10-index-concurrency-control"><span class="toc-number">1.</span> <span class="toc-text">Lec 10 Index Concurrency
+Control</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#study-map"><span class="toc-number">1.1.</span> <span class="toc-text">0. Study Map</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#complexity-cheat-sheet"><span class="toc-number">1.1.1.</span> <span class="toc-text">Complexity Cheat Sheet</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#correctness-locks-vs.-latches"><span class="toc-number">1.2.</span> <span class="toc-text">1. Correctness: Locks
+vs. Latches</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#latch-modes"><span class="toc-number">1.2.1.</span> <span class="toc-text">Latch Modes</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#latch-design-and-implementations"><span class="toc-number">1.3.</span> <span class="toc-text">2. Latch Design and
+Implementations</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#design-goals"><span class="toc-number">1.3.1.</span> <span class="toc-text">Design Goals</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#common-implementations"><span class="toc-number">1.3.2.</span> <span class="toc-text">Common Implementations</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#test-and-set-spin-latch"><span class="toc-number">1.3.2.1.</span> <span class="toc-text">Test-and-Set Spin Latch</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#compare-and-swap-cas"><span class="toc-number">1.3.3.</span> <span class="toc-text">Compare-and-Swap (CAS)</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#blocking-os-mutex"><span class="toc-number">1.3.3.1.</span> <span class="toc-text">Blocking OS Mutex</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#reader-writer-latch"><span class="toc-number">1.3.3.2.</span> <span class="toc-text">Reader-Writer Latch</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#hash-table-latching"><span class="toc-number">1.4.</span> <span class="toc-text">3. Hash Table Latching</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#granularity-choices"><span class="toc-number">1.4.1.</span> <span class="toc-text">Granularity Choices</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#practical-takeaway"><span class="toc-number">1.4.2.</span> <span class="toc-text">Practical Takeaway</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#why-btree-concurrency-is-harder"><span class="toc-number">1.5.</span> <span class="toc-text">4. Why B+Tree Concurrency Is
+Harder</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#latch-crabbing-coupling"><span class="toc-number">1.6.</span> <span class="toc-text">5. Latch Crabbing &#x2F; Coupling</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#safe-node"><span class="toc-number">1.6.1.</span> <span class="toc-text">Safe Node</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#search-protocol"><span class="toc-number">1.6.2.</span> <span class="toc-text">Search Protocol</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#insertdelete-protocol"><span class="toc-number">1.6.3.</span> <span class="toc-text">Insert&#x2F;Delete Protocol</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#better-btree-latching"><span class="toc-number">1.7.</span> <span class="toc-text">6. Better B+Tree Latching</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#optimistic-protocol"><span class="toc-number">1.7.1.</span> <span class="toc-text">Optimistic Protocol</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#leaf-node-scans"><span class="toc-number">1.8.</span> <span class="toc-text">7. Leaf Node Scans</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#required-rule"><span class="toc-number">1.8.1.</span> <span class="toc-text">Required Rule</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#cost-summary"><span class="toc-number">1.9.</span> <span class="toc-text">8. Cost Summary</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#write-set-discipline"><span class="toc-number">1.10.</span> <span class="toc-text">9. Write-Set Discipline</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#final-takeaways"><span class="toc-number">1.11.</span> <span class="toc-text">10. Final Takeaways</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/03/10/AI-Agent/AI-Agent-Engineering-Design-Curated-Reading-List/" title="AI Agent Engineering Design: A Curated Reading List"><img src="https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="AI Agent Engineering Design: A Curated Reading List"/></a><div class="content"><a class="title" href="/2026/03/10/AI-Agent/AI-Agent-Engineering-Design-Curated-Reading-List/" title="AI Agent Engineering Design: A Curated Reading List">AI Agent Engineering Design: A Curated Reading List</a><time datetime="2026-03-10T04:00:00.000Z" title="Created 2026-03-10 00:00:00">2026-03-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Join-Algorithms/" title="15645 Database systems: Join Algorithms"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Join Algorithms"/></a><div class="content"><a class="title" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Join-Algorithms/" title="15645 Database systems: Join Algorithms">15645 Database systems: Join Algorithms</a><time datetime="2026-03-08T14:40:00.000Z" title="Created 2026-03-08 10:40:00">2026-03-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Sorting-Aggregation/" title="15645 Database systems: Sorting &amp; Aggregation"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Sorting &amp; Aggregation"/></a><div class="content"><a class="title" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Sorting-Aggregation/" title="15645 Database systems: Sorting &amp; Aggregation">15645 Database systems: Sorting &amp; Aggregation</a><time datetime="2026-03-08T14:35:00.000Z" title="Created 2026-03-08 10:35:00">2026-03-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/" title="15645 Database systems: Index Concurrency Control"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Index Concurrency Control"/></a><div class="content"><a class="title" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/" title="15645 Database systems: Index Concurrency Control">15645 Database systems: Index Concurrency Control</a><time datetime="2026-03-08T14:30:00.000Z" title="Created 2026-03-08 10:30:00">2026-03-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/" title="11711 Advanced NLP: Evaluation &amp; Experimental Design"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Evaluation &amp; Experimental Design"/></a><div class="content"><a class="title" href="/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/" title="11711 Advanced NLP: Evaluation &amp; Experimental Design">11711 Advanced NLP: Evaluation &amp; Experimental Design</a><time datetime="2026-03-05T17:00:00.000Z" title="Created 2026-03-05 12:00:00">2026-03-05</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '51bbb0e626e8e8a2a3be8c553e29f291'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

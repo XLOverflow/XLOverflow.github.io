@@ -1,0 +1,508 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>11711 Advanced NLP: Multimodal Modeling | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="CMU 11-711 高级自然语言处理中多模态建模的笔记，涵盖 ViT、CLIP、LLaVA 风格对接以及 VQ-VAE&#x2F;VQ-GAN 图像生成。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="11711 Advanced NLP: Multimodal Modeling">
+<meta property="og:url" content="https://xloverflow.github.io/zh/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Multimodal/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="CMU 11-711 高级自然语言处理中多模态建模的笔记，涵盖 ViT、CLIP、LLaVA 风格对接以及 VQ-VAE&#x2F;VQ-GAN 图像生成。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png">
+<meta property="article:published_time" content="2026-03-05T04:40:00.000Z">
+<meta property="article:modified_time" content="2026-03-05T04:40:00.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="Natural Language Processing">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="Study Notes">
+<meta property="article:tag" content="11711">
+<meta property="article:tag" content="AI">
+<meta property="article:tag" content="Multimodal">
+<meta property="article:tag" content="Vision">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "11711 Advanced NLP: Multimodal Modeling",
+  "url": "https://xloverflow.github.io/zh/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Multimodal/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png",
+  "datePublished": "2026-03-05T04:40:00.000Z",
+  "dateModified": "2026-03-05T04:40:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io/zh"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/zh/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/zh/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Multimodal/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/zh/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/zh/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '11711 Advanced NLP: Multimodal Modeling',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">56</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">97</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">21</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/zh/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/zh/"><span class="site-name">11711 Advanced NLP: Multimodal Modeling</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/"><i class="fas fa-language fa-fw"></i><span> English</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">11711 Advanced NLP: Multimodal Modeling</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-03-05T04:40:00.000Z" title="发表于 2026-03-04 23:40:00">2026-03-04</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-03-05T04:40:00.000Z" title="更新于 2026-03-04 23:40:00">2026-03-04</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/zh/categories/CMU-11-711-%E9%AB%98%E7%BA%A7%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/">CMU 11-711 高级自然语言处理</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="lec11-多模态建模-imulti-to-text">Lec11 多模态建模
+I（Multi-to-Text）</h1>
+<h2 id="全局视角">全局视角</h2>
+<p>这部分课程重点是 <strong>multi-to-text</strong>：</p>
+<ul>
+<li>输入可以是图像（也可以带文本）。</li>
+<li>输出是文本。</li>
+<li>核心问题是：如何把图像映射成语言模型可消费的向量序列。</li>
+</ul>
+<h2 id="把图像表示为token">把图像表示为“token”</h2>
+<p>文本我们已有 token embedding。<br />
+图像则需要一个编码器： <span class="math display">\[
+f_{\text{enc}}(x_{\text{image}}) \rightarrow z_1,\dots,z_L
+\]</span> 其中每个 <span class="math inline">\(z_i\)</span> 都是一个向量
+token。</p>
+<h2 id="vision-transformervit">Vision Transformer（ViT）</h2>
+<p>ViT 的思路是把图像切成 patch，线性映射为向量，再送入标准
+Transformer。</p>
+<p>给定： <span class="math display">\[
+x_{\text{image}} \in \mathbb{R}^{H \times W \times C}
+\]</span></p>
+<p>按 <span class="math inline">\(P \times P\)</span> 划分 patch： <span
+class="math display">\[
+N=\frac{HW}{P^2}, \quad x_p \in \mathbb{R}^{N \times (P^2C)}
+\]</span></p>
+<p>投影到模型维度 <span class="math inline">\(D\)</span>： <span
+class="math display">\[
+x = x_p W_e, \quad W_e \in \mathbb{R}^{(P^2C)\times D}, \quad x \in
+\mathbb{R}^{N\times D}
+\]</span></p>
+<p>再加位置编码并通过 Transformer。</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260304233101190.png" alt="image-20260304233101190" style="zoom:50%;" /></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260304231918596.png" alt="image-20260304231918596" style="zoom:50%;" /></p>
+<p>课程中的直觉总结：</p>
+<ul>
+<li>浅层更偏局部结构信息。</li>
+<li>深层更偏全局语义区域。</li>
+<li>ViT 随预训练算力扩大有良好的扩展性。</li>
+</ul>
+<h2 id="clip用语言监督学习视觉表示">CLIP：用语言监督学习视觉表示</h2>
+<p>CLIP（Radford et al., 2021）在共享嵌入空间中联合学习图像与文本。</p>
+<ul>
+<li>图像编码器：<span class="math inline">\(f_I(x)\)</span></li>
+<li>文本编码器：<span class="math inline">\(f_T(y)\)</span></li>
+<li>配对图文应接近，不配对应远离。</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260304233640564.png" alt="image-20260304233640564" style="zoom:50%;" /></p>
+<p>对一个 batch 中 <span class="math inline">\(N\)</span> 对样本 <span
+class="math inline">\((x_n,y_n)\)</span>，定义相似度： <span
+class="math display">\[
+s_{ij}=\frac{f_I(x_i)^\top f_T(y_j)}{\tau}
+\]</span></p>
+<p>对称对比学习目标： <span class="math display">\[
+\mathcal{L}_{\text{img}}=-\frac{1}{N}\sum_{i=1}^N \log
+\frac{e^{s_{ii}}}{\sum_j e^{s_{ij}}},
+\quad
+\mathcal{L}_{\text{text}}=-\frac{1}{N}\sum_{i=1}^N \log
+\frac{e^{s_{ii}}}{\sum_j e^{s_{ji}}}
+\]</span> <span class="math display">\[
+\mathcal{L}_{\text{CLIP}}=\frac{1}{2}\left(\mathcal{L}_{\text{img}}+\mathcal{L}_{\text{text}}\right)
+\]</span></p>
+<p>它的重要性在于：</p>
+<ul>
+<li>用自然语言描述替代“仅类别标签”的弱监督。</li>
+<li>可扩展到 web 规模图文数据。</li>
+<li>零样本迁移能力强。</li>
+</ul>
+<h2 id="与语言模型结合llava-风格">与语言模型结合：LLaVA 风格</h2>
+<p>课程给出的通用 pipeline：</p>
+<ol type="1">
+<li>图像预处理（patch/crop）。</li>
+<li>用视觉编码器提取特征（常见是 CLIP ViT）。</li>
+<li>线性映射到 LM 的 embedding 维度。</li>
+<li>将视觉 token 与文本 token 拼接。</li>
+<li>用图文指令数据训练/微调。</li>
+<li>图像位置不计算 token-level LM loss。</li>
+</ol>
+<p>可写成： <span class="math display">\[
+h_v=\text{Proj}(f_I(x_{\text{image}})), \quad
+p_\theta(y_t\mid y_{&lt;t},x_{\text{text}},h_v)
+\]</span></p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260304234617658.png" alt="image-20260304234617658" style="zoom:50%;" /></p>
+<h2 id="课程中提到的系统案例">课程中提到的系统案例</h2>
+<ul>
+<li><strong>Molmo（AI2）：</strong> 使用 CLIP ViT-L/14（336px），经
+pooling 和投影后送入 LLM，并结合全图和裁剪视图。</li>
+</ul>
+<p><img src=”https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260305002752174.png” alt=”image-20260305002752174” style=”zoom:50%;” /></p>
+<ul>
+<li><strong>PaliGemma（Google）：</strong> 课上强调”联合更新视觉编码器与
+LM”通常优于只更新一侧。</li>
+</ul>
+<p><img src=”https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260305002723839.png” alt=”image-20260305002723839” style=”zoom:50%;” /></p>
+<h2 id="lec11-要点">Lec11 要点</h2>
+<ul>
+<li>ViT 给出了图像 token 化的标准接口。</li>
+<li>CLIP 用对比学习提供了高可扩展的图像表示。</li>
+<li>多模态助手的工程核心是视觉 token 与语言 token 的对接方式。</li>
+</ul>
+<hr />
+<h1 id="lec12-多模态建模-ii图像生成">Lec12 多模态建模
+II（图像生成）</h1>
+<h2 id="生成建模范式">生成建模范式</h2>
+<p>课程对比了四大类：</p>
+<ul>
+<li><strong>Autoregressive（AR）：</strong> 建模 <span
+class="math inline">\(p(x_t\mid x_{&lt;t})\)</span>。</li>
+<li><strong>VAE：</strong> 编码到潜变量 <span
+class="math inline">\(z\)</span>，再解码重建。</li>
+<li><strong>GAN：</strong> 生成器与判别器对抗训练。</li>
+<li><strong>Diffusion：</strong> 从噪声逐步去噪到数据分布。</li>
+</ul>
+<h2 id="尝试一像素级自回归">尝试一：像素级自回归</h2>
+<p>把图像展平成像素序列： <span class="math display">\[
+x_{\text{img}} \rightarrow (x_1,\dots,x_T),\quad x_t\in\{0,\dots,255\}
+\]</span> <span class="math display">\[
+\mathcal{L}_{\text{MLE}}=-\sum_{t=1}^{T}\log p_\theta(x_t\mid x_{&lt;t})
+\]</span></p>
+<p>课程提到的代表：PixelRNN、Image Transformer、iGPT。</p>
+<p>主要瓶颈：</p>
+<ul>
+<li>序列过长（如 <span
+class="math inline">\(1024\times1024\times3\approx 3\)</span>M
+tokens）。</li>
+<li>单个像素语义弱，训练非常吃数据。</li>
+</ul>
+<h2 id="尝试二学习离散图像-token">尝试二：学习离散图像 token</h2>
+<p>核心思路：先学一个图像 tokenizer/de-tokenizer，再让 LM
+建模更短、更语义化的 token 序列。</p>
+<h3 id="vae-回顾">VAE 回顾</h3>
+<p>标准目标： <span class="math display">\[
+\mathcal{L}_{\text{VAE}}(x)=
+-\mathbb{E}_{q_{\theta_{\text{enc}}}(z\mid x)}[\log
+p_{\theta_{\text{dec}}}(x\mid z)]
++D_{\text{KL}}\!\left(q_{\theta_{\text{enc}}}(z\mid x)\|p(z)\right)
+\]</span></p>
+<p>等价的 ELBO 视角： <span class="math display">\[
+\log p(x)\ge
+\mathbb{E}_{q(z\mid x)}[\log p(x\mid z)]
+-D_{\text{KL}}(q(z\mid x)\|p(z))
+\]</span></p>
+<h3 id="vq-vae从连续到离散">VQ-VAE：从连续到离散</h3>
+<p>编码器给连续潜变量： <span class="math display">\[
+z_e(x)\in\mathbb{R}^{d}
+\]</span></p>
+<p>再做最近邻量化： <span class="math display">\[
+k^*=\arg\min_j\|z_e(x)-e_j\|_2,\quad z_q(x)=e_{k^*}
+\]</span></p>
+<p>训练损失由重建项 + codebook 项 + commitment 项组成： <span
+class="math display">\[
+\mathcal{L}=
+-\log p(x\mid z_q(x))
++\|\text{sg}[z_e(x)]-e\|_2^2
++\beta\|z_e(x)-\text{sg}[e]\|_2^2
+\]</span></p>
+<p>之后即可对离散图像 token 做自回归建模。</p>
+<h3 id="vq-gan">VQ-GAN</h3>
+<p>VQ-GAN 在 VQ-VAE 的基础上加入对抗/感知损失来提升 tokenizer
+质量，再对得到的离散 token 训练 AR Transformer。</p>
+<p>课上的实际收益：</p>
+<ul>
+<li>序列长度显著降低（例如 <span
+class="math inline">\(32\times32=1024\)</span>）；</li>
+<li>比直接像素建模更可行，质量与计算开销更平衡。</li>
+</ul>
+<h2 id="统一文本-token-和图像-token">统一文本 token 和图像 token</h2>
+<p>训练完 tokenizer 后：</p>
+<ol type="1">
+<li>将图像 token 加入 LM 词表。</li>
+<li>在混合的文本+图像 token 序列上训练/微调。</li>
+<li>用 de-tokenizer 把图像 token 还原为像素图像。</li>
+</ol>
+<p>课程案例：DALL-E（2021）、Chameleon（Meta，2024）。</p>
+<h2 id="lec12-要点">Lec12 要点</h2>
+<ul>
+<li>像素级 AR 概念直观，但扩展困难。</li>
+<li>VQ-VAE/VQ-GAN 这类离散 tokenizer 是 AR 多模态生成的关键桥梁。</li>
+<li>统一 token 建模的代价是 tokenizer 引入的信息损失。</li>
+</ul>
+<h2 id="总结">总结</h2>
+<ul>
+<li><strong>Lec11：</strong> 关注“如何把图像编码给语言模型”。</li>
+<li><strong>Lec12：</strong> 关注“如何用 token 化范式生成图像”。</li>
+<li>两节合起来就是多模态系统三件事：<br />
+<strong>表示（encode）+ 对齐（alignment）+
+生成（decode）</strong>。</li>
+</ul>
+<p><em>本文基于 CMU 11-711 Advanced NLP（Sean Welleck）Multimodal
+Modeling I &amp; II 课件整理。</em></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Multimodal/">https://xloverflow.github.io/zh/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Multimodal/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://xloverflow.github.io/zh" target="_blank">Life is not a race, but a journey</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/zh/tags/Natural-Language-Processing/">Natural Language Processing</a><a class="post-meta__tags" href="/zh/tags/CMU/">CMU</a><a class="post-meta__tags" href="/zh/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/zh/tags/11711/">11711</a><a class="post-meta__tags" href="/zh/tags/AI/">AI</a><a class="post-meta__tags" href="/zh/tags/Multimodal/">Multimodal</a><a class="post-meta__tags" href="/zh/tags/Vision/">Vision</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/zh/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/" title="11711 Advanced NLP：评测与实验设计"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">11711 Advanced NLP：评测与实验设计</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 Advanced NLP 课程关于 NLP 评测、基准测试与实验设计的笔记，涵盖损失指标、任务指标、LLM 评判、统计检验与标注质量。</div></div></div></a><a class="pagination-related" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">11711 Advanced NLP: Retrieval and RAG</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理中关于检索系统、检索器和检索增强生成（RAG）的笔记。</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/zh/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">关于CMU 11-711高级自然语言处理的RNN架构、编码器-解码器模型和注意力机制的笔记。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-22</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/" title="11711 Advanced NLP: Learning &amp; Inference"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Learning &amp; Inference</div></div><div class="info-2"><div class="info-item-1">卡内基梅隆大学 11-711 高级自然语言处理的学习算法和推理方法笔记。</div></div></div></a><a class="pagination-related" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-14</div><div class="info-item-2">11711 Advanced NLP: Retrieval and RAG</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理中关于检索系统、检索器和检索增强生成（RAG）的笔记。</div></div></div></a><a class="pagination-related" href="/zh/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/" title="11711 Advanced NLP：评测与实验设计"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-05</div><div class="info-item-2">11711 Advanced NLP：评测与实验设计</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 Advanced NLP 课程关于 NLP 评测、基准测试与实验设计的笔记，涵盖损失指标、任务指标、LLM 评判、统计检验与标注质量。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/26/11868-LLM-Sys/11868-LLM-SyS-GPU-Programming-Acceleration/" title="11868 LLM Sys: GPU Programming &amp; Acceleration"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-25</div><div class="info-item-2">11868 LLM Sys: GPU Programming &amp; Acceleration</div></div><div class="info-2"><div class="info-item-1">CMU 11-868 LLM系统：GPU编程与加速的笔记和总结。</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li 的中文博客</div><div class="site-data"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">56</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">97</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">21</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#lec11-%E5%A4%9A%E6%A8%A1%E6%80%81%E5%BB%BA%E6%A8%A1-imulti-to-text"><span class="toc-number">1.</span> <span class="toc-text">Lec11 多模态建模
+I（Multi-to-Text）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%A8%E5%B1%80%E8%A7%86%E8%A7%92"><span class="toc-number">1.1.</span> <span class="toc-text">全局视角</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8A%8A%E5%9B%BE%E5%83%8F%E8%A1%A8%E7%A4%BA%E4%B8%BAtoken"><span class="toc-number">1.2.</span> <span class="toc-text">把图像表示为“token”</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#vision-transformervit"><span class="toc-number">1.3.</span> <span class="toc-text">Vision Transformer（ViT）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#clip%E7%94%A8%E8%AF%AD%E8%A8%80%E7%9B%91%E7%9D%A3%E5%AD%A6%E4%B9%A0%E8%A7%86%E8%A7%89%E8%A1%A8%E7%A4%BA"><span class="toc-number">1.4.</span> <span class="toc-text">CLIP：用语言监督学习视觉表示</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%8E%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B%E7%BB%93%E5%90%88llava-%E9%A3%8E%E6%A0%BC"><span class="toc-number">1.5.</span> <span class="toc-text">与语言模型结合：LLaVA 风格</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%BE%E7%A8%8B%E4%B8%AD%E6%8F%90%E5%88%B0%E7%9A%84%E7%B3%BB%E7%BB%9F%E6%A1%88%E4%BE%8B"><span class="toc-number">1.6.</span> <span class="toc-text">课程中提到的系统案例</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#lec11-%E8%A6%81%E7%82%B9"><span class="toc-number">1.7.</span> <span class="toc-text">Lec11 要点</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#lec12-%E5%A4%9A%E6%A8%A1%E6%80%81%E5%BB%BA%E6%A8%A1-ii%E5%9B%BE%E5%83%8F%E7%94%9F%E6%88%90"><span class="toc-number">2.</span> <span class="toc-text">Lec12 多模态建模
+II（图像生成）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%94%9F%E6%88%90%E5%BB%BA%E6%A8%A1%E8%8C%83%E5%BC%8F"><span class="toc-number">2.1.</span> <span class="toc-text">生成建模范式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%9D%E8%AF%95%E4%B8%80%E5%83%8F%E7%B4%A0%E7%BA%A7%E8%87%AA%E5%9B%9E%E5%BD%92"><span class="toc-number">2.2.</span> <span class="toc-text">尝试一：像素级自回归</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%9D%E8%AF%95%E4%BA%8C%E5%AD%A6%E4%B9%A0%E7%A6%BB%E6%95%A3%E5%9B%BE%E5%83%8F-token"><span class="toc-number">2.3.</span> <span class="toc-text">尝试二：学习离散图像 token</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#vae-%E5%9B%9E%E9%A1%BE"><span class="toc-number">2.3.1.</span> <span class="toc-text">VAE 回顾</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#vq-vae%E4%BB%8E%E8%BF%9E%E7%BB%AD%E5%88%B0%E7%A6%BB%E6%95%A3"><span class="toc-number">2.3.2.</span> <span class="toc-text">VQ-VAE：从连续到离散</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#vq-gan"><span class="toc-number">2.3.3.</span> <span class="toc-text">VQ-GAN</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%9F%E4%B8%80%E6%96%87%E6%9C%AC-token-%E5%92%8C%E5%9B%BE%E5%83%8F-token"><span class="toc-number">2.4.</span> <span class="toc-text">统一文本 token 和图像 token</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#lec12-%E8%A6%81%E7%82%B9"><span class="toc-number">2.5.</span> <span class="toc-text">Lec12 要点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">2.6.</span> <span class="toc-text">总结</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/03/10/AI-Agent/AI-Agent-Engineering-Design-Curated-Reading-List/" title="AI Agent 工程设计精选文章"><img src="https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="AI Agent 工程设计精选文章"/></a><div class="content"><a class="title" href="/zh/2026/03/10/AI-Agent/AI-Agent-Engineering-Design-Curated-Reading-List/" title="AI Agent 工程设计精选文章">AI Agent 工程设计精选文章</a><time datetime="2026-03-10T04:00:00.000Z" title="发表于 2026-03-10 00:00:00">2026-03-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/03/08/15645-Database-Systems/15645-Database-systems-Join-Algorithms/" title="15645 Database systems: Join Algorithms"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="15645 Database systems: Join Algorithms"/></a><div class="content"><a class="title" href="/zh/2026/03/08/15645-Database-Systems/15645-Database-systems-Join-Algorithms/" title="15645 Database systems: Join Algorithms">15645 Database systems: Join Algorithms</a><time datetime="2026-03-08T14:40:00.000Z" title="发表于 2026-03-08 10:40:00">2026-03-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/03/08/15645-Database-Systems/15645-Database-systems-Sorting-Aggregation/" title="15645 Database systems: Sorting &amp; Aggregation"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="15645 Database systems: Sorting &amp; Aggregation"/></a><div class="content"><a class="title" href="/zh/2026/03/08/15645-Database-Systems/15645-Database-systems-Sorting-Aggregation/" title="15645 Database systems: Sorting &amp; Aggregation">15645 Database systems: Sorting &amp; Aggregation</a><time datetime="2026-03-08T14:35:00.000Z" title="发表于 2026-03-08 10:35:00">2026-03-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/" title="15645 Database systems: Index Concurrency Control"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="15645 Database systems: Index Concurrency Control"/></a><div class="content"><a class="title" href="/zh/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/" title="15645 Database systems: Index Concurrency Control">15645 Database systems: Index Concurrency Control</a><time datetime="2026-03-08T14:30:00.000Z" title="发表于 2026-03-08 10:30:00">2026-03-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/" title="11711 Advanced NLP：评测与实验设计"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11711 Advanced NLP：评测与实验设计"/></a><div class="content"><a class="title" href="/zh/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/" title="11711 Advanced NLP：评测与实验设计">11711 Advanced NLP：评测与实验设计</a><time datetime="2026-03-05T17:00:00.000Z" title="发表于 2026-03-05 12:00:00">2026-03-05</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/zh/js/utils.js"></script><script src="/zh/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '2a99461477cb49f3b32031daf9fad950'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/zh/404.html') : window.location.href = '/zh/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

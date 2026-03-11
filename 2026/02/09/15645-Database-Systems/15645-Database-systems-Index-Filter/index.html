@@ -1,0 +1,644 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>15645 Database systems: Index &amp; Filter | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Notes and summaries for CMU 15-645 Database Systems.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="15645 Database systems: Index &amp; Filter">
+<meta property="og:url" content="https://xloverflow.github.io/2026/02/09/15645-Database-Systems/15645-Database-systems-Index-Filter/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Notes and summaries for CMU 15-645 Database Systems.">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png">
+<meta property="article:published_time" content="2026-02-09T19:09:42.000Z">
+<meta property="article:modified_time" content="2026-02-16T20:10:00.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="15645">
+<meta property="article:tag" content="B+Tree">
+<meta property="article:tag" content="Bloom Filter">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="Database Systems">
+<meta property="article:tag" content="Filter">
+<meta property="article:tag" content="Index">
+<meta property="article:tag" content="Study Notes">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "15645 Database systems: Index & Filter",
+  "url": "https://xloverflow.github.io/2026/02/09/15645-Database-Systems/15645-Database-systems-Index-Filter/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png",
+  "datePublished": "2026-02-09T19:09:42.000Z",
+  "dateModified": "2026-02-16T20:10:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2026/02/09/15645-Database-Systems/15645-Database-systems-Index-Filter/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '15645 Database systems: Index & Filter',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">56</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">98</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">15645 Database systems: Index &amp; Filter</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">15645 Database systems: Index &amp; Filter</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-02-09T19:09:42.000Z" title="Created 2026-02-09 14:09:42">2026-02-09</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-02-16T20:10:00.000Z" title="Updated 2026-02-16 15:10:00">2026-02-16</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CMU-15-645-Database-Systems/">CMU 15-645 Database Systems</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="lec-8-9-indexes-filters">Lec 8-9 Indexes + Filters</h1>
+<h2 id="study-map">0. Study Map</h2>
+<p>This note follows one question: <strong>“For this query type, which
+structure should I use?”</strong></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Query Intent</th>
+<th>Primary Structure</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Point / range on structured keys</td>
+<td>B+Tree</td>
+<td>Ordered, exact, update-friendly</td>
+</tr>
+<tr class="even">
+<td>Fast “not exists” pre-check</td>
+<td>Bloom-like filter</td>
+<td>Cheap negative filtering</td>
+</tr>
+<tr class="odd">
+<td>In-memory ordered set</td>
+<td>Skip list</td>
+<td>Simple updates, expected <code>O(log n)</code></td>
+</tr>
+<tr class="even">
+<td>Prefix/digital key lookup</td>
+<td>Trie / Radix</td>
+<td>Follows key digits/prefixes</td>
+</tr>
+<tr class="odd">
+<td>Full-text keyword search</td>
+<td>Inverted index</td>
+<td><code>term -&gt; posting list</code></td>
+</tr>
+<tr class="even">
+<td>Semantic similarity search</td>
+<td>Vector index (IVF/HNSW)</td>
+<td>ANN over embeddings</td>
+</tr>
+</tbody>
+</table>
+<h1 id="btree-lec-8-core">1. B+Tree (Lec 8 Core)</h1>
+<h2 id="core-idea">1.1 Core Idea</h2>
+<p>B+Tree is the default ordered index in DBMSs: one structure supports
+both <strong>point lookup</strong> and <strong>range scan</strong> with
+stable disk behavior.</p>
+<h2 id="physical-structure">1.2 Physical Structure</h2>
+<ul>
+<li><strong>Inner node:</strong> routing keys + child pointers.</li>
+<li><strong>Leaf node:</strong> key + payload (RID / primary key / tuple
+data).</li>
+<li><strong>Leaf sibling links:</strong> make ordered scans
+efficient.</li>
+</ul>
+<h3 id="b-tree-vs-btree">B-Tree vs B+Tree</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Aspect</th>
+<th>B-Tree</th>
+<th>B+Tree</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Value location</td>
+<td>All levels</td>
+<td>Leaves only</td>
+</tr>
+<tr class="even">
+<td>Range scan</td>
+<td>Less natural</td>
+<td>Natural via leaf chain</td>
+</tr>
+<tr class="odd">
+<td>Real DBMS usage</td>
+<td>Rare</td>
+<td>Mainstream</td>
+</tr>
+</tbody>
+</table>
+<h2 id="update-logic-what-happens-on-write">1.3 Update Logic (What
+Happens on Write)</h2>
+<h3 id="insert">Insert</h3>
+<ol type="1">
+<li>Traverse to target leaf.</li>
+<li>Insert key in order.</li>
+<li>If overflow, split node.</li>
+<li>Push separator key to parent.</li>
+<li>Cascade upward if parent also overflows.</li>
+</ol>
+<h3 id="delete">Delete</h3>
+<ol type="1">
+<li>Remove key from leaf.</li>
+<li>If under threshold, try borrow from sibling.</li>
+<li>If borrow fails, merge siblings.</li>
+<li>Update parent separators.</li>
+<li>Cascade upward on parent underflow.</li>
+</ol>
+<h3 id="duplicate-keys">Duplicate Keys</h3>
+<ul>
+<li>Preferred: store <code>(key, rid)</code> to keep uniqueness.</li>
+<li>Avoid overflow chains unless unavoidable (maintenance cost
+high).</li>
+</ul>
+<h2 id="design-knobs">1.4 Design Knobs</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Knob</th>
+<th>Typical Choice</th>
+<th>Trade-off</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Node size</td>
+<td>Larger on slower storage</td>
+<td>Fewer I/Os vs more in-node scan</td>
+</tr>
+<tr class="even">
+<td>Merge threshold</td>
+<td>Not always immediate merge</td>
+<td>Lower write churn vs temporary sparsity</td>
+</tr>
+<tr class="odd">
+<td>Variable-length key storage</td>
+<td>Pointer/var-node/padding/indirection</td>
+<td>Space efficiency vs complexity</td>
+</tr>
+<tr class="even">
+<td>In-node search</td>
+<td>Linear(SIMD)/binary/interpolation</td>
+<td>CPU efficiency vs distribution assumptions</td>
+</tr>
+</tbody>
+</table>
+<h2 id="practical-optimizations">1.5 Practical Optimizations</h2>
+<ul>
+<li><strong>Pointer swizzling:</strong> pinned pages can be referenced
+by raw pointers.</li>
+<li><strong>Write-optimized B+Tree:</strong> buffer updates at internal
+nodes, flush in batches.</li>
+<li><strong>Partial index:</strong> index only rows matching
+predicate.</li>
+<li><strong>Include columns:</strong> support index-only scans.</li>
+<li><strong>Prefix compression / dedup / suffix truncation:</strong>
+reduce footprint.</li>
+<li><strong>Bulk build:</strong> sort keys first, build bottom-up.</li>
+</ul>
+<h2 id="when-to-use-btree">1.6 When to Use B+Tree</h2>
+<p>Use B+Tree first when you need:</p>
+<ul>
+<li>exact lookup + range query</li>
+<li>frequent updates</li>
+<li>predictable transactional behavior</li>
+</ul>
+<h1 id="filters-lec-9-part-a">2. Filters (Lec 9 Part A)</h1>
+<h2 id="bloom-filter">2.1 Bloom Filter</h2>
+<h3 id="core-idea-1">Core Idea</h3>
+<p>A bitmap + <code>k</code> hash functions for membership checks.</p>
+<h3 id="semantics">Semantics</h3>
+<ul>
+<li>False negative: never</li>
+<li>False positive: possible</li>
+</ul>
+<h3 id="operations">Operations</h3>
+<ul>
+<li><code>Insert(x)</code>: set <code>k</code> bits.</li>
+<li><code>Lookup(x)</code>: any bit <code>0</code> =&gt; absent; all
+<code>1</code> =&gt; maybe present.</li>
+</ul>
+<h3 id="best-use">Best Use</h3>
+<p>As a pre-filter in front of expensive index/table probes.</p>
+<h2 id="other-filters">2.2 Other Filters</h2>
+<ul>
+<li><strong>Counting Bloom:</strong> counters instead of bits, supports
+delete.</li>
+<li><strong>Cuckoo Filter:</strong> fingerprint-based, dynamic
+insert/delete.</li>
+<li><strong>SuRF:</strong> compressed static trie-like filter for
+approximate point/range filtering.</li>
+</ul>
+<h1 id="ordered-alternatives-lec-9-part-b">3. Ordered Alternatives (Lec
+9 Part B)</h1>
+<h2 id="skip-list">3.1 Skip List</h2>
+<h3 id="core-idea-2">Core Idea</h3>
+<p>Layered linked lists with random “height” per key.</p>
+<h3 id="why-it-exists">Why It Exists</h3>
+<ul>
+<li>easier update path than strict tree rebalancing</li>
+<li>expected <code>O(log n)</code> operations</li>
+</ul>
+<h3 id="trade-off">Trade-off</h3>
+<ul>
+<li>good in memory (e.g., MemTable)</li>
+<li>usually worse locality than B+Tree on disk/cache-heavy paths</li>
+</ul>
+<h2 id="trie-radix-tree">3.2 Trie / Radix Tree</h2>
+<h3 id="trie">Trie</h3>
+<ul>
+<li>Search by key digits/prefixes.</li>
+<li>Complexity <code>O(k)</code> where <code>k</code> is key
+length.</li>
+<li>Shape depends on key prefixes, not insertion order.</li>
+</ul>
+<h3 id="radix-patricia">Radix (Patricia)</h3>
+<ul>
+<li>Compress single-child paths.</li>
+<li>Better space than plain trie.</li>
+<li>Some compressed-path checks may require verification against
+original key/tuple.</li>
+</ul>
+<h1 id="inverted-index-for-text-search-lec-9-part-c">4. Inverted Index
+for Text Search (Lec 9 Part C)</h1>
+<h2 id="core-structure">4.1 Core Structure</h2>
+<ul>
+<li>Dictionary of terms</li>
+<li>Posting list per term</li>
+</ul>
+<p>This is the right structure for <code>contains keyword</code>
+queries, where B+Tree <code>LIKE '%...%'</code> is usually
+inefficient.</p>
+<h2 id="systems-in-slides">4.2 Systems in Slides</h2>
+<ul>
+<li><strong>Lucene:</strong> FST dictionary + segments + background
+merge.</li>
+<li><strong>PostgreSQL GIN:</strong> dictionary + posting list/tree +
+pending list.</li>
+</ul>
+<h2 id="retrieval-quality-layer">4.3 Retrieval Quality Layer</h2>
+<ul>
+<li>Ranking: TF-IDF / BM25</li>
+<li>Token processing: n-gram/trigram</li>
+<li>Normalization: punctuation/spacing variants</li>
+</ul>
+<h1 id="vector-index-for-semantic-search-lec-9-part-d">5. Vector Index
+for Semantic Search (Lec 9 Part D)</h1>
+<h2 id="why-vector-index">5.1 Why Vector Index</h2>
+<p>Keyword overlap is not enough for semantic matching. Convert
+text/items into embeddings, then retrieve nearest vectors.</p>
+<h2 id="ivf-style-vector-search">5.2 IVF-Style Vector Search</h2>
+<ul>
+<li>Cluster vectors into centroids.</li>
+<li>Map centroid -&gt; posting list of vectors.</li>
+<li>Query probes nearest clusters and reranks candidates.</li>
+</ul>
+<h2 id="graph-style-vector-search-hnsw">5.3 Graph-Style Vector Search
+(HNSW)</h2>
+<ul>
+<li>Build neighbor graph on vectors.</li>
+<li>Greedy traversal from entry points toward query.</li>
+<li>Multi-layer hierarchy improves speed/quality.</li>
+</ul>
+<h2 id="practical-note">5.4 Practical Note</h2>
+<p>Vector search is usually combined with metadata filters before/after
+ANN stage.</p>
+<h1 id="final-selection-guide">6. Final Selection Guide</h1>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>If Your Query Is…</th>
+<th>Start With</th>
+<th>Then Add</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>a = ?</code> or <code>a between ? and ?</code></td>
+<td>B+Tree</td>
+<td>Partial/covering index</td>
+</tr>
+<tr class="even">
+<td>“Does key probably exist?”</td>
+<td>Bloom filter</td>
+<td>Base index probe on positives</td>
+</tr>
+<tr class="odd">
+<td>“Find docs containing term”</td>
+<td>Inverted index</td>
+<td>BM25 + tokenizer tuning</td>
+</tr>
+<tr class="even">
+<td>“Find semantically similar items”</td>
+<td>Vector index (IVF/HNSW)</td>
+<td>metadata filter + rerank</td>
+</tr>
+<tr class="odd">
+<td>Prefix-heavy key search</td>
+<td>Trie/Radix</td>
+<td>compression/adaptive node layout</td>
+</tr>
+</tbody>
+</table>
+<h2 id="quick-recap">Quick Recap</h2>
+<ol type="1">
+<li>B+Tree is still the baseline ordered index.</li>
+<li>Filters reduce wasted probes but do not locate tuples.</li>
+<li>Inverted indexes solve keyword retrieval; vector indexes solve
+semantic retrieval.</li>
+<li>Real systems combine multiple structures in one pipeline.</li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2026/02/09/15645-Database-Systems/15645-Database-systems-Index-Filter/">https://xloverflow.github.io/2026/02/09/15645-Database-Systems/15645-Database-systems-Index-Filter/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/CMU/">CMU</a><a class="post-meta__tags" href="/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/tags/Database-Systems/">Database Systems</a><a class="post-meta__tags" href="/tags/15645/">15645</a><a class="post-meta__tags" href="/tags/B-Tree/">B+Tree</a><a class="post-meta__tags" href="/tags/Index/">Index</a><a class="post-meta__tags" href="/tags/Filter/">Filter</a><a class="post-meta__tags" href="/tags/Bloom-Filter/">Bloom Filter</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/02/09/15642-Machine-Learning-Systems/15642-ML-Systems-Transformer-Attention-Optimizations/" title="15642 Machine Learning Systems: Transformer, Attention, and Optimizations"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">15642 Machine Learning Systems: Transformer, Attention, and Optimizations</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-642 Machine Learning Systems on Transformer architecture, attention mechanisms, and GPU optimizations including FlashAttention.</div></div></div></a><a class="pagination-related" href="/2026/02/09/Blog/TinyKV-A-Raft-Based-KV-Storage-System/" title="TinyKV: A Raft-Based KV Storage System"><img class="cover" src="https://pic1.zhimg.com/80/v2-9f7c5ea8719df399f0b661e61506a285_1440w.jpeg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">TinyKV: A Raft-Based KV Storage System</div></div><div class="info-2"><div class="info-item-1">Implementation and architecture of TinyKV, a Raft-based distributed key-value storage system covering Multi-Raft, MVCC transactions, and the scheduler.</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/" title="15645 Database systems: Index Concurrency Control"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-08</div><div class="info-item-2">15645 Database systems: Index Concurrency Control</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/01/16/15645-Database-Systems/15645-Database-Systems-relational-model-and-SQL/" title="15645 Database systems: Relational Model and SQL"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-15</div><div class="info-item-2">15645 Database systems: Relational Model and SQL</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/02/07/15645-Database-Systems/15645-Database-systems-Hash-Tables/" title="15645 Database systems: Hash Tables"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-07</div><div class="info-item-2">15645 Database systems: Hash Tables</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Join-Algorithms/" title="15645 Database systems: Join Algorithms"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-08</div><div class="info-item-2">15645 Database systems: Join Algorithms</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Sorting-Aggregation/" title="15645 Database systems: Sorting &amp; Aggregation"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-08</div><div class="info-item-2">15645 Database systems: Sorting &amp; Aggregation</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">Notes on RNN architectures, encoder-decoder models, and attention mechanisms from CMU 11-711 Advanced NLP.</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">56</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">98</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#lec-8-9-indexes-filters"><span class="toc-number">1.</span> <span class="toc-text">Lec 8-9 Indexes + Filters</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#study-map"><span class="toc-number">1.1.</span> <span class="toc-text">0. Study Map</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#btree-lec-8-core"><span class="toc-number">2.</span> <span class="toc-text">1. B+Tree (Lec 8 Core)</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#core-idea"><span class="toc-number">2.1.</span> <span class="toc-text">1.1 Core Idea</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#physical-structure"><span class="toc-number">2.2.</span> <span class="toc-text">1.2 Physical Structure</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#b-tree-vs-btree"><span class="toc-number">2.2.1.</span> <span class="toc-text">B-Tree vs B+Tree</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#update-logic-what-happens-on-write"><span class="toc-number">2.3.</span> <span class="toc-text">1.3 Update Logic (What
+Happens on Write)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#insert"><span class="toc-number">2.3.1.</span> <span class="toc-text">Insert</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#delete"><span class="toc-number">2.3.2.</span> <span class="toc-text">Delete</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#duplicate-keys"><span class="toc-number">2.3.3.</span> <span class="toc-text">Duplicate Keys</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#design-knobs"><span class="toc-number">2.4.</span> <span class="toc-text">1.4 Design Knobs</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#practical-optimizations"><span class="toc-number">2.5.</span> <span class="toc-text">1.5 Practical Optimizations</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#when-to-use-btree"><span class="toc-number">2.6.</span> <span class="toc-text">1.6 When to Use B+Tree</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#filters-lec-9-part-a"><span class="toc-number">3.</span> <span class="toc-text">2. Filters (Lec 9 Part A)</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#bloom-filter"><span class="toc-number">3.1.</span> <span class="toc-text">2.1 Bloom Filter</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#core-idea-1"><span class="toc-number">3.1.1.</span> <span class="toc-text">Core Idea</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#semantics"><span class="toc-number">3.1.2.</span> <span class="toc-text">Semantics</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#operations"><span class="toc-number">3.1.3.</span> <span class="toc-text">Operations</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#best-use"><span class="toc-number">3.1.4.</span> <span class="toc-text">Best Use</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#other-filters"><span class="toc-number">3.2.</span> <span class="toc-text">2.2 Other Filters</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#ordered-alternatives-lec-9-part-b"><span class="toc-number">4.</span> <span class="toc-text">3. Ordered Alternatives (Lec
+9 Part B)</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#skip-list"><span class="toc-number">4.1.</span> <span class="toc-text">3.1 Skip List</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#core-idea-2"><span class="toc-number">4.1.1.</span> <span class="toc-text">Core Idea</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#why-it-exists"><span class="toc-number">4.1.2.</span> <span class="toc-text">Why It Exists</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#trade-off"><span class="toc-number">4.1.3.</span> <span class="toc-text">Trade-off</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#trie-radix-tree"><span class="toc-number">4.2.</span> <span class="toc-text">3.2 Trie &#x2F; Radix Tree</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#trie"><span class="toc-number">4.2.1.</span> <span class="toc-text">Trie</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#radix-patricia"><span class="toc-number">4.2.2.</span> <span class="toc-text">Radix (Patricia)</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#inverted-index-for-text-search-lec-9-part-c"><span class="toc-number">5.</span> <span class="toc-text">4. Inverted Index
+for Text Search (Lec 9 Part C)</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#core-structure"><span class="toc-number">5.1.</span> <span class="toc-text">4.1 Core Structure</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#systems-in-slides"><span class="toc-number">5.2.</span> <span class="toc-text">4.2 Systems in Slides</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#retrieval-quality-layer"><span class="toc-number">5.3.</span> <span class="toc-text">4.3 Retrieval Quality Layer</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#vector-index-for-semantic-search-lec-9-part-d"><span class="toc-number">6.</span> <span class="toc-text">5. Vector Index
+for Semantic Search (Lec 9 Part D)</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#why-vector-index"><span class="toc-number">6.1.</span> <span class="toc-text">5.1 Why Vector Index</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ivf-style-vector-search"><span class="toc-number">6.2.</span> <span class="toc-text">5.2 IVF-Style Vector Search</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#graph-style-vector-search-hnsw"><span class="toc-number">6.3.</span> <span class="toc-text">5.3 Graph-Style Vector Search
+(HNSW)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#practical-note"><span class="toc-number">6.4.</span> <span class="toc-text">5.4 Practical Note</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#final-selection-guide"><span class="toc-number">7.</span> <span class="toc-text">6. Final Selection Guide</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#quick-recap"><span class="toc-number">7.1.</span> <span class="toc-text">Quick Recap</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/03/10/AI-Agent/AI-Agent-Engineering-Design-Curated-Reading-List/" title="AI Agent Engineering Design: A Curated Reading List"><img src="https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="AI Agent Engineering Design: A Curated Reading List"/></a><div class="content"><a class="title" href="/2026/03/10/AI-Agent/AI-Agent-Engineering-Design-Curated-Reading-List/" title="AI Agent Engineering Design: A Curated Reading List">AI Agent Engineering Design: A Curated Reading List</a><time datetime="2026-03-10T04:00:00.000Z" title="Created 2026-03-10 00:00:00">2026-03-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Join-Algorithms/" title="15645 Database systems: Join Algorithms"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Join Algorithms"/></a><div class="content"><a class="title" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Join-Algorithms/" title="15645 Database systems: Join Algorithms">15645 Database systems: Join Algorithms</a><time datetime="2026-03-08T14:40:00.000Z" title="Created 2026-03-08 10:40:00">2026-03-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Sorting-Aggregation/" title="15645 Database systems: Sorting &amp; Aggregation"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Sorting &amp; Aggregation"/></a><div class="content"><a class="title" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Sorting-Aggregation/" title="15645 Database systems: Sorting &amp; Aggregation">15645 Database systems: Sorting &amp; Aggregation</a><time datetime="2026-03-08T14:35:00.000Z" title="Created 2026-03-08 10:35:00">2026-03-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/" title="15645 Database systems: Index Concurrency Control"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Index Concurrency Control"/></a><div class="content"><a class="title" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/" title="15645 Database systems: Index Concurrency Control">15645 Database systems: Index Concurrency Control</a><time datetime="2026-03-08T14:30:00.000Z" title="Created 2026-03-08 10:30:00">2026-03-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/" title="11711 Advanced NLP: Evaluation &amp; Experimental Design"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Evaluation &amp; Experimental Design"/></a><div class="content"><a class="title" href="/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/" title="11711 Advanced NLP: Evaluation &amp; Experimental Design">11711 Advanced NLP: Evaluation &amp; Experimental Design</a><time datetime="2026-03-05T17:00:00.000Z" title="Created 2026-03-05 12:00:00">2026-03-05</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '9ebcfb3d4536247012dca1b90cf3b947'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

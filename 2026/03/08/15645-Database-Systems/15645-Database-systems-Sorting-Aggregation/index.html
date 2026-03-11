@@ -1,0 +1,742 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>15645 Database systems: Sorting &amp; Aggregation | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Notes and summaries for CMU 15-645 Database Systems.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="15645 Database systems: Sorting &amp; Aggregation">
+<meta property="og:url" content="https://xloverflow.github.io/2026/03/08/15645-Database-Systems/15645-Database-systems-Sorting-Aggregation/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Notes and summaries for CMU 15-645 Database Systems.">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png">
+<meta property="article:published_time" content="2026-03-08T14:35:00.000Z">
+<meta property="article:modified_time" content="2026-03-08T14:35:00.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="15645">
+<meta property="article:tag" content="Aggregation">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="Database Systems">
+<meta property="article:tag" content="Query Execution">
+<meta property="article:tag" content="Sorting">
+<meta property="article:tag" content="Study Notes">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "15645 Database systems: Sorting & Aggregation",
+  "url": "https://xloverflow.github.io/2026/03/08/15645-Database-Systems/15645-Database-systems-Sorting-Aggregation/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png",
+  "datePublished": "2026-03-08T14:35:00.000Z",
+  "dateModified": "2026-03-08T14:35:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2026/03/08/15645-Database-Systems/15645-Database-systems-Sorting-Aggregation/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '15645 Database systems: Sorting & Aggregation',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">56</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">98</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">15645 Database systems: Sorting &amp; Aggregation</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">15645 Database systems: Sorting &amp; Aggregation</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-03-08T14:35:00.000Z" title="Created 2026-03-08 10:35:00">2026-03-08</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-03-08T14:35:00.000Z" title="Updated 2026-03-08 10:35:00">2026-03-08</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CMU-15-645-Database-Systems/">CMU 15-645 Database Systems</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="lec-11-sorting-aggregation-algorithms">Lec 11 Sorting &amp;
+Aggregation Algorithms</h1>
+<h2 id="why-sorting-shows-up-in-a-dbms">0. Why Sorting Shows Up in a
+DBMS</h2>
+<p>SQL relations are logically unordered, but the DBMS still sorts all
+the time:</p>
+<ul>
+<li><code>ORDER BY</code></li>
+<li><code>DISTINCT</code></li>
+<li><code>GROUP BY</code></li>
+<li>window functions</li>
+<li>bulk loading a B+Tree from sorted tuples</li>
+</ul>
+<p>In a disk-oriented DBMS, the key constraint is that <strong>the input
+or output may not fit in memory</strong>. That is why the lecture
+focuses on spill-aware algorithms with mostly sequential I/O.</p>
+<p>Throughout this note:</p>
+<ul>
+<li><code>T</code> = number of tuples</li>
+<li><code>N</code> = number of pages</li>
+<li><code>B</code> = number of buffer pages</li>
+<li><code>G</code> = number of groups in an aggregation</li>
+</ul>
+<h2 id="sorting-model">1. Sorting Model</h2>
+<p>Sorting works on <code>(key, value)</code> pairs:</p>
+<ul>
+<li><strong>Key:</strong> attributes that define the order</li>
+<li><strong>Value:</strong> either the full tuple or a record id /
+offset</li>
+</ul>
+<h3 id="early-vs.-late-materialization">Early vs. Late
+Materialization</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Strategy</th>
+<th>What Gets Sorted</th>
+<th>Best When</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Early materialization</td>
+<td><code>(sort key, tuple)</code></td>
+<td>tuple is small or later operators want the whole row</td>
+</tr>
+<tr class="even">
+<td>Late materialization</td>
+<td><code>(sort key, rid)</code></td>
+<td>column stores or wide tuples where copying is expensive</td>
+</tr>
+</tbody>
+</table>
+<h3 id="in-memory-complexity">In-Memory Complexity</h3>
+<p>For comparison-based in-memory sorting, the usual CPU complexity
+is:</p>
+<p><span class="math display">\[
+O(T \log T)
+\]</span></p>
+<p>The lecture is mainly about what changes once the data no longer fits
+in memory: the asymptotic CPU story stays similar, but the dominant cost
+often becomes disk I/O.</p>
+<h2 id="external-merge-sort">2. External Merge Sort</h2>
+<p>If the data fits in memory, use your favorite in-memory sort. If not,
+use <strong>external merge sort</strong>.</p>
+<h3 id="core-idea">Core Idea</h3>
+<p>External merge sort is divide-and-conquer:</p>
+<ol type="1">
+<li>Split data into runs that fit in memory.</li>
+<li>Sort each run.</li>
+<li>Write runs to disk.</li>
+<li>Merge runs into larger sorted runs until one remains.</li>
+</ol>
+<h3 id="pass-0-initial-runs">Pass 0: Initial Runs</h3>
+<p>With <code>B</code> buffer pages and input size <code>N</code>
+pages:</p>
+<ul>
+<li>read up to <code>B</code> pages</li>
+<li>sort them in memory</li>
+<li>write one sorted run back out</li>
+</ul>
+<p>That yields about <code>\lceil N / B \rceil</code> initial runs.</p>
+<h3 id="merge-passes">Merge Passes</h3>
+<p>During each merge pass:</p>
+<ul>
+<li>use <code>B-1</code> input buffers</li>
+<li>use <code>1</code> output buffer</li>
+<li>merge up to <code>B-1</code> runs at a time</li>
+</ul>
+<h3 id="cost-formula">Cost Formula</h3>
+<p>Number of passes:</p>
+<p><span class="math display">\[
+1 + \left\lceil \log_{B-1}\left\lceil \frac{N}{B} \right\rceil
+\right\rceil
+\]</span></p>
+<p>Total I/O cost:</p>
+<p><span class="math display">\[
+2N \cdot \left(1 + \left\lceil \log_{B-1}\left\lceil \frac{N}{B}
+\right\rceil \right\rceil\right)
+\]</span></p>
+<p>Reason: every pass reads and writes the entire file.</p>
+<p>Ignoring low-level implementation details, comparison work is still
+roughly:</p>
+<p><span class="math display">\[
+O(T \log T)
+\]</span></p>
+<p>but the formula that usually matters in a DBMS is the I/O cost
+above.</p>
+<h3 id="double-buffering">Double Buffering</h3>
+<p>Double buffering overlaps CPU and I/O:</p>
+<ul>
+<li>process one buffer while prefetching the next run</li>
+<li>improves throughput</li>
+<li>but effectively reduces usable merge buffers because some memory is
+reserved for prefetch/output</li>
+</ul>
+<h2 id="sorting-via-btree">3. Sorting via B+Tree</h2>
+<p>If the table already has a B+Tree on the sort key, the DBMS may use
+the index instead of running a full external sort.</p>
+<h3 id="clustered-btree">Clustered B+Tree</h3>
+<ul>
+<li>Scan the leaf pages in order.</li>
+<li>Data pages are already aligned with index order.</li>
+<li>Access is sequential.</li>
+<li>This is usually better than external sorting.</li>
+</ul>
+<h3 id="unclustered-btree">Unclustered B+Tree</h3>
+<ul>
+<li>Leaf scan gives keys in order, but fetching tuples means chasing
+record pointers.</li>
+<li>That often degenerates into nearly one I/O per record.</li>
+<li>Usually a bad idea for full sorting.</li>
+<li>Exception: <strong>Top-N queries</strong>, where only a small prefix
+is needed.</li>
+</ul>
+<h2 id="top-n-heap-sort">4. Top-N Heap Sort</h2>
+<p>For queries like:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> enrolled</span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> sid <span class="keyword">ASC</span></span><br><span class="line"><span class="keyword">FETCH</span> <span class="keyword">FIRST</span> <span class="number">10</span> <span class="keyword">ROWS</span> <span class="keyword">WITH</span> TIES;</span><br></pre></td></tr></table></figure>
+<p>the DBMS does not need to sort everything.</p>
+<h3 id="core-idea-1">Core Idea</h3>
+<ul>
+<li>Scan the input once.</li>
+<li>Maintain an in-memory heap / priority queue of the best
+<code>N</code> candidates.</li>
+<li>Discard tuples that cannot enter the top <code>N</code>.</li>
+</ul>
+<p>This is ideal when:</p>
+<ul>
+<li><code>LIMIT</code> is small</li>
+<li>the top <code>N</code> fits in memory</li>
+<li>you do not want the cost of a full sort</li>
+</ul>
+<p>If the query uses <strong><code>WITH TIES</code></strong>, the final
+output may be slightly larger than <code>N</code>.</p>
+<p>Complexity:</p>
+<ul>
+<li><strong>time:</strong> <code>O(T \log N)</code></li>
+<li><strong>memory:</strong> <code>O(N)</code></li>
+<li><strong>I/O:</strong> one full scan of the input, plus output</li>
+</ul>
+<h2 id="collations">5. Collations</h2>
+<p>Sorting strings is not just “compare bytes”.</p>
+<p>A <strong>collation</strong> defines:</p>
+<ul>
+<li>character ordering</li>
+<li>equality behavior</li>
+<li>case sensitivity</li>
+<li>accent sensitivity</li>
+<li>locale-specific rules</li>
+</ul>
+<h3 id="binary-collation">Binary Collation</h3>
+<ul>
+<li>Fastest option</li>
+<li>Compares raw bytes / code points</li>
+<li>Good for performance</li>
+<li>But ASCII / binary order is not the same as human linguistic
+order</li>
+</ul>
+<h3 id="locale-aware-comparison">Locale-Aware Comparison</h3>
+<p>The lecture references ICU / UCA-style comparison:</p>
+<ul>
+<li><strong>Primary:</strong> base letters</li>
+<li><strong>Secondary:</strong> accents</li>
+<li><strong>Tertiary:</strong> case</li>
+<li><strong>Quaternary:</strong> punctuation / tie-breaking</li>
+</ul>
+<p>Since multi-level comparison is expensive, systems often
+<strong>precompute sort keys</strong>.</p>
+<h3 id="comparison-optimizations">Comparison Optimizations</h3>
+<ul>
+<li><strong>Code specialization:</strong> compile/type-specialize
+comparisons instead of calling a generic comparator.</li>
+<li><strong>Prefix comparison for long strings:</strong> compare a cheap
+binary prefix first, fall back only on ties.</li>
+<li><strong>Key normalization:</strong> encode variable-length values
+into a comparable fixed-form representation.</li>
+</ul>
+<h2 id="aggregations">6. Aggregations</h2>
+<p>An aggregation collapses many tuples into fewer values:</p>
+<ul>
+<li><code>DISTINCT</code></li>
+<li><code>GROUP BY</code></li>
+<li><code>SUM / COUNT / MIN / MAX / AVG</code></li>
+</ul>
+<p>The core systems problem is the same as sorting: <strong>how do we
+quickly bring identical group keys together?</strong></p>
+<h2 id="sort-based-aggregation">7. Sort-Based Aggregation</h2>
+<h3 id="idea">Idea</h3>
+<ol type="1">
+<li>Sort tuples by the grouping key.</li>
+<li>Scan the sorted stream once.</li>
+<li>Maintain running state for the current group.</li>
+</ol>
+<h3 id="running-states">Running States</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Aggregate</th>
+<th>Running State</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>COUNT</code></td>
+<td>count</td>
+</tr>
+<tr class="even">
+<td><code>SUM</code></td>
+<td>sum</td>
+</tr>
+<tr class="odd">
+<td><code>MIN</code></td>
+<td>current min</td>
+</tr>
+<tr class="even">
+<td><code>MAX</code></td>
+<td>current max</td>
+</tr>
+<tr class="odd">
+<td><code>AVG</code></td>
+<td><code>(count, sum)</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="when-it-is-attractive">When It Is Attractive</h3>
+<p>Sort-based aggregation is a good fit when:</p>
+<ul>
+<li>data is already sorted</li>
+<li>the query also needs ordered output</li>
+<li>the same sort can be reused for multiple downstream operators</li>
+</ul>
+<p>If sorting is required anyway, aggregate computation after sorting is
+just a linear pass:</p>
+<p><span class="math display">\[
+O(T)
+\]</span></p>
+<p>So the full cost is roughly:</p>
+<p><span class="math display">\[
+\text{sort cost} + O(T)
+\]</span></p>
+<h2 id="hash-aggregation">8. Hash Aggregation</h2>
+<p>If we do <strong>not</strong> need ordered output, hashing is often
+better.</p>
+<h3 id="in-memory-hash-aggregate">In-Memory Hash Aggregate</h3>
+<p>As the DBMS scans tuples:</p>
+<ul>
+<li>hash the group key</li>
+<li>look up the entry in an ephemeral hash table</li>
+<li>create a new entry if none exists</li>
+<li>otherwise update the running aggregate</li>
+</ul>
+<p>This is great when the hash table fits in memory.</p>
+<p>Expected complexity:</p>
+<ul>
+<li><strong>time:</strong> <code>O(T)</code></li>
+<li><strong>memory:</strong> <code>O(G)</code> aggregate states</li>
+</ul>
+<p>Worst-case time can degrade under pathological collisions, but the
+expected case is linear.</p>
+<h2 id="external-hash-aggregation">9. External Hash Aggregation</h2>
+<p>If the aggregation state does not fit in memory, use a two-phase
+external algorithm.</p>
+<h3 id="phase-1-partition">Phase 1: Partition</h3>
+<ul>
+<li>Use hash function <code>h1</code> on the group key.</li>
+<li>Split tuples into <code>B-1</code> disk partitions.</li>
+<li>Keep <code>1</code> input buffer and <code>B-1</code> output
+buffers.</li>
+</ul>
+<h3 id="phase-2-rehash-aggregate">Phase 2: ReHash / Aggregate</h3>
+<p>For each partition:</p>
+<ul>
+<li>read it back</li>
+<li>build an in-memory hash table</li>
+<li>compute aggregates inside that smaller partition</li>
+</ul>
+<p>This works because tuples with the same group key are sent to the
+same partition.</p>
+<p>If no recursive repartitioning is needed and we ignore final result
+output, a useful I/O approximation is:</p>
+<p><span class="math display">\[
+3N
+\]</span></p>
+<p>because:</p>
+<ul>
+<li>partition phase reads and writes the input once:
+<code>2N</code></li>
+<li>rehash/aggregate phase reads it once more: <code>N</code></li>
+</ul>
+<h2 id="choosing-sort-vs.-hash">10. Choosing Sort vs. Hash</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Task</th>
+<th>Start With</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Need final order</td>
+<td>Sort</td>
+<td>ordering is part of the result</td>
+</tr>
+<tr class="even">
+<td><code>ORDER BY ... LIMIT N</code></td>
+<td>Top-N heap</td>
+<td>avoid full sort</td>
+</tr>
+<tr class="odd">
+<td><code>GROUP BY</code> / <code>DISTINCT</code> with no order
+requirement</td>
+<td>Hash aggregate</td>
+<td>cheaper than sorting in many cases</td>
+</tr>
+<tr class="even">
+<td>Existing clustered index on sort key</td>
+<td>B+Tree scan</td>
+<td>ordered access is already materialized</td>
+</tr>
+</tbody>
+</table>
+<h2 id="complexity-summary">11. Complexity Summary</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Technique</th>
+<th>CPU / Tuple Complexity</th>
+<th>I/O / Memory View</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>In-memory comparison sort</td>
+<td><code>O(T \log T)</code></td>
+<td>memory must hold input</td>
+</tr>
+<tr class="even">
+<td>External merge sort</td>
+<td>roughly <code>O(T \log T)</code> comparisons</td>
+<td><code>2N \cdot \left(1 + \left\lceil \log_{B-1}\left\lceil N/B \right\rceil \right\rceil\right)</code>
+I/Os</td>
+</tr>
+<tr class="odd">
+<td>Clustered B+Tree sort</td>
+<td>linear scan after index traversal</td>
+<td>about one sequential pass over relevant pages</td>
+</tr>
+<tr class="even">
+<td>Unclustered B+Tree sort</td>
+<td>pointer chasing dominates</td>
+<td>can approach one random fetch per tuple</td>
+</tr>
+<tr class="odd">
+<td>Top-N heap sort</td>
+<td><code>O(T \log N)</code></td>
+<td><code>O(N)</code> memory, one input scan</td>
+</tr>
+<tr class="even">
+<td>Sort-based aggregation</td>
+<td><code>\text{sort cost} + O(T)</code></td>
+<td>good when order is also needed</td>
+</tr>
+<tr class="odd">
+<td>In-memory hash aggregation</td>
+<td>expected <code>O(T)</code></td>
+<td><code>O(G)</code> memory</td>
+</tr>
+<tr class="even">
+<td>External hash aggregation</td>
+<td>expected <code>O(T)</code> work per phase</td>
+<td>about <code>3N</code> I/Os without recursive partitioning</td>
+</tr>
+</tbody>
+</table>
+<h2 id="quick-recap">Quick Recap</h2>
+<ol type="1">
+<li>External merge sort is the baseline spill-aware sorting
+algorithm.</li>
+<li>B+Tree order can replace sorting, but only clustered access is
+consistently good.</li>
+<li>Top-N queries should avoid full sorting when possible.</li>
+<li>String sorting is expensive because collation rules are richer than
+byte order.</li>
+<li>Aggregation is fundamentally about grouping equal keys; sorting and
+hashing are the two main ways to do it.</li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2026/03/08/15645-Database-Systems/15645-Database-systems-Sorting-Aggregation/">https://xloverflow.github.io/2026/03/08/15645-Database-Systems/15645-Database-systems-Sorting-Aggregation/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/CMU/">CMU</a><a class="post-meta__tags" href="/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/tags/Database-Systems/">Database Systems</a><a class="post-meta__tags" href="/tags/15645/">15645</a><a class="post-meta__tags" href="/tags/Sorting/">Sorting</a><a class="post-meta__tags" href="/tags/Aggregation/">Aggregation</a><a class="post-meta__tags" href="/tags/Query-Execution/">Query Execution</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Join-Algorithms/" title="15645 Database systems: Join Algorithms"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">15645 Database systems: Join Algorithms</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/" title="15645 Database systems: Index Concurrency Control"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">15645 Database systems: Index Concurrency Control</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/01/16/15645-Database-Systems/15645-Database-Systems-relational-model-and-SQL/" title="15645 Database systems: Relational Model and SQL"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-15</div><div class="info-item-2">15645 Database systems: Relational Model and SQL</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/02/07/15645-Database-Systems/15645-Database-systems-Hash-Tables/" title="15645 Database systems: Hash Tables"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-07</div><div class="info-item-2">15645 Database systems: Hash Tables</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/" title="15645 Database systems: Index Concurrency Control"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-08</div><div class="info-item-2">15645 Database systems: Index Concurrency Control</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/02/09/15645-Database-Systems/15645-Database-systems-Index-Filter/" title="15645 Database systems: Index &amp; Filter"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-09</div><div class="info-item-2">15645 Database systems: Index &amp; Filter</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Join-Algorithms/" title="15645 Database systems: Join Algorithms"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-08</div><div class="info-item-2">15645 Database systems: Join Algorithms</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">Notes on RNN architectures, encoder-decoder models, and attention mechanisms from CMU 11-711 Advanced NLP.</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">56</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">98</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#lec-11-sorting-aggregation-algorithms"><span class="toc-number">1.</span> <span class="toc-text">Lec 11 Sorting &amp;
+Aggregation Algorithms</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#why-sorting-shows-up-in-a-dbms"><span class="toc-number">1.1.</span> <span class="toc-text">0. Why Sorting Shows Up in a
+DBMS</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#sorting-model"><span class="toc-number">1.2.</span> <span class="toc-text">1. Sorting Model</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#early-vs.-late-materialization"><span class="toc-number">1.2.1.</span> <span class="toc-text">Early vs. Late
+Materialization</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#in-memory-complexity"><span class="toc-number">1.2.2.</span> <span class="toc-text">In-Memory Complexity</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#external-merge-sort"><span class="toc-number">1.3.</span> <span class="toc-text">2. External Merge Sort</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#core-idea"><span class="toc-number">1.3.1.</span> <span class="toc-text">Core Idea</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#pass-0-initial-runs"><span class="toc-number">1.3.2.</span> <span class="toc-text">Pass 0: Initial Runs</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#merge-passes"><span class="toc-number">1.3.3.</span> <span class="toc-text">Merge Passes</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#cost-formula"><span class="toc-number">1.3.4.</span> <span class="toc-text">Cost Formula</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#double-buffering"><span class="toc-number">1.3.5.</span> <span class="toc-text">Double Buffering</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#sorting-via-btree"><span class="toc-number">1.4.</span> <span class="toc-text">3. Sorting via B+Tree</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#clustered-btree"><span class="toc-number">1.4.1.</span> <span class="toc-text">Clustered B+Tree</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#unclustered-btree"><span class="toc-number">1.4.2.</span> <span class="toc-text">Unclustered B+Tree</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#top-n-heap-sort"><span class="toc-number">1.5.</span> <span class="toc-text">4. Top-N Heap Sort</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#core-idea-1"><span class="toc-number">1.5.1.</span> <span class="toc-text">Core Idea</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#collations"><span class="toc-number">1.6.</span> <span class="toc-text">5. Collations</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#binary-collation"><span class="toc-number">1.6.1.</span> <span class="toc-text">Binary Collation</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#locale-aware-comparison"><span class="toc-number">1.6.2.</span> <span class="toc-text">Locale-Aware Comparison</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#comparison-optimizations"><span class="toc-number">1.6.3.</span> <span class="toc-text">Comparison Optimizations</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#aggregations"><span class="toc-number">1.7.</span> <span class="toc-text">6. Aggregations</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#sort-based-aggregation"><span class="toc-number">1.8.</span> <span class="toc-text">7. Sort-Based Aggregation</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#idea"><span class="toc-number">1.8.1.</span> <span class="toc-text">Idea</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#running-states"><span class="toc-number">1.8.2.</span> <span class="toc-text">Running States</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#when-it-is-attractive"><span class="toc-number">1.8.3.</span> <span class="toc-text">When It Is Attractive</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#hash-aggregation"><span class="toc-number">1.9.</span> <span class="toc-text">8. Hash Aggregation</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#in-memory-hash-aggregate"><span class="toc-number">1.9.1.</span> <span class="toc-text">In-Memory Hash Aggregate</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#external-hash-aggregation"><span class="toc-number">1.10.</span> <span class="toc-text">9. External Hash Aggregation</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#phase-1-partition"><span class="toc-number">1.10.1.</span> <span class="toc-text">Phase 1: Partition</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#phase-2-rehash-aggregate"><span class="toc-number">1.10.2.</span> <span class="toc-text">Phase 2: ReHash &#x2F; Aggregate</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#choosing-sort-vs.-hash"><span class="toc-number">1.11.</span> <span class="toc-text">10. Choosing Sort vs. Hash</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#complexity-summary"><span class="toc-number">1.12.</span> <span class="toc-text">11. Complexity Summary</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#quick-recap"><span class="toc-number">1.13.</span> <span class="toc-text">Quick Recap</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/03/10/AI-Agent/AI-Agent-Engineering-Design-Curated-Reading-List/" title="AI Agent Engineering Design: A Curated Reading List"><img src="https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="AI Agent Engineering Design: A Curated Reading List"/></a><div class="content"><a class="title" href="/2026/03/10/AI-Agent/AI-Agent-Engineering-Design-Curated-Reading-List/" title="AI Agent Engineering Design: A Curated Reading List">AI Agent Engineering Design: A Curated Reading List</a><time datetime="2026-03-10T04:00:00.000Z" title="Created 2026-03-10 00:00:00">2026-03-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Join-Algorithms/" title="15645 Database systems: Join Algorithms"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Join Algorithms"/></a><div class="content"><a class="title" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Join-Algorithms/" title="15645 Database systems: Join Algorithms">15645 Database systems: Join Algorithms</a><time datetime="2026-03-08T14:40:00.000Z" title="Created 2026-03-08 10:40:00">2026-03-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Sorting-Aggregation/" title="15645 Database systems: Sorting &amp; Aggregation"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Sorting &amp; Aggregation"/></a><div class="content"><a class="title" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Sorting-Aggregation/" title="15645 Database systems: Sorting &amp; Aggregation">15645 Database systems: Sorting &amp; Aggregation</a><time datetime="2026-03-08T14:35:00.000Z" title="Created 2026-03-08 10:35:00">2026-03-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/" title="15645 Database systems: Index Concurrency Control"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Index Concurrency Control"/></a><div class="content"><a class="title" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/" title="15645 Database systems: Index Concurrency Control">15645 Database systems: Index Concurrency Control</a><time datetime="2026-03-08T14:30:00.000Z" title="Created 2026-03-08 10:30:00">2026-03-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/" title="11711 Advanced NLP: Evaluation &amp; Experimental Design"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Evaluation &amp; Experimental Design"/></a><div class="content"><a class="title" href="/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/" title="11711 Advanced NLP: Evaluation &amp; Experimental Design">11711 Advanced NLP: Evaluation &amp; Experimental Design</a><time datetime="2026-03-05T17:00:00.000Z" title="Created 2026-03-05 12:00:00">2026-03-05</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '356effbd2af4c132179c4e8996fe4f6a'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

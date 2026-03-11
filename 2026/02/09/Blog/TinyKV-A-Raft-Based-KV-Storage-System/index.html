@@ -1,0 +1,791 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>TinyKV: A Raft-Based KV Storage System | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Implementation and architecture of TinyKV, a Raft-based distributed key-value storage system covering Multi-Raft, MVCC transactions, and the scheduler.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TinyKV: A Raft-Based KV Storage System">
+<meta property="og:url" content="https://xloverflow.github.io/2026/02/09/Blog/TinyKV-A-Raft-Based-KV-Storage-System/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Implementation and architecture of TinyKV, a Raft-based distributed key-value storage system covering Multi-Raft, MVCC transactions, and the scheduler.">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-9f7c5ea8719df399f0b661e61506a285_1440w.jpeg">
+<meta property="article:published_time" content="2026-02-09T19:09:06.000Z">
+<meta property="article:modified_time" content="2026-02-09T19:09:06.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="Consensus">
+<meta property="article:tag" content="Distributed Systems">
+<meta property="article:tag" content="KV Storage">
+<meta property="article:tag" content="Raft">
+<meta property="article:tag" content="TinyKV">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pic1.zhimg.com/80/v2-9f7c5ea8719df399f0b661e61506a285_1440w.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "TinyKV: A Raft-Based KV Storage System",
+  "url": "https://xloverflow.github.io/2026/02/09/Blog/TinyKV-A-Raft-Based-KV-Storage-System/",
+  "image": "https://pic1.zhimg.com/80/v2-9f7c5ea8719df399f0b661e61506a285_1440w.jpeg",
+  "datePublished": "2026-02-09T19:09:06.000Z",
+  "dateModified": "2026-02-09T19:09:06.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2026/02/09/Blog/TinyKV-A-Raft-Based-KV-Storage-System/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'TinyKV: A Raft-Based KV Storage System',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">56</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">98</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://pic1.zhimg.com/80/v2-9f7c5ea8719df399f0b661e61506a285_1440w.jpeg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">TinyKV: A Raft-Based KV Storage System</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">TinyKV: A Raft-Based KV Storage System</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-02-09T19:09:06.000Z" title="Created 2026-02-09 14:09:06">2026-02-09</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-02-09T19:09:06.000Z" title="Updated 2026-02-09 14:09:06">2026-02-09</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Distributed-Systems/">Distributed Systems</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="interview-script-memorize-this-first">Interview Script (Memorize
+This First)</h2>
+<h3 id="second-version-opening">30-Second Version (Opening)</h3>
+<blockquote>
+<p>TinyKV uses Multi-Raft to achieve strong-consistency replication,
+with Badger as the persistence layer. On top of that it implements
+region split, membership change, snapshot transfer, scheduler-based load
+balancing, and distributed transactions via MVCC + Percolator. I focused
+on stability under split/recover and conf change scenarios, ensuring
+requests never time out in complex failure cases and nodes can always
+recover after a restart.</p>
+</blockquote>
+<h3 id="minute-version-expanded">3-Minute Version (Expanded)</h3>
+<ol type="1">
+<li>Start with the layered architecture: Server → Raftstore → Raft →
+Storage/MVCC → Scheduler.</li>
+<li>Walk through the consistency pipeline: propose → replicate → commit
+→ apply → callback.</li>
+<li>Cover complex scenarios: leader transfer, conf change, split,
+snapshot, crash recovery.</li>
+<li>End with a problem you solved end-to-end: symptom, root cause, fix,
+validation.</li>
+</ol>
+<h3 id="deep-dive-answer-order-stay-focused">Deep-Dive Answer Order
+(Stay Focused)</h3>
+<ol type="1">
+<li>State the invariants first (linearizability, monotone epoch, log
+ordering).</li>
+<li>Explain the key data structures (<code>proposal</code>,
+<code>Progress</code>, <code>RegionEpoch</code>).</li>
+<li>Walk through failure paths (proposal dropped, stale/tombstone,
+snapshot/recover).</li>
+<li>Describe verification: high-concurrency + unreliable network +
+restart/partition regression tests.</li>
+</ol>
+<h2 id="architecture-overview">Architecture Overview</h2>
+<p>TinyKV is an educational distributed KV storage system modeled after
+TiKV + PD from the TiDB ecosystem. It consists of four core modules:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">Client (TinySQL)</span><br><span class="line">    |  gRPC (kvrpcpb)</span><br><span class="line">    v</span><br><span class="line">TinyKV Server (kv/server/)</span><br><span class="line">    |</span><br><span class="line">    +-- Storage Layer</span><br><span class="line">    |   +-- StandaloneStorage (Project 1)</span><br><span class="line">    |   +-- RaftStorage (Project 2-3)</span><br><span class="line">    |       |</span><br><span class="line">    |       +-- Raftstore (kv/raftstore/)</span><br><span class="line">    |           |  drives Raft consensus</span><br><span class="line">    |           v</span><br><span class="line">    |       Raft Module (raft/)</span><br><span class="line">    |</span><br><span class="line">    +-- Transaction Layer (Project 4)</span><br><span class="line">    |   +-- MVCC (kv/transaction/mvcc/)</span><br><span class="line">    |   +-- Percolator 2PC</span><br><span class="line">    |</span><br><span class="line">TinyScheduler (scheduler/)</span><br><span class="line">    |  analogous to PD: cluster management and load balancing</span><br><span class="line">    +-- Region Heartbeat handling</span><br><span class="line">    +-- Balance Leader/Region scheduling</span><br></pre></td></tr></table></figure>
+<hr />
+<h2 id="part-1-storage-engine-basics-project-1">Part 1: Storage Engine
+Basics (Project 1)</h2>
+<h3 id="badger-engine">1.1 Badger Engine</h3>
+<ul>
+<li>LSM-Tree based KV store (similar to RocksDB)</li>
+<li>Column Families emulated via key prefix:
+<code>${cf}_${key}</code></li>
+<li>Three CFs: <code>CfDefault</code> (user data), <code>CfLock</code>
+(transaction locks), <code>CfWrite</code> (commit records)</li>
+</ul>
+<h3 id="storage-interface-design">1.2 Storage Interface Design</h3>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Storage <span class="keyword">interface</span> &#123;</span><br><span class="line">    Write(ctx *kvrpcpb.Context, batch []Modify) <span class="type">error</span></span><br><span class="line">    Reader(ctx *kvrpcpb.Context) (StorageReader, <span class="type">error</span>)</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">type</span> StorageReader <span class="keyword">interface</span> &#123;</span><br><span class="line">    GetCF(cf <span class="type">string</span>, key []<span class="type">byte</span>) ([]<span class="type">byte</span>, <span class="type">error</span>)</span><br><span class="line">    IterCF(cf <span class="type">string</span>) engine_util.DBIterator</span><br><span class="line">    Close()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="interview-points">1.3 Interview Points</h3>
+<ul>
+<li><strong>Why Column Families?</strong> Logical isolation of different
+data types (locks, values, write records) improves scan efficiency.</li>
+<li><strong>Badger vs RocksDB?</strong> Badger is Go-native, uses
+LSM-Tree with value log separation.</li>
+</ul>
+<hr />
+<h2 id="part-2-raft-consensus-algorithm-project-2a">Part 2: Raft
+Consensus Algorithm (Project 2A)</h2>
+<h3 id="core-data-structures">2.1 Core Data Structures</h3>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Raft <span class="keyword">struct</span> &#123;</span><br><span class="line">    Term    <span class="type">uint64</span>          <span class="comment">// current term</span></span><br><span class="line">    Vote    <span class="type">uint64</span>          <span class="comment">// who we voted for</span></span><br><span class="line">    Lead    <span class="type">uint64</span>          <span class="comment">// current leader</span></span><br><span class="line">    State   StateType       <span class="comment">// Follower / Candidate / Leader</span></span><br><span class="line">    RaftLog *RaftLog        <span class="comment">// log management</span></span><br><span class="line">    Prs     <span class="keyword">map</span>[<span class="type">uint64</span>]*Progress  <span class="comment">// replication progress per peer &#123;Match, Next&#125;</span></span><br><span class="line">    votes   <span class="keyword">map</span>[<span class="type">uint64</span>]<span class="type">bool</span>       <span class="comment">// election vote tracking</span></span><br><span class="line"></span><br><span class="line">    electionTimeout     <span class="type">int</span>    <span class="comment">// base election timeout</span></span><br><span class="line">    heartbeatTimeout    <span class="type">int</span>    <span class="comment">// heartbeat interval</span></span><br><span class="line">    randomizedTimeout   <span class="type">int</span>    <span class="comment">// randomized election timeout [election, 2*election)</span></span><br><span class="line">    electionElapsed     <span class="type">int</span>    <span class="comment">// election timer</span></span><br><span class="line">    heartbeatElapsed    <span class="type">int</span>    <span class="comment">// heartbeat timer</span></span><br><span class="line"></span><br><span class="line">    leadTransferee <span class="type">uint64</span>     <span class="comment">// target of an in-progress leader transfer</span></span><br><span class="line">    PendingConfIndex <span class="type">uint64</span>   <span class="comment">// prevents concurrent conf changes</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="leader-election-algorithm">2.2 Leader Election Algorithm</h3>
+<p><strong>Flow:</strong> 1. Follower election timeout fires → becomes
+Candidate 2. Term++, votes for itself 3. Sends
+<code>RequestVote{Term, LastIndex, LogTerm}</code> to all peers 4.
+Receives majority votes → becomes Leader 5. Leader immediately appends a
+no-op entry (prevents committing entries from prior terms)</p>
+<p><strong>Voting Rules:</strong> - Only one vote per term - Candidate’s
+log must be at least as up-to-date as the voter’s (compare
+<code>LastLogTerm</code>, then <code>LastLogIndex</code> on tie) -
+Receiving a message with a higher term → revert to Follower</p>
+<p><strong>Randomized Timeout:</strong>
+<code>randomizedTimeout = electionTimeout + rand(0, electionTimeout)</code>
+- Prevents livelock (multiple nodes starting elections
+simultaneously)</p>
+<h3 id="log-replication-algorithm">2.3 Log Replication Algorithm</h3>
+<p><strong>Leader tracks progress per follower:</strong>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Progress <span class="keyword">struct</span> &#123;</span><br><span class="line">    Match <span class="type">uint64</span>  <span class="comment">// highest index confirmed replicated</span></span><br><span class="line">    Next  <span class="type">uint64</span>  <span class="comment">// next index to send</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><strong>AppendEntries Flow:</strong> 1. Leader sends
+<code>{prevLogIndex, prevLogTerm, Entries[], Commit}</code> 2. Follower
+checks: does the entry at <code>prevLogIndex</code> have term ==
+<code>prevLogTerm</code>? 3. Match → append entries, update committed 4.
+Mismatch → reject; leader decrements <code>Next</code> and retries (log
+backtracking)</p>
+<p><strong>Commit Rule (Critical!):</strong> <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">maybeCommit</span><span class="params">()</span></span>:</span><br><span class="line">    <span class="number">1.</span> Collect Match values from all peers</span><br><span class="line">    <span class="number">2.</span> Sort and find the median N (highest index replicated by majority)</span><br><span class="line">    <span class="number">3.</span> Only commit <span class="keyword">if</span> log[N].term == currentTerm</span><br><span class="line">    <span class="comment">// Never commit entries from a previous term directly!</span></span><br><span class="line">    <span class="comment">// This is a key difference from Paxos.</span></span><br></pre></td></tr></table></figure></p>
+<h3 id="raftlog-structure">2.4 RaftLog Structure</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">snapshot/first.....applied....committed....stabled.....last</span><br><span class="line">--------|------------------------------------------------|</span><br><span class="line">                      log entries</span><br><span class="line"></span><br><span class="line">- applied:   highest index applied to the state machine</span><br><span class="line">- committed: highest index confirmed by majority</span><br><span class="line">- stabled:   highest index persisted to storage</span><br><span class="line">- invariant: applied &lt;= committed &lt;= stabled &lt;= last</span><br></pre></td></tr></table></figure>
+<p><strong>Key Functions:</strong> - <code>unstableEntries()</code>:
+entries after <code>stabled</code> (need to be persisted) -
+<code>nextEnts()</code>: entries from <code>applied+1</code> to
+<code>committed</code> (need to be applied to state machine) -
+<code>maybeCompact()</code>: discard entries already covered by a
+snapshot</p>
+<h3 id="rawnode-interface-application-driven-loop">2.5 RawNode Interface
+— Application-Driven Loop</h3>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Application loop:</span></span><br><span class="line"><span class="keyword">for</span> &#123;</span><br><span class="line">    rn.Tick()                     <span class="comment">// advance logical clock</span></span><br><span class="line">    <span class="keyword">if</span> rn.HasReady() &#123;</span><br><span class="line">        rd := rn.Ready()          <span class="comment">// get all pending changes</span></span><br><span class="line">        persist(rd.Entries)        <span class="comment">// persist log entries</span></span><br><span class="line">        send(rd.Messages)         <span class="comment">// send network messages</span></span><br><span class="line">        apply(rd.CommittedEntries) <span class="comment">// apply to state machine</span></span><br><span class="line">        rn.Advance(rd)            <span class="comment">// notify Raft that processing is done</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>Ready Struct:</strong> <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Ready <span class="keyword">struct</span> &#123;</span><br><span class="line">    SoftState        *SoftState       <span class="comment">// leader / state changes</span></span><br><span class="line">    HardState        pb.HardState     <span class="comment">// term / vote / commit changes</span></span><br><span class="line">    Entries          []pb.Entry       <span class="comment">// entries to persist</span></span><br><span class="line">    CommittedEntries []pb.Entry       <span class="comment">// committed entries to apply</span></span><br><span class="line">    Snapshot         pb.Snapshot      <span class="comment">// snapshot to install</span></span><br><span class="line">    Messages         []pb.Message     <span class="comment">// messages to send</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="frequently-asked-interview-questions">2.6 Frequently Asked
+Interview Questions</h3>
+<p><strong>Q: Why does a newly elected leader append a no-op
+entry?</strong> A: To prevent the “phantom log” problem. A new leader
+may hold uncommitted entries from the previous term. Raft only allows
+committing entries from the current term, so a no-op entry in the
+current term lets the leader indirectly commit those prior-term
+entries.</p>
+<p><strong>Q: How does Raft guarantee log consistency?</strong> A: Via
+the Log Matching Property: (1) if two nodes have entries with the same
+index and term, those entries are identical; (2) if the same holds, all
+preceding entries are also identical. The <code>prevLogTerm</code> check
+in AppendEntries enforces this.</p>
+<p><strong>Q: Why can’t prior-term entries be committed
+directly?</strong> A: See Figure 8 in the Raft paper. Committing an
+entry from a previous term directly can cause a committed entry to be
+overwritten later, violating State Machine Safety.</p>
+<hr />
+<h2 id="part-3-raft-kv-layer-project-2b">Part 3: Raft KV Layer (Project
+2B)</h2>
+<h3 id="overall-architecture">3.1 Overall Architecture</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">Client → gRPC → RaftstoreRouter → router.send(regionID, MsgRaftCmd)</span><br><span class="line">                                         |</span><br><span class="line">                                    peerSender channel (buf: 40960)</span><br><span class="line">                                         |</span><br><span class="line">                                    raftWorker.run() [single-threaded]</span><br><span class="line">                                         |</span><br><span class="line">                                    peerMsgHandler</span><br><span class="line">                                    ├── proposeRaftCommand() → Raft.Propose()</span><br><span class="line">                                    └── HandleRaftReady()</span><br><span class="line">                                        ├── SaveReadyState() [persist]</span><br><span class="line">                                        ├── Send(messages)   [network]</span><br><span class="line">                                        └── apply entries    [state machine]</span><br></pre></td></tr></table></figure>
+<h3 id="critical-persistent-state">3.2 Critical Persistent State</h3>
+<p><strong>Two Badger instances:</strong></p>
+<table>
+<colgroup>
+<col style="width: 29%" />
+<col style="width: 29%" />
+<col style="width: 40%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Engine</th>
+<th>Stores</th>
+<th>Key Format</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>RaftDB</strong></td>
+<td>Raft log + RaftLocalState</td>
+<td><code>RaftLogKey(regionID, index)</code></td>
+</tr>
+<tr class="even">
+<td><strong>KVDB</strong></td>
+<td>User data + RegionLocalState + RaftApplyState</td>
+<td>user key / <code>ApplyStateKey(regionID)</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Three key metadata structures:</strong> <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">RaftLocalState:   &#123;HardState&#123;Term, Vote, Commit&#125;, LastIndex, LastTerm&#125;</span><br><span class="line">RaftApplyState:   &#123;AppliedIndex, TruncatedState&#123;Index, Term&#125;&#125;</span><br><span class="line">RegionLocalState: &#123;Region&#123;Id, StartKey, EndKey, Peers[], RegionEpoch&#125;, State&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="proposal-matching-mechanism">3.3 Proposal Matching
+Mechanism</h3>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> proposal <span class="keyword">struct</span> &#123;</span><br><span class="line">    index <span class="type">uint64</span>            <span class="comment">// expected log index</span></span><br><span class="line">    term  <span class="type">uint64</span>            <span class="comment">// expected term</span></span><br><span class="line">    cb    *message.Callback <span class="comment">// callback</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>On propose:</strong> record
+<code>(nextIndex, currentTerm, callback)</code> <strong>On
+apply:</strong> match entry by <code>(term, index)</code>; if matched,
+invoke callback</p>
+<p><strong>Stale detection:</strong> -
+<code>entry.Term &gt; proposal.term</code> → proposal was overwritten by
+a new leader → <code>ErrStaleCommand</code> -
+<code>entry.Index &gt; proposal.index</code> → same conclusion</p>
+<h3 id="interview-points-1">3.4 Interview Points</h3>
+<p><strong>Q: Do reads also go through Raft?</strong> A: In TinyKV, yes
+(ReadIndex optimization is not implemented). Get requests are submitted
+as Raft entries to guarantee linearizability. Real systems typically use
+ReadIndex or LeaseRead to avoid that overhead.</p>
+<p><strong>Q: Why is raftWorker single-threaded?</strong> A: All peer
+messages are processed in one goroutine, eliminating lock contention.
+Lock-free message passing is achieved via channels.</p>
+<hr />
+<h2 id="part-4-snapshot-mechanism-project-2c">Part 4: Snapshot Mechanism
+(Project 2C)</h2>
+<h3 id="snapshot-trigger">4.1 Snapshot Trigger</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Periodic tick → onRaftGCLogTick()</span><br><span class="line">    → if appliedIndex - truncatedIndex &gt; RaftLogGcCountLimit</span><br><span class="line">    → propose CompactLogRequest&#123;CompactIndex, CompactTerm&#125;</span><br><span class="line">    → truncate log + schedule raftlog-gc worker to clean old entries</span><br></pre></td></tr></table></figure>
+<h3 id="snapshot-generation-and-sending">4.2 Snapshot Generation and
+Sending</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Leader detects follower.Next &lt; firstIndex (log already truncated)</span><br><span class="line">    → calls PeerStorage.Snapshot()</span><br><span class="line">    → asynchronously sends RegionTaskGen to region worker</span><br><span class="line">    → returns ErrSnapshotTemporarilyUnavailable (Raft will retry)</span><br><span class="line">    → next Ready() cycle picks up the snapshot and sends MsgSnapshot</span><br></pre></td></tr></table></figure>
+<h3 id="snapshot-application-flow">4.3 Snapshot Application Flow</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Follower receives MsgSnapshot</span><br><span class="line">    → checkSnapshot() validates (peer in list, no overlapping region, file exists)</span><br><span class="line">    → Raft layer: discard entries covered by snapshot, update applied/committed/stabled</span><br><span class="line">    → Raftstore layer: ApplySnapshot()</span><br><span class="line">        → clear old metadata</span><br><span class="line">        → delete data outside the new region&#x27;s key range</span><br><span class="line">        → update RaftLocalState, RaftApplyState, RegionLocalState</span><br><span class="line">        → send RegionTaskApply (block until complete)</span><br><span class="line">    → update storeMeta (regionRanges B-Tree)</span><br></pre></td></tr></table></figure>
+<h3 id="interview-points-2">4.4 Interview Points</h3>
+<p><strong>Q: Why is snapshot generation asynchronous?</strong> A:
+Generating a snapshot requires scanning the entire region’s data, which
+can be slow. Asynchronous generation avoids blocking the Raft main loop.
+<code>ErrSnapshotTemporarilyUnavailable</code> signals Raft to retry on
+the next tick.</p>
+<hr />
+<h2 id="part-5-multi-raft-project-3a-3b">Part 5: Multi-Raft (Project 3A
+/ 3B)</h2>
+<h3 id="leader-transfer">5.1 Leader Transfer</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">1. Leader receives MsgTransferLeader&#123;Target&#125;</span><br><span class="line">2. Check whether target&#x27;s log is up-to-date (Match == LastIndex)</span><br><span class="line">3. If not → send MsgAppend to help target catch up</span><br><span class="line">4. If yes → send MsgTimeoutNow to target</span><br><span class="line">5. Target immediately starts an election (no timeout needed)</span><br><span class="line">6. Safety: cancel the transfer after 2*electionTimeout if not complete</span><br></pre></td></tr></table></figure>
+<p><strong>Key distinction:</strong> Leader transfer bypasses the Raft
+log; it calls <code>RawNode.TransferLeader()</code> directly.</p>
+<h3 id="configuration-change-membership-change">5.2 Configuration Change
+(Membership Change)</h3>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Propose a conf change</span></span><br><span class="line">RawNode.ProposeConfChange(ConfChange&#123;ChangeType, NodeId, Context&#125;)</span><br><span class="line">    → creates an EntryConfChange entry</span><br><span class="line">    → replicated and committed through Raft</span><br><span class="line"></span><br><span class="line"><span class="comment">// Apply the conf change</span></span><br><span class="line">entry committed → applyConfChangeEntry()</span><br><span class="line">    → RawNode.ApplyConfChange(cc)  <span class="comment">// update Raft&#x27;s internal Prs</span></span><br><span class="line">    → update Region.Peers + RegionEpoch.ConfVer++</span><br><span class="line">    → persist RegionLocalState</span><br><span class="line">    → <span class="keyword">if</span> removing self → destroyPeer()</span><br></pre></td></tr></table></figure>
+<p><strong>Safety:</strong> one node changed at a time (no Joint
+Consensus); <code>PendingConfIndex</code> prevents concurrent
+changes.</p>
+<h3 id="region-split">5.3 Region Split</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">SplitCheckTick → scan region size → find split key when threshold exceeded</span><br><span class="line">    → MsgSplitRegion → ask Scheduler to allocate new Region/Peer IDs</span><br><span class="line">    → propose AdminRequest&#123;Split&#125; through Raft</span><br><span class="line"></span><br><span class="line">On apply:</span><br><span class="line">    Original region: [startKey, endKey) → [startKey, splitKey)</span><br><span class="line">    New region:      [splitKey, endKey)  (new Raft group)</span><br><span class="line">    RegionEpoch.Version++</span><br></pre></td></tr></table></figure>
+<h3 id="regionepoch-mechanism">5.4 RegionEpoch Mechanism</h3>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> RegionEpoch <span class="keyword">struct</span> &#123;</span><br><span class="line">    ConfVer <span class="type">uint64</span>  <span class="comment">// incremented on each AddPeer/RemovePeer</span></span><br><span class="line">    Version <span class="type">uint64</span>  <span class="comment">// incremented on each Split/Merge</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>Purpose:</strong> detect stale requests. The epoch in a
+client request must match the region’s current epoch.</p>
+<h3 id="interview-points-3">5.5 Interview Points</h3>
+<p><strong>Q: Why not use Joint Consensus?</strong> A: TinyKV simplifies
+membership changes to one node at a time. Joint Consensus allows
+multiple simultaneous changes but is more complex to implement.
+Single-step safety is guaranteed by “at most one change at a time.”</p>
+<p><strong>Q: How are replicas created in the new region after a
+split?</strong> A: Followers create the new peer locally when they apply
+the split entry. If a follower is absent (e.g., partitioned), the
+leader’s heartbeat causes the store to detect an unknown region and call
+<code>replicatePeer()</code> to create an empty peer, which then
+receives data via a snapshot.</p>
+<hr />
+<h2 id="part-6-scheduler-load-balancing-project-3c">Part 6: Scheduler
+Load Balancing (Project 3C)</h2>
+<h3 id="processregionheartbeat">6.1 processRegionHeartbeat</h3>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">processRegionHeartbeat</span><span class="params">(region)</span></span> <span class="type">error</span>:</span><br><span class="line">    <span class="number">1.</span> Fetch existing region (by ID)</span><br><span class="line">    <span class="number">2.</span> Version comparison (reject stale heartbeats):</span><br><span class="line">       - newVersion &lt; existVersion → reject</span><br><span class="line">       - newVersion == existVersion &amp;&amp; newConfVer &lt; existConfVer → reject</span><br><span class="line">    <span class="number">3.</span> For <span class="built_in">new</span> regions, check <span class="keyword">for</span> key <span class="keyword">range</span> overlaps</span><br><span class="line">    <span class="number">4.</span> PutRegion to update region info</span><br><span class="line">    <span class="number">5.</span> updateStoreStatus to refresh per-store statistics</span><br></pre></td></tr></table></figure>
+<h3 id="balance-region-scheduler">6.2 Balance Region Scheduler</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Schedule(cluster):</span><br><span class="line">    1. Collect all healthy stores (Up &amp;&amp; DownTime &lt; MaxStoreDownTime)</span><br><span class="line">    2. Sort by RegionSize descending</span><br><span class="line">    3. Starting from the largest store, pick a region:</span><br><span class="line">       - Prefer pending region → follower → leader</span><br><span class="line">       - Skip regions with fewer than MaxReplicas peers</span><br><span class="line">    4. Starting from the smallest store, find a target</span><br><span class="line">       (must not already hold a peer for this region)</span><br><span class="line">    5. Verify the size gap is large enough:</span><br><span class="line">       source.RegionSize - target.RegionSize &gt;= 2 * region.ApproximateSize</span><br><span class="line">    6. CreateMovePeerOperator(source → target)</span><br></pre></td></tr></table></figure>
+<h3 id="interview-points-4">6.3 Interview Points</h3>
+<p><strong>Q: Why the 2×regionSize tolerance check?</strong> A: To
+prevent oscillation. If the gap is too small, the move might immediately
+need to be reversed, causing an infinite loop.</p>
+<p><strong>Q: How does the scheduler guarantee safe scheduling?</strong>
+A: Via RegionEpoch checks. An operator records the epoch at creation
+time; if the epoch has changed when the operator executes (region was
+split or conf-changed), the operator is cancelled.</p>
+<hr />
+<h2 id="part-7-distributed-transactions-project-4">Part 7: Distributed
+Transactions (Project 4)</h2>
+<h3 id="mvcc-multi-version-concurrency-control">7.1 MVCC — Multi-Version
+Concurrency Control</h3>
+<p><strong>How the three CFs cooperate:</strong></p>
+<table>
+<colgroup>
+<col style="width: 12%" />
+<col style="width: 35%" />
+<col style="width: 22%" />
+<col style="width: 29%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>CF</th>
+<th>Key Format</th>
+<th>Value</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>CfDefault</td>
+<td><code>EncodeKey(userKey, startTS)</code></td>
+<td>actual data</td>
+<td>stores all versions of a value</td>
+</tr>
+<tr class="even">
+<td>CfLock</td>
+<td><code>userKey</code> (raw)</td>
+<td><code>Lock{Primary, Ts, Ttl, Kind}</code></td>
+<td>transaction lock (at most one per key)</td>
+</tr>
+<tr class="odd">
+<td>CfWrite</td>
+<td><code>EncodeKey(userKey, commitTS)</code></td>
+<td><code>Write{StartTS, Kind}</code></td>
+<td>commit records</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key Encoding (critical!):</strong> <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">EncodeKey</span><span class="params">(key []<span class="type">byte</span>, ts <span class="type">uint64</span>)</span></span> []<span class="type">byte</span> &#123;</span><br><span class="line">    encodedKey := codec.EncodeBytes(key)           <span class="comment">// order-preserving encoding</span></span><br><span class="line">    newKey := <span class="built_in">append</span>(encodedKey, <span class="built_in">make</span>([]<span class="type">byte</span>, <span class="number">8</span>)...)</span><br><span class="line">    binary.BigEndian.PutUint64(newKey[<span class="built_in">len</span>(encodedKey):], ^ts)  <span class="comment">// bitwise NOT!</span></span><br><span class="line">    <span class="keyword">return</span> newKey</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure> -
+<code>^ts</code> makes <strong>timestamps sort in descending
+order</strong> (newest version first) -
+<code>Seek(EncodeKey(key, startTS))</code> lands directly on the latest
+version with <code>commitTS &lt;= startTS</code></p>
+<h3 id="percolator-two-phase-commit">7.2 Percolator Two-Phase
+Commit</h3>
+<p><strong>Phase 1: Prewrite (lock + write data)</strong>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">For each mutation:</span><br><span class="line">    1. Check write conflict: MostRecentWrite(key).commitTs &gt; startTs → WriteConflict</span><br><span class="line">    2. Check lock conflict: GetLock(key) exists → KeyLocked</span><br><span class="line">    3. PutValue(key, value)  → CfDefault[key+startTs] = value</span><br><span class="line">    4. PutLock(key, Lock&#123;Primary, startTs, TTL, Kind&#125;) → CfLock[key] = lock</span><br></pre></td></tr></table></figure></p>
+<p><strong>Phase 2: Commit (commit + unlock)</strong> <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">For each key:</span><br><span class="line">    1. GetLock(key) — check the lock</span><br><span class="line">    2. lock == nil:</span><br><span class="line">       - Check CurrentWrite: already committed → idempotent return</span><br><span class="line">                             already rolled back → error</span><br><span class="line">       - No write record → prewrite was lost, skip (no-op)</span><br><span class="line">    3. lock.Ts != startTs → lock belongs to another transaction → error</span><br><span class="line">    4. PutWrite(key, commitTs, Write&#123;startTs, kind&#125;) → CfWrite[key+commitTs]</span><br><span class="line">    5. DeleteLock(key) → remove CfLock[key]</span><br></pre></td></tr></table></figure></p>
+<h3 id="read-kvget">7.3 Read (KvGet)</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1. GetLock(key): if lock.Ts &lt; readTs → blocked (return Locked error)</span><br><span class="line">2. Seek CfWrite at EncodeKey(key, readTs)</span><br><span class="line">3. Find the first Write record with commitTs &lt;= readTs</span><br><span class="line">4. If Write.Kind == Delete → return NotFound</span><br><span class="line">5. Otherwise use Write.StartTS to read the actual value from CfDefault</span><br></pre></td></tr></table></figure>
+<h3 id="scan-kvscan">7.4 Scan (KvScan)</h3>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Scanner <span class="keyword">struct</span> &#123;</span><br><span class="line">    Txn  *MvccTxn</span><br><span class="line">    Iter DBIterator  <span class="comment">// iterates CfWrite</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Next</span><span class="params">()</span></span> (key, value, <span class="type">error</span>):</span><br><span class="line">    <span class="number">1.</span> Seek to EncodeKey(currentKey, startTS)</span><br><span class="line">    <span class="number">2.</span> Decode userKey; skip older versions of the same key</span><br><span class="line">    <span class="number">3.</span> Read value from CfDefault using Write.StartTS</span><br><span class="line">    <span class="number">4.</span> Advance to the next distinct userKey</span><br></pre></td></tr></table></figure>
+<h3 id="transaction-cleanup">7.5 Transaction Cleanup</h3>
+<p><strong>CheckTxnStatus (lock TTL check):</strong> <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">1. Check write and lock for the primary key</span><br><span class="line">2. Already committed → return commitTs</span><br><span class="line">3. Already rolled back → return NoAction</span><br><span class="line">4. Lock present → check whether TTL has expired</span><br><span class="line">   - Expired: clear lock + value, write rollback record, return TTLExpireRollback</span><br><span class="line">   - Not expired: return NoAction</span><br><span class="line">5. No lock and no write record → write rollback (guard against a late-arriving prewrite)</span><br></pre></td></tr></table></figure></p>
+<p><strong>BatchRollback:</strong> <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">1. Check whether each key is already committed → if so, refuse rollback</span><br><span class="line">2. DeleteLock + DeleteValue + PutWrite(Rollback)</span><br></pre></td></tr></table></figure></p>
+<p><strong>ResolveLock:</strong> <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1. Scan CfLock for all locks with lock.Ts == startTs</span><br><span class="line">2. commitVersion == 0 → rollback all</span><br><span class="line">3. commitVersion &gt; 0  → commit all</span><br></pre></td></tr></table></figure></p>
+<h3 id="latch-mechanism">7.6 Latch Mechanism</h3>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Latches <span class="keyword">struct</span> &#123;</span><br><span class="line">    Locks <span class="keyword">map</span>[<span class="type">string</span>]*sync.Mutex</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>In-memory mutex lock that prevents concurrent in-process operations
+on the same key</li>
+<li>Different from MVCC locks: a latch is local and short-lived; an MVCC
+lock is persistent and distributed</li>
+</ul>
+<h3 id="frequently-asked-interview-questions-1">7.7 Frequently Asked
+Interview Questions</h3>
+<p><strong>Q: What is the role of the Primary Key in
+Percolator?</strong> A: The primary key is the single source of truth
+for a transaction. Only the primary key’s write record needs to be
+committed synchronously; secondary keys can be committed asynchronously.
+Checking the primary key’s lock/write record is sufficient to determine
+the status of the entire transaction.</p>
+<p><strong>Q: Why does CfWrite use commitTS instead of startTS in the
+key?</strong> A: Reads need to find the latest commit with
+<code>commitTS &lt;= readTS</code>. Encoding by <code>startTS</code>
+would make that lookup inefficient. With <code>commitTS</code>, a single
+<code>Seek</code> lands on the first write record at or before
+<code>readTS</code>.</p>
+<p><strong>Q: Snapshot Isolation vs Serializable?</strong> A: SI allows
+Write Skew anomalies (two transactions read from the same snapshot and
+each writes a different key, but their combined effect violates
+application invariants). TinyKV implements SI, not full
+Serializability.</p>
+<p><strong>Q: What happens if the client crashes after Prewrite succeeds
+but before Commit?</strong> A: Any transaction that encounters the lock
+will call <code>CheckTxnStatus</code> on the primary key. If the lock’s
+TTL has expired, the lock is rolled back. If the primary has already
+been committed, the commit is carried through.</p>
+<p><strong>Q: Why doesn’t CfLock’s key include a timestamp?</strong> A:
+Only one transaction can lock a key at a time. The <code>startTS</code>
+is already stored inside the lock value, so there is no need to encode
+it in the key.</p>
+<hr />
+<h2 id="part-8-system-design-interview-questions">Part 8: System Design
+Interview Questions</h2>
+<h3 id="complete-write-request-path">8.1 Complete Write Request
+Path</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">1.  Client → gRPC → Server.KvPrewrite()</span><br><span class="line">2.  Server acquires Latch → gets Reader → creates MvccTxn</span><br><span class="line">3.  Conflict detection (write conflict + lock conflict)</span><br><span class="line">4.  PutValue + PutLock → write to Badger (via RaftStorage)</span><br><span class="line">5.  RaftStorage → Raftstore → Raft Propose</span><br><span class="line">6.  Raft replicates to majority → Commit</span><br><span class="line">7.  HandleRaftReady → apply committed entries → write to KVDB</span><br><span class="line">8.  Callback to Client → Prewrite succeeds</span><br><span class="line">9.  Client → gRPC → Server.KvCommit()</span><br><span class="line">10. PutWrite + DeleteLock → Commit succeeds</span><br></pre></td></tr></table></figure>
+<h3 id="region-split-flow">8.2 Region Split Flow</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Region [a, z) exceeds size threshold</span><br><span class="line">    → SplitChecker finds split key = &quot;m&quot;</span><br><span class="line">    → propose Split&#123;splitKey=&quot;m&quot;, newRegionID, newPeerIDs&#125;</span><br><span class="line">    → replicated and committed through Raft</span><br><span class="line">    → Apply: original region [a, m), new region [m, z)</span><br><span class="line">    → two independent Raft groups run in parallel</span><br><span class="line">    → notify Scheduler to update routing table</span><br></pre></td></tr></table></figure>
+<h3 id="crash-recovery">8.3 Crash Recovery</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Node restart:</span><br><span class="line">    1. Load RegionLocalState from KVDB (all region metadata)</span><br><span class="line">    2. Load RaftLocalState from RaftDB (HardState)</span><br><span class="line">    3. Load RaftApplyState from KVDB (how far we&#x27;ve applied)</span><br><span class="line">    4. Rebuild RaftLog: start from stabled; re-apply entries after applied</span><br><span class="line">    5. Rejoin the cluster via Raft heartbeats</span><br></pre></td></tr></table></figure>
+<h3 id="linearizability-guarantee">8.4 Linearizability Guarantee</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Writes: Raft ensures majority acknowledgement → writes are durable</span><br><span class="line">Reads:  also go through Raft → guaranteed to see the latest value</span><br><span class="line">    (Optimization: ReadIndex — leader confirms it is still leader, then reads locally)</span><br><span class="line">    (Optimization: LeaseRead — read locally within the lease window)</span><br></pre></td></tr></table></figure>
+<hr />
+<h2 id="part-9-key-source-files">Part 9: Key Source Files</h2>
+<table>
+<colgroup>
+<col style="width: 29%" />
+<col style="width: 22%" />
+<col style="width: 48%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Module</th>
+<th>File</th>
+<th>Core Content</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Raft</td>
+<td><code>raft/raft.go</code></td>
+<td>election, log replication, heartbeat, snapshot</td>
+</tr>
+<tr class="even">
+<td>Raft</td>
+<td><code>raft/log.go</code></td>
+<td>RaftLog management, unstable/committed/applied</td>
+</tr>
+<tr class="odd">
+<td>Raft</td>
+<td><code>raft/rawnode.go</code></td>
+<td>Ready interface, Advance, ProposeConfChange</td>
+</tr>
+<tr class="even">
+<td>Raftstore</td>
+<td><code>kv/raftstore/peer_msg_handler.go</code></td>
+<td>message handling, entry application, split/confchange</td>
+</tr>
+<tr class="odd">
+<td>Raftstore</td>
+<td><code>kv/raftstore/peer_storage.go</code></td>
+<td>persistence, snapshot generation and application</td>
+</tr>
+<tr class="even">
+<td>Raftstore</td>
+<td><code>kv/raftstore/raft_worker.go</code></td>
+<td>single-threaded message loop</td>
+</tr>
+<tr class="odd">
+<td>MVCC</td>
+<td><code>kv/transaction/mvcc/transaction.go</code></td>
+<td>MvccTxn, EncodeKey, GetValue</td>
+</tr>
+<tr class="even">
+<td>MVCC</td>
+<td><code>kv/transaction/mvcc/scanner.go</code></td>
+<td>range scan</td>
+</tr>
+<tr class="odd">
+<td>Server</td>
+<td><code>kv/server/server.go</code></td>
+<td>KvGet / KvPrewrite / KvCommit / KvScan</td>
+</tr>
+<tr class="even">
+<td>Scheduler</td>
+<td><code>scheduler/server/cluster.go</code></td>
+<td>processRegionHeartbeat</td>
+</tr>
+<tr class="odd">
+<td>Scheduler</td>
+<td><code>scheduler/server/schedulers/balance_region.go</code></td>
+<td>Balance Region scheduling</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="part-10-papers-and-references">Part 10: Papers and
+References</h2>
+<table>
+<colgroup>
+<col style="width: 29%" />
+<col style="width: 70%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Topic</th>
+<th>Paper / Resource</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Raft</td>
+<td><a target="_blank" rel="noopener" href="https://raft.github.io/raft.pdf">In Search of an
+Understandable Consensus Algorithm</a></td>
+</tr>
+<tr class="even">
+<td>Percolator</td>
+<td><a target="_blank" rel="noopener" href="https://research.google/pubs/pub36726/">Large-scale
+Incremental Processing Using Distributed Transactions and
+Notifications</a></td>
+</tr>
+<tr class="odd">
+<td>Spanner</td>
+<td><a target="_blank" rel="noopener" href="https://research.google/pubs/pub39966/">Spanner: Google’s
+Globally-Distributed Database</a></td>
+</tr>
+<tr class="even">
+<td>TiKV Design</td>
+<td><a
+target="_blank" rel="noopener" href="https://tikv.org/deep-dive/distributed-transaction/introduction/">TiKV
+Deep Dive</a></td>
+</tr>
+<tr class="odd">
+<td>LSM-Tree</td>
+<td><a target="_blank" rel="noopener" href="https://www.cs.umb.edu/~poneil/lsmtree.pdf">The
+Log-Structured Merge-Tree</a></td>
+</tr>
+</tbody>
+</table>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2026/02/09/Blog/TinyKV-A-Raft-Based-KV-Storage-System/">https://xloverflow.github.io/2026/02/09/Blog/TinyKV-A-Raft-Based-KV-Storage-System/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/TinyKV/">TinyKV</a><a class="post-meta__tags" href="/tags/Distributed-Systems/">Distributed Systems</a><a class="post-meta__tags" href="/tags/KV-Storage/">KV Storage</a><a class="post-meta__tags" href="/tags/Raft/">Raft</a><a class="post-meta__tags" href="/tags/Consensus/">Consensus</a></div><div class="post-share"><div class="social-share" data-image="https://pic1.zhimg.com/80/v2-9f7c5ea8719df399f0b661e61506a285_1440w.jpeg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/02/09/15645-Database-Systems/15645-Database-systems-Index-Filter/" title="15645 Database systems: Index &amp; Filter"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">15645 Database systems: Index & Filter</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/02/09/CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch/" title="CS336 Assignment 1: Building a Transformer Language Model from Scratch"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">CS336 Assignment 1: Building a Transformer Language Model from Scratch</div></div><div class="info-2"><div class="info-item-1">A comprehensive reflection on implementing a complete Transformer language model pipeline from scratch — including BPE tokenizer with parallel pre-tokenization, decoder-only Transformer with RMSNorm/RoPE/SwiGLU, AdamW optimizer, and autoregressive text generation. Trained on TinyStories and OpenWebText with extensive experiments on learning rate sweeps, batch size studies, and architectural ablations.</div></div></div></a></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">56</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">98</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#interview-script-memorize-this-first"><span class="toc-number">1.</span> <span class="toc-text">Interview Script (Memorize
+This First)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#second-version-opening"><span class="toc-number">1.1.</span> <span class="toc-text">30-Second Version (Opening)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#minute-version-expanded"><span class="toc-number">1.2.</span> <span class="toc-text">3-Minute Version (Expanded)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#deep-dive-answer-order-stay-focused"><span class="toc-number">1.3.</span> <span class="toc-text">Deep-Dive Answer Order
+(Stay Focused)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#architecture-overview"><span class="toc-number">2.</span> <span class="toc-text">Architecture Overview</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#part-1-storage-engine-basics-project-1"><span class="toc-number">3.</span> <span class="toc-text">Part 1: Storage Engine
+Basics (Project 1)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#badger-engine"><span class="toc-number">3.1.</span> <span class="toc-text">1.1 Badger Engine</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#storage-interface-design"><span class="toc-number">3.2.</span> <span class="toc-text">1.2 Storage Interface Design</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#interview-points"><span class="toc-number">3.3.</span> <span class="toc-text">1.3 Interview Points</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#part-2-raft-consensus-algorithm-project-2a"><span class="toc-number">4.</span> <span class="toc-text">Part 2: Raft
+Consensus Algorithm (Project 2A)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#core-data-structures"><span class="toc-number">4.1.</span> <span class="toc-text">2.1 Core Data Structures</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#leader-election-algorithm"><span class="toc-number">4.2.</span> <span class="toc-text">2.2 Leader Election Algorithm</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#log-replication-algorithm"><span class="toc-number">4.3.</span> <span class="toc-text">2.3 Log Replication Algorithm</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#raftlog-structure"><span class="toc-number">4.4.</span> <span class="toc-text">2.4 RaftLog Structure</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#rawnode-interface-application-driven-loop"><span class="toc-number">4.5.</span> <span class="toc-text">2.5 RawNode Interface
+— Application-Driven Loop</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#frequently-asked-interview-questions"><span class="toc-number">4.6.</span> <span class="toc-text">2.6 Frequently Asked
+Interview Questions</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#part-3-raft-kv-layer-project-2b"><span class="toc-number">5.</span> <span class="toc-text">Part 3: Raft KV Layer (Project
+2B)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#overall-architecture"><span class="toc-number">5.1.</span> <span class="toc-text">3.1 Overall Architecture</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#critical-persistent-state"><span class="toc-number">5.2.</span> <span class="toc-text">3.2 Critical Persistent State</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#proposal-matching-mechanism"><span class="toc-number">5.3.</span> <span class="toc-text">3.3 Proposal Matching
+Mechanism</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#interview-points-1"><span class="toc-number">5.4.</span> <span class="toc-text">3.4 Interview Points</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#part-4-snapshot-mechanism-project-2c"><span class="toc-number">6.</span> <span class="toc-text">Part 4: Snapshot Mechanism
+(Project 2C)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#snapshot-trigger"><span class="toc-number">6.1.</span> <span class="toc-text">4.1 Snapshot Trigger</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#snapshot-generation-and-sending"><span class="toc-number">6.2.</span> <span class="toc-text">4.2 Snapshot Generation and
+Sending</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#snapshot-application-flow"><span class="toc-number">6.3.</span> <span class="toc-text">4.3 Snapshot Application Flow</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#interview-points-2"><span class="toc-number">6.4.</span> <span class="toc-text">4.4 Interview Points</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#part-5-multi-raft-project-3a-3b"><span class="toc-number">7.</span> <span class="toc-text">Part 5: Multi-Raft (Project 3A
+&#x2F; 3B)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#leader-transfer"><span class="toc-number">7.1.</span> <span class="toc-text">5.1 Leader Transfer</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#configuration-change-membership-change"><span class="toc-number">7.2.</span> <span class="toc-text">5.2 Configuration Change
+(Membership Change)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#region-split"><span class="toc-number">7.3.</span> <span class="toc-text">5.3 Region Split</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#regionepoch-mechanism"><span class="toc-number">7.4.</span> <span class="toc-text">5.4 RegionEpoch Mechanism</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#interview-points-3"><span class="toc-number">7.5.</span> <span class="toc-text">5.5 Interview Points</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#part-6-scheduler-load-balancing-project-3c"><span class="toc-number">8.</span> <span class="toc-text">Part 6: Scheduler
+Load Balancing (Project 3C)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#processregionheartbeat"><span class="toc-number">8.1.</span> <span class="toc-text">6.1 processRegionHeartbeat</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#balance-region-scheduler"><span class="toc-number">8.2.</span> <span class="toc-text">6.2 Balance Region Scheduler</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#interview-points-4"><span class="toc-number">8.3.</span> <span class="toc-text">6.3 Interview Points</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#part-7-distributed-transactions-project-4"><span class="toc-number">9.</span> <span class="toc-text">Part 7: Distributed
+Transactions (Project 4)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#mvcc-multi-version-concurrency-control"><span class="toc-number">9.1.</span> <span class="toc-text">7.1 MVCC — Multi-Version
+Concurrency Control</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#percolator-two-phase-commit"><span class="toc-number">9.2.</span> <span class="toc-text">7.2 Percolator Two-Phase
+Commit</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#read-kvget"><span class="toc-number">9.3.</span> <span class="toc-text">7.3 Read (KvGet)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#scan-kvscan"><span class="toc-number">9.4.</span> <span class="toc-text">7.4 Scan (KvScan)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#transaction-cleanup"><span class="toc-number">9.5.</span> <span class="toc-text">7.5 Transaction Cleanup</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#latch-mechanism"><span class="toc-number">9.6.</span> <span class="toc-text">7.6 Latch Mechanism</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#frequently-asked-interview-questions-1"><span class="toc-number">9.7.</span> <span class="toc-text">7.7 Frequently Asked
+Interview Questions</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#part-8-system-design-interview-questions"><span class="toc-number">10.</span> <span class="toc-text">Part 8: System Design
+Interview Questions</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#complete-write-request-path"><span class="toc-number">10.1.</span> <span class="toc-text">8.1 Complete Write Request
+Path</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#region-split-flow"><span class="toc-number">10.2.</span> <span class="toc-text">8.2 Region Split Flow</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#crash-recovery"><span class="toc-number">10.3.</span> <span class="toc-text">8.3 Crash Recovery</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#linearizability-guarantee"><span class="toc-number">10.4.</span> <span class="toc-text">8.4 Linearizability Guarantee</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#part-9-key-source-files"><span class="toc-number">11.</span> <span class="toc-text">Part 9: Key Source Files</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#part-10-papers-and-references"><span class="toc-number">12.</span> <span class="toc-text">Part 10: Papers and
+References</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/03/10/AI-Agent/AI-Agent-Engineering-Design-Curated-Reading-List/" title="AI Agent Engineering Design: A Curated Reading List"><img src="https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="AI Agent Engineering Design: A Curated Reading List"/></a><div class="content"><a class="title" href="/2026/03/10/AI-Agent/AI-Agent-Engineering-Design-Curated-Reading-List/" title="AI Agent Engineering Design: A Curated Reading List">AI Agent Engineering Design: A Curated Reading List</a><time datetime="2026-03-10T04:00:00.000Z" title="Created 2026-03-10 00:00:00">2026-03-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Join-Algorithms/" title="15645 Database systems: Join Algorithms"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Join Algorithms"/></a><div class="content"><a class="title" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Join-Algorithms/" title="15645 Database systems: Join Algorithms">15645 Database systems: Join Algorithms</a><time datetime="2026-03-08T14:40:00.000Z" title="Created 2026-03-08 10:40:00">2026-03-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Sorting-Aggregation/" title="15645 Database systems: Sorting &amp; Aggregation"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Sorting &amp; Aggregation"/></a><div class="content"><a class="title" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Sorting-Aggregation/" title="15645 Database systems: Sorting &amp; Aggregation">15645 Database systems: Sorting &amp; Aggregation</a><time datetime="2026-03-08T14:35:00.000Z" title="Created 2026-03-08 10:35:00">2026-03-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/" title="15645 Database systems: Index Concurrency Control"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Index Concurrency Control"/></a><div class="content"><a class="title" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/" title="15645 Database systems: Index Concurrency Control">15645 Database systems: Index Concurrency Control</a><time datetime="2026-03-08T14:30:00.000Z" title="Created 2026-03-08 10:30:00">2026-03-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/" title="11711 Advanced NLP: Evaluation &amp; Experimental Design"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Evaluation &amp; Experimental Design"/></a><div class="content"><a class="title" href="/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/" title="11711 Advanced NLP: Evaluation &amp; Experimental Design">11711 Advanced NLP: Evaluation &amp; Experimental Design</a><time datetime="2026-03-05T17:00:00.000Z" title="Created 2026-03-05 12:00:00">2026-03-05</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || 'b94376b7c6ae24eccb873d9021eea10a'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
