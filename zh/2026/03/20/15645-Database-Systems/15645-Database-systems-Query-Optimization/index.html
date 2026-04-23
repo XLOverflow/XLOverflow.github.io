@@ -1,0 +1,892 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>15645 Database systems: Query Optimization | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="CMU 15-645 数据库系统课程笔记与总结。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="15645 Database systems: Query Optimization">
+<meta property="og:url" content="https://xloverflow.github.io/zh/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="CMU 15-645 数据库系统课程笔记与总结。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png">
+<meta property="article:published_time" content="2026-03-20T18:00:00.000Z">
+<meta property="article:modified_time" content="2026-03-20T18:00:00.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="Study Notes">
+<meta property="article:tag" content="Database Systems">
+<meta property="article:tag" content="15645">
+<meta property="article:tag" content="Query Optimization">
+<meta property="article:tag" content="Cost Model">
+<meta property="article:tag" content="Cardinality Estimation">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "15645 Database systems: Query Optimization",
+  "url": "https://xloverflow.github.io/zh/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png",
+  "datePublished": "2026-03-20T18:00:00.000Z",
+  "dateModified": "2026-03-20T18:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io/zh"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/zh/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/zh/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/zh/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/zh/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '15645 Database systems: Query Optimization',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">62</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">116</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">22</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/zh/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/zh/"><span class="site-name">15645 Database systems: Query Optimization</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/"><i class="fas fa-language fa-fw"></i><span> English</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">15645 Database systems: Query Optimization</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-03-20T18:00:00.000Z" title="发表于 2026-03-20 14:00:00">2026-03-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-03-20T18:00:00.000Z" title="更新于 2026-03-20 14:00:00">2026-03-20</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/zh/categories/CMU-15-645-Database-Systems/">CMU 15-645 Database Systems</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="lec15-查询规划与优化-规则启发式方法和搜索策略">Lec15
+查询规划与优化 — 规则、启发式方法和搜索策略</h1>
+<p>前面的课程讲解了单个算子如何执行（扫描、连接、排序）。本讲退后一步，回答一个更高层次的问题：<strong>给定一条
+SQL 查询，DBMS
+如何选择执行哪个计划？</strong>答案涉及利用代数等价性转换逻辑表示、应用启发式规则，以及——在基于代价的优化器中——搜索等价计划空间以找到代价最低的那个。</p>
+<h2 id="查询规划流水线">查询规划流水线</h2>
+<p>一条 SQL 语句在执行前要经历若干阶段：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">SQL 字符串</span><br><span class="line">  → Parser（解析器）  → 抽象语法树 (AST)</span><br><span class="line">  → Binder（绑定器）  → 逻辑计划（已解析名称和类型）</span><br><span class="line">  → Tree Rewriter     → 重写后的逻辑计划（表达式简化）</span><br><span class="line">  → Optimizer（优化器）→ 物理计划（具体算法和访问路径）</span><br></pre></td></tr></table></figure>
+<p><strong>解析器</strong>检查语法并产生
+AST。<strong>绑定器</strong>通过系统目录解析表名和列名，将它们映射到内部标识符，产生<strong>逻辑计划</strong>——一棵关系代数算子树，指定<em>要计算什么数据</em>，但不指定<em>怎么计算</em>。</p>
+<p>优化器的任务是将逻辑计划转换为最优的<strong>物理计划</strong>——指定具体的算法（哈希连接
+vs 排序归并连接）、访问方法（顺序扫描 vs 索引扫描）和算子顺序。</p>
+<p>两种基本方法： 1.
+<strong>启发式/基于规则</strong>：应用静态转换规则，通常能改善计划，但不估算代价
+2.
+<strong>基于代价</strong>：枚举等价计划，利用统计信息估算代价，选择最便宜的</p>
+<p>大多数实际系统两者兼用——先做启发式重写，然后在简化后的空间中进行基于代价的搜索。</p>
+<h2 id="关系代数等价性">关系代数等价性</h2>
+<p>优化器重排查询计划的能力建立在<strong>等价性</strong>之上——保证两个表达式产生相同结果的代数恒等式。这些等价性定义了优化器搜索空间中的合法变换。</p>
+<h3 id="选择等价性">选择等价性</h3>
+<p><strong>分解（级联）</strong>：</p>
+<p><span class="math display">\[\sigma_{p_1 \wedge p_2}(R) \equiv
+\sigma_{p_1}(\sigma_{p_2}(R))\]</span></p>
+<p>合取谓词可以拆分为一连串独立的选择。这是<strong>谓词下推</strong>的基础——拆分后，各个谓词可以被推到更接近数据源的位置。</p>
+<p><strong>交换律</strong>：</p>
+<p><span class="math display">\[\sigma_{p_1}(\sigma_{p_2}(R)) \equiv
+\sigma_{p_2}(\sigma_{p_1}(R))\]</span></p>
+<p>相邻选择的顺序不影响结果。基于代价的优化器可以重新排列，让选择性最高（或代价最低）的谓词先执行。</p>
+<h3 id="投影等价性">投影等价性</h3>
+<p>投影是幂等的——对相同列投影两次等价于投影一次：</p>
+<p><span class="math display">\[\pi_{a_1}(R) \equiv \pi_{a_1}(\pi_{a_1,
+a_2, \ldots}(R))\]</span></p>
+<p>这使得<strong>早期投影</strong>成为可能：优化器可以在树的较低位置插入投影以减少元组宽度，从而降低后续算子的
+I/O 和内存开销。</p>
+<h3 id="连接等价性">连接等价性</h3>
+<p><strong>交换律</strong>：</p>
+<p><span class="math display">\[R \bowtie S \equiv S \bowtie
+R\]</span></p>
+<p>优化器可以自由交换哈希连接的构建端和探测端，或选择嵌套循环连接的外层关系。</p>
+<p><strong>结合律</strong>：</p>
+<p><span class="math display">\[(R \bowtie S) \bowtie T \equiv R \bowtie
+(S \bowtie T)\]</span></p>
+<p>这是多表连接中影响最大的等价性。可能的连接顺序数量随表数量超指数增长——对于
+<span class="math inline">\(n\)</span>
+张表，不同连接树的数量为<strong>卡塔兰数</strong> <span
+class="math inline">\(C(n)\)</span>。10 张表的连接有超过 170
+亿种可能的顺序。</p>
+<h2 id="启发式基于规则的优化">启发式/基于规则的优化</h2>
+<p>启发式优化器按固定顺序应用转换规则，不考虑实际数据。这些规则代表”通常有效”的策略：</p>
+<h3 id="核心启发式规则">核心启发式规则</h3>
+<ol type="1">
+<li><strong>拆分合取谓词</strong>：将
+<code>WHERE p1 AND p2 AND p3</code> 分解为独立的过滤器</li>
+<li><strong>谓词下推</strong>：将选择算子尽可能推到树的底部，理想情况下推到表扫描处。这减少了计划其余部分处理的元组数量</li>
+<li><strong>用连接替换笛卡尔积</strong>：如果笛卡尔积后面跟着一个连接谓词上的选择，则将两者替换为单个连接算子</li>
+<li><strong>投影下推</strong>：将投影下推以尽早消除不需要的列，减少元组宽度</li>
+<li><strong>按选择性排列谓词</strong>：在过滤器链中，先计算选择性最高的谓词（消除最多元组的那个）</li>
+</ol>
+<h3 id="转换示例">转换示例</h3>
+<p>考虑一个三表查询：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> s.name, c.title</span><br><span class="line"><span class="keyword">FROM</span> students <span class="keyword">AS</span> s, enrolled <span class="keyword">AS</span> e, courses <span class="keyword">AS</span> c</span><br><span class="line"><span class="keyword">WHERE</span> s.sid <span class="operator">=</span> e.sid</span><br><span class="line">  <span class="keyword">AND</span> e.cid <span class="operator">=</span> c.cid</span><br><span class="line">  <span class="keyword">AND</span> e.grade <span class="operator">=</span> <span class="string">&#x27;A&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p>原始计划从所有三张表的笛卡尔积开始，然后是所有选择，最后是投影。启发式优化逐步转换：</p>
+<ol type="1">
+<li><strong>拆分</strong>合取 WHERE 为三个独立的选择</li>
+<li><strong>下推</strong> <code>e.grade = 'A'</code> 到
+<code>enrolled</code> 的扫描处</li>
+<li><strong>替换</strong>笛卡尔积 + 连接谓词为适当的连接算子</li>
+<li><strong>下推</strong>投影以尽早丢弃不需要的列</li>
+</ol>
+<p>结果是一个代价大幅降低的计划——尽早过滤意味着连接处理的元组要少得多。</p>
+<h3 id="启发式优化的局限性">启发式优化的局限性</h3>
+<p>启发式规则不考虑： - 中间结果的实际大小 - 索引的可用性或选择性 -
+不同物理算子的相对代价 - 数据分布（倾斜、相关性）</p>
+<p>启发式优化器无论数据如何都应用相同的转换。例如，它总是下推谓词——但偶尔一个谓词选择性很低，下推它只会增加开销而不减少基数。</p>
+<h2 id="表达式重写">表达式重写</h2>
+<p>在搜索最优计划之前，优化器通过<strong>表达式重写</strong>简化谓词——消除冗余或不可能条件的语法转换。</p>
+<h3 id="不可能冗余谓词">不可能/冗余谓词</h3>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 不可能：没有行能同时满足两个条件</span></span><br><span class="line"><span class="keyword">WHERE</span> val <span class="keyword">BETWEEN</span> <span class="number">1</span> <span class="keyword">AND</span> <span class="number">5</span> <span class="keyword">AND</span> val <span class="keyword">BETWEEN</span> <span class="number">10</span> <span class="keyword">AND</span> <span class="number">20</span></span><br><span class="line">→ 空结果（完全跳过执行）</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 冗余：第二个谓词被包含</span></span><br><span class="line"><span class="keyword">WHERE</span> val <span class="operator">&gt;=</span> <span class="number">5</span> <span class="keyword">AND</span> val <span class="operator">&gt;=</span> <span class="number">3</span></span><br><span class="line">→ <span class="keyword">WHERE</span> val <span class="operator">&gt;=</span> <span class="number">5</span></span><br></pre></td></tr></table></figure>
+<h3 id="谓词合并">谓词合并</h3>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 合并重叠的 BETWEEN 谓词</span></span><br><span class="line"><span class="keyword">WHERE</span> val <span class="keyword">BETWEEN</span> <span class="number">1</span> <span class="keyword">AND</span> <span class="number">10</span> <span class="keyword">AND</span> val <span class="keyword">BETWEEN</span> <span class="number">5</span> <span class="keyword">AND</span> <span class="number">20</span></span><br><span class="line">→ <span class="keyword">WHERE</span> val <span class="keyword">BETWEEN</span> <span class="number">5</span> <span class="keyword">AND</span> <span class="number">10</span></span><br></pre></td></tr></table></figure>
+<h3 id="连接消除">连接消除</h3>
+<p>如果执行了连接但被连接表的列都不出现在输出中，且连接条件基于外键保证匹配，则可以完全消除该连接。这有时出现在视图连接了比查询实际需要更多的表时。</p>
+<h2 id="基于代价的优化">基于代价的优化</h2>
+<p>启发式处理”显然有益”的转换后，在真正不同的策略之间做选择（例如哈希连接
+vs
+排序归并连接、不同的连接顺序）需要<strong>代价模型</strong>。优化器枚举等价计划，估算每个计划的代价，选择最便宜的。</p>
+<p>基于代价的组件需要三样东西： 1.
+<strong>枚举</strong>等价计划的方式（搜索策略） 2.
+<strong>估算</strong>每个计划代价的方式（代价模型——在第 16 讲讲解） 3.
+<strong>剪枝</strong>搜索空间以保持可处理性的方式</p>
+<h2 id="搜索策略">搜索策略</h2>
+<p>优化器必须探索逻辑等价计划的空间。两种主要范式：</p>
+<h3 id="自底向上system-r-前向链接">自底向上（System R / 前向链接）</h3>
+<p><strong>System R</strong>
+优化器（1979）开创了基于代价的优化。它自底向上构建最优计划：</p>
+<ol type="1">
+<li><strong>从</strong>基础关系开始，为每个关系找到最优访问路径（顺序扫描
+vs 索引扫描）</li>
+<li><strong>枚举</strong>所有两表连接顺序。对每一对，考虑所有连接算法（嵌套循环、排序归并、哈希），仅保留每对的最优计划</li>
+<li><strong>构建</strong>三表连接，通过扩展最优两表计划，依此类推</li>
+<li>在每个层级，<strong>剪枝</strong>严格劣于另一个具有相同结果和相同”有趣顺序”的计划</li>
+</ol>
+<p>关键洞察是<strong>带有趣顺序的动态规划</strong>：一个产生有序输出的计划可能单独看不是最优的，但能节省后续的排序操作。优化器为每个（关系集合,
+输出顺序）组合保留最优计划。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Level 1: &#123;R&#125;, &#123;S&#125;, &#123;T&#125; 各自的最优单表访问</span><br><span class="line">Level 2: &#123;R,S&#125;, &#123;R,T&#125;, &#123;S,T&#125; 的最优连接计划</span><br><span class="line">Level 3: &#123;R,S,T&#125; 的最优连接计划 — 扩展 Level 2 的赢家</span><br></pre></td></tr></table></figure>
+<p>对于 <span class="math inline">\(n\)</span> 张表，这探索 <span
+class="math inline">\(O(2^n)\)</span> 个子集——代价高但对典型查询（&lt;
+15
+张表）可处理。这种方法只考虑<strong>左深</strong>连接树（每个连接的右孩子始终是基础表），这限制了搜索空间并保证中间结果通过流水线流过而无需完全物化。</p>
+<h3 id="自顶向下volcano-cascades-后向链接">自顶向下（Volcano / Cascades
+/ 后向链接）</h3>
+<p><strong>Volcano</strong>（1993）和
+<strong>Cascades</strong>（1995）框架采用相反的方法：</p>
+<ol type="1">
+<li><strong>从</strong>根节点的完整逻辑表达式开始</li>
+<li><strong>应用</strong>转换规则生成等价的逻辑表达式（存储在称为
+<strong>memo 表</strong>的共享结构中）</li>
+<li>对每个逻辑表达式，应用<strong>实现规则</strong>生成物理替代方案</li>
+<li>使用<strong>分支定界剪枝</strong>递归优化子表达式——如果部分计划的代价已经超过已知最优完整计划，则放弃该分支</li>
+</ol>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Optimize(LogicalExpr):</span><br><span class="line">    for each equivalent expr in ApplyRules(LogicalExpr):</span><br><span class="line">        for each physical impl of expr:</span><br><span class="line">            cost = EstimateCost(impl)</span><br><span class="line">            if cost &lt; upper_bound:</span><br><span class="line">                recursively optimize children</span><br><span class="line">                update best plan</span><br></pre></td></tr></table></figure>
+<p>Memo 表至关重要——它确保等价的子表达式被识别并只优化一次。Memo
+中的每个<strong>组</strong>代表一组逻辑等价的表达式，优化器存储每个组找到的最优物理计划。</p>
+<h3 id="enforcer强制算子">Enforcer（强制算子）</h3>
+<p>两种搜索策略都必须处理某些算子要求的<strong>物理属性</strong>。例如，排序归并连接要求其输入按连接键排序。<strong>Enforcer</strong>
+是一个物理算子（如 Sort），优化器插入它以保证所需属性。</p>
+<p>优化器将 enforcer 作为附加选择：它比较（排序 +
+归并连接）与（无需排序的哈希连接）的代价，选择更便宜的选项。</p>
+<h3 id="自底向上-vs-自顶向下比较">自底向上 vs 自顶向下比较</h3>
+<table>
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 38%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>方面</th>
+<th>自底向上（System R）</th>
+<th>自顶向下（Volcano/Cascades）</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>方向</td>
+<td>前向链接（小 → 大）</td>
+<td>后向链接（大 → 小）</td>
+</tr>
+<tr class="even">
+<td>搜索模式</td>
+<td>BFS（在 <span class="math inline">\(k+1\)</span> 表计划之前枚举所有
+<span class="math inline">\(k\)</span> 表计划）</td>
+<td>带记忆化的 DFS</td>
+</tr>
+<tr class="odd">
+<td>剪枝</td>
+<td>在每个层级丢弃被支配的计划</td>
+<td>带上界的分支定界</td>
+</tr>
+<tr class="even">
+<td>树形状</td>
+<td>通常仅左深树</td>
+<td>可探索灌木状树</td>
+</tr>
+<tr class="odd">
+<td>实现</td>
+<td>更容易实现</td>
+<td>更灵活，可扩展的规则系统</td>
+</tr>
+<tr class="even">
+<td>使用者</td>
+<td>PostgreSQL, IBM DB2, MySQL</td>
+<td>SQL Server, CockroachDB, Apache Calcite</td>
+</tr>
+</tbody>
+</table>
+<p>实践中，两种方法找到的计划质量相似。自顶向下方法更具扩展性（添加新规则无需重构搜索），但更难调试。</p>
+<h2 id="星型和雪花型查询">星型和雪花型查询</h2>
+<p>数据仓库通常使用<strong>星型模式</strong>（一张事实表被多张维度表包围）和<strong>雪花型模式</strong>（维度表进一步规范化）。这些查询将一张大事实表与多张小维度表连接。</p>
+<p>标准动态规划枚举（<span class="math inline">\(n\)</span> 张表的 <span
+class="math inline">\(2^n\)</span> 个子集）在 <span
+class="math inline">\(n\)</span> 较大时（10+
+维度表）变得不可行。特殊策略包括：</p>
+<ul>
+<li><strong>以事实表为中心</strong>：始终从事实表开始连接顺序</li>
+<li><strong>先对维度表做谓词下推</strong>：在连接事实表之前先过滤维度表，使用位图过滤器或半连接来减少事实表扫描</li>
+<li><strong>星型连接优化</strong>：识别星型模式并使用专门的多索引或位图交集策略</li>
+</ul>
+<hr />
+<h2 id="lec15-要点回顾">Lec15 要点回顾</h2>
+<ul>
+<li>优化器利用代数等价性将逻辑计划转换为物理计划——查询优化的正确性完全建立在这些等价性的可靠性之上</li>
+<li>启发式规则（谓词下推、投影下推、笛卡尔积转连接）应用成本低且几乎总是有益——每个实际的优化器都首先应用它们</li>
+<li>基于代价的优化枚举等价计划并选择最优——两种主要范式（自底向上的
+System R 和自顶向下的 Cascades）代表根本不同的搜索策略但结果相似</li>
+<li>连接顺序是影响最大的优化决策——合法顺序的数量超指数增长，使得大查询的穷举搜索不可能</li>
+<li>Enforcer
+弥合逻辑等价性和物理需求之间的差距——优化器在比较计划时必须考虑排序顺序等属性</li>
+</ul>
+<hr />
+<h1 id="lec16-查询规划与优化-代价模型统计信息和基数估计">Lec16
+查询规划与优化 — 代价模型、统计信息和基数估计</h1>
+<p>第 15
+讲建立了优化器<em>如何</em>搜索等价计划。本讲回答互补的问题：<strong>优化器如何估算一个计划的代价？</strong>答案需要关于数据的统计信息、将统计信息转化为估算
+I/O 和 CPU 代价的代价模型，以及预测中间结果大小的基数估计。</p>
+<h2 id="为什么代价估算重要">为什么代价估算重要</h2>
+<p>优化器的计划选择取决于其代价估算的质量。完美的搜索算法配上糟糕的代价估算，只会自信地选择一个糟糕的计划。代价模型是优化器的”预言机”——其准确性直接决定查询性能。</p>
+<p>代价估算有三个组成部分： 1.
+<strong>统计信息</strong>：数据分布的摘要（直方图、sketch、样本） 2.
+<strong>基数估计</strong>：预测每个算子产生多少元组 3.
+<strong>代价模型</strong>：将基数和算子类型映射到估算的执行代价</p>
+<h2 id="统计信息">统计信息</h2>
+<p>DBMS
+维护关于表和列的内部统计信息以支持代价估算。这些信息存储在系统目录中，通常通过显式的
+<code>ANALYZE</code> 命令（PostgreSQL）或后台自动更新。</p>
+<h3 id="基本统计量">基本统计量</h3>
+<p>对于每个关系 <span class="math inline">\(R\)</span>： - <span
+class="math inline">\(N_R\)</span>：<span
+class="math inline">\(R\)</span> 中的元组数量 - <span
+class="math inline">\(V(A, R)\)</span>：属性 <span
+class="math inline">\(A\)</span> 在 <span
+class="math inline">\(R\)</span> 中的不同值数量（有时称为 <span
+class="math inline">\(A\)</span> 的<strong>基数</strong>） - <span
+class="math inline">\(B_R\)</span>：包含 <span
+class="math inline">\(R\)</span> 元组的磁盘块（页）数量</p>
+<p><strong>选择基数</strong> <span class="math inline">\(SC(A,
+R)\)</span> 是具有给定 <span class="math inline">\(A\)</span>
+值的平均元组数：</p>
+<p><span class="math display">\[SC(A, R) = \frac{N_R}{V(A,
+R)}\]</span></p>
+<p>如果 <span class="math inline">\(A\)</span> 是键（所有值不同），<span
+class="math inline">\(SC(A, R) = 1\)</span>。如果 <span
+class="math inline">\(A\)</span> 只有一个不同值，<span
+class="math inline">\(SC(A, R) = N_R\)</span>。</p>
+<h3 id="直方图">直方图</h3>
+<p>真实数据很少是均匀的。<strong>直方图</strong>捕获列中值的分布，使优化器能比均匀假设更准确地估算选择性。</p>
+<p><strong>等宽直方图</strong>：将值域划分为固定宽度的桶，统计每个桶中有多少元组。</p>
+<table>
+<thead>
+<tr class="header">
+<th>范围</th>
+<th>计数</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>[0, 10)</td>
+<td>120</td>
+</tr>
+<tr class="even">
+<td>[10, 20)</td>
+<td>340</td>
+</tr>
+<tr class="odd">
+<td>[20, 30)</td>
+<td>90</td>
+</tr>
+<tr class="even">
+<td>[30, 40)</td>
+<td>450</td>
+</tr>
+</tbody>
+</table>
+<p>构建简单但在值聚集时可能产生误导——跨越密集区域和稀疏区域的桶隐藏了真实分布。</p>
+<p><strong>等深（等高）直方图</strong>：调整桶边界使每个桶包含大约相同数量的元组。</p>
+<p>这能更好地捕获倾斜分布——数据密集处出现窄桶，稀疏处出现宽桶。大多数生产系统使用等深直方图。</p>
+<p><strong>端偏直方图</strong>：存储最常见值（MCV）的精确频率，对剩余值使用单个直方图。PostgreSQL
+使用这种方法——它为每个分析过的列同时维护 MCV 列表和直方图。</p>
+<h3 id="sketch">Sketch</h3>
+<p>对于非常大的数据集或流式场景，精确直方图可能代价高昂。<strong>概率
+sketch</strong> 以最小空间提供有界误差的近似统计。</p>
+<p><strong>Count-Min Sketch</strong>：一个包含 <span
+class="math inline">\(d\)</span>
+个哈希函数的二维计数器数组。要记录一个值，用每个函数对其哈希并递增相应计数器。要查询频率，取所有哈希函数中的<strong>最小值</strong>（因此叫”count-min”）。使用最小值是因为哈希冲突只能使计数膨胀，不能缩小。</p>
+<ul>
+<li>空间：<span class="math inline">\(O(d \times w)\)</span>，其中 <span
+class="math inline">\(w\)</span> 是宽度（每行计数器数量）</li>
+<li>误差：基于 <span class="math inline">\(d\)</span> 和 <span
+class="math inline">\(w\)</span> 的概率保证</li>
+<li>用途：估算单个值的频率（点查询）</li>
+</ul>
+<p><strong>HyperLogLog
+(HLL)</strong>：利用哈希值中最大前导零数量与基数对数的关系来估算<strong>不同值数量</strong>（基数）。使用极少空间（几
+KB）即可估算数十亿级别的基数。</p>
+<ul>
+<li>空间：<span class="math inline">\(O(m)\)</span>，其中 <span
+class="math inline">\(m\)</span> 是寄存器数量（通常 1024–16384）</li>
+<li>误差：当 <span class="math inline">\(m = 16384\)</span> 时约 <span
+class="math inline">\(\pm 2\%\)</span></li>
+<li>用途：不扫描整列即可估算 <span class="math inline">\(V(A,
+R)\)</span></li>
+</ul>
+<h3 id="采样">采样</h3>
+<p>预计算统计信息的替代方案：维护每张表的随机元组样本，对样本运行查询谓词以估算选择性。这对复杂谓词（包括相关谓词）自然适应，但运行时代价更高。</p>
+<p>使用基于采样估算的系统包括
+Oracle（动态采样）和一些将采样与学习模型结合的新系统。</p>
+<h2 id="代价模型">代价模型</h2>
+<p>代价模型将统计信息和基数估计转化为每个计划的单一数值代价。两种主要风格：</p>
+<h3 id="物理代价模型">物理代价模型</h3>
+<p>估算实际资源消耗：磁盘 I/O、CPU
+周期、内存使用、网络传输。这是最准确的方法，但将优化器绑定到特定硬件。</p>
+<p>考虑的因素包括： - 顺序 I/O vs 随机 I/O（顺序读取便宜 10–100 倍） -
+每元组的比较、哈希、表达式求值 CPU 代价 - 哈希表、排序缓冲区的可用内存 -
+分布式查询的网络代价</p>
+<h3 id="逻辑代价模型">逻辑代价模型</h3>
+<p>为算子分配抽象的相对代价，不建模物理硬件。这使优化器可跨硬件配置移植，但对任何特定部署不够准确。</p>
+<h3 id="postgresql-代价模型">PostgreSQL 代价模型</h3>
+<p>PostgreSQL
+使用带可配置<strong>魔法常数</strong>的物理代价模型，这些常数近似不同操作的相对代价：</p>
+<table>
+<thead>
+<tr class="header">
+<th>参数</th>
+<th>默认值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>seq_page_cost</code></td>
+<td>1.0</td>
+<td>顺序读取一页的代价</td>
+</tr>
+<tr class="even">
+<td><code>random_page_cost</code></td>
+<td>4.0</td>
+<td>随机读取一页的代价</td>
+</tr>
+<tr class="odd">
+<td><code>cpu_tuple_cost</code></td>
+<td>0.01</td>
+<td>处理每个元组的 CPU 代价</td>
+</tr>
+<tr class="even">
+<td><code>cpu_index_tuple_cost</code></td>
+<td>0.005</td>
+<td>每个索引条目的 CPU 代价</td>
+</tr>
+<tr class="odd">
+<td><code>cpu_operator_cost</code></td>
+<td>0.0025</td>
+<td>每次算子求值的 CPU 代价</td>
+</tr>
+</tbody>
+</table>
+<p>计划的总代价是 I/O 代价和 CPU 代价之和：</p>
+<p><span class="math display">\[\text{Total Cost} = (\text{pages\_read}
+\times \text{page\_cost}) + (\text{tuples\_processed} \times
+\text{cpu\_tuple\_cost})\]</span></p>
+<p>这些常数编码了随机 I/O 比顺序 I/O 贵 4 倍的假设——对机械硬盘合理但对
+SSD 过于保守，SSD 的比率接近 1.5–2
+倍。管理员可以为其硬件调整这些常数。</p>
+<h2 id="基数估计">基数估计</h2>
+<p>代价模型最关键的工作：预测每个算子产生多少元组。计划中每个后续的代价估算都依赖于这些预测。</p>
+<h3 id="选择性">选择性</h3>
+<p>谓词 <span class="math inline">\(P\)</span> 的<strong>选择性</strong>
+<span class="math inline">\(\text{sel}(P)\)</span> 是满足 <span
+class="math inline">\(P\)</span> 的元组比例：</p>
+<p><span class="math display">\[\text{sel}(P) =
+\frac{|\sigma_P(R)|}{N_R}\]</span></p>
+<p>选择的估算输出基数为：</p>
+<p><span class="math display">\[|\sigma_P(R)| = N_R \times
+\text{sel}(P)\]</span></p>
+<h3 id="常见谓词的选择性">常见谓词的选择性</h3>
+<p><strong>等值</strong>：<span class="math inline">\(A =
+\text{constant}\)</span></p>
+<p><span class="math display">\[\text{sel}(A = c) = \frac{1}{V(A,
+R)}\]</span></p>
+<p>假设均匀分布——每个不同值出现概率相等。</p>
+<p><strong>范围</strong>：<span class="math inline">\(A \geq
+c\)</span>（给定值域 <span class="math inline">\([\text{min},
+\text{max}]\)</span>）</p>
+<p><span class="math display">\[\text{sel}(A \geq c) = \frac{\text{max}
+- c}{\text{max} - \text{min}}\]</span></p>
+<p>假设值在范围内均匀分布。</p>
+<p><strong>否定</strong>：<span class="math inline">\(\text{NOT }
+P\)</span></p>
+<p><span class="math display">\[\text{sel}(\text{NOT } P) = 1 -
+\text{sel}(P)\]</span></p>
+<p><strong>合取</strong>：<span class="math inline">\(P_1 \text{ AND }
+P_2\)</span></p>
+<p><span class="math display">\[\text{sel}(P_1 \wedge P_2) =
+\text{sel}(P_1) \times \text{sel}(P_2)\]</span></p>
+<p>假设谓词之间<strong>独立</strong>——一个强假设，通常不成立（例如
+<code>city = 'Pittsburgh'</code> 和 <code>state = 'PA'</code>
+高度相关）。</p>
+<p><strong>析取</strong>：<span class="math inline">\(P_1 \text{ OR }
+P_2\)</span></p>
+<p><span class="math display">\[\text{sel}(P_1 \vee P_2) =
+\text{sel}(P_1) + \text{sel}(P_2) - \text{sel}(P_1) \times
+\text{sel}(P_2)\]</span></p>
+<h3 id="三个基本假设">三个基本假设</h3>
+<p>经典基数估计建立在三个简化假设之上：</p>
+<ol type="1">
+<li><p><strong>均匀分布</strong>：列中所有值出现概率相等。在倾斜数据（如实际工作负载中常见的
+Zipf 分布）下失效。</p></li>
+<li><p><strong>独立性</strong>：不同列上的谓词统计独立——知道列 <span
+class="math inline">\(A\)</span> 的值不会告诉你关于列 <span
+class="math inline">\(B\)</span>
+的任何信息。在相关属性（城市/州、年龄/毕业年份）下失效。</p></li>
+<li><p><strong>包含（Containment）原则</strong>：对于连接 <span
+class="math inline">\(R \bowtie_{A}
+S\)</span>，较小关系中值的域包含在较大关系的域中。即较小集合中出现的每个值也出现在较大集合中。</p></li>
+</ol>
+<h3 id="连接大小估计">连接大小估计</h3>
+<p>对于等值连接 <span class="math inline">\(R \bowtie_{R.A = S.A}
+S\)</span>，估算结果大小为：</p>
+<p><span class="math display">\[|\text{est}| \approx \frac{N_R \times
+N_S}{\max(V(A, R), V(A, S))}\]</span></p>
+<p>直觉：除以较大的不同值数量，因为包含假设意味着较小的值集合完全”包含”在较大的集合中。较小域中的每个值与
+<span class="math inline">\(R\)</span> 中的 <span
+class="math inline">\(SC(A, R)\)</span> 个元组和 <span
+class="math inline">\(S\)</span> 中的 <span class="math inline">\(SC(A,
+S)\)</span> 个元组匹配。</p>
+<p>对于笛卡尔积（无连接谓词），结果大小就是 <span
+class="math inline">\(N_R \times N_S\)</span>。</p>
+<h3 id="多连接估计与误差传播">多连接估计与误差传播</h3>
+<p>对于连接多张表的查询，优化器必须估算中间结果大小，每个估算都反馈到下一个。误差以乘法方式累积：</p>
+<p>考虑三表连接 <span class="math inline">\(R \bowtie S \bowtie
+T\)</span>： 1. 估算 <span class="math inline">\(|R \bowtie S|\)</span>
+——假设估算偏差 2 倍 2. 用该估算计算 <span class="math inline">\(|(R
+\bowtie S) \bowtie T|\)</span> —— 2 倍误差传播</p>
+<p>经过 <span class="math inline">\(k\)</span>
+次连接后，估算误差可以累积到 <span class="math inline">\(O(2^k)\)</span>
+甚至更大。这就是为什么基数估计常被称为查询优化的<strong>阿喀琉斯之踵</strong>——即使每步很小的误差也能导致优化器为复杂查询选择灾难性错误的计划。</p>
+<h3 id="相关属性问题">相关属性问题</h3>
+<p>独立性假设在实践中问题最大。考虑：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> cars</span><br><span class="line"><span class="keyword">WHERE</span> make <span class="operator">=</span> <span class="string">&#x27;Honda&#x27;</span> <span class="keyword">AND</span> model <span class="operator">=</span> <span class="string">&#x27;Accord&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p>优化器估算：</p>
+<p><span class="math display">\[\text{sel} = \frac{1}{V(\text{make})}
+\times \frac{1}{V(\text{model})}\]</span></p>
+<p>如果有 50 个品牌和 500 个型号，估算选择性为 <span
+class="math inline">\(\frac{1}{50} \times \frac{1}{500} =
+\frac{1}{25000}\)</span>，远远偏低——因为品牌和型号高度相关（只有本田生产
+Accord）。</p>
+<p>处理相关性的方法：</p>
+<table>
+<colgroup>
+<col style="width: 30%" />
+<col style="width: 30%" />
+<col style="width: 40%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>方法</th>
+<th>思路</th>
+<th>局限性</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>多列统计</strong></td>
+<td>维护列组合的联合直方图或统计</td>
+<td>可能的组合数量指数级</td>
+</tr>
+<tr class="even">
+<td><strong>贝叶斯网络</strong></td>
+<td>将列间依赖建模为图模型</td>
+<td>构建和维护复杂</td>
+</tr>
+<tr class="odd">
+<td><strong>反馈驱动</strong></td>
+<td>使用实际运行时基数校正未来估算</td>
+<td>需要先执行查询</td>
+</tr>
+<tr class="even">
+<td><strong>学习型基数估计器</strong></td>
+<td>在查询日志上训练 ML 模型预测基数</td>
+<td>数据漂移、训练代价、可靠性</td>
+</tr>
+</tbody>
+</table>
+<p>没有单一方法完全解决这个问题。现代系统通常组合使用：对已知相关性使用多列统计，对其余情况以独立性假设作为后备。</p>
+<hr />
+<h2 id="lec16-要点回顾">Lec16 要点回顾</h2>
+<ul>
+<li>统计信息（直方图、sketch、样本）是基于代价优化的基础——没有准确的数据摘要，优化器就是盲飞</li>
+<li>代价模型将基数估计转化为计划代价——PostgreSQL
+的魔法常数编码了硬件特定假设，管理员应针对性调整</li>
+<li>在均匀/独立/包含假设下的基数估计对简单查询效果好，但在相关属性和多连接查询下失效</li>
+<li>估算误差通过连接链以乘法方式传播——每次连接 2 倍误差，经过 10
+次连接变成 1000 倍误差，导致灾难性错误的计划选择</li>
+<li>相关属性问题仍然是查询优化中最困难的挑战之一——多列统计、学习型估计器和反馈循环是活跃的研究领域</li>
+</ul>
+<hr />
+<h2 id="总结">总结</h2>
+<table>
+<colgroup>
+<col style="width: 37%" />
+<col style="width: 62%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>主题</th>
+<th>核心思想</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>规划流水线</td>
+<td>SQL → AST → 逻辑计划 → 物理计划；优化器桥接逻辑到物理</td>
+</tr>
+<tr class="even">
+<td>关系代数等价性</td>
+<td>选择分解、连接交换律/结合律——定义合法搜索空间</td>
+</tr>
+<tr class="odd">
+<td>启发式优化</td>
+<td>静态规则（谓词下推、投影下推）——成本低且几乎总是有益</td>
+</tr>
+<tr class="even">
+<td>表达式重写</td>
+<td>在搜索前简化/消除不可能或冗余的谓词</td>
+</tr>
+<tr class="odd">
+<td>自底向上搜索（System R）</td>
+<td>对关系子集的动态规划，<span
+class="math inline">\(O(2^n)\)</span>，左深树，有趣顺序</td>
+</tr>
+<tr class="even">
+<td>自顶向下搜索（Cascades）</td>
+<td>带 memo 表的 DFS，分支定界剪枝，支持灌木状树</td>
+</tr>
+<tr class="odd">
+<td>Enforcer</td>
+<td>插入的物理算子（如 Sort）以保证所需属性</td>
+</tr>
+<tr class="even">
+<td>统计信息</td>
+<td>直方图（等宽、等深、端偏）、sketch（Count-Min、HLL）、采样</td>
+</tr>
+<tr class="odd">
+<td>代价模型</td>
+<td>将基数 + 算子类型 → 数值代价；物理（PostgreSQL）vs 逻辑</td>
+</tr>
+<tr class="even">
+<td>基数估计</td>
+<td><span class="math inline">\(\text{sel}(P) \times
+N_R\)</span>；依赖均匀、独立、包含假设</td>
+</tr>
+<tr class="odd">
+<td>连接大小估计</td>
+<td>在包含假设下 <span class="math inline">\(N_R \times N_S /
+\max(V(A,R), V(A,S))\)</span></td>
+</tr>
+<tr class="even">
+<td>误差传播</td>
+<td>估算误差通过连接链以乘法方式累积</td>
+</tr>
+<tr class="odd">
+<td>相关属性</td>
+<td>独立性假设失效；解决方案包括多列统计、学习模型</td>
+</tr>
+</tbody>
+</table>
+<p><strong>核心要点</strong>：查询优化是一个在等价计划上的搜索问题，由依赖基数估计的代价模型引导——而基数估计，尽管经过数十年的研究，仍然是链条中最薄弱的一环。把统计信息做对比拥有精密的搜索算法更重要。</p>
+<h2 id="参考文献">参考文献</h2>
+<ul>
+<li>P. Selinger et al., “Access Path Selection in a Relational Database
+Management System,” SIGMOD, 1979.</li>
+<li>G. Graefe, “The Cascades Framework for Query Optimization,” IEEE
+Data Engineering Bulletin, 1995.</li>
+<li>G. Graefe and W. McKenna, “The Volcano Optimizer Generator:
+Extensibility and Efficient Search,” ICDE, 1993.</li>
+<li>V. Leis et al., “How Good Are Query Optimizers, Really?,” PVLDB,
+2015.</li>
+<li>PostgreSQL Documentation, “Planner Cost Constants,”
+postgresql.org.</li>
+</ul>
+<p><em>本文基于 CMU 15-445/645 数据库系统课程材料，授课教师 Andy Pavlo
+&amp; Jignesh Patel（Lecture #15: Query Planning &amp; Optimization
+I，Lecture #16: Query Planning &amp; Optimization II）。</em></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/">https://xloverflow.github.io/zh/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://xloverflow.github.io/zh" target="_blank">Life is not a race, but a journey</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/zh/tags/CMU/">CMU</a><a class="post-meta__tags" href="/zh/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/zh/tags/Database-Systems/">Database Systems</a><a class="post-meta__tags" href="/zh/tags/15645/">15645</a><a class="post-meta__tags" href="/zh/tags/Query-Optimization/">Query Optimization</a><a class="post-meta__tags" href="/zh/tags/Cost-Model/">Cost Model</a><a class="post-meta__tags" href="/zh/tags/Cardinality-Estimation/">Cardinality Estimation</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/zh/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">11868 LLM Sys: Systems for Mixture-of-Experts Models</div></div><div class="info-2"><div class="info-item-1">CMU 11-868 LLM Systems 第16讲笔记，涵盖 Mixture-of-Experts 架构、Switch Transformer、共享专家与路由专家、基于 GShard 的专家并行、负载均衡、DeepSeek V3 MoE 以及 DeepSpeed-MoE 推理优化。</div></div></div></a><a class="pagination-related" href="/zh/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">15645 Database systems: Query Execution</div></div><div class="info-2"><div class="info-item-1">CMU 15-645 数据库系统课程笔记与总结。</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/zh/2026/02/07/15645-Database-Systems/15645-Database-systems-Hash-Tables/" title="15645 Database systems: Hash Tables"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-07</div><div class="info-item-2">15645 Database systems: Hash Tables</div></div><div class="info-2"><div class="info-item-1">CMU 15-645 数据库系统的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/16/15645-Database-Systems/15645-Database-Systems-relational-model-and-SQL/" title="15645 Database Systems Lecture Notes"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-15</div><div class="info-item-2">15645 Database Systems Lecture Notes</div></div><div class="info-2"><div class="info-item-1">CMU 15-645 数据库系统的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/" title="15645 Database systems: Index Concurrency Control"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-08</div><div class="info-item-2">15645 Database systems: Index Concurrency Control</div></div><div class="info-2"><div class="info-item-1">CMU 15-645 数据库系统的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/02/09/15645-Database-Systems/15645-Database-systems-Index-Filter/" title="15645 Database systems: Index &amp; Filter"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-09</div><div class="info-item-2">15645 Database systems: Index &amp; Filter</div></div><div class="info-2"><div class="info-item-1">CMU 15-645 数据库系统的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/03/08/15645-Database-Systems/15645-Database-systems-Join-Algorithms/" title="15645 Database systems: Join Algorithms"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-08</div><div class="info-item-2">15645 Database systems: Join Algorithms</div></div><div class="info-2"><div class="info-item-1">CMU 15-645 数据库系统的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-15</div><div class="info-item-2">15645 Database systems: Query Execution</div></div><div class="info-2"><div class="info-item-1">CMU 15-645 数据库系统课程笔记与总结。</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li 的中文博客</div><div class="site-data"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">62</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">116</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">22</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#lec15-%E6%9F%A5%E8%AF%A2%E8%A7%84%E5%88%92%E4%B8%8E%E4%BC%98%E5%8C%96-%E8%A7%84%E5%88%99%E5%90%AF%E5%8F%91%E5%BC%8F%E6%96%B9%E6%B3%95%E5%92%8C%E6%90%9C%E7%B4%A2%E7%AD%96%E7%95%A5"><span class="toc-number">1.</span> <span class="toc-text">Lec15
+查询规划与优化 — 规则、启发式方法和搜索策略</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9F%A5%E8%AF%A2%E8%A7%84%E5%88%92%E6%B5%81%E6%B0%B4%E7%BA%BF"><span class="toc-number">1.1.</span> <span class="toc-text">查询规划流水线</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B3%E7%B3%BB%E4%BB%A3%E6%95%B0%E7%AD%89%E4%BB%B7%E6%80%A7"><span class="toc-number">1.2.</span> <span class="toc-text">关系代数等价性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%89%E6%8B%A9%E7%AD%89%E4%BB%B7%E6%80%A7"><span class="toc-number">1.2.1.</span> <span class="toc-text">选择等价性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8A%95%E5%BD%B1%E7%AD%89%E4%BB%B7%E6%80%A7"><span class="toc-number">1.2.2.</span> <span class="toc-text">投影等价性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9E%E6%8E%A5%E7%AD%89%E4%BB%B7%E6%80%A7"><span class="toc-number">1.2.3.</span> <span class="toc-text">连接等价性</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%90%AF%E5%8F%91%E5%BC%8F%E5%9F%BA%E4%BA%8E%E8%A7%84%E5%88%99%E7%9A%84%E4%BC%98%E5%8C%96"><span class="toc-number">1.3.</span> <span class="toc-text">启发式&#x2F;基于规则的优化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E5%90%AF%E5%8F%91%E5%BC%8F%E8%A7%84%E5%88%99"><span class="toc-number">1.3.1.</span> <span class="toc-text">核心启发式规则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BD%AC%E6%8D%A2%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.3.2.</span> <span class="toc-text">转换示例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%AF%E5%8F%91%E5%BC%8F%E4%BC%98%E5%8C%96%E7%9A%84%E5%B1%80%E9%99%90%E6%80%A7"><span class="toc-number">1.3.3.</span> <span class="toc-text">启发式优化的局限性</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A1%A8%E8%BE%BE%E5%BC%8F%E9%87%8D%E5%86%99"><span class="toc-number">1.4.</span> <span class="toc-text">表达式重写</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8D%E5%8F%AF%E8%83%BD%E5%86%97%E4%BD%99%E8%B0%93%E8%AF%8D"><span class="toc-number">1.4.1.</span> <span class="toc-text">不可能&#x2F;冗余谓词</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B0%93%E8%AF%8D%E5%90%88%E5%B9%B6"><span class="toc-number">1.4.2.</span> <span class="toc-text">谓词合并</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9E%E6%8E%A5%E6%B6%88%E9%99%A4"><span class="toc-number">1.4.3.</span> <span class="toc-text">连接消除</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E4%BA%8E%E4%BB%A3%E4%BB%B7%E7%9A%84%E4%BC%98%E5%8C%96"><span class="toc-number">1.5.</span> <span class="toc-text">基于代价的优化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%90%9C%E7%B4%A2%E7%AD%96%E7%95%A5"><span class="toc-number">1.6.</span> <span class="toc-text">搜索策略</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%87%AA%E5%BA%95%E5%90%91%E4%B8%8Asystem-r-%E5%89%8D%E5%90%91%E9%93%BE%E6%8E%A5"><span class="toc-number">1.6.1.</span> <span class="toc-text">自底向上（System R &#x2F; 前向链接）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%87%AA%E9%A1%B6%E5%90%91%E4%B8%8Bvolcano-cascades-%E5%90%8E%E5%90%91%E9%93%BE%E6%8E%A5"><span class="toc-number">1.6.2.</span> <span class="toc-text">自顶向下（Volcano &#x2F; Cascades
+&#x2F; 后向链接）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#enforcer%E5%BC%BA%E5%88%B6%E7%AE%97%E5%AD%90"><span class="toc-number">1.6.3.</span> <span class="toc-text">Enforcer（强制算子）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%87%AA%E5%BA%95%E5%90%91%E4%B8%8A-vs-%E8%87%AA%E9%A1%B6%E5%90%91%E4%B8%8B%E6%AF%94%E8%BE%83"><span class="toc-number">1.6.4.</span> <span class="toc-text">自底向上 vs 自顶向下比较</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%98%9F%E5%9E%8B%E5%92%8C%E9%9B%AA%E8%8A%B1%E5%9E%8B%E6%9F%A5%E8%AF%A2"><span class="toc-number">1.7.</span> <span class="toc-text">星型和雪花型查询</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#lec15-%E8%A6%81%E7%82%B9%E5%9B%9E%E9%A1%BE"><span class="toc-number">1.8.</span> <span class="toc-text">Lec15 要点回顾</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#lec16-%E6%9F%A5%E8%AF%A2%E8%A7%84%E5%88%92%E4%B8%8E%E4%BC%98%E5%8C%96-%E4%BB%A3%E4%BB%B7%E6%A8%A1%E5%9E%8B%E7%BB%9F%E8%AE%A1%E4%BF%A1%E6%81%AF%E5%92%8C%E5%9F%BA%E6%95%B0%E4%BC%B0%E8%AE%A1"><span class="toc-number">2.</span> <span class="toc-text">Lec16
+查询规划与优化 — 代价模型、统计信息和基数估计</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BB%A3%E4%BB%B7%E4%BC%B0%E7%AE%97%E9%87%8D%E8%A6%81"><span class="toc-number">2.1.</span> <span class="toc-text">为什么代价估算重要</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%9F%E8%AE%A1%E4%BF%A1%E6%81%AF"><span class="toc-number">2.2.</span> <span class="toc-text">统计信息</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E7%BB%9F%E8%AE%A1%E9%87%8F"><span class="toc-number">2.2.1.</span> <span class="toc-text">基本统计量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%B4%E6%96%B9%E5%9B%BE"><span class="toc-number">2.2.2.</span> <span class="toc-text">直方图</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#sketch"><span class="toc-number">2.2.3.</span> <span class="toc-text">Sketch</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%87%87%E6%A0%B7"><span class="toc-number">2.2.4.</span> <span class="toc-text">采样</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%A3%E4%BB%B7%E6%A8%A1%E5%9E%8B"><span class="toc-number">2.3.</span> <span class="toc-text">代价模型</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%89%A9%E7%90%86%E4%BB%A3%E4%BB%B7%E6%A8%A1%E5%9E%8B"><span class="toc-number">2.3.1.</span> <span class="toc-text">物理代价模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%BB%E8%BE%91%E4%BB%A3%E4%BB%B7%E6%A8%A1%E5%9E%8B"><span class="toc-number">2.3.2.</span> <span class="toc-text">逻辑代价模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#postgresql-%E4%BB%A3%E4%BB%B7%E6%A8%A1%E5%9E%8B"><span class="toc-number">2.3.3.</span> <span class="toc-text">PostgreSQL 代价模型</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E6%95%B0%E4%BC%B0%E8%AE%A1"><span class="toc-number">2.4.</span> <span class="toc-text">基数估计</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%89%E6%8B%A9%E6%80%A7"><span class="toc-number">2.4.1.</span> <span class="toc-text">选择性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E8%B0%93%E8%AF%8D%E7%9A%84%E9%80%89%E6%8B%A9%E6%80%A7"><span class="toc-number">2.4.2.</span> <span class="toc-text">常见谓词的选择性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%E4%B8%AA%E5%9F%BA%E6%9C%AC%E5%81%87%E8%AE%BE"><span class="toc-number">2.4.3.</span> <span class="toc-text">三个基本假设</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9E%E6%8E%A5%E5%A4%A7%E5%B0%8F%E4%BC%B0%E8%AE%A1"><span class="toc-number">2.4.4.</span> <span class="toc-text">连接大小估计</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%9A%E8%BF%9E%E6%8E%A5%E4%BC%B0%E8%AE%A1%E4%B8%8E%E8%AF%AF%E5%B7%AE%E4%BC%A0%E6%92%AD"><span class="toc-number">2.4.5.</span> <span class="toc-text">多连接估计与误差传播</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%B8%E5%85%B3%E5%B1%9E%E6%80%A7%E9%97%AE%E9%A2%98"><span class="toc-number">2.4.6.</span> <span class="toc-text">相关属性问题</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#lec16-%E8%A6%81%E7%82%B9%E5%9B%9E%E9%A1%BE"><span class="toc-number">2.5.</span> <span class="toc-text">Lec16 要点回顾</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">2.6.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">2.7.</span> <span class="toc-text">参考文献</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11711 Advanced NLP: Parallelism and Scaling"/></a><div class="content"><a class="title" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling">11711 Advanced NLP: Parallelism and Scaling</a><time datetime="2026-04-07T03:00:00.000Z" title="发表于 2026-04-06 23:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11711 Advanced NLP: Quantization"/></a><div class="content"><a class="title" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization">11711 Advanced NLP: Quantization</a><time datetime="2026-04-07T02:00:00.000Z" title="发表于 2026-04-06 22:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11868 LLM Sys: Systems for Mixture-of-Experts Models"/></a><div class="content"><a class="title" href="/zh/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models">11868 LLM Sys: Systems for Mixture-of-Experts Models</a><time datetime="2026-03-21T19:00:00.000Z" title="发表于 2026-03-21 15:00:00">2026-03-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="15645 Database systems: Query Optimization"/></a><div class="content"><a class="title" href="/zh/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization">15645 Database systems: Query Optimization</a><time datetime="2026-03-20T18:00:00.000Z" title="发表于 2026-03-20 14:00:00">2026-03-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="15645 Database systems: Query Execution"/></a><div class="content"><a class="title" href="/zh/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution">15645 Database systems: Query Execution</a><time datetime="2026-03-15T18:00:00.000Z" title="发表于 2026-03-15 14:00:00">2026-03-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/zh/js/utils.js"></script><script src="/zh/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '4bd8021f33d2092beb141a31aab4d118'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/zh/404.html') : window.location.href = '/zh/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

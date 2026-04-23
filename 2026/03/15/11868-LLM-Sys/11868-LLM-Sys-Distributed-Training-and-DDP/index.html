@@ -1,0 +1,1385 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>11868 LLM Sys: Distributed Training, DDP, and Model Parallelism | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Notes on CMU 11-868 LLM Systems Lec13-15, covering distributed training, NCCL collectives, Ring AllReduce, PyTorch DDP, pipeline parallelism, tensor parallelism, and their combination.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="11868 LLM Sys: Distributed Training, DDP, and Model Parallelism">
+<meta property="og:url" content="https://xloverflow.github.io/2026/03/15/11868-LLM-Sys/11868-LLM-Sys-Distributed-Training-and-DDP/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Notes on CMU 11-868 LLM Systems Lec13-15, covering distributed training, NCCL collectives, Ring AllReduce, PyTorch DDP, pipeline parallelism, tensor parallelism, and their combination.">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png">
+<meta property="article:published_time" content="2026-03-15T01:30:00.000Z">
+<meta property="article:modified_time" content="2026-03-15T01:30:00.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="11868">
+<meta property="article:tag" content="AllReduce">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="DDP">
+<meta property="article:tag" content="Distributed Training">
+<meta property="article:tag" content="GPipe">
+<meta property="article:tag" content="Gradient Checkpointing">
+<meta property="article:tag" content="LLM Systems">
+<meta property="article:tag" content="Megatron-LM">
+<meta property="article:tag" content="Model Parallelism">
+<meta property="article:tag" content="NCCL">
+<meta property="article:tag" content="Pipeline Parallelism">
+<meta property="article:tag" content="Study Notes">
+<meta property="article:tag" content="Tensor Parallelism">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "11868 LLM Sys: Distributed Training, DDP, and Model Parallelism",
+  "url": "https://xloverflow.github.io/2026/03/15/11868-LLM-Sys/11868-LLM-Sys-Distributed-Training-and-DDP/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png",
+  "datePublished": "2026-03-15T01:30:00.000Z",
+  "dateModified": "2026-03-15T01:30:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2026/03/15/11868-LLM-Sys/11868-LLM-Sys-Distributed-Training-and-DDP/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '11868 LLM Sys: Distributed Training, DDP, and Model Parallelism',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">119</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">11868 LLM Sys: Distributed Training, DDP, and Model Parallelism</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">11868 LLM Sys: Distributed Training, DDP, and Model Parallelism</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-03-15T01:30:00.000Z" title="Created 2026-03-14 21:30:00">2026-03-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-03-15T01:30:00.000Z" title="Updated 2026-03-14 21:30:00">2026-03-14</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CMU-11-868-LLM-Systems/">CMU 11-868 LLM Systems</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="lec13-distributed-training">Lec13 Distributed Training</h1>
+<p>This lecture is about the communication side of large-scale training:
+why modern LLMs need distributed execution, what collective
+communication primitives NCCL provides, and why <strong>AllReduce-based
+data parallelism</strong> became the standard design.</p>
+<h2 id="why-distributed-training-becomes-necessary">Why Distributed
+Training Becomes Necessary</h2>
+<p>Modern LLMs are trained at a scale that makes single-device training
+unrealistic:</p>
+<ul>
+<li><strong>DeepSeek-V3 (671B)</strong>: trained on <strong>2,048 H800
+GPUs</strong> for about <strong>2 months</strong>, totaling
+<strong>2.664 million H800 GPU hours</strong></li>
+<li><strong>LLaMA 3.1 (405B)</strong>: trained with <strong>16,000 H100
+GPUs</strong>, totaling <strong>30.84 million GPU hours</strong></li>
+</ul>
+<p>There are two scaling pressures at the same time:</p>
+<ol type="1">
+<li><strong>Model size</strong> keeps increasing</li>
+<li><strong>Training data size</strong> keeps increasing</li>
+</ol>
+<h2 id="strategies-for-scalable-training">Strategies for Scalable
+Training</h2>
+<p>At a high level, large-scale training systems combine one or more of
+the following strategies:</p>
+<ul>
+<li><strong>Data parallelism</strong>: replicate the model, split the
+data</li>
+<li><strong>Parameter server</strong>: centralize parameter updates</li>
+<li><strong>Model / tensor parallelism</strong>: split the model
+itself</li>
+<li><strong>Pipeline parallelism</strong>: split layers across
+devices</li>
+</ul>
+<p>Lec13 focuses on the case where the <strong>model still fits on each
+GPU</strong>, so the main tool is <strong>data parallel
+training</strong>.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260314191137070.png" alt="image-20260314191137070" style="zoom:30%;" /></p>
+<h2 id="classical-distributed-training-parameter-server">Classical
+Distributed Training: Parameter Server</h2>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260314191237885.png" alt="image-20260314191237885" style="zoom:30%;" /></p>
+<p>The classical setup is the <strong>parameter server</strong>
+architecture:</p>
+<ol type="1">
+<li>Split the mini-batch across workers</li>
+<li>Each worker runs forward and backward locally</li>
+<li>Workers <strong>push</strong> local gradients to a central
+server</li>
+<li>The server aggregates gradients and updates parameters</li>
+<li>Workers <strong>pull</strong> the updated parameters back</li>
+</ol>
+<p>This design is conceptually simple, but it has two <strong>major
+problems</strong>:</p>
+<ul>
+<li>It introduces a <strong>central bottleneck</strong></li>
+<li>It requires <strong>two synchronization directions</strong> per
+iteration:
+<ul>
+<li>gradients go from workers to server</li>
+<li>parameters go from server to workers</li>
+</ul></li>
+</ul>
+<p>In practice, the lecture maps this design to NCCL primitives
+naturally:</p>
+<ul>
+<li><strong>Pull parameters</strong>: <code>Broadcast</code></li>
+<li><strong>Push gradients</strong>: <code>Reduce</code></li>
+</ul>
+<p>The problem is that the server becomes a traffic hotspot. As the
+number of workers grows, the server has to absorb and emit more and more
+data every iteration.</p>
+<h2 id="multi-gpu-communication-with-nccl">Multi-GPU Communication with
+NCCL</h2>
+<p><strong>NCCL</strong> (NVIDIA Collective Communication Library),
+which is the standard communication layer behind many multi-GPU training
+systems. It provides:</p>
+<ul>
+<li><strong>Collective communication</strong> primitives</li>
+<li><strong>Point-to-point</strong> send/receive</li>
+<li>Support for different interconnects:
+<ul>
+<li>PCIe</li>
+<li>NVLink</li>
+<li>InfiniBand</li>
+<li>IP sockets</li>
+</ul></li>
+</ul>
+<p>An important systems detail is that NCCL operations are tied to a
+<strong>CUDA stream</strong>, so communication can be coordinated with
+GPU compute and potentially overlapped.</p>
+<h3 id="nccl-primitives">NCCL Primitives</h3>
+<p>The core primitives from the lecture are:</p>
+<table>
+<colgroup>
+<col style="width: 55%" />
+<col style="width: 45%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Primitive</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>Broadcast</code></td>
+<td>copy data from one root rank to all ranks</td>
+</tr>
+<tr class="even">
+<td><code>Reduce</code></td>
+<td>aggregate data from all ranks onto one root rank</td>
+</tr>
+<tr class="odd">
+<td><code>AllReduce</code></td>
+<td>aggregate data and write the result to every rank</td>
+</tr>
+<tr class="even">
+<td><code>ReduceScatter</code></td>
+<td>reduce first, then scatter partitions of the result</td>
+</tr>
+<tr class="odd">
+<td><code>AllGather</code></td>
+<td>gather partitions from all ranks and replicate the full result</td>
+</tr>
+</tbody>
+</table>
+<p>One key identity appears repeatedly:</p>
+<p><span class="math display">\[
+\text{AllReduce} = \text{ReduceScatter} + \text{AllGather}
+\]</span></p>
+<p>This decomposition is not just conceptual. It is exactly how
+efficient ring-based AllReduce is typically implemented.</p>
+<h3 id="why-rings-matter">Why Rings Matter</h3>
+<p>NCCL uses <strong>ring-based communication</strong> heavily because a
+ring avoids a central bottleneck and keeps all links busy.</p>
+<p>The lecture uses broadcast to explain the idea. Suppose there are
+<code>K</code> ranks, each link has bandwidth <code>B</code>, and the
+message size is <code>N</code>.</p>
+<p>If we broadcast naively along a unidirectional ring:</p>
+<p><span class="math display">\[
+T_{\text{ring-broadcast}} = (K-1)\frac{N}{B}
+\]</span></p>
+<p>That looks bad because the full message must move hop by hop.</p>
+<p>But if we split the message into <code>S</code> chunks and
+<strong>pipeline</strong> them through the ring, the total time
+becomes:</p>
+<p><span class="math display">\[
+T_{\text{pipelined}} = (K-2+S)\frac{N}{SB}
+\]</span></p>
+<p>When <code>S</code> is large enough, this approaches:</p>
+<p><span class="math display">\[
+T_{\text{pipelined}} \approx \frac{N}{B}
+\]</span></p>
+<p>The main idea is simple: <strong>chunking + pipelining converts a
+latency-heavy collective into a bandwidth-efficient one</strong>.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260314192039651.png" alt="image-20260314192039651" style="zoom:30%;" /></p>
+<h3 id="grouped-communication">Grouped Communication</h3>
+<p>When one process manages multiple GPUs, NCCL often uses:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ncclGroupStart</span>();</span><br><span class="line"><span class="comment">// multiple NCCL calls</span></span><br><span class="line"><span class="built_in">ncclGroupEnd</span>();</span><br></pre></td></tr></table></figure>
+<p>This lets the runtime batch related communication calls together. The
+lecture shows this both for communicator initialization and for
+launching multiple <code>ncclAllReduce</code> calls across devices.</p>
+<h2 id="data-parallel-training-via-allreduce">Data Parallel Training via
+AllReduce</h2>
+<p>The main workflow of data parallel training is:</p>
+<ol type="1">
+<li>Partition the mini-batch across workers</li>
+<li>Each worker runs <strong>forward + backward</strong> on its local
+shard</li>
+<li>Workers <strong>synchronize gradients</strong></li>
+<li>Every worker performs the <strong>same optimizer step</strong></li>
+</ol>
+<p>So unlike a parameter server, there is no special update node. Every
+worker keeps a full model replica, and after gradient synchronization
+all replicas remain identical.</p>
+<h3 id="why-local-optimizer-updates-are-fine">Why Local Optimizer
+Updates Are Fine</h3>
+<p>At first glance, updating parameters on every GPU looks redundant:
+why not update once and send the new parameters around?</p>
+<p>The answer from the lecture is practical:</p>
+<ul>
+<li><strong>Local parameter updates are cheap</strong></li>
+<li><strong>Inter-GPU data transfer is expensive</strong></li>
+</ul>
+<p>So it is usually better to synchronize gradients once, then let each
+worker apply the same update locally.</p>
+<h2 id="ring-allreduce">Ring AllReduce</h2>
+<p>The lecture focuses on <strong>Ring AllReduce</strong>, which is the
+standard data-parallel synchronization pattern in systems like NCCL,
+Horovod, and DDP.</p>
+<p>Assume there are <code>K</code> workers and a gradient tensor of
+total size <code>M</code>.</p>
+<h3 id="phase-1-reduce-scatter">Phase 1: Reduce-Scatter</h3>
+<ol type="1">
+<li>Split the gradient tensor into <code>K</code> chunks</li>
+<li>Arrange workers in a logical ring</li>
+<li>In each of the <code>K-1</code> steps:
+<ul>
+<li>each worker sends one chunk to its right neighbor</li>
+<li>each worker receives one chunk from its left neighbor</li>
+<li>the received chunk is <strong>accumulated</strong> into the local
+partial result</li>
+</ul></li>
+</ol>
+<p>After <code>K-1</code> steps, each worker owns <strong>one fully
+reduced chunk</strong>.</p>
+<h3 id="phase-2-allgather">Phase 2: AllGather</h3>
+<ol type="1">
+<li>Start from the reduced chunks produced above</li>
+<li>Again communicate for <code>K-1</code> steps around the ring</li>
+<li>Each step forwards one completed chunk</li>
+</ol>
+<p>At the end, every worker has the <strong>full reduced gradient
+tensor</strong>.</p>
+<h3 id="communication-cost">Communication Cost</h3>
+<p>Each step transmits only <code>M / K</code> data per worker. Since
+there are <code>2(K-1)</code> steps in total:</p>
+<p><span class="math display">\[
+\text{communication per worker} = 2(K-1)\frac{M}{K} \approx 2M
+\]</span></p>
+<p>This is the key scalability result: the total communication
+<strong>per worker</strong> is roughly constant with respect to
+<code>K</code>, while the load is evenly distributed across the
+ring.</p>
+<h3 id="simplified-pseudocode">Simplified Pseudocode</h3>
+<p>The lecture also shows MPI-style implementations for the two
+phases.</p>
+<p><strong>Reduce-Scatter</strong></p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">for i in 0 .. K-2:</span><br><span class="line">    recv_chunk = ...</span><br><span class="line">    send_chunk = ...</span><br><span class="line">    Irecv(buffer, recv_chunk)</span><br><span class="line">    Send(local_chunk[send_chunk])</span><br><span class="line">    Wait(recv)</span><br><span class="line">    local_chunk[recv_chunk] += buffer</span><br></pre></td></tr></table></figure>
+<p><strong>AllGather</strong></p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">for i in 0 .. K-2:</span><br><span class="line">    send_chunk = ...</span><br><span class="line">    recv_chunk = ...</span><br><span class="line">    SendRecv(local_chunk[send_chunk], local_chunk[recv_chunk])</span><br></pre></td></tr></table></figure>
+<p>The low-level code is less important than the systems idea:
+<strong>reduce while circulating chunks, then circulate the completed
+chunks</strong>.</p>
+<h2 id="parameter-server-vs-allreduce">Parameter Server vs
+AllReduce</h2>
+<p>Both approaches synchronize workers, but they do so differently:</p>
+<table>
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 48%" />
+<col style="width: 34%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Method</th>
+<th>Communication Pattern</th>
+<th>Main Limitation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Parameter Server</td>
+<td>workers push grads, server updates, server broadcasts params</td>
+<td>central bottleneck</td>
+</tr>
+<tr class="even">
+<td>AllReduce Data Parallel</td>
+<td>workers collaborate directly to aggregate gradients</td>
+<td>model still replicated on every worker</td>
+</tr>
+</tbody>
+</table>
+<p>The lecture’s conclusion is straightforward:</p>
+<ul>
+<li><strong>Parameter server</strong> is simple but poorly balanced</li>
+<li><strong>AllReduce data parallelism</strong> removes the central
+bottleneck and is the preferred design for synchronous GPU training</li>
+</ul>
+<h2 id="lec13-takeaways">Lec13 Takeaways</h2>
+<ul>
+<li>Large-scale LLM training is impossible on a single GPU because both
+model size and data scale have exploded.</li>
+<li>NCCL provides the core collective primitives used in practice for
+inter-GPU communication.</li>
+<li>Ring-based communication matters because chunking and pipelining use
+bandwidth much more efficiently than naive collectives.</li>
+<li>Synchronous data parallel training usually prefers
+<strong>AllReduce</strong> over a parameter server because it avoids a
+central bottleneck.</li>
+</ul>
+<hr />
+<h1 id="lec14-distributed-data-parallel-training">Lec14 Distributed Data
+Parallel Training</h1>
+<p>Lec14 moves from communication primitives to framework
+implementation. The central question is: <strong>how can a framework
+expose distributed data parallel training with minimal code changes
+while still overlapping communication with backward
+computation?</strong></p>
+<h2 id="from-data-parallelism-to-ddp">From Data Parallelism to DDP</h2>
+<p>Once the communication pattern is clear, the next question is:
+<strong>how should a framework expose it to users?</strong></p>
+<p>PyTorch’s answer is <strong>Distributed Data Parallel
+(DDP)</strong>.</p>
+<p>Conceptually, DDP is still data parallelism:</p>
+<ul>
+<li>each process has a model replica</li>
+<li>each process runs local forward/backward</li>
+<li>gradients are synchronized across all processes</li>
+<li>optimizers run locally but remain identical</li>
+</ul>
+<p>The difference is that DDP is an <strong>efficient
+implementation</strong> of that idea across <strong>multiple nodes and
+multiple GPUs</strong>.</p>
+<h2 id="design-goals-of-ddp">Design Goals of DDP</h2>
+<p>The lecture highlights two design goals from the PyTorch Distributed
+paper:</p>
+<ul>
+<li><strong>Non-intrusive</strong>: users should be able to reuse a
+local training script with minimal changes</li>
+<li><strong>Interceptive</strong>: the framework should be able to
+intercept gradient events and trigger communication as early as
+possible</li>
+</ul>
+<p>This second point is the key to DDP’s performance.</p>
+<h2 id="distributed-process-setup">Distributed Process Setup</h2>
+<p>DDP works in terms of distributed <strong>processes</strong>.</p>
+<p>The lecture distinguishes:</p>
+<ul>
+<li><strong>World size</strong>: total number of processes</li>
+<li><strong>Global rank</strong>: the unique process ID in the whole
+job</li>
+<li><strong>Local rank</strong>: the process ID within one node</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260314193102693.png" alt="image-20260314193102693" style="zoom:30%;" /></p>
+<p>In a multi-node run, each node launches one or more local processes.
+A launcher passes process-group metadata such as:</p>
+<ul>
+<li><code>MASTER_ADDR</code></li>
+<li><code>MASTER_PORT</code></li>
+<li><code>RANK</code></li>
+<li><code>WORLD_SIZE</code></li>
+</ul>
+<p>Then each process initializes distributed communication:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> argparse</span><br><span class="line"><span class="keyword">import</span> torch.distributed <span class="keyword">as</span> dist</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">local_proc</span>(<span class="params">local_rank</span>):</span><br><span class="line">    dist.init_process_group(backend=<span class="string">&quot;nccl&quot;</span>)</span><br><span class="line">    local_train(local_rank)</span><br><span class="line">    dist.destroy_process_group()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    parser = argparse.ArgumentParser()</span><br><span class="line">    parser.add_argument(<span class="string">&quot;--local_rank&quot;</span>, <span class="built_in">type</span>=<span class="built_in">int</span>, default=<span class="number">0</span>)</span><br><span class="line">    args = parser.parse_args()</span><br><span class="line">    local_proc(args.local_rank)</span><br></pre></td></tr></table></figure>
+<h3 id="a-minimal-ddp-training-skeleton">A Minimal DDP Training
+Skeleton</h3>
+<p>The lecture shows a minimal usage pattern:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> torch.nn <span class="keyword">as</span> nn</span><br><span class="line"><span class="keyword">import</span> torch.optim <span class="keyword">as</span> optim</span><br><span class="line"><span class="keyword">from</span> torch.nn.parallel <span class="keyword">import</span> DistributedDataParallel <span class="keyword">as</span> DDP</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">train</span>(<span class="params">local_rank</span>):</span><br><span class="line">    torch.cuda.set_device(local_rank)</span><br><span class="line"></span><br><span class="line">    model = MyModel().cuda(local_rank)</span><br><span class="line">    ddp_model = DDP(model, device_ids=[local_rank])</span><br><span class="line"></span><br><span class="line">    loss_fn = nn.MSELoss()</span><br><span class="line">    optimizer = optim.SGD(ddp_model.parameters(), lr=<span class="number">1e-3</span>)</span><br><span class="line"></span><br><span class="line">    inputs = inputs.cuda(local_rank)</span><br><span class="line">    labels = labels.cuda(local_rank)</span><br><span class="line"></span><br><span class="line">    optimizer.zero_grad()</span><br><span class="line">    outputs = ddp_model(inputs)</span><br><span class="line">    loss = loss_fn(outputs, labels)</span><br><span class="line">    loss.backward()</span><br><span class="line">    optimizer.step()</span><br></pre></td></tr></table></figure>
+<p>In a real training job, the data loader should also be sharded so
+different ranks process different examples, but the core idea is
+unchanged.</p>
+<h2 id="why-a-naive-ddp-implementation-is-not-enough">Why a Naive DDP
+Implementation Is Not Enough</h2>
+<p>A naive implementation would do this:</p>
+<ol type="1">
+<li>Run the <strong>entire backward pass</strong></li>
+<li>Wait until all gradients are computed</li>
+<li>Launch one big <strong>AllReduce</strong></li>
+<li>Run the optimizer step</li>
+</ol>
+<p>This is correct, but inefficient, because it serializes:</p>
+<ul>
+<li>backward computation</li>
+<li>communication</li>
+</ul>
+<p>That means GPUs spend part of the iteration waiting for gradients to
+finish computing, and then another part waiting for communication to
+finish.</p>
+<h2 id="gradient-bucketing">Gradient Bucketing</h2>
+<p>DDP improves on the naive approach with <strong>gradient
+bucketing</strong>.</p>
+<p>Instead of waiting for all gradients, DDP:</p>
+<ol type="1">
+<li>Groups parameter gradients into <strong>buckets</strong></li>
+<li>Monitors when each gradient becomes ready during backward</li>
+<li>Launches an <strong>asynchronous AllReduce</strong> as soon as one
+bucket is complete</li>
+</ol>
+<p>This lets communication overlap with the rest of backpropagation.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260314194136824.png" alt="image-20260314194136824" style="zoom:30%;" /></p>
+<h3 id="bucket-construction">Bucket Construction</h3>
+<p>The lecture notes several practical details:</p>
+<ul>
+<li>Bucket size is configurable with <code>bucket_cap_mb</code></li>
+<li>The mapping from parameters to buckets is fixed at
+<strong>construction time</strong></li>
+<li>Parameters are placed into buckets in roughly the <strong>reverse
+order</strong> of <code>model.parameters()</code></li>
+</ul>
+<p>That reverse ordering is intentional. During backward, gradients
+usually become ready from the <strong>last layer back to the
+first</strong>, so reverse ordering helps entire buckets become ready
+earlier.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260314194207787.png" alt="image-20260314194207787" style="zoom:40%;" /></p>
+<h3 id="the-tradeoff-in-bucket-size">The Tradeoff in Bucket Size</h3>
+<p>Bucket size is a classic systems tradeoff:</p>
+<ul>
+<li><strong>Small buckets</strong>
+<ul>
+<li>more overlap opportunities</li>
+<li>but more collectives and higher latency overhead</li>
+</ul></li>
+<li><strong>Large buckets</strong>
+<ul>
+<li>fewer collective calls</li>
+<li>but less overlap between communication and computation</li>
+</ul></li>
+</ul>
+<p>So DDP is not only about using AllReduce. It is about using AllReduce
+at the <strong>right granularity</strong>.</p>
+<h2 id="how-ddp-intercepts-backward">How DDP Intercepts Backward</h2>
+<p>The reducer in DDP registers an <strong>autograd hook</strong> for
+each parameter. When a parameter’s gradient is produced and accumulated,
+the hook marks that parameter as ready.</p>
+<p>A simplified version of the lecture’s logic is:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">autograd_hook(param_i):</span><br><span class="line">    bucket = locate_bucket(param_i)</span><br><span class="line">    bucket.pending -= 1</span><br><span class="line"></span><br><span class="line">    if bucket.pending == 0:</span><br><span class="line">        launch_async_allreduce(bucket)</span><br></pre></td></tr></table></figure>
+<p>The real implementation keeps more metadata, but the key mechanism
+is:</p>
+<ol type="1">
+<li>each parameter completion triggers a hook</li>
+<li>hooks decrement the bucket’s pending count</li>
+<li>when a bucket reaches zero pending gradients, DDP launches
+communication immediately</li>
+</ol>
+<p>The lecture shows this flow through functions such as:</p>
+<ul>
+<li><code>autograd_hook</code></li>
+<li><code>mark_variable_ready</code></li>
+<li><code>mark_bucket_ready</code></li>
+<li><code>all_reduce_bucket</code></li>
+</ul>
+<p>That is the “interceptive” part of DDP’s design.</p>
+<h2 id="overlapping-communication-with-computation">Overlapping
+Communication with Computation</h2>
+<p>This is the main performance win of DDP.</p>
+<p>During backward:</p>
+<ul>
+<li>upper layers finish first and produce gradients</li>
+<li>DDP launches AllReduce for ready buckets</li>
+<li>deeper parts of backward continue running while earlier buckets are
+already communicating</li>
+</ul>
+<p>So the iteration timeline becomes:</p>
+<ul>
+<li><strong>backward compute</strong></li>
+<li><strong>communication</strong></li>
+</ul>
+<p>not as two disjoint blocks, but as partially overlapping work on the
+GPU and network.</p>
+<p>This reduces exposed communication latency and improves
+scalability.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260314194338992.png" alt="image-20260314194338992" style="zoom:25%;" /></p>
+<h2 id="what-ddp-really-optimizes">What DDP Really Optimizes</h2>
+<p>At a high level, DDP is still just synchronous data parallel
+training. What it optimizes is the <strong>execution
+schedule</strong>:</p>
+<ul>
+<li>it avoids waiting until all gradients are ready</li>
+<li>it batches gradients to avoid excessive communication overhead</li>
+<li>it overlaps collective communication with backward compute</li>
+</ul>
+<p>That is why DDP scales much better than the naive “backward first,
+AllReduce later” design.</p>
+<h2 id="practical-interpretation">Practical Interpretation</h2>
+<p>The two lectures together suggest a useful way to think about the
+stack:</p>
+<ol type="1">
+<li><strong>Algorithmic level</strong>: use synchronous data
+parallelism</li>
+<li><strong>Communication level</strong>: implement gradient
+synchronization with efficient collectives like Ring AllReduce</li>
+<li><strong>Framework level</strong>: expose the model as ordinary
+PyTorch code while letting DDP schedule communication automatically</li>
+</ol>
+<p>This is also why DDP is widely adopted in practice: it gives most of
+the benefit of optimized distributed training without requiring users to
+manually write communication code.</p>
+<h2 id="limits-of-ddp">Limits of DDP</h2>
+<p>DDP solves only one part of the scaling problem.</p>
+<p>It works well when:</p>
+<ul>
+<li>the model fits on every GPU</li>
+<li>the main challenge is speeding up training by splitting data across
+workers</li>
+</ul>
+<p>It does <strong>not</strong> solve the case where the model replica
+itself is too large for one device. In that setting, one needs more
+aggressive techniques such as:</p>
+<ul>
+<li>tensor / model parallelism</li>
+<li>pipeline parallelism</li>
+<li>optimizer and parameter sharding methods such as ZeRO or FSDP</li>
+</ul>
+<p>So DDP should be viewed as the <strong>default solution for scalable
+synchronous data parallel training</strong>, not as the full solution to
+large-model training.</p>
+<h2 id="lec14-takeaways">Lec14 Takeaways</h2>
+<ul>
+<li>DDP keeps the data-parallel programming model, but implements it
+more efficiently than a naive post-backward AllReduce.</li>
+<li>The core optimization is <strong>gradient bucketing</strong>:
+synchronize a bucket once all gradients inside it are ready.</li>
+<li>Autograd hooks let DDP intercept backward execution and launch
+communication early.</li>
+<li>The main systems win is overlapping <strong>backward
+compute</strong> with <strong>AllReduce communication</strong>.</li>
+</ul>
+<hr />
+<h1 id="lec15-model-parallel-training">Lec15 Model Parallel
+Training</h1>
+<p>Lec15 addresses the setting where a model is <strong>too large to fit
+on a single GPU</strong>. The central question is: <strong>how can we
+partition a model’s computation across multiple devices while minimizing
+idle time and communication overhead?</strong></p>
+<h2 id="why-model-parallelism-is-needed">Why Model Parallelism Is
+Needed</h2>
+<p>Model sizes have grown exponentially. A single GPU (e.g., 80GB H100)
+cannot hold a 175B parameter model even in FP16 — parameters alone would
+require ~350GB, plus optimizer states and activations. When the model no
+longer fits on one device, data parallelism is insufficient. Model
+parallelism splits the model itself across devices to make training
+feasible.</p>
+<h2 id="two-forms-of-model-parallelism">Two Forms of Model
+Parallelism</h2>
+<p>Model parallel training partitions the model’s computation (forward,
+backward, update) across multiple workers. There are two main
+approaches:</p>
+<table>
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 44%" />
+<col style="width: 38%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Form</th>
+<th>What It Splits</th>
+<th>Granularity</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Pipeline Parallelism</strong></td>
+<td>layers across devices</td>
+<td>layer-wise (horizontal)</td>
+</tr>
+<tr class="even">
+<td><strong>Tensor Parallelism</strong></td>
+<td>weight matrices within a layer</td>
+<td>tensor-wise (vertical)</td>
+</tr>
+</tbody>
+</table>
+<p>A third form, <strong>expert parallelism</strong> (for MoE models),
+is covered in a later lecture.</p>
+<h2 id="pipeline-parallelism">Pipeline Parallelism</h2>
+<h3 id="naive-model-parallelism">Naive Model Parallelism</h3>
+<p>The simplest approach assigns different layers to different GPUs:</p>
+<ul>
+<li>Device 0 holds layer 0, device 1 holds layer 1, etc.</li>
+<li>Forward pass flows from device 0 → device 1 → … → device K-1</li>
+<li>Backward pass flows in reverse</li>
+<li>Inter-device communication uses NCCL point-to-point send/recv</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260323132926260.png" alt="image-20260323132926260" style="zoom:30%;" /></p>
+<p>A concrete PyTorch example splits a ResNet50 across two GPUs:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ModelParallelResNet50</span>(<span class="title class_ inherited__">ResNet</span>):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, *args, **kwargs</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__(Bottleneck, [<span class="number">3</span>, <span class="number">4</span>, <span class="number">6</span>, <span class="number">3</span>], *args, **kwargs)</span><br><span class="line"></span><br><span class="line">        <span class="variable language_">self</span>.seq1 = nn.Sequential(</span><br><span class="line">            <span class="variable language_">self</span>.conv1, <span class="variable language_">self</span>.bn1, <span class="variable language_">self</span>.relu, <span class="variable language_">self</span>.maxpool,</span><br><span class="line">            <span class="variable language_">self</span>.layer1, <span class="variable language_">self</span>.layer2</span><br><span class="line">        ).to(<span class="string">&#x27;cuda:0&#x27;</span>)</span><br><span class="line"></span><br><span class="line">        <span class="variable language_">self</span>.seq2 = nn.Sequential(</span><br><span class="line">            <span class="variable language_">self</span>.layer3, <span class="variable language_">self</span>.layer4, <span class="variable language_">self</span>.avgpool,</span><br><span class="line">        ).to(<span class="string">&#x27;cuda:1&#x27;</span>)</span><br><span class="line"></span><br><span class="line">        <span class="variable language_">self</span>.fc.to(<span class="string">&#x27;cuda:1&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        x = <span class="variable language_">self</span>.seq2(<span class="variable language_">self</span>.seq1(x).to(<span class="string">&#x27;cuda:1&#x27;</span>))</span><br><span class="line">        <span class="keyword">return</span> <span class="variable language_">self</span>.fc(x.view(x.size(<span class="number">0</span>), -<span class="number">1</span>))</span><br></pre></td></tr></table></figure>
+<p>The <code>.to('cuda:1')</code> call in forward triggers an implicit
+NCCL send/recv to move activations between devices.</p>
+<p>The critical problem: <strong>at any point in time, only one GPU is
+active</strong>. All other GPUs are idle waiting for activations or
+gradients to arrive.</p>
+<h3 id="limitations-of-naive-pipeline-parallelism">Limitations of Naive
+Pipeline Parallelism</h3>
+<ol type="1">
+<li><strong>Low GPU utilization</strong>: only one device is computing
+at any moment</li>
+<li><strong>No overlap of computation and communication</strong>: while
+sending intermediate results to the next device, GPUs sit idle</li>
+<li><strong>High memory demand</strong>: the first GPU must store all
+activations until the entire batch completes backward</li>
+</ol>
+<h3 id="gpipe-microbatch-pipelining">GPipe: Microbatch Pipelining</h3>
+<p><strong>GPipe</strong> (Huang et al., NeurIPS 2019) addresses these
+problems with a simple but effective idea: <strong>split the mini-batch
+into smaller micro-batches and pipeline them</strong>.</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260323133040348.png" alt="image-20260323133040348" style="zoom:50%;" /></p>
+<p>The key parameters are:</p>
+<ul>
+<li><span class="math inline">\(K\)</span>: number of pipeline stages
+(devices)</li>
+<li><span class="math inline">\(M\)</span>: number of micro-batches</li>
+<li><span class="math inline">\(L\)</span>: number of model layers</li>
+</ul>
+<p>The workflow:</p>
+<ol type="1">
+<li>Divide the input mini-batch into <span
+class="math inline">\(M\)</span> micro-batches</li>
+<li>Each micro-batch’s forward result is sent to the next device
+immediately once that stage completes</li>
+<li><strong>All forwards complete before any backward
+begins</strong></li>
+<li>During backward, GPipe recomputes the forward pass for each
+micro-batch (gradient checkpointing), then sends gradients immediately
+once ready</li>
+</ol>
+<p>This creates a pipeline where multiple GPUs can work simultaneously
+on different micro-batches.</p>
+<p><strong>Bubble overhead</strong>:</p>
+<p><span class="math display">\[
+O\left(\frac{K-1}{M+K-1}\right)
+\]</span></p>
+<p>This becomes negligible when <span class="math inline">\(M &gt; 4
+\times K\)</span>. If you have 4 pipeline stages, using 16 or more
+micro-batches keeps the bubble small.</p>
+<p><strong>Communication overhead</strong>: only activation tensors at
+partition boundaries need to be transferred between adjacent stages.</p>
+<p><strong>Peak activation memory</strong>: with gradient checkpointing,
+memory drops from <span class="math inline">\(O(N \times L)\)</span> to
+<span class="math inline">\(O(N + \frac{L}{K} \times
+\frac{N}{M})\)</span>, where <span class="math inline">\(N\)</span> is
+the batch size.</p>
+<h3 id="gpipe-performance">GPipe Performance</h3>
+<p>Normalized training throughput using GPipe with different numbers of
+partitions <span class="math inline">\(K\)</span> and micro-batches
+<span class="math inline">\(M\)</span>:</p>
+<p><strong>TPU results:</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th><span class="math inline">\(K =\)</span></th>
+<th>2</th>
+<th>4</th>
+<th>8</th>
+<th>2</th>
+<th>4</th>
+<th>8</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td>AmoebaNet</td>
+<td></td>
+<td></td>
+<td>Transformer</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(M = 1\)</span></td>
+<td>1</td>
+<td>1.13</td>
+<td>1.38</td>
+<td>1</td>
+<td>1.07</td>
+<td>1.3</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(M = 4\)</span></td>
+<td>1.07</td>
+<td>1.26</td>
+<td>1.72</td>
+<td>1.7</td>
+<td>3.2</td>
+<td>4.8</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(M = 32\)</span></td>
+<td>1.21</td>
+<td>1.84</td>
+<td>3.48</td>
+<td>1.8</td>
+<td>3.4</td>
+<td>6.3</td>
+</tr>
+</tbody>
+</table>
+<p>More micro-batches consistently improve throughput, confirming that
+pipelining is essential for GPU utilization. The Transformer model
+benefits more because its layers are more uniform, leading to better
+load balance across pipeline stages.</p>
+<h3 id="gradient-checkpointing">Gradient Checkpointing</h3>
+<p>GPipe uses <strong>gradient checkpointing</strong> (also called
+re-materialization) to reduce activation memory during pipeline
+execution.</p>
+<p>The idea explores three points on the memory-computation
+tradeoff:</p>
+<table>
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 40%" />
+<col style="width: 37%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Strategy</th>
+<th>Activation Memory</th>
+<th>Computation Cost</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Vanilla backprop (store all)</td>
+<td><span class="math inline">\(O(n)\)</span></td>
+<td><span class="math inline">\(O(n)\)</span></td>
+</tr>
+<tr class="even">
+<td>Memory-poor (store nothing)</td>
+<td><span class="math inline">\(O(1)\)</span></td>
+<td><span class="math inline">\(O(n^2)\)</span></td>
+</tr>
+<tr class="odd">
+<td><strong>Gradient checkpoint</strong> (store every <span
+class="math inline">\(\sqrt{n}\)</span>)</td>
+<td><span class="math inline">\(O(\sqrt{n})\)</span></td>
+<td><span class="math inline">\(O(n)\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>The practical choice is gradient checkpointing: cache activations at
+every <span class="math inline">\(\sqrt{n}\)</span> layers. During
+backward, recompute only the activations between checkpoints. This
+achieves sublinear memory with only a modest increase in computation
+(roughly 33% more forward work).</p>
+<h3 id="limitations-of-gpipe">Limitations of GPipe</h3>
+<p>GPipe finishes <strong>all forward passes before starting any
+backward</strong>. This means all micro-batches that have completed
+forward but not yet started backward must keep their activations in
+memory.</p>
+<p>In the lecture’s example with 4 devices and 8 micro-batches, the peak
+number of <strong>in-flight micro-batches</strong> (completed forward
+but not backward) is <strong>8</strong>. All their activations must be
+stored simultaneously, which can be a significant memory burden.</p>
+<h3 id="pipedream-flush-1f1b-scheduling">PipeDream-Flush: 1F1B
+Scheduling</h3>
+<p><strong>PipeDream-Flush</strong> (Narayanan et al., SOSP 2019)
+improves on GPipe by <strong>starting backward as soon as
+possible</strong> using a one-forward-one-backward (1F1B) schedule.</p>
+<p>Instead of completing all forwards first, after a warmup phase, each
+device alternates between forward and backward passes on different
+micro-batches. The benefit is clear:</p>
+<ul>
+<li><strong>Reduced activation memory</strong>: the maximum number of
+in-flight micro-batches drops to at most <span
+class="math inline">\(K\)</span> (the number of pipeline stages),
+compared to <span class="math inline">\(M\)</span> in GPipe</li>
+<li>In the same 4-device example (assuming 1 backward ≈ 2× the time of 1
+forward), the peak in-flight count drops from <strong>8 to
+4</strong></li>
+</ul>
+<p>The bubble overhead remains similar to GPipe, but the memory savings
+are substantial.</p>
+<h3 id="interleaved-stages-megatron-lm">Interleaved Stages
+(Megatron-LM)</h3>
+<p>Megatron-LM (Narayanan et al., SC 2021) further reduces the pipeline
+bubble by <strong>chunking model layers and interleaving
+stages</strong>.</p>
+<p>Instead of assigning a contiguous block of layers to each device,
+each device holds <strong>multiple non-contiguous chunks</strong>:</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>Chunk 1 Layers</th>
+<th>Chunk 2 Layers</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Device 1</td>
+<td>1, 2</td>
+<td>9, 10</td>
+</tr>
+<tr class="even">
+<td>Device 2</td>
+<td>3, 4</td>
+<td>11, 12</td>
+</tr>
+<tr class="odd">
+<td>Device 3</td>
+<td>5, 6</td>
+<td>13, 14</td>
+</tr>
+<tr class="even">
+<td>Device 4</td>
+<td>7, 8</td>
+<td>15, 16</td>
+</tr>
+</tbody>
+</table>
+<p>Each chunk computes a smaller piece of work, and the schedule
+interleaves forward/backward across chunks. This creates more pipeline
+stages with finer granularity, which reduces the bubble fraction further
+at the cost of more inter-device communication.</p>
+<h3 id="pipeline-parallelism-implementation">Pipeline Parallelism
+Implementation</h3>
+<p>The lecture shows implementation patterns at two levels.</p>
+<p><strong>Low-level scheduling</strong> (GPipe pattern):</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">minibatch_steps</span>(<span class="params">self</span>):</span><br><span class="line">    <span class="keyword">yield</span> [ZeroGrad()]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># STAGE 1: FWD all microbatches</span></span><br><span class="line">    <span class="keyword">for</span> microbatch_id <span class="keyword">in</span> <span class="built_in">range</span>(<span class="variable language_">self</span>.num_micro_batches):</span><br><span class="line">        <span class="keyword">yield</span> <span class="variable language_">self</span>.steps_FWD_microbatch(microbatch_id)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># at this point, all microbatches are in flight</span></span><br><span class="line">    <span class="comment"># and memory demand is highest</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># STAGE 2: BWD all microbatches</span></span><br><span class="line">    <span class="keyword">for</span> microbatch_id <span class="keyword">in</span> <span class="built_in">reversed</span>(<span class="built_in">range</span>(<span class="variable language_">self</span>.num_micro_batches)):</span><br><span class="line">        <span class="keyword">yield</span> <span class="keyword">from</span> <span class="variable language_">self</span>.steps_BWD_microbatch(microbatch_id)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">yield</span> [OptimizerStep()]</span><br></pre></td></tr></table></figure>
+<p>Each forward step either loads data (first stage) or receives
+activations from the previous stage via non-blocking communication, runs
+forward, and sends activations to the next stage.</p>
+<p><strong>PyTorch’s <code>torch.distributed.pipelining</code></strong>
+provides a higher-level API with two components:</p>
+<ol type="1">
+<li><strong><code>PipelineStage</code></strong>: wraps a model partition
+for a specific device</li>
+<li><strong><code>PipelineSchedule</code></strong>: orchestrates
+execution (e.g., <code>ScheduleGPipe</code>)</li>
+</ol>
+<p>The model is designed so that layers can be selectively deleted per
+stage:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Transformer</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, model_args</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        <span class="variable language_">self</span>.tok_embeddings = nn.Embedding(...)</span><br><span class="line">        <span class="variable language_">self</span>.layers = torch.nn.ModuleDict()</span><br><span class="line">        <span class="keyword">for</span> layer_id <span class="keyword">in</span> <span class="built_in">range</span>(model_args.n_layers):</span><br><span class="line">            <span class="variable language_">self</span>.layers[<span class="built_in">str</span>(layer_id)] = TransformerBlock(...)</span><br><span class="line">        <span class="variable language_">self</span>.output = nn.Linear(...)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, tokens</span>):</span><br><span class="line">        h = <span class="variable language_">self</span>.tok_embeddings(tokens) <span class="keyword">if</span> <span class="variable language_">self</span>.tok_embeddings <span class="keyword">else</span> tokens</span><br><span class="line">        <span class="keyword">for</span> layer <span class="keyword">in</span> <span class="variable language_">self</span>.layers.values():</span><br><span class="line">            h = layer(h, <span class="variable language_">self</span>.freqs_cis)</span><br><span class="line">        h = <span class="variable language_">self</span>.norm(h) <span class="keyword">if</span> <span class="variable language_">self</span>.norm <span class="keyword">else</span> h</span><br><span class="line">        output = <span class="variable language_">self</span>.output(h).<span class="built_in">float</span>() <span class="keyword">if</span> <span class="variable language_">self</span>.output <span class="keyword">else</span> h</span><br><span class="line">        <span class="keyword">return</span> output</span><br></pre></td></tr></table></figure>
+<p>Using <code>ModuleDict</code> and guarding with
+<code>if self.X else</code> allows each stage to skip components it does
+not own. The schedule then handles micro-batching and inter-stage
+communication automatically:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> torch.distributed.pipelining <span class="keyword">import</span> PipelineStage, ScheduleGPipe</span><br><span class="line"></span><br><span class="line">stage = PipelineStage(model, stage_index, num_stages, device)</span><br><span class="line">schedule = ScheduleGPipe(stage, n_microbatches)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> rank == <span class="number">0</span>:</span><br><span class="line">    schedule.step(x)</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    output = schedule.step()</span><br></pre></td></tr></table></figure>
+<h2 id="tensor-parallelism">Tensor Parallelism</h2>
+<p>Tensor parallelism splits individual matrix operations within a
+single layer across multiple GPUs. Unlike pipeline parallelism which
+splits across layers, tensor parallelism splits <strong>within</strong>
+a layer.</p>
+<h3 id="basic-idea-splitting-matrix-computation">Basic Idea: Splitting
+Matrix Computation</h3>
+<p>For a matrix multiplication <span class="math inline">\(C = A \cdot
+B\)</span>, we can split the weight matrix <span
+class="math inline">\(B\)</span> column-wise across GPUs:</p>
+<p><span class="math display">\[
+B = [B_1, B_2], \quad C_1 = A \cdot B_1, \quad C_2 = A \cdot B_2
+\]</span></p>
+<p>Each GPU computes its own partial result. An
+<strong>AllGather</strong> then assembles the full output <span
+class="math inline">\(C = [C_1, C_2]\)</span> across all GPUs.</p>
+<h3 id="tensor-parallelism-for-the-ffn-block">Tensor Parallelism for the
+FFN Block</h3>
+<p>The Transformer FFN block computes:</p>
+<p><span class="math display">\[
+Y = \text{GeLU}(X \cdot A), \quad Z = \text{Dropout}(Y \cdot B)
+\]</span></p>
+<p>A naive split of both <span class="math inline">\(X\)</span> and
+<span class="math inline">\(A\)</span> would require an AllReduce before
+the GeLU, because GeLU is <strong>nonlinear</strong>:</p>
+<p><span class="math display">\[
+\text{GeLU}(X_1 A_1 + X_2 A_2) \neq \text{GeLU}(X_1 A_1) +
+\text{GeLU}(X_2 A_2)
+\]</span></p>
+<p>The Megatron-LM solution avoids this by splitting <strong>only the
+weight matrices</strong> in a complementary way:</p>
+<ul>
+<li>Split <span class="math inline">\(A\)</span>
+<strong>column-wise</strong>: <span class="math inline">\(A = [A_1,
+A_2]\)</span></li>
+<li>Split <span class="math inline">\(B\)</span>
+<strong>row-wise</strong>: <span class="math inline">\(B =
+\begin{bmatrix} B_1 \\ B_2 \end{bmatrix}\)</span></li>
+</ul>
+<p>This gives:</p>
+<p><span class="math display">\[
+[Y_1, Y_2] = [\text{GeLU}(X \cdot A_1),\; \text{GeLU}(X \cdot A_2)]
+\]</span></p>
+<p>Each GPU can independently compute its <span
+class="math inline">\(Y_i\)</span> — <strong>no AllReduce needed for the
+intermediate result</strong>. Then:</p>
+<p><span class="math display">\[
+Z = Y_1 \cdot B_1 + Y_2 \cdot B_2
+\]</span></p>
+<p>This final sum requires an <strong>AllReduce</strong> to aggregate
+the partial results across GPUs. The key win is that only <strong>one
+AllReduce per FFN block</strong> is needed, not two.</p>
+<h3 id="tensor-parallelism-for-self-attention">Tensor Parallelism for
+Self-Attention</h3>
+<p>Self-attention has a natural parallelism axis: <strong>attention
+heads</strong>. The Q, K, V projection matrices are split column-wise by
+heads:</p>
+<p><span class="math display">\[
+Q = [Q_1, Q_2], \quad K = [K_1, K_2], \quad V = [V_1, V_2]
+\]</span></p>
+<p>Each GPU computes attention for its assigned heads independently.
+Since attention heads are independent computations, <strong>no AllReduce
+is needed for the intermediate result</strong>. Only the output
+projection requires an AllReduce, similar to the FFN block.</p>
+<p>The output projection matrix <span class="math inline">\(B\)</span>
+is split row-wise (<span class="math inline">\(B = \begin{bmatrix} B_1
+\\ B_2 \end{bmatrix}\)</span>), and the final result is summed across
+GPUs via AllReduce.</p>
+<h3 id="tensor-parallelism-for-embeddings">Tensor Parallelism for
+Embeddings</h3>
+<ul>
+<li><strong>Input embedding</strong>: split the embedding table
+column-wise (<span class="math inline">\(E = [E_1, E_2]\)</span>). An
+<strong>AllReduce</strong> is required to combine partial
+embeddings.</li>
+<li><strong>Output embedding</strong>: also split column-wise. The GEMM
+produces partial logits <span class="math inline">\([Y_1, Y_2] = [X E_1,
+X E_2]\)</span>. By <strong>fusing the cross-entropy loss</strong> with
+the partial logits, the communication cost is hugely reduced — only
+scalar losses need to be aggregated rather than full logit vectors. An
+<strong>AllGather</strong> is needed otherwise.</li>
+</ul>
+<h3 id="components-that-are-duplicated">Components That Are
+Duplicated</h3>
+<p>Some operations are simply <strong>duplicated across all
+GPUs</strong>:</p>
+<ul>
+<li>Layer normalization</li>
+<li>Dropout</li>
+<li>Residual connections</li>
+</ul>
+<p>Each model-parallel worker maintains and optimizes its own partition
+of parameters independently.</p>
+<h2 id="combining-pipeline-and-tensor-parallelism">Combining Pipeline
+and Tensor Parallelism</h2>
+<p>In practice, the two forms of model parallelism are combined:</p>
+<ul>
+<li><strong>Tensor parallelism within a node</strong>: TP requires
+frequent AllReduce operations, which benefit from the high bandwidth of
+intra-node interconnects like NVLink</li>
+<li><strong>Pipeline parallelism across nodes</strong>: PP only
+communicates activation tensors at stage boundaries (point-to-point),
+which is more tolerant of lower inter-node bandwidth</li>
+</ul>
+<p><strong>Takeaway #1</strong>: tensor model parallelism should
+generally be used up to degree <span class="math inline">\(g\)</span>
+when using <span class="math inline">\(g\)</span>-GPU servers, and
+pipeline model parallelism scales the model further across servers.</p>
+<p>Experimental results from Megatron-LM on a 162.2B parameter GPT model
+with 64 A100 GPUs confirm this: throughput peaks when TP degree roughly
+matches the intra-node GPU count (e.g., 8 GPUs per node → TP=8 is
+near-optimal). Higher pipeline-parallel degree with lower
+tensor-parallel degree hurts throughput.</p>
+<h2 id="combining-model-parallelism-with-data-parallelism">Combining
+Model Parallelism with Data Parallelism</h2>
+<p>Model parallelism and data parallelism are complementary:</p>
+<ul>
+<li><strong>Model parallel size</strong> <span class="math inline">\(M =
+t \times p\)</span> (tensor parallel degree × pipeline parallel degree)
+is chosen so that the model’s parameters and intermediate metadata fit
+in GPU memory</li>
+<li><strong>Data parallelism</strong> then scales training to more GPUs
+beyond what model parallelism requires</li>
+</ul>
+<p><strong>Takeaway #2</strong>: use model parallelism to make the model
+fit, then use data parallelism to increase throughput. Increasing the
+data-parallel degree also reduces the pipeline bubble fraction, because
+more micro-batches are available per pipeline stage.</p>
+<h2 id="lec15-takeaways">Lec15 Takeaways</h2>
+<ul>
+<li>Model parallelism is necessary when a model is too large for a
+single GPU’s memory.</li>
+<li>Pipeline parallelism splits by layers; micro-batching (GPipe) and
+1F1B scheduling (PipeDream-Flush) reduce bubble overhead and memory
+usage.</li>
+<li>Gradient checkpointing trades ~33% extra compute for <span
+class="math inline">\(O(\sqrt{n})\)</span> activation memory.</li>
+<li>Tensor parallelism splits weight matrices within a layer, exploiting
+the natural structure of FFN and multi-head attention to minimize
+AllReduce calls.</li>
+<li>In practice, TP is used within a node (high bandwidth) and PP across
+nodes (lower bandwidth), with DP layered on top to scale further.</li>
+</ul>
+<h2 id="final-summary">Final Summary</h2>
+<table>
+<colgroup>
+<col style="width: 37%" />
+<col style="width: 62%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Topic</th>
+<th>Key Idea</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Parameter Server</td>
+<td>centralize updates, but create a communication hotspot</td>
+</tr>
+<tr class="even">
+<td>NCCL Collectives</td>
+<td>provide efficient GPU communication primitives</td>
+</tr>
+<tr class="odd">
+<td>Ring AllReduce</td>
+<td>implement AllReduce as ReduceScatter + AllGather with balanced
+bandwidth</td>
+</tr>
+<tr class="even">
+<td>Data Parallel Training</td>
+<td>split data, keep replicated models, synchronize gradients</td>
+</tr>
+<tr class="odd">
+<td>DDP</td>
+<td>make data parallel training efficient by bucketing gradients and
+overlapping communication with backward</td>
+</tr>
+<tr class="even">
+<td>Pipeline Parallelism</td>
+<td>split layers across devices; use micro-batching and 1F1B to minimize
+bubble overhead</td>
+</tr>
+<tr class="odd">
+<td>Gradient Checkpointing</td>
+<td>trade recomputation for sublinear activation memory</td>
+</tr>
+<tr class="even">
+<td>Tensor Parallelism</td>
+<td>split weight matrices within layers; exploit FFN and attention
+structure to minimize communication</td>
+</tr>
+<tr class="odd">
+<td>TP + PP + DP</td>
+<td>combine TP within a node, PP across nodes, and DP on top to scale to
+thousands of GPUs</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key takeaway</strong>: distributed training is a layered
+problem. <strong>AllReduce-based data parallelism</strong> removes the
+central bottleneck when the model fits on each GPU. When it does not,
+<strong>pipeline parallelism</strong> splits layers across devices with
+micro-batching to keep GPUs busy, and <strong>tensor
+parallelism</strong> splits weight matrices within layers to exploit
+intra-node bandwidth. Practical large-scale training combines all
+three.</p>
+<h2 id="references">References</h2>
+<ol type="1">
+<li>Li et al. “PyTorch Distributed: Experiences on Accelerating Data
+Parallel Training.” VLDB 2020.</li>
+<li>NVIDIA NCCL collective communication primitives and programming
+model.</li>
+<li>Huang et al. “GPipe: Efficient Training of Giant Neural Networks
+Using Pipeline Parallelism.” NeurIPS 2019.</li>
+<li>Narayanan et al. “PipeDream: Generalized Pipeline Parallelism for
+DNN Training.” SOSP 2019.</li>
+<li>Narayanan et al. “Efficient Large-Scale Language Model Training on
+GPU Clusters Using Megatron-LM.” SC 2021.</li>
+<li>Chen et al. “Training Deep Nets with Sublinear Memory Cost.” arXiv
+2016.</li>
+</ol>
+<hr />
+<p><em>This post is based on lecture materials from CMU 11-868 LLM
+Systems by Lei Li (Distributed Training, Lec13; Distributed Data
+Parallel Training, Lec14; Model Parallel Training, Lec15).</em></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2026/03/15/11868-LLM-Sys/11868-LLM-Sys-Distributed-Training-and-DDP/">https://xloverflow.github.io/2026/03/15/11868-LLM-Sys/11868-LLM-Sys-Distributed-Training-and-DDP/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/CMU/">CMU</a><a class="post-meta__tags" href="/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/tags/Distributed-Training/">Distributed Training</a><a class="post-meta__tags" href="/tags/LLM-Systems/">LLM Systems</a><a class="post-meta__tags" href="/tags/11868/">11868</a><a class="post-meta__tags" href="/tags/DDP/">DDP</a><a class="post-meta__tags" href="/tags/NCCL/">NCCL</a><a class="post-meta__tags" href="/tags/AllReduce/">AllReduce</a><a class="post-meta__tags" href="/tags/Pipeline-Parallelism/">Pipeline Parallelism</a><a class="post-meta__tags" href="/tags/Tensor-Parallelism/">Tensor Parallelism</a><a class="post-meta__tags" href="/tags/Model-Parallelism/">Model Parallelism</a><a class="post-meta__tags" href="/tags/GPipe/">GPipe</a><a class="post-meta__tags" href="/tags/Megatron-LM/">Megatron-LM</a><a class="post-meta__tags" href="/tags/Gradient-Checkpointing/">Gradient Checkpointing</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">15645 Database systems: Query Execution</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/03/10/AI-Agent/AI-Agent-Engineering-Design-Curated-Reading-List/" title="AI Agent Engineering Design: A Curated Reading List"><img class="cover" src="https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">AI Agent Engineering Design: A Curated Reading List</div></div><div class="info-2"><div class="info-item-1">A curated collection of essential readings on AI Agent engineering design, covering Claude Code, OpenAI Codex, context management, memory mechanisms, and the OpenClaw architecture. Each article includes key excerpts and core takeaways.</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 Machine Learning Systems: Distributed Training and Parallelization"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-13</div><div class="info-item-2">15642 Machine Learning Systems: Distributed Training and Parallelization</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-642 Machine Learning Systems on distributed training techniques including data parallelism, model parallelism, pipeline parallelism, and optimization strategies like ZeRO for training large-scale models.</div></div></div></a><a class="pagination-related" href="/2026/01/26/11868-LLM-Sys/11868-LLM-SyS-GPU-Programming-Acceleration/" title="11868 LLM Sys: GPU Programming &amp; Acceleration"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-25</div><div class="info-item-2">11868 LLM Sys: GPU Programming &amp; Acceleration</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 11-868 LLM Systems: GPU Programming & Acceleration.</div></div></div></a><a class="pagination-related" href="/2026/01/28/11868-LLM-Sys/11868-LLM-Sys-15642-ML-Sys-DL-Framworks-and-Auto-Differentiation/" title="11868 LLM Sys &amp; 15642 ML Sys: DL Frameworks and Auto Differentiation"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-28</div><div class="info-item-2">11868 LLM Sys &amp; 15642 ML Sys: DL Frameworks and Auto Differentiation</div></div><div class="info-2"><div class="info-item-1">Comprehensive notes on deep learning frameworks and automatic differentiation from CMU 11-868 LLM Systems and 15-642 ML Systems courses.</div></div></div></a><a class="pagination-related" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-12</div><div class="info-item-2">11868 LLM Sys: Decoding</div></div><div class="info-2"><div class="info-item-1">Notes on decoding strategies for LLM inference from CMU 11-868, covering efficient sampling, beam search algorithms, speculative decoding, and EAGLE.</div></div></div></a><a class="pagination-related" href="/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-21</div><div class="info-item-2">11868 LLM Sys: Systems for Mixture-of-Experts Models</div></div><div class="info-2"><div class="info-item-1">Notes on CMU 11-868 LLM Systems Lec16, covering Mixture-of-Experts architecture, Switch Transformer, shared vs. routed experts, expert parallelism with GShard, load balancing, DeepSeek V3 MoE, and DeepSpeed-MoE inference optimization.</div></div></div></a><a class="pagination-related" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-12</div><div class="info-item-2">11868 LLM Sys: Tokenization and Embedding</div></div><div class="info-2"><div class="info-item-1">Comprehensive notes on tokenization techniques and vocabulary learning for Large Language Models, covering BPE, VOLT, and practical considerations in multilingual LLMs.</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">119</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#lec13-distributed-training"><span class="toc-number">1.</span> <span class="toc-text">Lec13 Distributed Training</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#why-distributed-training-becomes-necessary"><span class="toc-number">1.1.</span> <span class="toc-text">Why Distributed
+Training Becomes Necessary</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#strategies-for-scalable-training"><span class="toc-number">1.2.</span> <span class="toc-text">Strategies for Scalable
+Training</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#classical-distributed-training-parameter-server"><span class="toc-number">1.3.</span> <span class="toc-text">Classical
+Distributed Training: Parameter Server</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#multi-gpu-communication-with-nccl"><span class="toc-number">1.4.</span> <span class="toc-text">Multi-GPU Communication with
+NCCL</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#nccl-primitives"><span class="toc-number">1.4.1.</span> <span class="toc-text">NCCL Primitives</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#why-rings-matter"><span class="toc-number">1.4.2.</span> <span class="toc-text">Why Rings Matter</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#grouped-communication"><span class="toc-number">1.4.3.</span> <span class="toc-text">Grouped Communication</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#data-parallel-training-via-allreduce"><span class="toc-number">1.5.</span> <span class="toc-text">Data Parallel Training via
+AllReduce</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#why-local-optimizer-updates-are-fine"><span class="toc-number">1.5.1.</span> <span class="toc-text">Why Local Optimizer
+Updates Are Fine</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ring-allreduce"><span class="toc-number">1.6.</span> <span class="toc-text">Ring AllReduce</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#phase-1-reduce-scatter"><span class="toc-number">1.6.1.</span> <span class="toc-text">Phase 1: Reduce-Scatter</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#phase-2-allgather"><span class="toc-number">1.6.2.</span> <span class="toc-text">Phase 2: AllGather</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#communication-cost"><span class="toc-number">1.6.3.</span> <span class="toc-text">Communication Cost</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#simplified-pseudocode"><span class="toc-number">1.6.4.</span> <span class="toc-text">Simplified Pseudocode</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#parameter-server-vs-allreduce"><span class="toc-number">1.7.</span> <span class="toc-text">Parameter Server vs
+AllReduce</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#lec13-takeaways"><span class="toc-number">1.8.</span> <span class="toc-text">Lec13 Takeaways</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#lec14-distributed-data-parallel-training"><span class="toc-number">2.</span> <span class="toc-text">Lec14 Distributed Data
+Parallel Training</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#from-data-parallelism-to-ddp"><span class="toc-number">2.1.</span> <span class="toc-text">From Data Parallelism to DDP</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#design-goals-of-ddp"><span class="toc-number">2.2.</span> <span class="toc-text">Design Goals of DDP</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#distributed-process-setup"><span class="toc-number">2.3.</span> <span class="toc-text">Distributed Process Setup</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#a-minimal-ddp-training-skeleton"><span class="toc-number">2.3.1.</span> <span class="toc-text">A Minimal DDP Training
+Skeleton</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#why-a-naive-ddp-implementation-is-not-enough"><span class="toc-number">2.4.</span> <span class="toc-text">Why a Naive DDP
+Implementation Is Not Enough</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#gradient-bucketing"><span class="toc-number">2.5.</span> <span class="toc-text">Gradient Bucketing</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#bucket-construction"><span class="toc-number">2.5.1.</span> <span class="toc-text">Bucket Construction</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#the-tradeoff-in-bucket-size"><span class="toc-number">2.5.2.</span> <span class="toc-text">The Tradeoff in Bucket Size</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#how-ddp-intercepts-backward"><span class="toc-number">2.6.</span> <span class="toc-text">How DDP Intercepts Backward</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#overlapping-communication-with-computation"><span class="toc-number">2.7.</span> <span class="toc-text">Overlapping
+Communication with Computation</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#what-ddp-really-optimizes"><span class="toc-number">2.8.</span> <span class="toc-text">What DDP Really Optimizes</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#practical-interpretation"><span class="toc-number">2.9.</span> <span class="toc-text">Practical Interpretation</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#limits-of-ddp"><span class="toc-number">2.10.</span> <span class="toc-text">Limits of DDP</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#lec14-takeaways"><span class="toc-number">2.11.</span> <span class="toc-text">Lec14 Takeaways</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#lec15-model-parallel-training"><span class="toc-number">3.</span> <span class="toc-text">Lec15 Model Parallel
+Training</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#why-model-parallelism-is-needed"><span class="toc-number">3.1.</span> <span class="toc-text">Why Model Parallelism Is
+Needed</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#two-forms-of-model-parallelism"><span class="toc-number">3.2.</span> <span class="toc-text">Two Forms of Model
+Parallelism</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#pipeline-parallelism"><span class="toc-number">3.3.</span> <span class="toc-text">Pipeline Parallelism</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#naive-model-parallelism"><span class="toc-number">3.3.1.</span> <span class="toc-text">Naive Model Parallelism</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#limitations-of-naive-pipeline-parallelism"><span class="toc-number">3.3.2.</span> <span class="toc-text">Limitations of Naive
+Pipeline Parallelism</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#gpipe-microbatch-pipelining"><span class="toc-number">3.3.3.</span> <span class="toc-text">GPipe: Microbatch Pipelining</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#gpipe-performance"><span class="toc-number">3.3.4.</span> <span class="toc-text">GPipe Performance</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#gradient-checkpointing"><span class="toc-number">3.3.5.</span> <span class="toc-text">Gradient Checkpointing</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#limitations-of-gpipe"><span class="toc-number">3.3.6.</span> <span class="toc-text">Limitations of GPipe</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#pipedream-flush-1f1b-scheduling"><span class="toc-number">3.3.7.</span> <span class="toc-text">PipeDream-Flush: 1F1B
+Scheduling</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#interleaved-stages-megatron-lm"><span class="toc-number">3.3.8.</span> <span class="toc-text">Interleaved Stages
+(Megatron-LM)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#pipeline-parallelism-implementation"><span class="toc-number">3.3.9.</span> <span class="toc-text">Pipeline Parallelism
+Implementation</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#tensor-parallelism"><span class="toc-number">3.4.</span> <span class="toc-text">Tensor Parallelism</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#basic-idea-splitting-matrix-computation"><span class="toc-number">3.4.1.</span> <span class="toc-text">Basic Idea: Splitting
+Matrix Computation</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#tensor-parallelism-for-the-ffn-block"><span class="toc-number">3.4.2.</span> <span class="toc-text">Tensor Parallelism for the
+FFN Block</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#tensor-parallelism-for-self-attention"><span class="toc-number">3.4.3.</span> <span class="toc-text">Tensor Parallelism for
+Self-Attention</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#tensor-parallelism-for-embeddings"><span class="toc-number">3.4.4.</span> <span class="toc-text">Tensor Parallelism for
+Embeddings</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#components-that-are-duplicated"><span class="toc-number">3.4.5.</span> <span class="toc-text">Components That Are
+Duplicated</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#combining-pipeline-and-tensor-parallelism"><span class="toc-number">3.5.</span> <span class="toc-text">Combining Pipeline
+and Tensor Parallelism</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#combining-model-parallelism-with-data-parallelism"><span class="toc-number">3.6.</span> <span class="toc-text">Combining
+Model Parallelism with Data Parallelism</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#lec15-takeaways"><span class="toc-number">3.7.</span> <span class="toc-text">Lec15 Takeaways</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#final-summary"><span class="toc-number">3.8.</span> <span class="toc-text">Final Summary</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#references"><span class="toc-number">3.9.</span> <span class="toc-text">References</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Parallelism and Scaling"/></a><div class="content"><a class="title" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling">11711 Advanced NLP: Parallelism and Scaling</a><time datetime="2026-04-07T03:00:00.000Z" title="Created 2026-04-06 23:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Quantization"/></a><div class="content"><a class="title" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization">11711 Advanced NLP: Quantization</a><time datetime="2026-04-07T02:00:00.000Z" title="Created 2026-04-06 22:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Systems for Mixture-of-Experts Models"/></a><div class="content"><a class="title" href="/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models">11868 LLM Sys: Systems for Mixture-of-Experts Models</a><time datetime="2026-03-21T19:00:00.000Z" title="Created 2026-03-21 15:00:00">2026-03-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Query Optimization"/></a><div class="content"><a class="title" href="/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization">15645 Database systems: Query Optimization</a><time datetime="2026-03-20T18:00:00.000Z" title="Created 2026-03-20 14:00:00">2026-03-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Query Execution"/></a><div class="content"><a class="title" href="/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution">15645 Database systems: Query Execution</a><time datetime="2026-03-15T18:00:00.000Z" title="Created 2026-03-15 14:00:00">2026-03-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || 'bc87415ee87ce970f473b6282450b9fc'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

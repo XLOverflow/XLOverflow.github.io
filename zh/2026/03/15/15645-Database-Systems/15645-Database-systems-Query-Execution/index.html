@@ -1,0 +1,988 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>15645 Database systems: Query Execution | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="CMU 15-645 数据库系统课程笔记与总结。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="15645 Database systems: Query Execution">
+<meta property="og:url" content="https://xloverflow.github.io/zh/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="CMU 15-645 数据库系统课程笔记与总结。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png">
+<meta property="article:published_time" content="2026-03-15T18:00:00.000Z">
+<meta property="article:modified_time" content="2026-03-15T18:00:00.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="Study Notes">
+<meta property="article:tag" content="Parallelism">
+<meta property="article:tag" content="Database Systems">
+<meta property="article:tag" content="15645">
+<meta property="article:tag" content="Query Execution">
+<meta property="article:tag" content="SIMD">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "15645 Database systems: Query Execution",
+  "url": "https://xloverflow.github.io/zh/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png",
+  "datePublished": "2026-03-15T18:00:00.000Z",
+  "dateModified": "2026-03-15T18:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io/zh"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/zh/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/zh/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/zh/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/zh/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '15645 Database systems: Query Execution',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">62</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">116</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">22</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/zh/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/zh/"><span class="site-name">15645 Database systems: Query Execution</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/"><i class="fas fa-language fa-fw"></i><span> English</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">15645 Database systems: Query Execution</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-03-15T18:00:00.000Z" title="发表于 2026-03-15 14:00:00">2026-03-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-03-15T18:00:00.000Z" title="更新于 2026-03-15 14:00:00">2026-03-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/zh/categories/CMU-15-645-Database-Systems/">CMU 15-645 Database Systems</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="lec13-查询执行-i-处理模型访问方法表达式求值">Lec13 查询执行 I —
+处理模型、访问方法、表达式求值</h1>
+<p>本讲解决一个核心问题：<strong>当 DBMS
+拿到查询计划后，如何实际执行它？</strong>
+内容涵盖三种驱动元组在算子间流动的处理模型、从表中读取数据的主要访问方法，以及
+DBMS 如何高效地求值表达式。</p>
+<h2 id="查询执行概述">查询执行概述</h2>
+<p>在讨论处理模型之前，先明确关键术语。<strong>查询计划（query
+plan）</strong>是一个由算子构成的 DAG。在计划中：</p>
+<ul>
+<li><strong>流水线（pipeline）</strong>是一系列算子的序列，元组在它们之间连续流动，无需中间存储。</li>
+<li><strong>流水线阻断器（pipeline
+breaker）</strong>是一种在所有子节点输出全部元组之前无法完成的算子 —
+例如 Join（构建侧）、子查询和 Order By。</li>
+</ul>
+<p>DBMS 将查询计划按流水线阻断器拆分为若干流水线段，然后逐段执行。</p>
+<h2 id="处理模型">处理模型</h2>
+<p>DBMS
+的<strong>处理模型</strong>定义了系统如何执行查询计划以及如何在算子之间移动数据。不同模型在
+OLTP 和 OLAP 工作负载之间做出不同的权衡。每种模型包含两类执行路径： -
+<strong>控制流（Control Flow）</strong>：DBMS 如何调用算子 -
+<strong>数据流（Data Flow）</strong>：算子如何发送结果</p>
+<p>算子的输出可以是完整元组（NSM）或列的子集（DSM）。三种主要模型的区别在于每个算子每次处理的数据粒度。</p>
+<h3 id="迭代器模型volcano-pipeline">迭代器模型（Volcano /
+Pipeline）</h3>
+<p>使用最广泛的处理模型（<strong>最常见</strong>）。每个算子实现三个函数：</p>
+<ul>
+<li><code>Open()</code>：初始化算子状态并对子节点调用
+<code>Open()</code></li>
+<li><code>Next()</code>：返回下一个单元组，或在结束时返回 null/EOF
+标记</li>
+<li><code>Close()</code>：清理资源并对子节点调用
+<code>Close()</code></li>
+</ul>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">function Next():</span><br><span class="line">    for each child in children:</span><br><span class="line">        tuple = child.Next()</span><br><span class="line">        if tuple is not null:</span><br><span class="line">            process(tuple)</span><br><span class="line">            emit(tuple)</span><br><span class="line">    return null  // no more tuples</span><br></pre></td></tr></table></figure>
+<p>核心特性： - 每次调用 <code>Next()</code>
+返回<strong>一个元组</strong>（或表示流结束的 null 标记） -
+顶层算子反复调用子节点的
+<code>Next()</code>，子节点递归调用其子节点，一直到叶子（扫描）算子 -
+元组在树中<strong>向上</strong>逐个流动 —
+也称<strong>流水线模型</strong>，因为元组产生后立即被处理 - 几乎所有
+DBMS 都使用：PostgreSQL、MySQL、SQLite、MongoDB 等</p>
+<p>该模型的优雅之处在于简洁 —
+每个算子自包含，只需实现一个接口。但对于处理数十亿元组的分析型工作负载，逐元组的函数调用开销会变得显著。</p>
+<h3 id="物化模型">物化模型</h3>
+<p>另一个极端（<strong>少见</strong>）：每个算子<strong>一次性</strong>处理所有输入并产出所有输出。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">function Output():</span><br><span class="line">    result = []</span><br><span class="line">    for each child in children:</span><br><span class="line">        child_result = child.Output()</span><br><span class="line">        for tuple in child_result:</span><br><span class="line">            process(tuple)</span><br><span class="line">            result.append(tuple)</span><br><span class="line">    return result</span><br></pre></td></tr></table></figure>
+<p>核心特性： - 每个算子将其<strong>完整结果集</strong>作为物化集合返回
+- 更适合 OLTP 工作负载，这类查询只涉及少量数据 —
+函数调用更少，控制流更简单 - DBMS 可以向下传递 <code>LIMIT</code>
+等提示以避免不必要的物化 - 对于中间结果巨大的 OLAP 工作负载表现较差 —
+物化数百万元组浪费内存 -
+支持<strong>算子融合</strong>：由于每个算子一次看到所有输入，DBMS
+可以将相邻算子（如扫描 + 过滤 + 投影）融合为对数据的单次遍历</p>
+<h3 id="向量化-批处理模型">向量化 / 批处理模型</h3>
+<p>一个折中方案（在现代系统中<strong>常见</strong>），兼具两者优势。每个算子每次调用输出<strong>一批元组</strong>（通常
+1024 个左右）。最初在 MonetDB/X100 系统中提出。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">function Next():</span><br><span class="line">    batch = []</span><br><span class="line">    for each child in children:</span><br><span class="line">        child_batch = child.Next()</span><br><span class="line">        for tuple in child_batch:</span><br><span class="line">            process(tuple)</span><br><span class="line">            batch.append(tuple)</span><br><span class="line">        if len(batch) &gt;= BATCH_SIZE:</span><br><span class="line">            return batch</span><br><span class="line">    return batch</span><br></pre></td></tr></table></figure>
+<p>核心特性： -
+将函数调用开销分摊到多个元组上（类似物化模型），同时保持流式特性（类似迭代器模型）
+- 非常适合 OLAP 工作负载 — 批大小选择为可放入 CPU 缓存，从而通过 SIMD
+实现高效的向量化操作 - 每个批内部使用列式布局，算子包含 <strong>null
+位图</strong>来跟踪批中哪些条目有效 -
+被现代分析系统采用：DuckDB、Snowflake、Databricks、ClickHouse 等</p>
+<h3 id="对比">对比</h3>
+<table>
+<thead>
+<tr class="header">
+<th>模型</th>
+<th>粒度</th>
+<th>最适用场景</th>
+<th>函数调用开销</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>迭代器</td>
+<td>单元组</td>
+<td>通用</td>
+<td>高（逐元组）</td>
+</tr>
+<tr class="even">
+<td>物化</td>
+<td>整个结果集</td>
+<td>OLTP（小结果集）</td>
+<td>低（逐算子）</td>
+</tr>
+<tr class="odd">
+<td>向量化</td>
+<td>元组批次</td>
+<td>OLAP（大规模扫描）</td>
+<td>中（逐批次）</td>
+</tr>
+</tbody>
+</table>
+<h2 id="计划处理方向">计划处理方向</h2>
+<p>无论采用哪种处理模型，DBMS
+都必须决定数据在计划树中流动的<strong>方向</strong>。</p>
+<h3 id="自顶向下pull">自顶向下（Pull）</h3>
+<ul>
+<li>根算子通过调用 <code>Next()</code> 或 <code>Output()</code>
+从子节点”拉取”元组</li>
+<li>控制流从顶部开始递归向下</li>
+<li>数据从叶子向根向上流动</li>
+<li>迭代器模型使用的经典方式</li>
+</ul>
+<h3 id="自底向上push">自底向上（Push）</h3>
+<ul>
+<li>叶子算子将元组”推送”给父算子</li>
+<li>控制流从叶子开始</li>
+<li>允许更紧凑的循环 —
+叶子处的算子可以在不返回控制权的情况下将元组推过编译好的流水线</li>
+<li>支持<strong>算子融合</strong>：流水线中的相邻算子可以融合为一个紧凑的循环，消除算子间的虚函数调用开销</li>
+<li>被 HyPer 及采用<strong>基于推送的查询编译</strong>的系统使用</li>
+</ul>
+<p>Push
+模型可以获得更好的性能，因为它避免了递归函数调用的开销。叶子算子（如表扫描）运行一个紧凑循环，将元组推过一系列编译为单一函数的算子链，而不是每个算子从子节点拉取。</p>
+<h3 id="push-与-pull-的权衡">Push 与 Pull 的权衡</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>方面</th>
+<th>Pull（自顶向下）</th>
+<th>Push（自底向上）</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>虚函数开销</td>
+<td>每个元组/批次一次 <code>Next()</code> 调用</td>
+<td>通过算子融合编译消除</td>
+</tr>
+<tr class="even">
+<td>LIMIT 处理</td>
+<td>简单 — 停止调用 <code>Next()</code> 即可</td>
+<td>较难 — 需要将”停止”信号传播回叶子</td>
+</tr>
+<tr class="odd">
+<td>Sort-Merge Join</td>
+<td>自然 — 可以交替从两个已排序的输入拉取</td>
+<td>困难 — 两个推送源需要协调</td>
+</tr>
+<tr class="even">
+<td>调度</td>
+<td>简单的递归控制流</td>
+<td>需要调度器管理哪个流水线何时运行</td>
+</tr>
+<tr class="odd">
+<td>输出控制</td>
+<td>消费者控制节奏</td>
+<td>生产者控制节奏；需要输出缓冲</td>
+</tr>
+</tbody>
+</table>
+<h2 id="访问方法">访问方法</h2>
+<p><strong>访问方法</strong>是 DBMS
+从表中读取数据的方式。查询优化器基于代价估算选择访问方法。</p>
+<h3 id="顺序扫描">顺序扫描</h3>
+<p>最简单的方法：逐页读取表中的每一页。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">for page in table.pages:</span><br><span class="line">    for tuple in page.tuples:</span><br><span class="line">        if evaluate(predicate, tuple):</span><br><span class="line">            emit(tuple)</span><br></pre></td></tr></table></figure>
+<p>这通常是最坏情况，但 DBMS 可以应用多种优化：</p>
+<ul>
+<li><strong>预取（Prefetching）</strong>：在需要之前将接下来的几个页面取入缓冲池</li>
+<li><strong>缓冲池绕过（Buffer Pool
+Bypass）</strong>：对于大型顺序扫描，绕过缓冲池以避免用不会被重新读取的页面污染缓存</li>
+<li><strong>并行化（Parallelization）</strong>：将扫描分配给多个线程或工作者</li>
+<li><strong>延迟物化（Late
+Materialization）</strong>：在列式存储中，延迟列的拼接直到绝对必要时 —
+只读取查询实际需要的列</li>
+<li><strong>堆聚簇（Heap
+Clustering）</strong>：如果表在某个键上物理排序，该键上的范围谓词可以跳过大量堆页面</li>
+<li><strong>数据编码/压缩</strong>：直接在压缩数据上操作而不解压（如游程编码可以在不展开的情况下回答某些谓词）</li>
+<li><strong>扫描共享（Synchronized
+Scans）</strong>：如果多个查询并发扫描同一张表，共享扫描游标使它们可以搭载彼此的
+I/O</li>
+<li><strong>物化视图/缓存结果</strong>：预计算并缓存常见查询结果，从而完全避免扫描</li>
+<li><strong>代码特化/编译</strong>：在查询编译时为特定模式和谓词生成特化的扫描代码，避免通用解释开销</li>
+</ul>
+<h4 id="数据跳过">数据跳过</h4>
+<p>数据跳过的核心思想是避免检查保证不满足查询谓词的页面或元组。有两类方法：</p>
+<p><strong>近似查询（有损）</strong>：在数据的采样子集上执行查询以产生近似答案。以精度换取速度
+— 适用于不需要精确答案的探索性分析。</p>
+<p><strong>Zone
+Maps（无损）</strong>：关于每个页面（或页面范围）中值的预计算元数据，允许
+DBMS 确定性地跳过页面：</p>
+<ul>
+<li>为连续页面范围中的每个属性存储 MIN、MAX、AVG、SUM、COUNT</li>
+<li>扫描页面前先检查 zone map —
+如果谓词不可能匹配范围内的任何值，则跳过整个页面</li>
+<li>对排序或半排序数据上的范围谓词极其有效</li>
+<li>Zone maps 随数据的插入/更新自动维护</li>
+<li>使用方：Netezza、Oracle、Vertica、SingleStore、Snowflake，以及列式文件格式
+Parquet、ORC、Vortex 和 LanceDB 原生支持</li>
+</ul>
+<p>例如，如果查询要求 <code>WHERE val &gt; 600</code>，而某页面的 zone
+map 显示 <code>MAX(val) = 400</code>，则可以跳过该整个页面。</p>
+<h3 id="索引扫描">索引扫描</h3>
+<p>如果表在谓词所用的属性上有索引，DBMS
+可以使用索引直接找到匹配的元组，避免全表扫描。</p>
+<p>查询优化器必须决定：<strong>使用索引还是直接做顺序扫描更便宜？</strong>
+这取决于： - 谓词的选择性（有多少元组匹配） -
+索引是否聚簇（数据是否按索引键物理排序） - 随机 I/O 与顺序 I/O
+的代价</p>
+<p>对于低选择性谓词（匹配元组少），索引扫描通常更快。对于高选择性谓词，非聚簇索引的随机
+I/O 可能使顺序扫描更便宜。</p>
+<h3 id="多索引扫描">多索引扫描</h3>
+<p>当查询在多个属性上有谓词且每个属性上都有索引时，DBMS 可以：</p>
+<ol type="1">
+<li>独立扫描每个索引以获得匹配的记录 ID（RID）集合</li>
+<li>使用集合运算对这些 RID 集合计算交集（AND）或并集（OR）</li>
+<li>使用结果 RID 集合检索实际元组</li>
+</ol>
+<p>当多个选择性谓词组合时，这种方法可能比使用单个索引更高效。</p>
+<h2 id="修改查询">修改查询</h2>
+<p>修改数据库的算子（INSERT、UPDATE、DELETE）需要特殊处理，因为它们既读又写数据。</p>
+<h3 id="halloween-问题">Halloween 问题</h3>
+<p>以 1976 年万圣节在 IBM
+被发现而得名。问题是：如果扫描和更新操作在同一个索引上进行，<strong>UPDATE
+查询可以看到自己的修改</strong>。</p>
+<p>例如： <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> employees <span class="keyword">SET</span> salary <span class="operator">=</span> salary <span class="operator">+</span> <span class="number">100</span> <span class="keyword">WHERE</span> salary <span class="operator">&lt;</span> <span class="number">1100</span>;</span><br></pre></td></tr></table></figure></p>
+<p>如果表通过 <code>salary</code>
+上的索引扫描，<code>salary = 1000</code> 的元组被更新为
+<code>1100</code>。但扫描尚未结束 — 它可能在索引的新位置（现在位于键
+1100，如果游标尚未经过该位置则仍在扫描范围内）再次遇到同一个元组。该元组被再次更新为
+<code>1200</code>，如此循环 —
+造成元组不断在扫描游标前方”逃跑”的无限循环。</p>
+<p>解决方案： - <strong>跟踪已修改元组</strong>：记录已更新元组的
+RID，如果再次遇到则跳过 -
+<strong>先物化</strong>：先扫描所有符合条件的元组，然后再应用更新 —
+这会打断流水线但能保证正确性</p>
+<h2 id="表达式求值">表达式求值</h2>
+<p>DBMS 必须对 WHERE 子句、SELECT
+列表和其他上下文中的表达式进行求值。</p>
+<h3 id="执行上下文">执行上下文</h3>
+<p>对于每次表达式求值，DBMS
+维护一个<strong>执行上下文</strong>来跟踪：</p>
+<ul>
+<li><strong>当前元组</strong>：正在处理的元组</li>
+<li><strong>查询参数</strong>：参数化查询的绑定值</li>
+<li><strong>表模式</strong>：解释列引用所需的元数据</li>
+</ul>
+<p>表达式求值的朴素方法是<strong>表达式树</strong>，其中每个节点是一个运算符或值。</p>
+<h3 id="表达式树求值">表达式树求值</h3>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">    &gt;</span><br><span class="line">   / \</span><br><span class="line">  +   600</span><br><span class="line"> / \</span><br><span class="line">A   B</span><br></pre></td></tr></table></figure>
+<p>求值时递归遍历树。问题在于：对每个元组，DBMS
+都要遍历树、在运行时检查节点类型、追踪指针 — 由于以下原因，这很慢： -
+指令缓存行为差（指针追踪） - 分支预测失误（每个节点的类型检查） -
+函数调用开销</p>
+<h3 id="优化">优化</h3>
+<ol type="1">
+<li><strong>常量折叠（Constant
+Folding）</strong>：在计划阶段预计算不依赖元组数据的表达式
+<ul>
+<li><code>WHERE 1 = 0</code> → 跳过整个查询</li>
+<li><code>WHERE x &gt; 3 + 2</code> → <code>WHERE x &gt; 5</code></li>
+<li><code>SELECT UPPER('wutang')</code> →
+<code>SELECT 'WUTANG'</code>（对常量的函数调用也会被折叠）</li>
+</ul></li>
+<li><strong>公共子表达式消除（CSE）</strong>：如果同一子表达式出现多次，只计算一次并复用结果
+<ul>
+<li>例如：<code>WHERE STRPOS(name, 'Andy') &gt; 0 AND STRPOS(name, 'Andy') &lt; 5</code>
+— <code>STRPOS(name, 'Andy')</code> 调用只计算一次，结果被共享</li>
+</ul></li>
+<li><strong>JIT
+编译</strong>：在查询时将表达式（或整个查询流水线）编译为原生机器码，消除树解释的开销
+<ul>
+<li>PostgreSQL 使用 LLVM 进行表达式的 JIT 编译</li>
+<li>HyPer/Umbra 将整个查询流水线编译为原生代码</li>
+<li>消除类型检查、指针追踪和函数调用开销</li>
+</ul></li>
+</ol>
+<h2 id="lec13-要点回顾">Lec13 要点回顾</h2>
+<ul>
+<li><strong>向量化模型</strong>是分析型工作负载的最佳选择：它分摊函数调用开销，同时保持数据在缓存中并支持
+SIMD</li>
+<li><strong>Zone Maps</strong> 是顺序扫描的简单而强大的优化 — 让 DBMS
+在不维护完整索引的情况下跳过无关页面</li>
+<li><strong>Halloween
+问题</strong>是当修改和扫描共享同一个索引结构时出现的微妙正确性问题</li>
+<li><strong>基于推送的执行</strong>可以通过将算子编译为紧凑循环来超越基于拉取的方式，避免递归函数调用</li>
+<li><strong>JIT 编译</strong>表达式和流水线消除了在分析查询中占主导的
+CPU 解释开销</li>
+</ul>
+<hr />
+<h1 id="lec14-查询执行-ii-并行化">Lec14 查询执行 II — 并行化</h1>
+<p>本讲探讨的核心问题是：<strong>DBMS
+如何利用并行硬件来加速查询执行？</strong>
+涵盖管理工作者的进程模型、三种查询并行类型、通过 SIMD
+实现的数据级并行，以及 I/O 并行技术。</p>
+<h2 id="并行与分布式">并行与分布式</h2>
+<p>首先做一个重要区分：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>方面</th>
+<th>并行 DBMS</th>
+<th>分布式 DBMS</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>资源</td>
+<td>物理位置相近，通过高速互连通信</td>
+<td>节点可能相距很远，通过较慢的网络通信</td>
+</tr>
+<tr class="even">
+<td>通信</td>
+<td>廉价且假设可靠</td>
+<td>代价不可忽略；消息可能丢失</td>
+</tr>
+<tr class="odd">
+<td>示例</td>
+<td>单台多核机器、共享内存集群</td>
+<td>CockroachDB、Spanner</td>
+</tr>
+</tbody>
+</table>
+<p>本讲聚焦于单台机器或紧耦合集群内的<strong>并行</strong>执行。分布式查询执行在后续讲座中介绍。</p>
+<h2 id="进程模型">进程模型</h2>
+<p>DBMS <strong>进程模型</strong>定义了系统如何将内部工作者抽象映射到 OS
+级的进程或线程。这与 Lec13 讨论的查询处理模型是不同的概念。</p>
+<h3 id="每个工作者一个进程">每个工作者一个进程</h3>
+<p>每个工作者是一个独立的 OS 进程： - 依赖 OS 调度器分配 CPU 时间 -
+工作者通过共享内存访问全局数据结构（缓冲池、锁表等） -
+一个工作者崩溃不一定导致整个系统宕机 - 上下文切换开销高于线程 -
+使用方：PostgreSQL、Oracle（早期）、IBM DB2</p>
+<h3 id="每个工作者一个线程最常见">每个工作者一个线程（最常见）</h3>
+<p>每个工作者是单个 DBMS 进程中的一个 OS 线程： - 更低的开销 —
+线程共享相同的地址空间，无需共享内存段 - DBMS 管理自己的调度（或依赖 OS
+线程调度器） - 一个线程崩溃可能导致整个进程宕机 - 过去约 25 年的所有主流
+DBMS 都使用原生 OS 线程（而非绿色线程或用户级协程） - 使用方：MySQL、SQL
+Server、Oracle（现代版本）、大多数现代系统</p>
+<p>重要：使用线程-每-工作者模型并<strong>不</strong>自动意味着 DBMS
+支持查询内并行。它只意味着 DBMS
+可以在不同线程上并发运行多个查询。利用单个查询内的并行需要额外的基础设施（Exchange
+算子、并行感知算子等）。</p>
+<h3 id="嵌入式-dbms">嵌入式 DBMS</h3>
+<p>DBMS 运行在应用进程内部（没有独立的服务器）： - 不需要进程间通信 -
+应用负责管理并发 -
+使用方：SQLite、DuckDB、LevelDB、RocksDB、BerkeleyDB、WiredTiger（MongoDB
+的存储引擎）</p>
+<h3 id="对比-1">对比</h3>
+<table>
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 26%" />
+<col style="width: 23%" />
+<col style="width: 26%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>模型</th>
+<th>隔离性</th>
+<th>开销</th>
+<th>使用方</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>每工作者一进程</td>
+<td>高（进程边界）</td>
+<td>高（上下文切换）</td>
+<td>PostgreSQL</td>
+</tr>
+<tr class="even">
+<td>每工作者一线程（<strong>最常见</strong>）</td>
+<td>低（共享地址空间）</td>
+<td>低（轻量级）</td>
+<td>MySQL、SQL Server</td>
+</tr>
+<tr class="odd">
+<td>嵌入式</td>
+<td>无（进程内）</td>
+<td>最小</td>
+<td>SQLite、DuckDB</td>
+</tr>
+</tbody>
+</table>
+<h3 id="调度">调度</h3>
+<p>对于线程-每-工作者系统，DBMS
+必须决定如何将任务分配给工作者线程。两种方式：</p>
+<ul>
+<li><strong>OS 级调度</strong>：让 OS
+决定哪个线程运行在哪个核心上。简单但 DBMS 无法控制放置决策。</li>
+<li><strong>DBMS 级调度</strong>：DBMS
+维护自己的工作队列并将任务分配给线程。这允许 NUMA
+感知放置（将工作调度到距数据最近的核心）并避免过多的上下文切换。</li>
+</ul>
+<p>现代高性能系统（如 SQL Server、Oracle）倾向于 DBMS
+级调度以保持对资源分配的控制。</p>
+<h2 id="查询并行">查询并行</h2>
+<p>有两个顶层类别：查询<strong>之间</strong>的并行和单个查询<strong>内部</strong>的并行。</p>
+<h3 id="查询间并行">查询间并行</h3>
+<p>在不同的工作者上同时执行多个查询。这很直接 —
+每个查询独立运行。主要挑战是<strong>并发控制</strong>（确保事务之间互不干扰），这是后续讲座的主题。</p>
+<p>改善的是<strong>吞吐量</strong>（每秒查询数）而非单个查询的延迟。</p>
+<h3 id="查询内并行">查询内并行</h3>
+<p>使用多个工作者执行单个查询。这改善的是单个查询的<strong>延迟</strong>。有三种方式：</p>
+<h4 id="算子内并行水平-最常见">算子内并行（水平） — 最常见</h4>
+<p>将单个算子分解为独立的片段，各自操作不同的数据子集：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">     Gather</span><br><span class="line">    /  |  \</span><br><span class="line">Scan₁ Scan₂ Scan₃    ← same operator, different data partitions</span><br></pre></td></tr></table></figure>
+<ul>
+<li>一个表扫描被拆分给 3 个工作者，每个读取不同范围的页面</li>
+<li>结果在上方的 <strong>Exchange</strong> 算子处合并</li>
+<li>也称<strong>水平分区</strong>或算子级的<strong>数据并行</strong></li>
+<li>最常见的查询内并行形式</li>
+<li>示例：<strong>并行 Grace Hash Join</strong> —
+使用连接键上的哈希对两个表分区，然后在多个工作者上对每对分区独立运行
+hash join 实例</li>
+</ul>
+<h4 id="算子间并行垂直流水线化-较少见">算子间并行（垂直/流水线化） —
+较少见</h4>
+<p>查询计划中的不同算子在不同的工作者上同时运行，以<strong>生产者/消费者</strong>范式传递元组：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Worker 1: Scan → Filter  ──tuples──▶  Worker 2: Join → Project</span><br></pre></td></tr></table></figure>
+<ul>
+<li>也称<strong>流水线并行</strong> — 算子是流水线中的各阶段</li>
+<li>受最慢阶段限制（如果一个算子远慢于其他算子，流水线会停顿）</li>
+<li>实践中较少见，因为需要仔细的负载均衡</li>
+<li>在流式系统中更常见（如 Apache Kafka、Flink、Spark
+Streaming、Storm），而非传统 DBMS</li>
+</ul>
+<h4 id="bushy-并行-高端系统">Bushy 并行 — 高端系统</h4>
+<p>两者的组合：计划树的不同分支并行执行，每个分支内的算子也可以并行化：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">     Join</span><br><span class="line">    /    \</span><br><span class="line">Scan₁   Scan₂    ← two branches in parallel</span><br><span class="line">(W1,W2) (W3,W4)  ← each branch also uses multiple workers</span><br></pre></td></tr></table></figure>
+<ul>
+<li>最灵活但调度最复杂</li>
+<li>被现代 MPP 系统用于复杂的多路连接</li>
+</ul>
+<h3 id="exchange-算子">Exchange 算子</h3>
+<p><strong>Exchange</strong>
+算子是实现查询内并行的关键机制。它位于查询计划的并行片段之间，管理数据分发。</p>
+<p>三种类型：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>类型</th>
+<th>行为</th>
+<th>用例</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Gather</strong></td>
+<td>将多个工作者的结果合并为一个流</td>
+<td>合并并行扫描结果</td>
+</tr>
+<tr class="even">
+<td><strong>Distribute</strong></td>
+<td>将一个流拆分到多个工作者</td>
+<td>为并行连接分区数据</td>
+</tr>
+<tr class="odd">
+<td><strong>Repartition</strong></td>
+<td>将数据从 N 个工作者重新分布到 M 个工作者</td>
+<td>在查询执行中途更改分区方案</td>
+</tr>
+</tbody>
+</table>
+<p>Exchange 算子将并行抽象化 —
+它上下方的算子无需知道自己正在并行运行。这是一种清晰的架构分离。</p>
+<p>Google BigQuery 广泛使用 Repartition（shuffle）exchange —
+其执行引擎在数千个工作者之间对中间数据进行大规模重分布，以执行分布式连接和聚合。</p>
+<h2 id="simd-数据并行">SIMD 数据并行</h2>
+<p><strong>SIMD</strong>（Single Instruction, Multiple
+Data，单指令多数据）使用宽 CPU
+寄存器同时对多个数据元素施加相同操作。</p>
+<h3 id="为什么-simd-对数据库很重要">为什么 SIMD 对数据库很重要</h3>
+<p>典型的数据库扫描对数百万个值施加简单谓词（如
+<code>val &gt; 100</code>）。没有 SIMD 时，需要逐值比较。有了
+SIMD，一条指令可以同时比较 4、8 甚至 16 个值（取决于寄存器宽度：SSE=128
+位、AVX2=256 位、AVX-512=512 位）。</p>
+<h3 id="simd-选择扫描">SIMD 选择扫描</h3>
+<p>考虑一个选择扫描：<code>SELECT * FROM T WHERE val &gt; 100</code></p>
+<p>不使用 SIMD： <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">for each value v in column:</span><br><span class="line">    if v &gt; 100: output v</span><br></pre></td></tr></table></figure></p>
+<p>使用 SIMD（AVX2，256 位寄存器，32 位整数 = 每寄存器 8 个值）：
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">threshold = broadcast(100)  // [100, 100, 100, 100, 100, 100, 100, 100]</span><br><span class="line">for each group of 8 values:</span><br><span class="line">    data = load(values[i:i+8])</span><br><span class="line">    mask = compare_gt(data, threshold)  // produces bitmask</span><br><span class="line">    output matching values using mask</span><br></pre></td></tr></table></figure></p>
+<p>理论上每个指令周期可处理 8 倍的值。</p>
+<p>潜在加速与多核并行叠加。例如，一台拥有 32 个核心、每个核心执行 4 路
+SIMD 指令的机器，相比标量单核执行可获得高达 <strong>128
+倍</strong>的吞吐量。</p>
+<h3 id="过滤器表示">过滤器表示</h3>
+<p>SIMD 比较产生符合条件元组的位掩码后，DBMS
+应如何表示和使用这个过滤器？</p>
+<p><strong>选择向量（Selection
+Vectors）</strong>：在数组中存储符合条件元组的位置（索引）。 -
+当选择性低（匹配少）时紧凑 - 下游算子遍历位置 -
+使用方：DuckDB、Vectorwise</p>
+<p><strong>位图（Bitmaps）</strong>：一个位向量，其中位 <code>i</code> =
+1 表示元组 <code>i</code> 符合条件。 - 无论选择性如何，大小固定 -
+对多个谓词的按位 AND/OR 高效 - 使用方：Oracle、许多列式存储</p>
+<table>
+<thead>
+<tr class="header">
+<th>表示方式</th>
+<th>空间</th>
+<th>最适用场景</th>
+<th>集合操作</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>选择向量</td>
+<td>O(matches)</td>
+<td>低选择性</td>
+<td>需要归并</td>
+</tr>
+<tr class="even">
+<td>位图</td>
+<td>O(n) 固定</td>
+<td>高选择性、多谓词</td>
+<td>按位 AND/OR</td>
+</tr>
+</tbody>
+</table>
+<h2 id="io-并行">I/O 并行</h2>
+<p>当瓶颈是磁盘 I/O 而非 CPU 时，DBMS
+可以并行使用多个存储设备。单个磁盘的带宽从根本上受限，因此扩展 I/O
+需要将数据分布到多个设备上。</p>
+<h3 id="多磁盘并行">多磁盘并行</h3>
+<p>将数据库分布在多个磁盘上以增加聚合 I/O 带宽。</p>
+<p><strong>RAID
+0（条带化）</strong>：以轮询方式将每个文件拆分到多个磁盘上。 -
+读/写带宽随磁盘数量线性增长 - 无冗余 — 任何单个磁盘故障都会丢失数据 - 对
+DBMS 透明</p>
+<p><strong>RAID 1（镜像）</strong>：在多个磁盘上复制每个文件。 -
+读带宽翻倍（可以从任一副本读取） - 写带宽不变（必须写入两个副本） - 容错
+— 可承受单个磁盘故障 - 对 DBMS 透明</p>
+<p>实践中，生产系统使用 <strong>RAID
+10</strong>（镜像条带）或依赖分布式存储系统在更高层处理冗余。RAID
+通常在硬件或 OS 层配置 — 对 DBMS
+透明。现代云/分布式系统通常用软件定义的纠删码替代硬件 RAID。</p>
+<p>多磁盘配置的基本权衡三角是<strong>性能 vs 持久性 vs 容量</strong> —
+最多只能同时优化其中两个，第三个必须妥协。</p>
+<h3 id="数据库分区">数据库分区</h3>
+<p>将逻辑数据库拆分为不相交的段，存储在不同的磁盘上（或分布式系统中的不同机器上）。</p>
+<p><strong>垂直分区</strong>：按列拆分表 — 将不同列存储在不同磁盘上。 -
+类似列存储布局 - 当查询只访问部分列时有用</p>
+<p><strong>水平分区</strong>：按行拆分表 —
+不同的范围或哈希桶存放在不同磁盘上。 - 常见分区策略：范围、哈希、轮询 -
+支持并行扫描，每个工作者从不同分区读取 - 需要注意点查询的分区裁剪 -
+PostgreSQL 通过 <strong>Tablespaces</strong>
+支持此功能，允许将不同的表/索引存储在不同的磁盘卷上</p>
+<h2 id="并行化的挑战">并行化的挑战</h2>
+<p>并行化引入了 DBMS 必须处理的若干实际挑战：</p>
+<ul>
+<li><strong>协调开销</strong>：同步工作者增加延迟（如 exchange
+算子、屏障）</li>
+<li><strong>调度</strong>：决定为每个查询分配多少工作者，以及如何在它们之间划分工作</li>
+<li><strong>并发问题</strong>：对共享数据结构（哈希表、缓冲池）的并行访问需要精心的锁设计或无锁设计</li>
+<li><strong>资源竞争</strong>：多个并行查询争夺 CPU、内存和 I/O
+带宽</li>
+</ul>
+<p>目标是在保持这些开销可控的同时，最大化吞吐量、最小化延迟。</p>
+<h2 id="lec14-要点回顾">Lec14 要点回顾</h2>
+<ul>
+<li><strong>线程-每-工作者</strong>是现代 DBMS 中占主导的进程模型 —
+但使用线程并不自动意味着 DBMS 支持查询内并行</li>
+<li><strong>算子内（水平）并行</strong>是最常见的查询内并行形式，通过
+<strong>Exchange 算子</strong>实现清晰的抽象</li>
+<li><strong>SIMD</strong> 为扫描密集的分析工作负载提供显著加速 —
+与多核并行结合，可实现 100 倍以上的吞吐量提升</li>
+<li><strong>I/O 并行</strong>通过 RAID
+和分区在磁盘带宽成为瓶颈时至关重要，存在性能、持久性和容量之间的基本权衡</li>
+<li>并行化引入协调开销、调度复杂性和资源竞争 — DBMS
+必须在这些代价与吞吐量收益之间取得平衡</li>
+</ul>
+<hr />
+<h2 id="总结">总结</h2>
+<table>
+<colgroup>
+<col style="width: 40%" />
+<col style="width: 60%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>主题</th>
+<th>核心思想</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>处理模型</td>
+<td>迭代器（逐元组）、物化（一次性全部）、向量化（逐批次）— 向量化在
+OLAP 中胜出</td>
+</tr>
+<tr class="even">
+<td>计划方向</td>
+<td>Pull（自顶向下）简单；Push（自底向上）支持编译流水线</td>
+</tr>
+<tr class="odd">
+<td>访问方法</td>
+<td>带 zone maps
+的顺序扫描、选择性查询的索引扫描、复合谓词的多索引扫描</td>
+</tr>
+<tr class="even">
+<td>Halloween 问题</td>
+<td>UPDATE 可以通过共享索引看到自己的修改 — 必须跟踪或先物化</td>
+</tr>
+<tr class="odd">
+<td>表达式求值</td>
+<td>表达式树很慢；JIT 编译消除解释开销</td>
+</tr>
+<tr class="even">
+<td>并行 vs 分布式</td>
+<td>并行 = 资源相近、通信廉价；分布式 = 节点远、网络不可靠</td>
+</tr>
+<tr class="odd">
+<td>进程模型</td>
+<td>每工作者一进程（隔离性） vs 每工作者一线程（性能，最常见） vs
+嵌入式（简洁性）</td>
+</tr>
+<tr class="even">
+<td>查询内并行</td>
+<td>水平（最常见）、垂直/流水线化（较少见）、Bushy（高端系统）</td>
+</tr>
+<tr class="odd">
+<td>Exchange 算子</td>
+<td>Gather / Distribute / Repartition — 将并行从算子中抽象出来</td>
+</tr>
+<tr class="even">
+<td>SIMD</td>
+<td>一条指令操作多个数据值 — 与多核结合可获得 100 倍以上加速</td>
+</tr>
+<tr class="odd">
+<td>过滤器表示</td>
+<td>选择向量（稀疏，适合低选择性） vs 位图（密集，适合组合谓词）</td>
+</tr>
+<tr class="even">
+<td>I/O 并行</td>
+<td>RAID 条带化/镜像增加带宽，分区支持并行扫描；权衡：性能 vs 持久性 vs
+容量</td>
+</tr>
+</tbody>
+</table>
+<p><strong>核心要点</strong>：现代查询执行是处理模型、并行策略和硬件利用的协同设计
+— 向量化批处理模型、Exchange 算子和 SIMD
+共同使分析系统能够每秒处理数十亿元组。</p>
+<h2 id="参考文献">参考文献</h2>
+<ul>
+<li>A. Pavlo, “Query Execution I,” CMU 15-445/645 Lecture #13, Spring
+2024.</li>
+<li>A. Pavlo &amp; J. Patel, “Query Execution II,” CMU 15-445/645
+Lecture #14, Spring 2024.</li>
+<li>G. Graefe, “Volcano — An Extensible and Parallel Query Evaluation
+System,” IEEE TKDE, 1994.</li>
+<li>T. Neumann, “Efficiently Compiling Efficient Query Plans for Modern
+Hardware,” VLDB, 2011.</li>
+<li>P. Boncz, M. Zukowski, N. Nes, “MonetDB/X100: Hyper-Pipelining Query
+Execution,” CIDR, 2005.</li>
+</ul>
+<p><em>本文基于 CMU 15-445/645 Database Systems 课程材料，讲师 Andy
+Pavlo 与 Jignesh Patel（Lecture #13: Query Execution I, Lecture #14:
+Query Execution II）。</em></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/">https://xloverflow.github.io/zh/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://xloverflow.github.io/zh" target="_blank">Life is not a race, but a journey</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/zh/tags/CMU/">CMU</a><a class="post-meta__tags" href="/zh/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/zh/tags/Parallelism/">Parallelism</a><a class="post-meta__tags" href="/zh/tags/Database-Systems/">Database Systems</a><a class="post-meta__tags" href="/zh/tags/15645/">15645</a><a class="post-meta__tags" href="/zh/tags/Query-Execution/">Query Execution</a><a class="post-meta__tags" href="/zh/tags/SIMD/">SIMD</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/zh/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">15645 Database systems: Query Optimization</div></div><div class="info-2"><div class="info-item-1">CMU 15-645 数据库系统课程笔记与总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/03/15/11868-LLM-Sys/11868-LLM-Sys-Distributed-Training-and-DDP/" title="11868 LLM系统：分布式训练与DDP"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">11868 LLM系统：分布式训练与DDP</div></div><div class="info-2"><div class="info-item-1">CMU 11-868 LLM Systems 第13-14讲笔记，涵盖分布式训练、NCCL通信原语、Ring AllReduce，以及PyTorch Distributed Data Parallel。</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/zh/2026/03/08/15645-Database-Systems/15645-Database-systems-Sorting-Aggregation/" title="15645 Database systems: Sorting &amp; Aggregation"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-08</div><div class="info-item-2">15645 Database systems: Sorting &amp; Aggregation</div></div><div class="info-2"><div class="info-item-1">CMU 15-645 数据库系统的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/02/07/15645-Database-Systems/15645-Database-systems-Hash-Tables/" title="15645 Database systems: Hash Tables"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-07</div><div class="info-item-2">15645 Database systems: Hash Tables</div></div><div class="info-2"><div class="info-item-1">CMU 15-645 数据库系统的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/16/15645-Database-Systems/15645-Database-Systems-relational-model-and-SQL/" title="15645 Database Systems Lecture Notes"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-15</div><div class="info-item-2">15645 Database Systems Lecture Notes</div></div><div class="info-2"><div class="info-item-1">CMU 15-645 数据库系统的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/" title="15645 Database systems: Index Concurrency Control"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-08</div><div class="info-item-2">15645 Database systems: Index Concurrency Control</div></div><div class="info-2"><div class="info-item-1">CMU 15-645 数据库系统的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/02/09/15645-Database-Systems/15645-Database-systems-Index-Filter/" title="15645 Database systems: Index &amp; Filter"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-09</div><div class="info-item-2">15645 Database systems: Index &amp; Filter</div></div><div class="info-2"><div class="info-item-1">CMU 15-645 数据库系统的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/03/08/15645-Database-Systems/15645-Database-systems-Join-Algorithms/" title="15645 Database systems: Join Algorithms"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-08</div><div class="info-item-2">15645 Database systems: Join Algorithms</div></div><div class="info-2"><div class="info-item-1">CMU 15-645 数据库系统的笔记和总结。</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li 的中文博客</div><div class="site-data"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">62</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">116</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">22</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#lec13-%E6%9F%A5%E8%AF%A2%E6%89%A7%E8%A1%8C-i-%E5%A4%84%E7%90%86%E6%A8%A1%E5%9E%8B%E8%AE%BF%E9%97%AE%E6%96%B9%E6%B3%95%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC"><span class="toc-number">1.</span> <span class="toc-text">Lec13 查询执行 I —
+处理模型、访问方法、表达式求值</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9F%A5%E8%AF%A2%E6%89%A7%E8%A1%8C%E6%A6%82%E8%BF%B0"><span class="toc-number">1.1.</span> <span class="toc-text">查询执行概述</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%84%E7%90%86%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.2.</span> <span class="toc-text">处理模型</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%AD%E4%BB%A3%E5%99%A8%E6%A8%A1%E5%9E%8Bvolcano-pipeline"><span class="toc-number">1.2.1.</span> <span class="toc-text">迭代器模型（Volcano &#x2F;
+Pipeline）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%89%A9%E5%8C%96%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.2.2.</span> <span class="toc-text">物化模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%91%E9%87%8F%E5%8C%96-%E6%89%B9%E5%A4%84%E7%90%86%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.2.3.</span> <span class="toc-text">向量化 &#x2F; 批处理模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%B9%E6%AF%94"><span class="toc-number">1.2.4.</span> <span class="toc-text">对比</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%A1%E5%88%92%E5%A4%84%E7%90%86%E6%96%B9%E5%90%91"><span class="toc-number">1.3.</span> <span class="toc-text">计划处理方向</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%87%AA%E9%A1%B6%E5%90%91%E4%B8%8Bpull"><span class="toc-number">1.3.1.</span> <span class="toc-text">自顶向下（Pull）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%87%AA%E5%BA%95%E5%90%91%E4%B8%8Apush"><span class="toc-number">1.3.2.</span> <span class="toc-text">自底向上（Push）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#push-%E4%B8%8E-pull-%E7%9A%84%E6%9D%83%E8%A1%A1"><span class="toc-number">1.3.3.</span> <span class="toc-text">Push 与 Pull 的权衡</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%BF%E9%97%AE%E6%96%B9%E6%B3%95"><span class="toc-number">1.4.</span> <span class="toc-text">访问方法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A1%BA%E5%BA%8F%E6%89%AB%E6%8F%8F"><span class="toc-number">1.4.1.</span> <span class="toc-text">顺序扫描</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E8%B7%B3%E8%BF%87"><span class="toc-number">1.4.1.1.</span> <span class="toc-text">数据跳过</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B4%A2%E5%BC%95%E6%89%AB%E6%8F%8F"><span class="toc-number">1.4.2.</span> <span class="toc-text">索引扫描</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%9A%E7%B4%A2%E5%BC%95%E6%89%AB%E6%8F%8F"><span class="toc-number">1.4.3.</span> <span class="toc-text">多索引扫描</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9%E6%9F%A5%E8%AF%A2"><span class="toc-number">1.5.</span> <span class="toc-text">修改查询</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#halloween-%E9%97%AE%E9%A2%98"><span class="toc-number">1.5.1.</span> <span class="toc-text">Halloween 问题</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC"><span class="toc-number">1.6.</span> <span class="toc-text">表达式求值</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87"><span class="toc-number">1.6.1.</span> <span class="toc-text">执行上下文</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%A0%91%E6%B1%82%E5%80%BC"><span class="toc-number">1.6.2.</span> <span class="toc-text">表达式树求值</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BC%98%E5%8C%96"><span class="toc-number">1.6.3.</span> <span class="toc-text">优化</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#lec13-%E8%A6%81%E7%82%B9%E5%9B%9E%E9%A1%BE"><span class="toc-number">1.7.</span> <span class="toc-text">Lec13 要点回顾</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#lec14-%E6%9F%A5%E8%AF%A2%E6%89%A7%E8%A1%8C-ii-%E5%B9%B6%E8%A1%8C%E5%8C%96"><span class="toc-number">2.</span> <span class="toc-text">Lec14 查询执行 II — 并行化</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B9%B6%E8%A1%8C%E4%B8%8E%E5%88%86%E5%B8%83%E5%BC%8F"><span class="toc-number">2.1.</span> <span class="toc-text">并行与分布式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E6%A8%A1%E5%9E%8B"><span class="toc-number">2.2.</span> <span class="toc-text">进程模型</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AF%8F%E4%B8%AA%E5%B7%A5%E4%BD%9C%E8%80%85%E4%B8%80%E4%B8%AA%E8%BF%9B%E7%A8%8B"><span class="toc-number">2.2.1.</span> <span class="toc-text">每个工作者一个进程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AF%8F%E4%B8%AA%E5%B7%A5%E4%BD%9C%E8%80%85%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8B%E6%9C%80%E5%B8%B8%E8%A7%81"><span class="toc-number">2.2.2.</span> <span class="toc-text">每个工作者一个线程（最常见）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B5%8C%E5%85%A5%E5%BC%8F-dbms"><span class="toc-number">2.2.3.</span> <span class="toc-text">嵌入式 DBMS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%B9%E6%AF%94-1"><span class="toc-number">2.2.4.</span> <span class="toc-text">对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B0%83%E5%BA%A6"><span class="toc-number">2.2.5.</span> <span class="toc-text">调度</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9F%A5%E8%AF%A2%E5%B9%B6%E8%A1%8C"><span class="toc-number">2.3.</span> <span class="toc-text">查询并行</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9F%A5%E8%AF%A2%E9%97%B4%E5%B9%B6%E8%A1%8C"><span class="toc-number">2.3.1.</span> <span class="toc-text">查询间并行</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9F%A5%E8%AF%A2%E5%86%85%E5%B9%B6%E8%A1%8C"><span class="toc-number">2.3.2.</span> <span class="toc-text">查询内并行</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AE%97%E5%AD%90%E5%86%85%E5%B9%B6%E8%A1%8C%E6%B0%B4%E5%B9%B3-%E6%9C%80%E5%B8%B8%E8%A7%81"><span class="toc-number">2.3.2.1.</span> <span class="toc-text">算子内并行（水平） — 最常见</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AE%97%E5%AD%90%E9%97%B4%E5%B9%B6%E8%A1%8C%E5%9E%82%E7%9B%B4%E6%B5%81%E6%B0%B4%E7%BA%BF%E5%8C%96-%E8%BE%83%E5%B0%91%E8%A7%81"><span class="toc-number">2.3.2.2.</span> <span class="toc-text">算子间并行（垂直&#x2F;流水线化） —
+较少见</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#bushy-%E5%B9%B6%E8%A1%8C-%E9%AB%98%E7%AB%AF%E7%B3%BB%E7%BB%9F"><span class="toc-number">2.3.2.3.</span> <span class="toc-text">Bushy 并行 — 高端系统</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#exchange-%E7%AE%97%E5%AD%90"><span class="toc-number">2.3.3.</span> <span class="toc-text">Exchange 算子</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#simd-%E6%95%B0%E6%8D%AE%E5%B9%B6%E8%A1%8C"><span class="toc-number">2.4.</span> <span class="toc-text">SIMD 数据并行</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88-simd-%E5%AF%B9%E6%95%B0%E6%8D%AE%E5%BA%93%E5%BE%88%E9%87%8D%E8%A6%81"><span class="toc-number">2.4.1.</span> <span class="toc-text">为什么 SIMD 对数据库很重要</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#simd-%E9%80%89%E6%8B%A9%E6%89%AB%E6%8F%8F"><span class="toc-number">2.4.2.</span> <span class="toc-text">SIMD 选择扫描</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%87%E6%BB%A4%E5%99%A8%E8%A1%A8%E7%A4%BA"><span class="toc-number">2.4.3.</span> <span class="toc-text">过滤器表示</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#io-%E5%B9%B6%E8%A1%8C"><span class="toc-number">2.5.</span> <span class="toc-text">I&#x2F;O 并行</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%9A%E7%A3%81%E7%9B%98%E5%B9%B6%E8%A1%8C"><span class="toc-number">2.5.1.</span> <span class="toc-text">多磁盘并行</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%BA%93%E5%88%86%E5%8C%BA"><span class="toc-number">2.5.2.</span> <span class="toc-text">数据库分区</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B9%B6%E8%A1%8C%E5%8C%96%E7%9A%84%E6%8C%91%E6%88%98"><span class="toc-number">2.6.</span> <span class="toc-text">并行化的挑战</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#lec14-%E8%A6%81%E7%82%B9%E5%9B%9E%E9%A1%BE"><span class="toc-number">2.7.</span> <span class="toc-text">Lec14 要点回顾</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">2.8.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">2.9.</span> <span class="toc-text">参考文献</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11711 Advanced NLP: Parallelism and Scaling"/></a><div class="content"><a class="title" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling">11711 Advanced NLP: Parallelism and Scaling</a><time datetime="2026-04-07T03:00:00.000Z" title="发表于 2026-04-06 23:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11711 Advanced NLP: Quantization"/></a><div class="content"><a class="title" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization">11711 Advanced NLP: Quantization</a><time datetime="2026-04-07T02:00:00.000Z" title="发表于 2026-04-06 22:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11868 LLM Sys: Systems for Mixture-of-Experts Models"/></a><div class="content"><a class="title" href="/zh/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models">11868 LLM Sys: Systems for Mixture-of-Experts Models</a><time datetime="2026-03-21T19:00:00.000Z" title="发表于 2026-03-21 15:00:00">2026-03-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="15645 Database systems: Query Optimization"/></a><div class="content"><a class="title" href="/zh/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization">15645 Database systems: Query Optimization</a><time datetime="2026-03-20T18:00:00.000Z" title="发表于 2026-03-20 14:00:00">2026-03-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="15645 Database systems: Query Execution"/></a><div class="content"><a class="title" href="/zh/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution">15645 Database systems: Query Execution</a><time datetime="2026-03-15T18:00:00.000Z" title="发表于 2026-03-15 14:00:00">2026-03-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/zh/js/utils.js"></script><script src="/zh/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || 'f79405341cbcfec361762ef8fd534c89'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/zh/404.html') : window.location.href = '/zh/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

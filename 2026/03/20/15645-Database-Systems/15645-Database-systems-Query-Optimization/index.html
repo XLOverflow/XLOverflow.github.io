@@ -1,0 +1,1095 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>15645 Database systems: Query Optimization | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Notes and summaries for CMU 15-645 Database Systems.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="15645 Database systems: Query Optimization">
+<meta property="og:url" content="https://xloverflow.github.io/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Notes and summaries for CMU 15-645 Database Systems.">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png">
+<meta property="article:published_time" content="2026-03-20T18:00:00.000Z">
+<meta property="article:modified_time" content="2026-03-20T18:00:00.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="15645">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="Cardinality Estimation">
+<meta property="article:tag" content="Cost Model">
+<meta property="article:tag" content="Database Systems">
+<meta property="article:tag" content="Query Optimization">
+<meta property="article:tag" content="Study Notes">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "15645 Database systems: Query Optimization",
+  "url": "https://xloverflow.github.io/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png",
+  "datePublished": "2026-03-20T18:00:00.000Z",
+  "dateModified": "2026-03-20T18:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '15645 Database systems: Query Optimization',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">119</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">15645 Database systems: Query Optimization</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">15645 Database systems: Query Optimization</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-03-20T18:00:00.000Z" title="Created 2026-03-20 14:00:00">2026-03-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-03-20T18:00:00.000Z" title="Updated 2026-03-20 14:00:00">2026-03-20</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CMU-15-645-Database-Systems/">CMU 15-645 Database Systems</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1
+id="lec15-query-planning-optimization-rules-heuristics-and-search-strategies">Lec15
+Query Planning &amp; Optimization — Rules, Heuristics, and Search
+Strategies</h1>
+<p>The previous lectures covered <em>how</em> individual operators
+execute (scans, joins, sorts). This lecture steps back to ask a
+higher-level question: <strong>given a SQL query, how does the DBMS
+choose which plan to execute?</strong> The answer involves transforming
+logical representations using algebraic equivalences, applying heuristic
+rules, and — for cost-based optimizers — searching through the space of
+equivalent plans to find the cheapest one.</p>
+<h2 id="query-planning-pipeline">Query Planning Pipeline</h2>
+<p>A SQL statement goes through several stages before execution:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">SQL String</span><br><span class="line">  → Parser        → Abstract Syntax Tree (AST)</span><br><span class="line">  → Binder        → Logical Plan (with resolved names &amp; types)</span><br><span class="line">  → Tree Rewriter → Rewritten Logical Plan (expression simplification)</span><br><span class="line">  → Optimizer     → Physical Plan (with specific algorithms &amp; access paths)</span><br></pre></td></tr></table></figure>
+<p>The <strong>parser</strong> checks syntax and produces an AST. The
+<strong>binder</strong> resolves table and column names against the
+system catalog, mapping them to internal identifiers. This produces a
+<strong>logical plan</strong> — a tree of relational algebra operators
+that specifies <em>what</em> data to compute, but not <em>how</em>.</p>
+<p>The optimizer’s job is to transform this logical plan into the best
+<strong>physical plan</strong> — one that specifies concrete algorithms
+(hash join vs. sort-merge join), access methods (sequential scan
+vs. index scan), and operator ordering.</p>
+<p>Two fundamental approaches exist: 1. <strong>Heuristic /
+Rule-based</strong>: apply static transformation rules that generally
+improve plans without estimating costs 2. <strong>Cost-based</strong>:
+enumerate equivalent plans, estimate their cost using statistics, and
+pick the cheapest</p>
+<p>Most real systems use a combination of both — heuristic rewrites
+first, then cost-based search over the simplified space.</p>
+<h2 id="relational-algebra-equivalences">Relational Algebra
+Equivalences</h2>
+<p>The optimizer’s ability to rearrange a query plan rests on
+<strong>equivalences</strong> — algebraic identities that guarantee two
+expressions produce the same result. These equivalences define the legal
+moves in the optimizer’s search space.</p>
+<h3 id="selection-equivalences">Selection Equivalences</h3>
+<p><strong>Decomposition (cascade)</strong>:</p>
+<p><span class="math display">\[\sigma_{p_1 \wedge p_2}(R) \equiv
+\sigma_{p_1}(\sigma_{p_2}(R))\]</span></p>
+<p>A conjunctive predicate can be split into a cascade of individual
+selections. This is the foundation for <strong>predicate
+pushdown</strong> — once split, individual predicates can be pushed
+closer to the data source.</p>
+<p><strong>Commutativity</strong>:</p>
+<p><span class="math display">\[\sigma_{p_1}(\sigma_{p_2}(R)) \equiv
+\sigma_{p_2}(\sigma_{p_1}(R))\]</span></p>
+<p>The order of adjacent selections does not affect the result. A
+cost-based optimizer can reorder them so the most selective (or
+cheapest) predicate runs first.</p>
+<h3 id="projection-equivalences">Projection Equivalences</h3>
+<p>Projections are idempotent — projecting the same columns twice is
+equivalent to projecting once:</p>
+<p><span class="math display">\[\pi_{a_1}(R) \equiv \pi_{a_1}(\pi_{a_1,
+a_2, \ldots}(R))\]</span></p>
+<p>This enables <strong>early projection</strong>: the optimizer can
+insert projections lower in the tree to reduce tuple width, cutting I/O
+and memory usage for subsequent operators.</p>
+<h3 id="join-equivalences">Join Equivalences</h3>
+<p><strong>Commutativity</strong>:</p>
+<p><span class="math display">\[R \bowtie S \equiv S \bowtie
+R\]</span></p>
+<p>The optimizer is free to swap the build and probe sides of a hash
+join, or choose which table to use as the outer relation in a
+nested-loop join.</p>
+<p><strong>Associativity</strong>:</p>
+<p><span class="math display">\[(R \bowtie S) \bowtie T \equiv R \bowtie
+(S \bowtie T)\]</span></p>
+<p>This is the most impactful equivalence for multi-way joins. The
+number of possible join orderings grows super-exponentially with the
+number of tables — for <span class="math inline">\(n\)</span> tables,
+the number of different join trees is the <strong>Catalan
+number</strong> <span class="math inline">\(C(n)\)</span>. For a
+10-table join, there are over 17 billion possible orderings.</p>
+<h2 id="heuristic-rule-based-optimization">Heuristic / Rule-Based
+Optimization</h2>
+<p>A heuristic optimizer applies a fixed sequence of transformation
+rules without considering the actual data. These rules represent
+“usually good” strategies:</p>
+<h3 id="core-heuristic-rules">Core Heuristic Rules</h3>
+<ol type="1">
+<li><strong>Split conjunctive predicates</strong>: decompose
+<code>WHERE p1 AND p2 AND p3</code> into individual filters</li>
+<li><strong>Predicate pushdown</strong>: push selection operators as far
+down the tree as possible, ideally to the table scan. This reduces the
+number of tuples flowing through the rest of the plan</li>
+<li><strong>Replace Cartesian products with joins</strong>: if a
+Cartesian product is followed by a selection on a join predicate,
+replace both with a single join operator</li>
+<li><strong>Projection pushdown</strong>: push projections down to
+eliminate unneeded columns early, reducing tuple width</li>
+<li><strong>Reorder predicates by selectivity</strong>: within a filter
+chain, evaluate the most selective predicate first (the one that
+eliminates the most tuples)</li>
+</ol>
+<h3 id="example-transformation">Example Transformation</h3>
+<p>Consider a three-table query:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> s.name, c.title</span><br><span class="line"><span class="keyword">FROM</span> students <span class="keyword">AS</span> s, enrolled <span class="keyword">AS</span> e, courses <span class="keyword">AS</span> c</span><br><span class="line"><span class="keyword">WHERE</span> s.sid <span class="operator">=</span> e.sid</span><br><span class="line">  <span class="keyword">AND</span> e.cid <span class="operator">=</span> c.cid</span><br><span class="line">  <span class="keyword">AND</span> e.grade <span class="operator">=</span> <span class="string">&#x27;A&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p>The naive plan starts with Cartesian products of all three tables,
+followed by all selections, and a final projection. Heuristic
+optimization transforms this step by step:</p>
+<ol type="1">
+<li><strong>Split</strong> the conjunctive WHERE into three individual
+selections</li>
+<li><strong>Push</strong> <code>e.grade = 'A'</code> down to the scan of
+<code>enrolled</code></li>
+<li><strong>Replace</strong> the Cartesian product + join-predicate
+pairs with proper join operators</li>
+<li><strong>Push</strong> projections down to discard unneeded columns
+early</li>
+</ol>
+<p>The result is a dramatically cheaper plan — filtering early means
+joins process far fewer tuples.</p>
+<h3 id="limitations-of-heuristic-optimization">Limitations of Heuristic
+Optimization</h3>
+<p>Heuristic rules do not consider: - The actual sizes of intermediate
+results - The availability or selectivity of indexes - The relative cost
+of different physical operators - Data distribution (skew,
+correlations)</p>
+<p>A heuristic optimizer always applies the same transformations
+regardless of the data. For example, it always pushes predicates down —
+but occasionally a predicate is so non-selective that pushing it down
+just adds overhead without reducing cardinality.</p>
+<h2 id="expression-rewriting">Expression Rewriting</h2>
+<p>Before searching for the best plan, the optimizer simplifies
+predicates through <strong>expression rewriting</strong> — syntactic
+transformations that eliminate redundant or impossible conditions.</p>
+<h3 id="impossible-redundant-predicates">Impossible / Redundant
+Predicates</h3>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Impossible: no row can satisfy both conditions</span></span><br><span class="line"><span class="keyword">WHERE</span> val <span class="keyword">BETWEEN</span> <span class="number">1</span> <span class="keyword">AND</span> <span class="number">5</span> <span class="keyword">AND</span> val <span class="keyword">BETWEEN</span> <span class="number">10</span> <span class="keyword">AND</span> <span class="number">20</span></span><br><span class="line">→ <span class="keyword">Empty</span> <span class="keyword">result</span> (<span class="keyword">skip</span> execution entirely)</span><br><span class="line"></span><br><span class="line"><span class="comment">-- Redundant: the second predicate is subsumed</span></span><br><span class="line"><span class="keyword">WHERE</span> val <span class="operator">&gt;=</span> <span class="number">5</span> <span class="keyword">AND</span> val <span class="operator">&gt;=</span> <span class="number">3</span></span><br><span class="line">→ <span class="keyword">WHERE</span> val <span class="operator">&gt;=</span> <span class="number">5</span></span><br></pre></td></tr></table></figure>
+<h3 id="predicate-merging">Predicate Merging</h3>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Merge overlapping BETWEEN predicates</span></span><br><span class="line"><span class="keyword">WHERE</span> val <span class="keyword">BETWEEN</span> <span class="number">1</span> <span class="keyword">AND</span> <span class="number">10</span> <span class="keyword">AND</span> val <span class="keyword">BETWEEN</span> <span class="number">5</span> <span class="keyword">AND</span> <span class="number">20</span></span><br><span class="line">→ <span class="keyword">WHERE</span> val <span class="keyword">BETWEEN</span> <span class="number">5</span> <span class="keyword">AND</span> <span class="number">10</span></span><br></pre></td></tr></table></figure>
+<h3 id="join-elimination">Join Elimination</h3>
+<p>If a join is performed but none of the joined table’s columns appear
+in the output and the join condition is on a foreign key that guarantees
+a match, the join can be eliminated entirely. This sometimes occurs with
+views that join more tables than the query actually needs.</p>
+<h2 id="cost-based-optimization">Cost-Based Optimization</h2>
+<p>While heuristics handle the “obviously good” transformations,
+choosing among genuinely different strategies (e.g., hash join
+vs. sort-merge join, different join orderings) requires a <strong>cost
+model</strong>. The optimizer enumerates equivalent plans, estimates
+each plan’s cost, and selects the cheapest.</p>
+<p>The cost-based component needs three things: 1. A way to
+<strong>enumerate</strong> equivalent plans (search strategy) 2. A way
+to <strong>estimate</strong> the cost of each plan (cost model — covered
+in Lecture 16) 3. A way to <strong>prune</strong> the search space to
+keep it tractable</p>
+<h2 id="search-strategies">Search Strategies</h2>
+<p>The optimizer must explore the space of logically equivalent plans.
+Two major paradigms exist:</p>
+<h3 id="bottom-up-system-r-forward-chaining">Bottom-Up (System R /
+Forward Chaining)</h3>
+<p>The <strong>System R</strong> optimizer (1979) pioneered cost-based
+optimization. It builds optimal plans from the bottom up:</p>
+<ol type="1">
+<li><strong>Start</strong> with base relations and find the best access
+path for each (sequential scan vs. index scan)</li>
+<li><strong>Enumerate</strong> all two-table join orderings. For each
+pair, consider all join algorithms (nested-loop, sort-merge, hash) and
+retain only the cheapest plan for each pair</li>
+<li><strong>Build</strong> three-table joins by extending the best
+two-table plans, and so on</li>
+<li>At each level, <strong>prune</strong> plans that are strictly worse
+than another plan with the same result and same “interesting
+orders”</li>
+</ol>
+<p>The key insight is <strong>dynamic programming with interesting
+orders</strong>: a plan that produces sorted output might be suboptimal
+in isolation but saves a sort later. The optimizer keeps the cheapest
+plan for each combination of (relation set, output order).</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Level 1: Best single-table access for &#123;R&#125;, &#123;S&#125;, &#123;T&#125;</span><br><span class="line">Level 2: Best join plan for &#123;R,S&#125;, &#123;R,T&#125;, &#123;S,T&#125;</span><br><span class="line">Level 3: Best join plan for &#123;R,S,T&#125; — extend Level 2 winners</span><br></pre></td></tr></table></figure>
+<p>For <span class="math inline">\(n\)</span> tables, this explores
+<span class="math inline">\(O(2^n)\)</span> subsets — expensive but
+tractable for typical queries (&lt; 15 tables). This approach only
+considers <strong>left-deep</strong> join trees (where the right child
+of each join is always a base table), which limits the search space and
+guarantees that intermediate results stream through the pipeline without
+full materialization.</p>
+<h3 id="top-down-volcano-cascades-backward-chaining">Top-Down (Volcano /
+Cascades / Backward Chaining)</h3>
+<p>The <strong>Volcano</strong> (1993) and <strong>Cascades</strong>
+(1995) frameworks take the opposite approach:</p>
+<ol type="1">
+<li><strong>Start</strong> with the full logical expression at the
+root</li>
+<li><strong>Apply</strong> transformation rules to generate equivalent
+logical expressions (stored in a shared structure called a <strong>memo
+table</strong>)</li>
+<li>For each logical expression, apply <strong>implementation
+rules</strong> to generate physical alternatives</li>
+<li>Recursively optimize sub-expressions using <strong>branch-and-bound
+pruning</strong> — if the cost of a partial plan already exceeds the
+best known complete plan, abandon that branch</li>
+</ol>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Optimize(LogicalExpr):</span><br><span class="line">    for each equivalent expr in ApplyRules(LogicalExpr):</span><br><span class="line">        for each physical impl of expr:</span><br><span class="line">            cost = EstimateCost(impl)</span><br><span class="line">            if cost &lt; upper_bound:</span><br><span class="line">                recursively optimize children</span><br><span class="line">                update best plan</span><br></pre></td></tr></table></figure>
+<p>The memo table is crucial — it ensures that equivalent
+sub-expressions are recognized and optimized only once. Each
+<strong>group</strong> in the memo represents a set of logically
+equivalent expressions, and the optimizer stores the best physical plan
+found for each group.</p>
+<h3 id="enforcers">Enforcers</h3>
+<p>Both search strategies must handle <strong>physical
+properties</strong> that certain operators require. For example, a
+sort-merge join requires its inputs to be sorted on the join key. An
+<strong>enforcer</strong> is a physical operator (like Sort) that the
+optimizer inserts to guarantee a required property.</p>
+<p>The optimizer treats enforcers as additional alternatives: it
+compares the cost of (sort + merge join) against (hash join without
+sort) and picks the cheaper option.</p>
+<h3 id="bottom-up-vs-top-down-comparison">Bottom-Up vs Top-Down
+Comparison</h3>
+<table>
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 37%" />
+<col style="width: 48%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Aspect</th>
+<th>Bottom-Up (System R)</th>
+<th>Top-Down (Volcano/Cascades)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Direction</td>
+<td>Forward chaining (small → large)</td>
+<td>Backward chaining (large → small)</td>
+</tr>
+<tr class="even">
+<td>Search pattern</td>
+<td>BFS (enumerate all <span class="math inline">\(k\)</span>-table
+plans before <span class="math inline">\(k+1\)</span>)</td>
+<td>DFS with memoization</td>
+</tr>
+<tr class="odd">
+<td>Pruning</td>
+<td>Discard dominated plans at each level</td>
+<td>Branch-and-bound with upper bounds</td>
+</tr>
+<tr class="even">
+<td>Tree shapes</td>
+<td>Typically left-deep only</td>
+<td>Can explore bushy trees</td>
+</tr>
+<tr class="odd">
+<td>Implementation</td>
+<td>Easier to implement</td>
+<td>More flexible, extensible rule system</td>
+</tr>
+<tr class="even">
+<td>Used by</td>
+<td>PostgreSQL, IBM DB2, MySQL</td>
+<td>SQL Server, CockroachDB, Apache Calcite</td>
+</tr>
+</tbody>
+</table>
+<p>In practice, both approaches find similar-quality plans. The top-down
+approach is more extensible (adding new rules doesn’t require
+restructuring the search) but can be harder to debug.</p>
+<h2 id="star-and-snowflake-schema-queries">Star and Snowflake Schema
+Queries</h2>
+<p>Data warehouses commonly use <strong>star schemas</strong> (one fact
+table surrounded by dimension tables) and <strong>snowflake
+schemas</strong> (dimension tables further normalized). These queries
+join one large fact table with many small dimension tables.</p>
+<p>Standard dynamic-programming enumeration (<span
+class="math inline">\(2^n\)</span> subsets for <span
+class="math inline">\(n\)</span> tables) becomes impractical when <span
+class="math inline">\(n\)</span> is large (10+ dimension tables).
+Special strategies include:</p>
+<ul>
+<li><strong>Fact-table-centric</strong>: always start the join order
+with the fact table</li>
+<li><strong>Predicate pushdown to dimensions first</strong>: filter
+dimension tables before joining to the fact table, using bitmap filters
+or semi-joins to reduce the fact table scan</li>
+<li><strong>Star join optimization</strong>: recognize the star pattern
+and use specialized multi-index or bitmap intersection strategies</li>
+</ul>
+<hr />
+<h2 id="lec15-takeaways">Lec15 Takeaways</h2>
+<ul>
+<li>The optimizer transforms logical plans into physical plans using
+algebraic equivalences — the correctness of query optimization rests
+entirely on these equivalences being sound</li>
+<li>Heuristic rules (predicate pushdown, projection pushdown,
+Cartesian-to-join conversion) are cheap to apply and almost always
+beneficial — every real optimizer applies them first</li>
+<li>Cost-based optimization enumerates equivalent plans and picks the
+cheapest — the two major paradigms (bottom-up System R and top-down
+Cascades) represent fundamentally different search strategies with
+similar outcomes</li>
+<li>Join ordering is the single most impactful optimization decision —
+the number of valid orderings grows super-exponentially, making
+exhaustive search impossible for large queries</li>
+<li>Enforcers bridge the gap between logical equivalence and physical
+requirements — the optimizer must account for properties like sort order
+when comparing plans</li>
+</ul>
+<hr />
+<h1
+id="lec16-query-planning-optimization-cost-models-statistics-and-cardinality-estimation">Lec16
+Query Planning &amp; Optimization — Cost Models, Statistics, and
+Cardinality Estimation</h1>
+<p>Lecture 15 established <em>how</em> the optimizer searches through
+equivalent plans. This lecture answers the complementary question:
+<strong>how does the optimizer estimate the cost of a plan?</strong> The
+answer requires statistics about the data, a cost model that translates
+statistics into estimated I/O and CPU costs, and cardinality estimation
+to predict the size of intermediate results.</p>
+<h2 id="why-cost-estimation-matters">Why Cost Estimation Matters</h2>
+<p>The optimizer’s plan choices are only as good as its cost estimates.
+A perfect search algorithm paired with terrible cost estimates will
+confidently pick a terrible plan. The cost model is the optimizer’s
+“oracle” — and its accuracy directly determines query performance.</p>
+<p>Cost estimation has three components: 1. <strong>Statistics</strong>:
+summaries of the data distribution (histograms, sketches, samples) 2.
+<strong>Cardinality estimation</strong>: predicting how many tuples each
+operator produces 3. <strong>Cost model</strong>: mapping cardinalities
+and operator types to estimated execution cost</p>
+<h2 id="statistics">Statistics</h2>
+<p>The DBMS maintains internal statistics about tables and columns to
+support cost estimation. These are stored in the system catalog and
+typically updated by an explicit <code>ANALYZE</code> command
+(PostgreSQL) or automatically in the background.</p>
+<h3 id="basic-statistics">Basic Statistics</h3>
+<p>For each relation <span class="math inline">\(R\)</span>: - <span
+class="math inline">\(N_R\)</span>: number of tuples in <span
+class="math inline">\(R\)</span> - <span class="math inline">\(V(A,
+R)\)</span>: number of distinct values for attribute <span
+class="math inline">\(A\)</span> in <span
+class="math inline">\(R\)</span> (sometimes called the
+<strong>cardinality</strong> of <span class="math inline">\(A\)</span>)
+- <span class="math inline">\(B_R\)</span>: number of disk blocks
+(pages) containing tuples of <span class="math inline">\(R\)</span></p>
+<p>The <strong>selection cardinality</strong> <span
+class="math inline">\(SC(A, R)\)</span> is the average number of tuples
+with a given value of <span class="math inline">\(A\)</span>:</p>
+<p><span class="math display">\[SC(A, R) = \frac{N_R}{V(A,
+R)}\]</span></p>
+<p>If <span class="math inline">\(A\)</span> is a key (all values
+distinct), <span class="math inline">\(SC(A, R) = 1\)</span>. If <span
+class="math inline">\(A\)</span> has only one distinct value, <span
+class="math inline">\(SC(A, R) = N_R\)</span>.</p>
+<h3 id="histograms">Histograms</h3>
+<p>Real data is rarely uniform. <strong>Histograms</strong> capture the
+distribution of values in a column, allowing the optimizer to estimate
+selectivity more accurately than the uniform assumption.</p>
+<p><strong>Equi-Width Histogram</strong>: Divide the value range into
+fixed-width buckets and count how many tuples fall in each bucket.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Range</th>
+<th>Count</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>[0, 10)</td>
+<td>120</td>
+</tr>
+<tr class="even">
+<td>[10, 20)</td>
+<td>340</td>
+</tr>
+<tr class="odd">
+<td>[20, 30)</td>
+<td>90</td>
+</tr>
+<tr class="even">
+<td>[30, 40)</td>
+<td>450</td>
+</tr>
+</tbody>
+</table>
+<p>Simple to build but can be misleading when values cluster — a bucket
+spanning a dense region and a sparse region hides the real
+distribution.</p>
+<p><strong>Equi-Depth (Equi-Height) Histogram</strong>: Adjust bucket
+boundaries so that each bucket contains approximately the same number of
+tuples.</p>
+<p>This better captures skewed distributions — narrow buckets appear
+where data is dense, wide buckets where data is sparse. Most production
+systems use equi-depth histograms.</p>
+<p><strong>End-Biased Histogram</strong>: Store exact frequencies for
+the most common values (MCVs), and use a single histogram for the
+remaining values. PostgreSQL uses this approach — it maintains both an
+MCV list and a histogram for each analyzed column.</p>
+<h3 id="sketches">Sketches</h3>
+<p>For very large datasets or streaming scenarios, exact histograms can
+be expensive. <strong>Probabilistic sketches</strong> provide
+approximate statistics with bounded error using minimal space.</p>
+<p><strong>Count-Min Sketch</strong>: A 2D array of counters with <span
+class="math inline">\(d\)</span> hash functions. To record a value, hash
+it with each function and increment the corresponding counter. To query
+the frequency, take the <strong>minimum</strong> across all hash
+functions (hence “count-min”). The minimum is used because hash
+collisions can only inflate counts, never deflate them.</p>
+<ul>
+<li>Space: <span class="math inline">\(O(d \times w)\)</span> where
+<span class="math inline">\(w\)</span> is the width (number of counters
+per row)</li>
+<li>Error: probabilistic guarantee based on <span
+class="math inline">\(d\)</span> and <span
+class="math inline">\(w\)</span></li>
+<li>Use case: estimating frequencies of individual values (point
+queries)</li>
+</ul>
+<p><strong>HyperLogLog (HLL)</strong>: Estimates the number of
+<strong>distinct values</strong> (cardinality) using the observation
+that the maximum number of leading zeros in hashed values relates to the
+log of the cardinality. Uses very little space (a few KB) to estimate
+cardinalities in the billions.</p>
+<ul>
+<li>Space: <span class="math inline">\(O(m)\)</span> where <span
+class="math inline">\(m\)</span> is the number of registers (typically
+1024–16384)</li>
+<li>Error: approximately <span class="math inline">\(\pm 2\%\)</span>
+for <span class="math inline">\(m = 16384\)</span></li>
+<li>Use case: estimating <span class="math inline">\(V(A, R)\)</span>
+without scanning the entire column</li>
+</ul>
+<h3 id="sampling">Sampling</h3>
+<p>An alternative to pre-computed statistics: maintain a random sample
+of tuples from each table and run the query’s predicates against the
+sample to estimate selectivities. This adapts naturally to complex
+predicates (including correlated ones) but has higher runtime cost.</p>
+<p>Systems that use sampling-based estimation include Oracle (dynamic
+sampling) and some recent systems that combine sampling with learned
+models.</p>
+<h2 id="cost-models">Cost Models</h2>
+<p>The cost model translates statistics and cardinality estimates into a
+single numeric cost for each plan. Two major flavors exist:</p>
+<h3 id="physical-cost-model">Physical Cost Model</h3>
+<p>Estimates actual resource consumption: disk I/Os, CPU cycles, memory
+usage, network transfers. This is the most accurate approach but ties
+the optimizer to specific hardware.</p>
+<p>Factors include: - Sequential I/O vs. random I/O (sequential reads
+are 10–100x cheaper) - CPU cost per tuple for comparison, hashing,
+expression evaluation - Memory available for hash tables, sort buffers -
+Network cost for distributed queries</p>
+<h3 id="logical-cost-model">Logical Cost Model</h3>
+<p>Assigns abstract, relative costs to operators without modeling
+physical hardware. This makes the optimizer portable across hardware
+configurations but less accurate for any specific deployment.</p>
+<h3 id="postgresql-cost-model">PostgreSQL Cost Model</h3>
+<p>PostgreSQL uses a physical cost model with configurable <strong>magic
+constants</strong> that approximate the relative cost of different
+operations:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Parameter</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>seq_page_cost</code></td>
+<td>1.0</td>
+<td>Cost of reading one page sequentially</td>
+</tr>
+<tr class="even">
+<td><code>random_page_cost</code></td>
+<td>4.0</td>
+<td>Cost of reading one page randomly</td>
+</tr>
+<tr class="odd">
+<td><code>cpu_tuple_cost</code></td>
+<td>0.01</td>
+<td>CPU cost per tuple processed</td>
+</tr>
+<tr class="even">
+<td><code>cpu_index_tuple_cost</code></td>
+<td>0.005</td>
+<td>CPU cost per index entry</td>
+</tr>
+<tr class="odd">
+<td><code>cpu_operator_cost</code></td>
+<td>0.0025</td>
+<td>CPU cost per operator evaluation</td>
+</tr>
+</tbody>
+</table>
+<p>The total cost of a plan is the sum of I/O cost and CPU cost:</p>
+<p><span class="math display">\[\text{Total Cost} = (\text{pages\_read}
+\times \text{page\_cost}) + (\text{tuples\_processed} \times
+\text{cpu\_tuple\_cost})\]</span></p>
+<p>These constants encode the assumption that random I/O is 4x more
+expensive than sequential I/O — reasonable for spinning disks but too
+conservative for SSDs, where the ratio is closer to 1.5–2x.
+Administrators can tune these constants for their hardware.</p>
+<h2 id="cardinality-estimation">Cardinality Estimation</h2>
+<p>The most critical job of the cost model: predicting how many tuples
+each operator produces. Every subsequent cost estimate in the plan
+depends on these predictions.</p>
+<h3 id="selectivity">Selectivity</h3>
+<p>The <strong>selectivity</strong> <span
+class="math inline">\(\text{sel}(P)\)</span> of a predicate <span
+class="math inline">\(P\)</span> is the fraction of tuples that satisfy
+<span class="math inline">\(P\)</span>:</p>
+<p><span class="math display">\[\text{sel}(P) =
+\frac{|\sigma_P(R)|}{N_R}\]</span></p>
+<p>The estimated output cardinality of a selection is:</p>
+<p><span class="math display">\[|\sigma_P(R)| = N_R \times
+\text{sel}(P)\]</span></p>
+<h3 id="selectivity-for-common-predicates">Selectivity for Common
+Predicates</h3>
+<p><strong>Equality</strong>: <span class="math inline">\(A =
+\text{constant}\)</span></p>
+<p><span class="math display">\[\text{sel}(A = c) = \frac{1}{V(A,
+R)}\]</span></p>
+<p>Assumes uniform distribution — each distinct value is equally
+likely.</p>
+<p><strong>Range</strong>: <span class="math inline">\(A \geq c\)</span>
+(given domain <span class="math inline">\([\text{min},
+\text{max}]\)</span>)</p>
+<p><span class="math display">\[\text{sel}(A \geq c) = \frac{\text{max}
+- c}{\text{max} - \text{min}}\]</span></p>
+<p>Assumes values are uniformly distributed across the range.</p>
+<p><strong>Negation</strong>: <span class="math inline">\(\text{NOT }
+P\)</span></p>
+<p><span class="math display">\[\text{sel}(\text{NOT } P) = 1 -
+\text{sel}(P)\]</span></p>
+<p><strong>Conjunction</strong>: <span class="math inline">\(P_1 \text{
+AND } P_2\)</span></p>
+<p><span class="math display">\[\text{sel}(P_1 \wedge P_2) =
+\text{sel}(P_1) \times \text{sel}(P_2)\]</span></p>
+<p>This assumes <strong>independence</strong> between predicates — a
+strong assumption that often does not hold (e.g.,
+<code>city = 'Pittsburgh'</code> and <code>state = 'PA'</code> are
+highly correlated).</p>
+<p><strong>Disjunction</strong>: <span class="math inline">\(P_1 \text{
+OR } P_2\)</span></p>
+<p><span class="math display">\[\text{sel}(P_1 \vee P_2) =
+\text{sel}(P_1) + \text{sel}(P_2) - \text{sel}(P_1) \times
+\text{sel}(P_2)\]</span></p>
+<h3 id="the-three-assumptions">The Three Assumptions</h3>
+<p>Classical cardinality estimation rests on three simplifying
+assumptions:</p>
+<ol type="1">
+<li><p><strong>Uniform Distribution</strong>: All values in a column are
+equally likely. This breaks down with skewed data (e.g., Zipfian
+distributions common in real workloads).</p></li>
+<li><p><strong>Independence</strong>: Predicates on different columns
+are statistically independent — knowing the value of column <span
+class="math inline">\(A\)</span> tells you nothing about column <span
+class="math inline">\(B\)</span>. This breaks down with correlated
+attributes (city/state, age/graduation year).</p></li>
+<li><p><strong>Containment (Inclusion Principle)</strong>: For a join
+<span class="math inline">\(R \bowtie_{A} S\)</span>, the domain of
+values in the smaller relation is contained in the domain of the larger
+relation. That is, every value that appears in the smaller set also
+appears in the larger set.</p></li>
+</ol>
+<h3 id="join-size-estimation">Join Size Estimation</h3>
+<p>For an equi-join <span class="math inline">\(R \bowtie_{R.A = S.A}
+S\)</span>, the estimated result size is:</p>
+<p><span class="math display">\[|\text{est}| \approx \frac{N_R \times
+N_S}{\max(V(A, R), V(A, S))}\]</span></p>
+<p>The intuition: divide by the larger number of distinct values because
+the containment assumption implies the smaller set of values is fully
+“contained” in the larger set. Each value in the smaller domain matches
+with <span class="math inline">\(SC(A, R)\)</span> tuples from <span
+class="math inline">\(R\)</span> and <span class="math inline">\(SC(A,
+S)\)</span> tuples from <span class="math inline">\(S\)</span>.</p>
+<p>For a Cartesian product (no join predicate), the result size is
+simply <span class="math inline">\(N_R \times N_S\)</span>.</p>
+<h3 id="multi-join-estimation-and-error-propagation">Multi-Join
+Estimation and Error Propagation</h3>
+<p>For queries joining multiple tables, the optimizer must estimate
+intermediate result sizes, and each estimate feeds into the next. Errors
+compound multiplicatively:</p>
+<p>Consider a three-table join <span class="math inline">\(R \bowtie S
+\bowtie T\)</span>: 1. Estimate <span class="math inline">\(|R \bowtie
+S|\)</span> — say the estimate is off by 2x 2. Use that estimate to
+compute <span class="math inline">\(|(R \bowtie S) \bowtie T|\)</span> —
+the 2x error propagates</p>
+<p>After <span class="math inline">\(k\)</span> joins, estimation errors
+can compound to <span class="math inline">\(O(2^k)\)</span> or worse.
+This is why cardinality estimation is often called the <strong>Achilles’
+heel</strong> of query optimization — even small per-step errors can
+lead the optimizer to choose catastrophically wrong plans for complex
+queries.</p>
+<h3 id="the-correlated-attributes-problem">The Correlated Attributes
+Problem</h3>
+<p>The independence assumption is the most problematic in practice.
+Consider:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> cars</span><br><span class="line"><span class="keyword">WHERE</span> make <span class="operator">=</span> <span class="string">&#x27;Honda&#x27;</span> <span class="keyword">AND</span> model <span class="operator">=</span> <span class="string">&#x27;Accord&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p>The optimizer estimates:</p>
+<p><span class="math display">\[\text{sel} = \frac{1}{V(\text{make})}
+\times \frac{1}{V(\text{model})}\]</span></p>
+<p>If there are 50 makes and 500 models, the estimated selectivity is
+<span class="math inline">\(\frac{1}{50} \times \frac{1}{500} =
+\frac{1}{25000}\)</span>, far too low — because make and model are
+highly correlated (only Honda makes the Accord).</p>
+<p>Approaches to handling correlations:</p>
+<table>
+<colgroup>
+<col style="width: 35%" />
+<col style="width: 21%" />
+<col style="width: 42%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Approach</th>
+<th>Idea</th>
+<th>Limitation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Multi-column statistics</strong></td>
+<td>Maintain joint histograms or statistics on column combinations</td>
+<td>Exponential number of possible combinations</td>
+</tr>
+<tr class="even">
+<td><strong>Bayesian networks</strong></td>
+<td>Model dependencies between columns as a graphical model</td>
+<td>Complex to build and maintain</td>
+</tr>
+<tr class="odd">
+<td><strong>Feedback-driven</strong></td>
+<td>Use actual runtime cardinalities to correct future estimates</td>
+<td>Requires executing the query first</td>
+</tr>
+<tr class="even">
+<td><strong>Learned cardinality estimators</strong></td>
+<td>Train ML models on query logs to predict cardinalities</td>
+<td>Data drift, training cost, reliability</td>
+</tr>
+</tbody>
+</table>
+<p>No single approach has fully solved this problem. Modern systems
+typically use a combination: multi-column statistics for known
+correlations, and the independence assumption as a fallback.</p>
+<hr />
+<h2 id="lec16-takeaways">Lec16 Takeaways</h2>
+<ul>
+<li>Statistics (histograms, sketches, samples) are the foundation of
+cost-based optimization — without accurate data summaries, the optimizer
+is flying blind</li>
+<li>The cost model translates cardinality estimates into plan costs —
+PostgreSQL’s magic constants encode hardware-specific assumptions that
+administrators should tune</li>
+<li>Cardinality estimation under the uniform/independence/containment
+assumptions works well for simple queries but breaks down for correlated
+attributes and multi-join queries</li>
+<li>Estimation errors propagate multiplicatively through join chains — a
+2x error per join becomes a 1000x error over 10 joins, leading to
+catastrophically wrong plan choices</li>
+<li>The correlated attributes problem remains one of the hardest
+challenges in query optimization — multi-column stats, learned
+estimators, and feedback loops are active areas of research</li>
+</ul>
+<hr />
+<h2 id="final-summary">Final Summary</h2>
+<table>
+<colgroup>
+<col style="width: 41%" />
+<col style="width: 58%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Topic</th>
+<th>Key Idea</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Planning Pipeline</td>
+<td>SQL → AST → Logical Plan → Physical Plan; optimizer bridges logical
+to physical</td>
+</tr>
+<tr class="even">
+<td>Relational Algebra Equivalences</td>
+<td>Selection decomposition, join commutativity/associativity — define
+the legal search space</td>
+</tr>
+<tr class="odd">
+<td>Heuristic Optimization</td>
+<td>Static rules (predicate pushdown, projection pushdown) — cheap and
+almost always beneficial</td>
+</tr>
+<tr class="even">
+<td>Expression Rewriting</td>
+<td>Simplify/eliminate impossible or redundant predicates before
+search</td>
+</tr>
+<tr class="odd">
+<td>Bottom-Up Search (System R)</td>
+<td>Dynamic programming over relation subsets, <span
+class="math inline">\(O(2^n)\)</span>, left-deep trees, interesting
+orders</td>
+</tr>
+<tr class="even">
+<td>Top-Down Search (Cascades)</td>
+<td>DFS with memo table, branch-and-bound pruning, supports bushy
+trees</td>
+</tr>
+<tr class="odd">
+<td>Enforcers</td>
+<td>Physical operators (e.g., Sort) inserted to guarantee required
+properties</td>
+</tr>
+<tr class="even">
+<td>Statistics</td>
+<td>Histograms (equi-width, equi-depth, end-biased), sketches
+(Count-Min, HLL), sampling</td>
+</tr>
+<tr class="odd">
+<td>Cost Model</td>
+<td>Map cardinalities + operator types → numeric cost; physical
+(PostgreSQL) vs logical</td>
+</tr>
+<tr class="even">
+<td>Cardinality Estimation</td>
+<td><span class="math inline">\(\text{sel}(P) \times N_R\)</span>;
+relies on uniform, independence, containment assumptions</td>
+</tr>
+<tr class="odd">
+<td>Join Size Estimation</td>
+<td><span class="math inline">\(N_R \times N_S / \max(V(A,R),
+V(A,S))\)</span> under containment</td>
+</tr>
+<tr class="even">
+<td>Error Propagation</td>
+<td>Estimation errors compound multiplicatively through join chains</td>
+</tr>
+<tr class="odd">
+<td>Correlated Attributes</td>
+<td>Independence assumption fails; solutions include multi-column stats,
+learned models</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key takeaway</strong>: Query optimization is a search problem
+over equivalent plans, guided by a cost model that depends on
+cardinality estimation — and cardinality estimation, despite decades of
+research, remains the weakest link in the chain. Getting statistics
+right matters more than having a sophisticated search algorithm.</p>
+<h2 id="references">References</h2>
+<ul>
+<li>P. Selinger et al., “Access Path Selection in a Relational Database
+Management System,” SIGMOD, 1979.</li>
+<li>G. Graefe, “The Cascades Framework for Query Optimization,” IEEE
+Data Engineering Bulletin, 1995.</li>
+<li>G. Graefe and W. McKenna, “The Volcano Optimizer Generator:
+Extensibility and Efficient Search,” ICDE, 1993.</li>
+<li>V. Leis et al., “How Good Are Query Optimizers, Really?,” PVLDB,
+2015.</li>
+<li>PostgreSQL Documentation, “Planner Cost Constants,”
+postgresql.org.</li>
+</ul>
+<p><em>This post is based on lecture materials from CMU 15-445/645
+Database Systems by Andy Pavlo &amp; Jignesh Patel (Lecture #15: Query
+Planning &amp; Optimization I, Lecture #16: Query Planning &amp;
+Optimization II).</em></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/">https://xloverflow.github.io/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/CMU/">CMU</a><a class="post-meta__tags" href="/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/tags/Database-Systems/">Database Systems</a><a class="post-meta__tags" href="/tags/15645/">15645</a><a class="post-meta__tags" href="/tags/Query-Optimization/">Query Optimization</a><a class="post-meta__tags" href="/tags/Cost-Model/">Cost Model</a><a class="post-meta__tags" href="/tags/Cardinality-Estimation/">Cardinality Estimation</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">11868 LLM Sys: Systems for Mixture-of-Experts Models</div></div><div class="info-2"><div class="info-item-1">Notes on CMU 11-868 LLM Systems Lec16, covering Mixture-of-Experts architecture, Switch Transformer, shared vs. routed experts, expert parallelism with GShard, load balancing, DeepSeek V3 MoE, and DeepSpeed-MoE inference optimization.</div></div></div></a><a class="pagination-related" href="/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">15645 Database systems: Query Execution</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/01/16/15645-Database-Systems/15645-Database-Systems-relational-model-and-SQL/" title="15645 Database systems: Relational Model and SQL"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-15</div><div class="info-item-2">15645 Database systems: Relational Model and SQL</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/02/07/15645-Database-Systems/15645-Database-systems-Hash-Tables/" title="15645 Database systems: Hash Tables"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-07</div><div class="info-item-2">15645 Database systems: Hash Tables</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/" title="15645 Database systems: Index Concurrency Control"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-08</div><div class="info-item-2">15645 Database systems: Index Concurrency Control</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/02/09/15645-Database-Systems/15645-Database-systems-Index-Filter/" title="15645 Database systems: Index &amp; Filter"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-09</div><div class="info-item-2">15645 Database systems: Index &amp; Filter</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Join-Algorithms/" title="15645 Database systems: Join Algorithms"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-08</div><div class="info-item-2">15645 Database systems: Join Algorithms</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-15</div><div class="info-item-2">15645 Database systems: Query Execution</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">119</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#lec15-query-planning-optimization-rules-heuristics-and-search-strategies"><span class="toc-number">1.</span> <span class="toc-text">Lec15
+Query Planning &amp; Optimization — Rules, Heuristics, and Search
+Strategies</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#query-planning-pipeline"><span class="toc-number">1.1.</span> <span class="toc-text">Query Planning Pipeline</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#relational-algebra-equivalences"><span class="toc-number">1.2.</span> <span class="toc-text">Relational Algebra
+Equivalences</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#selection-equivalences"><span class="toc-number">1.2.1.</span> <span class="toc-text">Selection Equivalences</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#projection-equivalences"><span class="toc-number">1.2.2.</span> <span class="toc-text">Projection Equivalences</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#join-equivalences"><span class="toc-number">1.2.3.</span> <span class="toc-text">Join Equivalences</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#heuristic-rule-based-optimization"><span class="toc-number">1.3.</span> <span class="toc-text">Heuristic &#x2F; Rule-Based
+Optimization</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#core-heuristic-rules"><span class="toc-number">1.3.1.</span> <span class="toc-text">Core Heuristic Rules</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#example-transformation"><span class="toc-number">1.3.2.</span> <span class="toc-text">Example Transformation</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#limitations-of-heuristic-optimization"><span class="toc-number">1.3.3.</span> <span class="toc-text">Limitations of Heuristic
+Optimization</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#expression-rewriting"><span class="toc-number">1.4.</span> <span class="toc-text">Expression Rewriting</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#impossible-redundant-predicates"><span class="toc-number">1.4.1.</span> <span class="toc-text">Impossible &#x2F; Redundant
+Predicates</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#predicate-merging"><span class="toc-number">1.4.2.</span> <span class="toc-text">Predicate Merging</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#join-elimination"><span class="toc-number">1.4.3.</span> <span class="toc-text">Join Elimination</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#cost-based-optimization"><span class="toc-number">1.5.</span> <span class="toc-text">Cost-Based Optimization</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#search-strategies"><span class="toc-number">1.6.</span> <span class="toc-text">Search Strategies</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#bottom-up-system-r-forward-chaining"><span class="toc-number">1.6.1.</span> <span class="toc-text">Bottom-Up (System R &#x2F;
+Forward Chaining)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#top-down-volcano-cascades-backward-chaining"><span class="toc-number">1.6.2.</span> <span class="toc-text">Top-Down (Volcano &#x2F;
+Cascades &#x2F; Backward Chaining)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#enforcers"><span class="toc-number">1.6.3.</span> <span class="toc-text">Enforcers</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#bottom-up-vs-top-down-comparison"><span class="toc-number">1.6.4.</span> <span class="toc-text">Bottom-Up vs Top-Down
+Comparison</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#star-and-snowflake-schema-queries"><span class="toc-number">1.7.</span> <span class="toc-text">Star and Snowflake Schema
+Queries</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#lec15-takeaways"><span class="toc-number">1.8.</span> <span class="toc-text">Lec15 Takeaways</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#lec16-query-planning-optimization-cost-models-statistics-and-cardinality-estimation"><span class="toc-number">2.</span> <span class="toc-text">Lec16
+Query Planning &amp; Optimization — Cost Models, Statistics, and
+Cardinality Estimation</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#why-cost-estimation-matters"><span class="toc-number">2.1.</span> <span class="toc-text">Why Cost Estimation Matters</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#statistics"><span class="toc-number">2.2.</span> <span class="toc-text">Statistics</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#basic-statistics"><span class="toc-number">2.2.1.</span> <span class="toc-text">Basic Statistics</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#histograms"><span class="toc-number">2.2.2.</span> <span class="toc-text">Histograms</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#sketches"><span class="toc-number">2.2.3.</span> <span class="toc-text">Sketches</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#sampling"><span class="toc-number">2.2.4.</span> <span class="toc-text">Sampling</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#cost-models"><span class="toc-number">2.3.</span> <span class="toc-text">Cost Models</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#physical-cost-model"><span class="toc-number">2.3.1.</span> <span class="toc-text">Physical Cost Model</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#logical-cost-model"><span class="toc-number">2.3.2.</span> <span class="toc-text">Logical Cost Model</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#postgresql-cost-model"><span class="toc-number">2.3.3.</span> <span class="toc-text">PostgreSQL Cost Model</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#cardinality-estimation"><span class="toc-number">2.4.</span> <span class="toc-text">Cardinality Estimation</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#selectivity"><span class="toc-number">2.4.1.</span> <span class="toc-text">Selectivity</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#selectivity-for-common-predicates"><span class="toc-number">2.4.2.</span> <span class="toc-text">Selectivity for Common
+Predicates</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#the-three-assumptions"><span class="toc-number">2.4.3.</span> <span class="toc-text">The Three Assumptions</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#join-size-estimation"><span class="toc-number">2.4.4.</span> <span class="toc-text">Join Size Estimation</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#multi-join-estimation-and-error-propagation"><span class="toc-number">2.4.5.</span> <span class="toc-text">Multi-Join
+Estimation and Error Propagation</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#the-correlated-attributes-problem"><span class="toc-number">2.4.6.</span> <span class="toc-text">The Correlated Attributes
+Problem</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#lec16-takeaways"><span class="toc-number">2.5.</span> <span class="toc-text">Lec16 Takeaways</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#final-summary"><span class="toc-number">2.6.</span> <span class="toc-text">Final Summary</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#references"><span class="toc-number">2.7.</span> <span class="toc-text">References</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Parallelism and Scaling"/></a><div class="content"><a class="title" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling">11711 Advanced NLP: Parallelism and Scaling</a><time datetime="2026-04-07T03:00:00.000Z" title="Created 2026-04-06 23:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Quantization"/></a><div class="content"><a class="title" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization">11711 Advanced NLP: Quantization</a><time datetime="2026-04-07T02:00:00.000Z" title="Created 2026-04-06 22:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Systems for Mixture-of-Experts Models"/></a><div class="content"><a class="title" href="/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models">11868 LLM Sys: Systems for Mixture-of-Experts Models</a><time datetime="2026-03-21T19:00:00.000Z" title="Created 2026-03-21 15:00:00">2026-03-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Query Optimization"/></a><div class="content"><a class="title" href="/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization">15645 Database systems: Query Optimization</a><time datetime="2026-03-20T18:00:00.000Z" title="Created 2026-03-20 14:00:00">2026-03-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Query Execution"/></a><div class="content"><a class="title" href="/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution">15645 Database systems: Query Execution</a><time datetime="2026-03-15T18:00:00.000Z" title="Created 2026-03-15 14:00:00">2026-03-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '223506911aee8f2990d0173337f8f843'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

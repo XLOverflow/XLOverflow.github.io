@@ -1,0 +1,714 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>15645 Database systems: Join Algorithms | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Notes and summaries for CMU 15-645 Database Systems.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="15645 Database systems: Join Algorithms">
+<meta property="og:url" content="https://xloverflow.github.io/2026/03/08/15645-Database-Systems/15645-Database-systems-Join-Algorithms/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Notes and summaries for CMU 15-645 Database Systems.">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png">
+<meta property="article:published_time" content="2026-03-08T14:40:00.000Z">
+<meta property="article:modified_time" content="2026-03-08T14:40:00.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="15645">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="Database Systems">
+<meta property="article:tag" content="Hash Join">
+<meta property="article:tag" content="Join">
+<meta property="article:tag" content="Sort-Merge Join">
+<meta property="article:tag" content="Study Notes">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "15645 Database systems: Join Algorithms",
+  "url": "https://xloverflow.github.io/2026/03/08/15645-Database-Systems/15645-Database-systems-Join-Algorithms/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png",
+  "datePublished": "2026-03-08T14:40:00.000Z",
+  "dateModified": "2026-03-08T14:40:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2026/03/08/15645-Database-Systems/15645-Database-systems-Join-Algorithms/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '15645 Database systems: Join Algorithms',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">119</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">15645 Database systems: Join Algorithms</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">15645 Database systems: Join Algorithms</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-03-08T14:40:00.000Z" title="Created 2026-03-08 10:40:00">2026-03-08</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-03-08T14:40:00.000Z" title="Updated 2026-03-08 10:40:00">2026-03-08</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CMU-15-645-Database-Systems/">CMU 15-645 Database Systems</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="lec-12-join-algorithms-nested-loop-sort-merge-hash">Lec 12 Join
+Algorithms: Nested Loop, Sort-Merge, Hash</h1>
+<h2 id="cost-model-and-mental-model">0. Cost Model and Mental Model</h2>
+<p>The lecture studies binary <strong>inner equi-joins</strong> between
+tables <code>R</code> and <code>S</code>.</p>
+<p>We use:</p>
+<ul>
+<li><code>M</code>: pages in <code>R</code></li>
+<li><code>N</code>: pages in <code>S</code></li>
+<li><code>m</code>: tuples in <code>R</code></li>
+<li><code>n</code>: tuples in <code>S</code></li>
+<li><code>B</code>: buffer pages available</li>
+<li><code>C</code>: average cost of one index probe</li>
+</ul>
+<p>The primary cost metric is <strong>I/O count</strong>.</p>
+<p>We ignore:</p>
+<ul>
+<li>result output cost</li>
+<li>CPU cost</li>
+<li>network cost</li>
+</ul>
+<p>For CPU-style reasoning, the useful baseline is:</p>
+<ul>
+<li>naive comparison work is usually measured in tuple pairs</li>
+<li>hashing is expected linear in tuples when the hash table behaves
+well</li>
+<li>sort-merge is dominated by sorting plus one merge scan, except in
+duplicate-heavy worst cases</li>
+</ul>
+<h2 id="join-operator-output">1. Join Operator Output</h2>
+<p>For matching tuples <code>r ∈ R</code> and <code>s ∈ S</code>, the
+operator must decide what to emit upward in the plan tree.</p>
+<h3 id="early-materialization">Early Materialization</h3>
+<ul>
+<li>Copy needed attributes into a new output tuple immediately.</li>
+<li>Simpler for later operators.</li>
+<li>More copying.</li>
+</ul>
+<h3 id="late-materialization">Late Materialization</h3>
+<ul>
+<li>Emit join keys plus record ids / tuple references.</li>
+<li>Better for column stores and wide tuples.</li>
+<li>Delays tuple reconstruction until later.</li>
+</ul>
+<h2 id="why-join-choice-matters">2. Why Join Choice Matters</h2>
+<p><code>R ⨝ S</code> is far cheaper than building <code>R × S</code>
+and filtering afterward.</p>
+<p>There is no universally best join algorithm. The correct choice
+depends on:</p>
+<ul>
+<li>memory size</li>
+<li>existing indexes</li>
+<li>whether inputs are already sorted</li>
+<li>data distribution / skew</li>
+<li>which relation is smaller</li>
+</ul>
+<p>In general, the smaller relation should be the <strong>outer</strong>
+or <strong>build</strong> side when the algorithm allows that
+choice.</p>
+<h2 id="nested-loop-join-family">3. Nested Loop Join Family</h2>
+<h3 id="naive-nested-loop-join">3.1 Naive Nested Loop Join</h3>
+<p>Algorithm:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">for each tuple r in R:</span><br><span class="line">  for each tuple s in S:</span><br><span class="line">    if r and s match:</span><br><span class="line">      emit</span><br></pre></td></tr></table></figure>
+<p>Cost:</p>
+<p><span class="math display">\[
+M + (m \cdot N)
+\]</span></p>
+<p>Tuple-comparison complexity:</p>
+<p><span class="math display">\[
+\Theta(mn)
+\]</span></p>
+<p>Why it is bad:</p>
+<ul>
+<li>for every tuple in <code>R</code>, scan all pages of
+<code>S</code></li>
+<li>good only as the conceptual baseline</li>
+</ul>
+<h3 id="block-nested-loop-join">3.2 Block Nested Loop Join</h3>
+<p>Improve the idea by loading a <strong>block</strong> of the outer
+relation into memory.</p>
+<p>With <code>B</code> buffers:</p>
+<ul>
+<li>use <code>B-2</code> buffers for the outer block</li>
+<li>use <code>1</code> buffer for the inner relation scan</li>
+<li>use <code>1</code> output buffer</li>
+</ul>
+<p>Cost:</p>
+<p><span class="math display">\[
+M + \left\lceil \frac{M}{B-2} \right\rceil \cdot N
+\]</span></p>
+<p>Tuple-comparison work is still:</p>
+<p><span class="math display">\[
+\Theta(mn)
+\]</span></p>
+<p>The gain is not fewer comparisons; the gain is far fewer rescans of
+the inner relation on disk.</p>
+<p>Key rules:</p>
+<ul>
+<li>choose the smaller relation by <strong>pages</strong>, not tuples,
+as outer</li>
+<li>if the outer fits in memory, cost approaches <code>M + N</code></li>
+</ul>
+<p>This is the first nested-loop variant that is often reasonable.</p>
+<p>Feasibility shortcut:</p>
+<p><span class="math display">\[
+M \leq B-2 \implies \text{outer fits in memory}
+\]</span></p>
+<p>and the I/O cost then becomes about:</p>
+<p><span class="math display">\[
+M + N
+\]</span></p>
+<h3 id="index-nested-loop-join">3.3 Index Nested Loop Join</h3>
+<p>If the inner table has a useful index on the join key:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">for each tuple r in R:</span><br><span class="line">  probe index on S using join key of r</span><br><span class="line">  emit matches</span><br></pre></td></tr></table></figure>
+<p>Cost:</p>
+<p><span class="math display">\[
+M + (m \cdot C)
+\]</span></p>
+<p>CPU-style view:</p>
+<ul>
+<li>one outer scan</li>
+<li>one index probe per outer tuple</li>
+<li>so the dominant work is roughly <code>m</code> probes rather than
+<code>mn</code> tuple comparisons</li>
+</ul>
+<p>This can be excellent when:</p>
+<ul>
+<li>the index already exists</li>
+<li>probes are selective / cheap</li>
+</ul>
+<p>It can be terrible if the index probes are random and expensive.</p>
+<h2 id="sort-merge-join">4. Sort-Merge Join</h2>
+<h3 id="phase-1-sort">Phase 1: Sort</h3>
+<ul>
+<li>Sort both inputs on the join key.</li>
+<li>Any suitable sorting algorithm can be used, including external merge
+sort.</li>
+</ul>
+<h3 id="phase-2-merge">Phase 2: Merge</h3>
+<ul>
+<li>Scan the sorted inputs together.</li>
+<li>Advance the lower key.</li>
+<li>When keys match, emit all matching combinations.</li>
+</ul>
+<h3 id="cost">Cost</h3>
+<p>If both sides must be sorted first:</p>
+<p><span class="math display">\[
+\text{Sort}(R) = 2M \cdot \left(1 + \left\lceil \log_{B-1}\left\lceil
+\frac{M}{B} \right\rceil \right\rceil \right)
+\]</span></p>
+<p><span class="math display">\[
+\text{Sort}(S) = 2N \cdot \left(1 + \left\lceil \log_{B-1}\left\lceil
+\frac{N}{B} \right\rceil \right\rceil \right)
+\]</span></p>
+<p><span class="math display">\[
+\text{Merge Cost} = M + N
+\]</span></p>
+<p>Total cost:</p>
+<p><span class="math display">\[
+\text{Sort}(R) + \text{Sort}(S) + (M+N)
+\]</span></p>
+<p>Expected CPU complexity, ignoring duplicate blow-up, is roughly:</p>
+<p><span class="math display">\[
+O(m \log m + n \log n + m + n)
+\]</span></p>
+<h3 id="when-sort-merge-is-attractive">When Sort-Merge Is
+Attractive</h3>
+<ul>
+<li>one or both inputs are already sorted on the join key</li>
+<li>the output must also be sorted on that key</li>
+<li>sorting can be shared with another operator</li>
+</ul>
+<h3 id="important-caveat">Important Caveat</h3>
+<p>Worst case happens when many tuples share the same join key on both
+sides.</p>
+<p>Then the merge phase can degrade toward:</p>
+<p><span class="math display">\[
+(M \cdot N) + \text{sort cost}
+\]</span></p>
+<p>So duplicate-heavy joins can make sort-merge much less attractive
+than its clean scan pattern suggests.</p>
+<h2 id="hash-join">5. Hash Join</h2>
+<p>Hash join relies on one observation:</p>
+<p>if <code>r</code> and <code>s</code> join on the same key, then
+hashing that key sends them to the same bucket / partition.</p>
+<h3 id="simple-hash-join">5.1 Simple Hash Join</h3>
+<h3 id="build-phase">Build Phase</h3>
+<ul>
+<li>Scan the smaller relation.</li>
+<li>Insert tuples into an in-memory hash table using the join key.</li>
+<li>In practice, simple open-addressing schemes like linear probing work
+well.</li>
+</ul>
+<h3 id="probe-phase">Probe Phase</h3>
+<ul>
+<li>Scan the other relation.</li>
+<li>Hash its join key.</li>
+<li>Probe the hash table for matches.</li>
+</ul>
+<p>This is excellent when the <strong>build side fits in
+memory</strong>.</p>
+<p>Memory rule of thumb:</p>
+<p><span class="math display">\[
+\min(M, N) \lesssim B-2
+\]</span></p>
+<p>ignoring hash-table overhead and output buffers.</p>
+<p>Expected CPU complexity:</p>
+<p><span class="math display">\[
+O(m + n)
+\]</span></p>
+<p>Worst case can still degrade badly with pathological collisions or
+extreme skew.</p>
+<h3 id="probe-filter-optimization">Probe Filter Optimization</h3>
+<p>While building the hash table, also build a <strong>Bloom
+filter</strong>:</p>
+<ul>
+<li>check the Bloom filter before probing the real hash table</li>
+<li>avoid many useless hash-table probes</li>
+<li>classic example of sideways information passing</li>
+</ul>
+<h3 id="partitioned-hash-join-grace-hash-join">5.2 Partitioned Hash Join
+(GRACE Hash Join)</h3>
+<p>When the build side does not fit in memory, partition both relations
+first.</p>
+<h3 id="partition-phase">Partition Phase</h3>
+<ul>
+<li>Hash <code>R</code> into <code>k</code> buckets on disk.</li>
+<li>Hash <code>S</code> into <code>k</code> buckets with the same
+function.</li>
+<li>Spill buckets as they fill.</li>
+</ul>
+<h3 id="probe-phase-1">Probe Phase</h3>
+<p>For each pair of corresponding partitions:</p>
+<ol type="1">
+<li>build an in-memory hash table on the smaller partition</li>
+<li>scan the other partition and probe it</li>
+</ol>
+<p>If no recursive repartitioning is needed, cost is:</p>
+<p><span class="math display">\[
+3(M + N)
+\]</span></p>
+<p>Why:</p>
+<ul>
+<li>partition phase reads and writes both relations:
+<code>2(M+N)</code></li>
+<li>probe phase reads both partitioned relations once:
+<code>M+N</code></li>
+</ul>
+<p>A useful fit condition for the build side is:</p>
+<p><span class="math display">\[
+\left\lceil \frac{\min(M, N)}{B-1} \right\rceil \leq B-2
+\]</span></p>
+<p>which says that after partitioning, each build partition should fit
+in memory.</p>
+<p>Expected tuple work remains close to linear:</p>
+<p><span class="math display">\[
+O(m + n)
+\]</span></p>
+<p>as long as partitioning is balanced and recursion is not
+excessive.</p>
+<h3 id="edge-cases-and-optimizations">5.3 Edge Cases and
+Optimizations</h3>
+<h3 id="recursive-partitioning">Recursive Partitioning</h3>
+<p>If a partition is still too large to fit in memory:</p>
+<ul>
+<li>repartition it with another hash function</li>
+<li>repeat until the build partition fits</li>
+</ul>
+<h3 id="skew-hot-keys">Skew / Hot Keys</h3>
+<p>If one join key is so frequent that its partition still will not
+fit:</p>
+<ul>
+<li>use a fallback like block nested loop join just for that heavy
+key</li>
+<li>trade random I/O for sequential I/O</li>
+</ul>
+<h3 id="hybrid-hash-join">Hybrid Hash Join</h3>
+<p>If memory is larger than the minimum needed for partitioning:</p>
+<ul>
+<li>keep one partition in memory during the first phase</li>
+<li>join it immediately</li>
+<li>spill only the remaining partitions</li>
+</ul>
+<p>This saves some I/O compared with plain partitioned hash join.</p>
+<h3 id="practical-observation">Practical Observation</h3>
+<p>The <strong>probe</strong> relation can be any size. What must fit is
+the <strong>build hash table</strong>, or at least one build partition
+at a time.</p>
+<h2 id="selection-guide">6. Selection Guide</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Situation</th>
+<th>Good First Choice</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>No index, little memory, baseline fallback</td>
+<td>Block nested loop</td>
+<td>simple and predictable</td>
+</tr>
+<tr class="even">
+<td>Inner side has useful index</td>
+<td>Index nested loop</td>
+<td>avoids full scans of inner relation</td>
+</tr>
+<tr class="odd">
+<td>Inputs already sorted or output needs sorted</td>
+<td>Sort-merge join</td>
+<td>reuse ordering</td>
+</tr>
+<tr class="even">
+<td>Smaller side fits in memory</td>
+<td>Simple hash join</td>
+<td>usually very fast</td>
+</tr>
+<tr class="odd">
+<td>Both sides large, no ordering needed</td>
+<td>Partitioned hash join</td>
+<td>strong I/O behavior</td>
+</tr>
+</tbody>
+</table>
+<h2 id="complexity-summary">7. Complexity Summary</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Algorithm</th>
+<th>CPU / Tuple Complexity</th>
+<th>I/O Cost</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Naive nested loop</td>
+<td><code>\Theta(mn)</code></td>
+<td><code>M + (m \cdot N)</code></td>
+</tr>
+<tr class="even">
+<td>Block nested loop</td>
+<td><code>\Theta(mn)</code></td>
+<td><code>M + \left\lceil \frac{M}{B-2} \right\rceil \cdot N</code></td>
+</tr>
+<tr class="odd">
+<td>Index nested loop</td>
+<td>about <code>m</code> index probes</td>
+<td><code>M + (m \cdot C)</code></td>
+</tr>
+<tr class="even">
+<td>Sort-merge join</td>
+<td><code>O(m \log m + n \log n + m + n)</code> expected</td>
+<td><code>\text{Sort}(R) + \text{Sort}(S) + (M+N)</code></td>
+</tr>
+<tr class="odd">
+<td>Sort-merge worst case</td>
+<td>up to <code>O(mn)</code> duplicate handling</td>
+<td><code>(M \cdot N) + \text{sort cost}</code></td>
+</tr>
+<tr class="even">
+<td>Simple hash join</td>
+<td>expected <code>O(m+n)</code></td>
+<td>scan + build/probe, requires build side in memory</td>
+</tr>
+<tr class="odd">
+<td>Partitioned hash join</td>
+<td>expected <code>O(m+n)</code></td>
+<td><code>3(M+N)</code> if no recursive repartitioning</td>
+</tr>
+</tbody>
+</table>
+<h2 id="quick-recap">8. Quick Recap</h2>
+<ol type="1">
+<li>Naive nested loop join is mostly a teaching baseline.</li>
+<li>Block nested loop join becomes practical once the outer relation can
+be buffered.</li>
+<li>Index nested loop join is only as good as the index probes.</li>
+<li>Sort-merge join is attractive when sorting is already useful
+elsewhere.</li>
+<li>Hash join is the default workhorse for large equi-joins, especially
+when ordering is unnecessary.</li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2026/03/08/15645-Database-Systems/15645-Database-systems-Join-Algorithms/">https://xloverflow.github.io/2026/03/08/15645-Database-Systems/15645-Database-systems-Join-Algorithms/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/CMU/">CMU</a><a class="post-meta__tags" href="/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/tags/Database-Systems/">Database Systems</a><a class="post-meta__tags" href="/tags/15645/">15645</a><a class="post-meta__tags" href="/tags/Join/">Join</a><a class="post-meta__tags" href="/tags/Hash-Join/">Hash Join</a><a class="post-meta__tags" href="/tags/Sort-Merge-Join/">Sort-Merge Join</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/03/10/AI-Agent/AI-Agent-Engineering-Design-Curated-Reading-List/" title="AI Agent Engineering Design: A Curated Reading List"><img class="cover" src="https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">AI Agent Engineering Design: A Curated Reading List</div></div><div class="info-2"><div class="info-item-1">A curated collection of essential readings on AI Agent engineering design, covering Claude Code, OpenAI Codex, context management, memory mechanisms, and the OpenClaw architecture. Each article includes key excerpts and core takeaways.</div></div></div></a><a class="pagination-related" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Sorting-Aggregation/" title="15645 Database systems: Sorting &amp; Aggregation"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">15645 Database systems: Sorting & Aggregation</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/01/16/15645-Database-Systems/15645-Database-Systems-relational-model-and-SQL/" title="15645 Database systems: Relational Model and SQL"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-15</div><div class="info-item-2">15645 Database systems: Relational Model and SQL</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/02/07/15645-Database-Systems/15645-Database-systems-Hash-Tables/" title="15645 Database systems: Hash Tables"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-07</div><div class="info-item-2">15645 Database systems: Hash Tables</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/" title="15645 Database systems: Index Concurrency Control"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-08</div><div class="info-item-2">15645 Database systems: Index Concurrency Control</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/02/09/15645-Database-Systems/15645-Database-systems-Index-Filter/" title="15645 Database systems: Index &amp; Filter"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-09</div><div class="info-item-2">15645 Database systems: Index &amp; Filter</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-15</div><div class="info-item-2">15645 Database systems: Query Execution</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-20</div><div class="info-item-2">15645 Database systems: Query Optimization</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">119</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#lec-12-join-algorithms-nested-loop-sort-merge-hash"><span class="toc-number">1.</span> <span class="toc-text">Lec 12 Join
+Algorithms: Nested Loop, Sort-Merge, Hash</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#cost-model-and-mental-model"><span class="toc-number">1.1.</span> <span class="toc-text">0. Cost Model and Mental Model</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#join-operator-output"><span class="toc-number">1.2.</span> <span class="toc-text">1. Join Operator Output</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#early-materialization"><span class="toc-number">1.2.1.</span> <span class="toc-text">Early Materialization</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#late-materialization"><span class="toc-number">1.2.2.</span> <span class="toc-text">Late Materialization</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#why-join-choice-matters"><span class="toc-number">1.3.</span> <span class="toc-text">2. Why Join Choice Matters</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#nested-loop-join-family"><span class="toc-number">1.4.</span> <span class="toc-text">3. Nested Loop Join Family</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#naive-nested-loop-join"><span class="toc-number">1.4.1.</span> <span class="toc-text">3.1 Naive Nested Loop Join</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#block-nested-loop-join"><span class="toc-number">1.4.2.</span> <span class="toc-text">3.2 Block Nested Loop Join</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#index-nested-loop-join"><span class="toc-number">1.4.3.</span> <span class="toc-text">3.3 Index Nested Loop Join</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#sort-merge-join"><span class="toc-number">1.5.</span> <span class="toc-text">4. Sort-Merge Join</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#phase-1-sort"><span class="toc-number">1.5.1.</span> <span class="toc-text">Phase 1: Sort</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#phase-2-merge"><span class="toc-number">1.5.2.</span> <span class="toc-text">Phase 2: Merge</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#cost"><span class="toc-number">1.5.3.</span> <span class="toc-text">Cost</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#when-sort-merge-is-attractive"><span class="toc-number">1.5.4.</span> <span class="toc-text">When Sort-Merge Is
+Attractive</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#important-caveat"><span class="toc-number">1.5.5.</span> <span class="toc-text">Important Caveat</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#hash-join"><span class="toc-number">1.6.</span> <span class="toc-text">5. Hash Join</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#simple-hash-join"><span class="toc-number">1.6.1.</span> <span class="toc-text">5.1 Simple Hash Join</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#build-phase"><span class="toc-number">1.6.2.</span> <span class="toc-text">Build Phase</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#probe-phase"><span class="toc-number">1.6.3.</span> <span class="toc-text">Probe Phase</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#probe-filter-optimization"><span class="toc-number">1.6.4.</span> <span class="toc-text">Probe Filter Optimization</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#partitioned-hash-join-grace-hash-join"><span class="toc-number">1.6.5.</span> <span class="toc-text">5.2 Partitioned Hash Join
+(GRACE Hash Join)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#partition-phase"><span class="toc-number">1.6.6.</span> <span class="toc-text">Partition Phase</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#probe-phase-1"><span class="toc-number">1.6.7.</span> <span class="toc-text">Probe Phase</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#edge-cases-and-optimizations"><span class="toc-number">1.6.8.</span> <span class="toc-text">5.3 Edge Cases and
+Optimizations</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#recursive-partitioning"><span class="toc-number">1.6.9.</span> <span class="toc-text">Recursive Partitioning</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#skew-hot-keys"><span class="toc-number">1.6.10.</span> <span class="toc-text">Skew &#x2F; Hot Keys</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#hybrid-hash-join"><span class="toc-number">1.6.11.</span> <span class="toc-text">Hybrid Hash Join</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#practical-observation"><span class="toc-number">1.6.12.</span> <span class="toc-text">Practical Observation</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#selection-guide"><span class="toc-number">1.7.</span> <span class="toc-text">6. Selection Guide</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#complexity-summary"><span class="toc-number">1.8.</span> <span class="toc-text">7. Complexity Summary</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#quick-recap"><span class="toc-number">1.9.</span> <span class="toc-text">8. Quick Recap</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Parallelism and Scaling"/></a><div class="content"><a class="title" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling">11711 Advanced NLP: Parallelism and Scaling</a><time datetime="2026-04-07T03:00:00.000Z" title="Created 2026-04-06 23:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Quantization"/></a><div class="content"><a class="title" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization">11711 Advanced NLP: Quantization</a><time datetime="2026-04-07T02:00:00.000Z" title="Created 2026-04-06 22:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Systems for Mixture-of-Experts Models"/></a><div class="content"><a class="title" href="/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models">11868 LLM Sys: Systems for Mixture-of-Experts Models</a><time datetime="2026-03-21T19:00:00.000Z" title="Created 2026-03-21 15:00:00">2026-03-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Query Optimization"/></a><div class="content"><a class="title" href="/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization">15645 Database systems: Query Optimization</a><time datetime="2026-03-20T18:00:00.000Z" title="Created 2026-03-20 14:00:00">2026-03-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Query Execution"/></a><div class="content"><a class="title" href="/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution">15645 Database systems: Query Execution</a><time datetime="2026-03-15T18:00:00.000Z" title="Created 2026-03-15 14:00:00">2026-03-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '622a01490ea79e66e584ec8017166e2a'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

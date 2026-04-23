@@ -1,0 +1,832 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>11711 Advanced NLP: Quantization | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Notes on quantization from CMU 11-711 Advanced NLP, covering number representation, 8-bit quantization (absmax, zero-point), LLM.int8(), GGML&#x2F;GGUF, and quantization-aware training with QLoRA.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="11711 Advanced NLP: Quantization">
+<meta property="og:url" content="https://xloverflow.github.io/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Notes on quantization from CMU 11-711 Advanced NLP, covering number representation, 8-bit quantization (absmax, zero-point), LLM.int8(), GGML&#x2F;GGUF, and quantization-aware training with QLoRA.">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png">
+<meta property="article:published_time" content="2026-04-07T02:00:00.000Z">
+<meta property="article:modified_time" content="2026-04-07T02:00:00.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="11711">
+<meta property="article:tag" content="AI">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="Efficiency">
+<meta property="article:tag" content="Inference">
+<meta property="article:tag" content="Natural Language Processing">
+<meta property="article:tag" content="Quantization">
+<meta property="article:tag" content="Study Notes">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "11711 Advanced NLP: Quantization",
+  "url": "https://xloverflow.github.io/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png",
+  "datePublished": "2026-04-07T02:00:00.000Z",
+  "dateModified": "2026-04-07T02:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '11711 Advanced NLP: Quantization',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">119</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">11711 Advanced NLP: Quantization</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">11711 Advanced NLP: Quantization</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-04-07T02:00:00.000Z" title="Created 2026-04-06 22:00:00">2026-04-06</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-04-07T02:00:00.000Z" title="Updated 2026-04-06 22:00:00">2026-04-06</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CMU-11-711-Advanced-NLP/">CMU 11-711 Advanced NLP</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="lec19-quantization">Lec19 Quantization</h1>
+<p>This lecture addresses a fundamental deployment challenge: modern
+LLMs are too large to fit on commodity hardware. Quantization reduces
+the number of bits used to represent each model weight, dramatically
+shrinking memory requirements while preserving most of the model’s
+quality.</p>
+<h2 id="motivation">Motivation</h2>
+<p>The core problem is straightforward: models are large.</p>
+<p>Consider <strong>Qwen3-8B</strong> as an example: - 8 billion
+parameters × 16 bits (BFloat16) = <strong>16 GB</strong> just for
+weights - With ~1.5× overhead for activations during inference →
+<strong>~24 GB total</strong> - A MacBook Air (16 GB shared memory)
+cannot run this without swapping to disk - A T4 GPU (16 GB VRAM) runs
+out of memory entirely</p>
+<p>Quantization offers a direct solution: represent each weight with
+fewer bits. A 4-bit quantized version of Qwen3-8B is only <strong>~6
+GB</strong>, comfortably fitting on either device.</p>
+<h2 id="representing-numbers-on-a-computer">Representing Numbers on a
+Computer</h2>
+<p>Before understanding quantization, we need to understand how numbers
+are stored.</p>
+<h3 id="unsigned-integers">Unsigned Integers</h3>
+<p>Each bit represents a power of 2. An 8-bit unsigned integer (U8) sums
+the powers at positions where the bit is 1:</p>
+<p><span class="math display">\[
+01010110_2 = 1 \times 2^6 + 1 \times 2^4 + 1 \times 2^2 + 1 \times 2^1 =
+64 + 16 + 4 + 2 = 86
+\]</span></p>
+<table>
+<thead>
+<tr class="header">
+<th>Type</th>
+<th>Bits</th>
+<th>Range</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>U8</td>
+<td>8</td>
+<td>0 to 255</td>
+</tr>
+<tr class="even">
+<td>U16</td>
+<td>16</td>
+<td>0 to 65,535</td>
+</tr>
+<tr class="odd">
+<td>U32</td>
+<td>32</td>
+<td>0 to 4,294,967,295</td>
+</tr>
+</tbody>
+</table>
+<h3 id="signed-integers">Signed Integers</h3>
+<p>The leftmost bit acts as a sign bit. Negative numbers use
+<strong>two’s complement</strong>: flip all bits and add 1.</p>
+<ul>
+<li><strong>INT8</strong>: 8-bit, range [-128, 127]</li>
+<li><strong>INT16</strong>, <strong>INT32</strong> follow the same
+pattern with wider ranges</li>
+</ul>
+<h3 id="floating-point">Floating Point</h3>
+<p>Floating-point numbers represent real values using three components:
+<strong>sign</strong>, <strong>exponent</strong>, and
+<strong>significand</strong> (mantissa):</p>
+<p><span class="math display">\[
+\text{value} = (-1)^{\text{sign}} \times (1.\text{significand}) \times
+2^{\text{exponent} - \text{bias}}
+\]</span></p>
+<p>The bias allows storing the exponent as an unsigned integer. This is
+essentially binary scientific notation: <span
+class="math inline">\(1.101 \times 2^3 = (1 + 0.5 + 0.125) \times 8 =
+13\)</span>.</p>
+<p><strong>Worked example</strong> (Float32):</p>
+<table>
+<thead>
+<tr class="header">
+<th>Sign</th>
+<th>Exponent (8 bits)</th>
+<th>Significand (23 bits)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0</td>
+<td>10000001 = 129</td>
+<td>01100…0</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Exponent − bias: <span class="math inline">\(129 - 127 =
+2\)</span></li>
+<li>Significand: <span class="math inline">\(1 + 0 \times 2^{-1} + 1
+\times 2^{-2} + 1 \times 2^{-3} = 1.375\)</span></li>
+<li>Value: <span class="math inline">\(1.375 \times 2^2 =
+5.5\)</span></li>
+</ul>
+<h3 id="floating-point-types">Floating Point Types</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Format</th>
+<th>Total Bits</th>
+<th>Sign</th>
+<th>Exponent</th>
+<th>Significand</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Float32 (full precision)</td>
+<td>32</td>
+<td>1</td>
+<td>8</td>
+<td>23</td>
+</tr>
+<tr class="even">
+<td>Float16 (half precision)</td>
+<td>16</td>
+<td>1</td>
+<td>5</td>
+<td>10</td>
+</tr>
+<tr class="odd">
+<td>BFloat16</td>
+<td>16</td>
+<td>1</td>
+<td>8</td>
+<td>7</td>
+</tr>
+</tbody>
+</table>
+<p>BFloat16 is a notable design choice: it keeps the same exponent range
+as Float32 (so it can represent the same magnitude of numbers) but
+sacrifices significand precision. This makes BFloat16-to-Float32
+conversion trivial (just pad the significand with zeros) and avoids
+overflow issues during training, at the cost of less precision for
+values close together. Most modern LLMs (e.g., Qwen3-8B) store weights
+in BFloat16.</p>
+<h2 id="quantizing-for-inference">Quantizing for Inference</h2>
+<h3 id="what-is-quantization">What Is Quantization?</h3>
+<p>Quantization maps values from a large set to a smaller set. The
+simplest example: rounding a real number to the nearest integer.</p>
+<p><span class="math display">\[
+Q(x) = \text{round}(x)
+\]</span></p>
+<p>The <strong>quantization error</strong> is the difference between the
+original and quantized value. For instance, <span
+class="math inline">\(Q(1.4) = 1\)</span> (error = 0.4) and <span
+class="math inline">\(Q(0.8) = 1\)</span> (error = 0.2).</p>
+<h3 id="why-quantize-llms">Why Quantize LLMs?</h3>
+<p>In large Transformers, the feed-forward and attention projection
+layers account for <strong>~95% of parameters</strong> and
+<strong>65-85% of computation</strong> (Ilharco et al., 2020). The goal
+is to: 1. Quantize these parameters to fewer bits (e.g., BFloat16 → INT8
+or INT4) 2. Use low-bit-precision matrix multiplication 3. Reduce memory
+so large models can run on consumer hardware</p>
+<h3 id="bit-quantization-absmax">8-Bit Quantization: Absmax</h3>
+<p>Absmax quantization scales the entire input tensor into the INT8
+range <span class="math inline">\([-127, 127]\)</span> using the
+absolute maximum value:</p>
+<p><span class="math display">\[
+X_{i8} = \text{round}\left(\frac{127 \cdot
+X_{f16}}{\max_{ij}(|X_{f16_{ij}}|)}\right)
+\]</span></p>
+<p>The scaling factor is <span class="math inline">\(s =
+\frac{127}{\max(|X|)}\)</span>. To dequantize, simply divide by the
+scale.</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line">x = np.array([-<span class="number">3.0</span>, <span class="number">1.0</span>, <span class="number">2.0</span>, <span class="number">4.0</span>])</span><br><span class="line"></span><br><span class="line">scale = <span class="number">127.0</span> / np.<span class="built_in">max</span>(np.<span class="built_in">abs</span>(x))</span><br><span class="line">x_quantized = np.<span class="built_in">round</span>(x * scale).astype(np.int8)</span><br><span class="line">x_dequantized = x_quantized.astype(np.float32) / scale</span><br><span class="line"></span><br><span class="line"><span class="comment"># Original:     [-3.   1.   2.   4. ]</span></span><br><span class="line"><span class="comment"># Quantized:    [-95  32  64  127]</span></span><br><span class="line"><span class="comment"># Dequantized:  [-2.99  1.01  2.02  4.0]</span></span><br><span class="line"><span class="comment"># MSE: 9.3e-05</span></span><br></pre></td></tr></table></figure>
+<p><strong>Matrix multiplication</strong> with absmax uses
+<strong>vector-wise quantization</strong>: quantize each row of <span
+class="math inline">\(X\)</span> and each column of <span
+class="math inline">\(W\)</span> separately, multiply in INT8
+(accumulating into INT32), then dequantize:</p>
+<p><span class="math display">\[
+XW = \frac{1}{s_x s_w} Z_{i32} \approx \frac{1}{s_x s_w} Q(X) Q(W)
+\]</span></p>
+<h3 id="bit-quantization-zero-point">8-Bit Quantization: Zero-Point</h3>
+<p>Zero-point quantization maps the full float range <span
+class="math inline">\([\min, \max]\)</span> to the full INT8 range <span
+class="math inline">\([-128, 127]\)</span>, using both a scale and an
+offset:</p>
+<p><span class="math display">\[
+\text{INT8} = \text{round}(s \cdot \text{FP}) + \text{offset}
+\]</span></p>
+<p>where:</p>
+<p><span class="math display">\[
+s = \frac{255}{\max - \min}, \quad \text{offset} =
+-\text{round}\left(\frac{255}{\max - \min} \cdot \min\right) - 128
+\]</span></p>
+<p>To dequantize:</p>
+<p><span class="math display">\[
+\text{FP} = \frac{\text{INT8} - \text{offset}}{s}
+\]</span></p>
+<p>Zero-point quantization is better for <strong>asymmetric
+data</strong> (e.g., activations after ReLU, which are all
+non-negative). Absmax would waste half the integer range on negative
+values that never appear.</p>
+<h3 id="the-outlier-problem">The Outlier Problem</h3>
+<p>Both methods normalize based on the min/max of the tensor. When
+<strong>outliers</strong> are present, the scale factor is dominated by
+the extreme values, causing all other values to cluster into a tiny
+portion of the integer range.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Scenario</th>
+<th>Absmax MSE</th>
+<th>Zero-Point MSE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Without outlier</td>
+<td>0.000001</td>
+<td>0.000001</td>
+</tr>
+<tr class="even">
+<td>With outlier (100.0)</td>
+<td>0.060013</td>
+<td>0.014756</td>
+</tr>
+</tbody>
+</table>
+<p>The error increases by <strong>4-5 orders of magnitude</strong> with
+a single outlier. This is not a theoretical concern — real Transformer
+LMs exhibit systematic outlier features.</p>
+<h3 id="llm.int8-dettmers-et-al.-2022">LLM.int8() (Dettmers et al.,
+2022)</h3>
+<p>Dettmers et al. observed that Transformer LMs develop <strong>outlier
+features</strong>: specific columns of the activation matrices with
+values far larger than the rest. In models with <span
+class="math inline">\(\geq\)</span> 6.7B parameters, outliers appear in
+<strong>100% of layers</strong>. Naive 8-bit quantization collapses at
+this scale — accuracy drops catastrophically.</p>
+<p>The key insight: only <strong>~0.1%</strong> of activation features
+are outliers. So the solution is a <strong>mixed-precision
+decomposition</strong>:</p>
+<ol type="1">
+<li><strong>Identify outlier columns</strong> in activations (columns
+where magnitude exceeds a threshold)</li>
+<li><strong>Extract</strong> the outlier columns from <span
+class="math inline">\(X\)</span> and corresponding rows from <span
+class="math inline">\(W\)</span></li>
+<li>Perform the <strong>outlier part</strong> in FP16 (high
+precision)</li>
+<li>Perform the <strong>regular part</strong> in INT8 (low precision,
+vector-wise absmax)</li>
+<li><strong>Merge</strong> the two results</li>
+</ol>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260406224152373.png" alt="image-20260406224152373" style="zoom:50%;" /></p>
+<p>This achieves accuracy matching the FP16 baseline across all model
+sizes tested (up to 175B parameters), while the naive 8-bit baseline
+degrades sharply after 6.7B.</p>
+<table>
+<colgroup>
+<col style="width: 21%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 13%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Method</th>
+<th>125M</th>
+<th>1.3B</th>
+<th>2.7B</th>
+<th>6.7B</th>
+<th>13B</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>32-bit Float</td>
+<td>25.65</td>
+<td>15.91</td>
+<td>14.43</td>
+<td>13.30</td>
+<td>12.45</td>
+</tr>
+<tr class="even">
+<td>Int8 absmax</td>
+<td>87.76</td>
+<td>16.55</td>
+<td>15.11</td>
+<td>14.59</td>
+<td>19.08</td>
+</tr>
+<tr class="odd">
+<td>Zeropoint LLM.int8()</td>
+<td><strong>25.69</strong></td>
+<td><strong>15.92</strong></td>
+<td><strong>14.43</strong></td>
+<td><strong>13.24</strong></td>
+<td><strong>12.45</strong></td>
+</tr>
+</tbody>
+</table>
+<p><em>(Validation perplexity — lower is better)</em></p>
+<h3 id="ggmlggufllama.cpp">GGML/GGUF/Llama.cpp</h3>
+<p><strong>GGML</strong> is a tensor library with its own quantization
+methods, designed for efficient CPU and GPU inference.</p>
+<p>An example quantization scheme, <strong>Q4_K</strong>: - Groups
+weights into <strong>super-blocks</strong> of 8 blocks, each block
+containing 32 weights - Each weight is stored as <strong>4 bits</strong>
+- Per-block scale and offset stored as <strong>6-bit</strong> values</p>
+<p>Two common presets: - <strong>Q4_K_S</strong>: Use Q4_K for all
+tensors (smaller, slightly less accurate) - <strong>Q4_K_M</strong>: Use
+higher-precision Q6 for half of certain attention and FFN tensors
+(better quality)</p>
+<p>GGML supports multiple backends: Metal (Apple Silicon), ARM, CUDA,
+and more.</p>
+<p><strong>GGUF</strong> is the file format for storing model
+architectures and quantized weights. <strong>Llama.cpp</strong> is an
+inference library built on GGML/GGUF, enabling local LLM inference:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">llama-server -hf Qwen/Qwen3-8B-GGUF:Q4_K_M --port 8080</span><br></pre></td></tr></table></figure>
+<p>Example file sizes for Qwen3-8B-GGUF:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Quantization</th>
+<th>Bits</th>
+<th>Size</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Q4_K_M</td>
+<td>4</td>
+<td>5.03 GB</td>
+</tr>
+<tr class="even">
+<td>Q5_K_M</td>
+<td>5</td>
+<td>5.85 GB</td>
+</tr>
+<tr class="odd">
+<td>Q6_K</td>
+<td>6</td>
+<td>6.73 GB</td>
+</tr>
+<tr class="even">
+<td>Q8_0</td>
+<td>8</td>
+<td>8.71 GB</td>
+</tr>
+</tbody>
+</table>
+<p>Different tensors within the same model can use different
+quantization levels. For instance, in Q4_K_M, normalization weights stay
+in F32 while attention and FFN weights use Q4_K or Q6_K.</p>
+<h3 id="beyond-integers-nvfp4">Beyond Integers: NVFP4</h3>
+<p>New hardware-native data types are emerging. <strong>NVFP4</strong>
+is a 4-bit floating-point format (E2M1: 1 sign, 2 exponent, 1 mantissa)
+introduced with NVIDIA’s Blackwell architecture. It uses: -
+<strong>Per-block scaling</strong> with FP8 (E4M3) scale factors for
+each 16-value block - <strong>Per-tensor scaling</strong> with FP32 for
+global normalization</p>
+<p>This moves quantization from integer-only to low-bit floating point,
+better preserving the distribution of weight values.</p>
+<h2 id="quantizing-training">Quantizing &amp; Training</h2>
+<h3 id="quantization-aware-training-qat">Quantization-Aware Training
+(QAT)</h3>
+<p>Post-training quantization (PTQ) applies quantization to a
+pre-trained model without further training. <strong>Quantization-Aware
+Training (QAT)</strong> takes a different approach: fine-tune the model
+with simulated quantization so that the weights learn to be robust to
+quantization errors.</p>
+<p>The key mechanism is inserting a <strong>fake
+quantize-dequantize</strong> operation into the forward pass:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># QAT: x_fq is still in float, but has been through quantize + dequantize</span></span><br><span class="line">x_fq = (x_float / scale + zp).<span class="built_in">round</span>().clamp(qmin, qmax)</span><br><span class="line">x_fq = (x_fq - zp) * scale</span><br></pre></td></tr></table></figure>
+<p>The model trains in full precision but “sees” quantization noise
+during forward passes, learning weight configurations that are more
+resilient when actually quantized. During inference, the fake quantize
+nodes are replaced with real quantization.</p>
+<p>QAT consistently outperforms PTQ, especially at lower bit widths. For
+example, Kimi-K2-Thinking uses native INT4 quantization via QAT in its
+post-training stage, achieving lossless 2x speed-up in low-latency
+mode.</p>
+<h3 id="fine-tuning-qlora-dettmers-et-al.-2023">Fine-Tuning: QLoRA
+(Dettmers et al., 2023)</h3>
+<p>QLoRA combines quantization with LoRA to dramatically reduce the GPU
+memory needed for fine-tuning:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Component</th>
+<th>LoRA</th>
+<th>QLoRA</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Base model</td>
+<td>16-bit</td>
+<td><strong>4-bit</strong></td>
+</tr>
+<tr class="even">
+<td>Adapters</td>
+<td>16-bit</td>
+<td>16-bit</td>
+</tr>
+<tr class="odd">
+<td>Optimizer states</td>
+<td>32-bit (GPU)</td>
+<td>32-bit (<strong>CPU</strong>, paged)</td>
+</tr>
+</tbody>
+</table>
+<p>The key ideas: 1. <strong>4-bit NormalFloat (NF4)</strong>: Quantize
+the frozen base model to 4-bit using a data type optimized for
+normally-distributed weights 2. <strong>Double quantization</strong>:
+Quantize the quantization constants themselves to save additional memory
+3. <strong>Paged optimizers</strong>: Offload optimizer states to CPU
+RAM, paging them to GPU only when needed</p>
+<p>This allows fine-tuning a 65B-parameter model on a single 48GB GPU —
+a task that would otherwise require multiple high-end GPUs.</p>
+<h2 id="lec19-takeaways">Lec19 Takeaways</h2>
+<ul>
+<li><strong>Quantization is essential for deployment</strong>: reducing
+from 16-bit to 4-bit shrinks model size by ~4x, making billion-parameter
+models accessible on consumer hardware</li>
+<li><strong>Outliers break naive quantization</strong>: Transformer LMs
+develop systematic outlier features at scale; mixed-precision
+decomposition (LLM.int8()) solves this by handling the ~0.1% of outlier
+features in high precision</li>
+<li><strong>Format diversity is growing</strong>: from integer-based
+(INT8, INT4) to floating-point (NVFP4, FP8), with hardware co-design
+driving new formats</li>
+<li><strong>QAT beats PTQ</strong>: training with quantization-aware
+noise produces models that degrade less when actually quantized</li>
+<li><strong>QLoRA democratizes fine-tuning</strong>: combining 4-bit
+quantization with LoRA and memory paging makes fine-tuning large models
+feasible on modest hardware</li>
+</ul>
+<h2 id="final-summary">Final Summary</h2>
+<table>
+<colgroup>
+<col style="width: 41%" />
+<col style="width: 58%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Topic</th>
+<th>Key Idea</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Number representation</td>
+<td>Float32/16, BFloat16 trade precision for range; BFloat16 keeps
+Float32’s exponent range</td>
+</tr>
+<tr class="even">
+<td>Absmax quantization</td>
+<td>Scale by absolute max to map into [-127, 127]; simple but sensitive
+to outliers</td>
+</tr>
+<tr class="odd">
+<td>Zero-point quantization</td>
+<td>Uses scale + offset to map full range; better for asymmetric
+distributions</td>
+</tr>
+<tr class="even">
+<td>LLM.int8()</td>
+<td>Mixed-precision: outlier features (~0.1%) in FP16, rest in INT8</td>
+</tr>
+<tr class="odd">
+<td>GGML/Llama.cpp</td>
+<td>Block-based quantization (Q4_K, Q6_K) with per-block scales;
+supports Metal/CUDA</td>
+</tr>
+<tr class="even">
+<td>QAT</td>
+<td>Insert fake quantize-dequantize during training to learn
+quantization-robust weights</td>
+</tr>
+<tr class="odd">
+<td>QLoRA</td>
+<td>4-bit base model + 16-bit LoRA adapters + CPU-paged optimizers for
+efficient fine-tuning</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key takeaway</strong>: Quantization is not just a deployment
+optimization — it is a first-class concern in the LLM lifecycle, with
+methods spanning inference (PTQ, LLM.int8()), training (QAT), and
+fine-tuning (QLoRA), each navigating the fundamental tradeoff between
+model size and quality.</p>
+<h2 id="references">References</h2>
+<ul>
+<li>Dettmers et al., “LLM.int8(): 8-bit Matrix Multiplication for
+Transformers at Scale,” 2022</li>
+<li>Dettmers et al., “QLoRA: Efficient Finetuning of Quantized Language
+Models,” 2023</li>
+<li>Ilharco et al., “High Performance Natural Language Processing,”
+2020</li>
+<li>GGML / Llama.cpp: <a
+target="_blank" rel="noopener" href="https://github.com/ggml-org/llama.cpp">github.com/ggml-org/llama.cpp</a></li>
+<li>NVIDIA, “Introducing NVFP4 for Efficient and Accurate Low-Precision
+Inference”</li>
+<li>HuggingFace Quantization Overview: <a
+target="_blank" rel="noopener" href="https://huggingface.co/docs/transformers/v4.57.1/quantization/overview">huggingface.co/docs/transformers/quantization/overview</a></li>
+</ul>
+<p><em>This post is based on lecture materials from CMU 11-711 Advanced
+NLP by Sean Welleck (Lecture 19: Quantization).</em></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/">https://xloverflow.github.io/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Natural-Language-Processing/">Natural Language Processing</a><a class="post-meta__tags" href="/tags/CMU/">CMU</a><a class="post-meta__tags" href="/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/tags/11711/">11711</a><a class="post-meta__tags" href="/tags/AI/">AI</a><a class="post-meta__tags" href="/tags/Quantization/">Quantization</a><a class="post-meta__tags" href="/tags/Inference/">Inference</a><a class="post-meta__tags" href="/tags/Efficiency/">Efficiency</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">11711 Advanced NLP: Parallelism and Scaling</div></div><div class="info-2"><div class="info-item-1">Notes on parallelism and scaling from CMU 11-711 Advanced NLP, covering single-GPU training basics, data/tensor/pipeline parallelism, ZeRO memory optimization, and strategy selection for large-scale LLM training.</div></div></div></a><a class="pagination-related" href="/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">11868 LLM Sys: Systems for Mixture-of-Experts Models</div></div><div class="info-2"><div class="info-item-1">Notes on CMU 11-868 LLM Systems Lec16, covering Mixture-of-Experts architecture, Switch Transformer, shared vs. routed experts, expert parallelism with GShard, load balancing, DeepSeek V3 MoE, and DeepSpeed-MoE inference optimization.</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">Notes on RNN architectures, encoder-decoder models, and attention mechanisms from CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/" title="11711 Advanced NLP: Evaluation &amp; Experimental Design"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-05</div><div class="info-item-2">11711 Advanced NLP: Evaluation &amp; Experimental Design</div></div><div class="info-2"><div class="info-item-1">Notes on NLP evaluation, benchmarks, and experimental design from CMU 11-711 Advanced NLP, covering loss-based metrics, task metrics, LLM-as-judge, statistical testing, and annotation quality.</div></div></div></a><a class="pagination-related" href="/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-22</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/" title="11711 Advanced NLP: Learning &amp; Inference"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Learning &amp; Inference</div></div><div class="info-2"><div class="info-item-1">Notes on learning algorithms and inference methods from CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Multimodal/" title="11711 Advanced NLP: Multimodal Modeling"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-04</div><div class="info-item-2">11711 Advanced NLP: Multimodal Modeling</div></div><div class="info-2"><div class="info-item-1">Notes on multimodal modeling from CMU 11-711 Advanced NLP, covering ViT, CLIP, LLaVA-style integration, token-based image generation, diffusion, and flow matching.</div></div></div></a><a class="pagination-related" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-06</div><div class="info-item-2">11711 Advanced NLP: Parallelism and Scaling</div></div><div class="info-2"><div class="info-item-1">Notes on parallelism and scaling from CMU 11-711 Advanced NLP, covering single-GPU training basics, data/tensor/pipeline parallelism, ZeRO memory optimization, and strategy selection for large-scale LLM training.</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">119</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#lec19-quantization"><span class="toc-number">1.</span> <span class="toc-text">Lec19 Quantization</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#motivation"><span class="toc-number">1.1.</span> <span class="toc-text">Motivation</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#representing-numbers-on-a-computer"><span class="toc-number">1.2.</span> <span class="toc-text">Representing Numbers on a
+Computer</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#unsigned-integers"><span class="toc-number">1.2.1.</span> <span class="toc-text">Unsigned Integers</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#signed-integers"><span class="toc-number">1.2.2.</span> <span class="toc-text">Signed Integers</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#floating-point"><span class="toc-number">1.2.3.</span> <span class="toc-text">Floating Point</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#floating-point-types"><span class="toc-number">1.2.4.</span> <span class="toc-text">Floating Point Types</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#quantizing-for-inference"><span class="toc-number">1.3.</span> <span class="toc-text">Quantizing for Inference</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#what-is-quantization"><span class="toc-number">1.3.1.</span> <span class="toc-text">What Is Quantization?</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#why-quantize-llms"><span class="toc-number">1.3.2.</span> <span class="toc-text">Why Quantize LLMs?</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#bit-quantization-absmax"><span class="toc-number">1.3.3.</span> <span class="toc-text">8-Bit Quantization: Absmax</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#bit-quantization-zero-point"><span class="toc-number">1.3.4.</span> <span class="toc-text">8-Bit Quantization: Zero-Point</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#the-outlier-problem"><span class="toc-number">1.3.5.</span> <span class="toc-text">The Outlier Problem</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#llm.int8-dettmers-et-al.-2022"><span class="toc-number">1.3.6.</span> <span class="toc-text">LLM.int8() (Dettmers et al.,
+2022)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ggmlggufllama.cpp"><span class="toc-number">1.3.7.</span> <span class="toc-text">GGML&#x2F;GGUF&#x2F;Llama.cpp</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#beyond-integers-nvfp4"><span class="toc-number">1.3.8.</span> <span class="toc-text">Beyond Integers: NVFP4</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#quantizing-training"><span class="toc-number">1.4.</span> <span class="toc-text">Quantizing &amp; Training</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#quantization-aware-training-qat"><span class="toc-number">1.4.1.</span> <span class="toc-text">Quantization-Aware Training
+(QAT)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#fine-tuning-qlora-dettmers-et-al.-2023"><span class="toc-number">1.4.2.</span> <span class="toc-text">Fine-Tuning: QLoRA
+(Dettmers et al., 2023)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#lec19-takeaways"><span class="toc-number">1.5.</span> <span class="toc-text">Lec19 Takeaways</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#final-summary"><span class="toc-number">1.6.</span> <span class="toc-text">Final Summary</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#references"><span class="toc-number">1.7.</span> <span class="toc-text">References</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Parallelism and Scaling"/></a><div class="content"><a class="title" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling">11711 Advanced NLP: Parallelism and Scaling</a><time datetime="2026-04-07T03:00:00.000Z" title="Created 2026-04-06 23:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Quantization"/></a><div class="content"><a class="title" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization">11711 Advanced NLP: Quantization</a><time datetime="2026-04-07T02:00:00.000Z" title="Created 2026-04-06 22:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Systems for Mixture-of-Experts Models"/></a><div class="content"><a class="title" href="/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models">11868 LLM Sys: Systems for Mixture-of-Experts Models</a><time datetime="2026-03-21T19:00:00.000Z" title="Created 2026-03-21 15:00:00">2026-03-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Query Optimization"/></a><div class="content"><a class="title" href="/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization">15645 Database systems: Query Optimization</a><time datetime="2026-03-20T18:00:00.000Z" title="Created 2026-03-20 14:00:00">2026-03-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Query Execution"/></a><div class="content"><a class="title" href="/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution">15645 Database systems: Query Execution</a><time datetime="2026-03-15T18:00:00.000Z" title="Created 2026-03-15 14:00:00">2026-03-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || 'f83b8cd3fe9f16229743348aa31de436'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

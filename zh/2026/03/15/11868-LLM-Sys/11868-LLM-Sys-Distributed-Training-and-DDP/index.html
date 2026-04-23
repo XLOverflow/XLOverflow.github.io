@@ -1,0 +1,824 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>11868 LLM系统：分布式训练与DDP | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="CMU 11-868 LLM Systems 第13-14讲笔记，涵盖分布式训练、NCCL通信原语、Ring AllReduce，以及PyTorch Distributed Data Parallel。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="11868 LLM系统：分布式训练与DDP">
+<meta property="og:url" content="https://xloverflow.github.io/zh/2026/03/15/11868-LLM-Sys/11868-LLM-Sys-Distributed-Training-and-DDP/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="CMU 11-868 LLM Systems 第13-14讲笔记，涵盖分布式训练、NCCL通信原语、Ring AllReduce，以及PyTorch Distributed Data Parallel。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png">
+<meta property="article:published_time" content="2026-03-15T01:30:00.000Z">
+<meta property="article:modified_time" content="2026-03-15T01:30:00.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="学习笔记">
+<meta property="article:tag" content="11868">
+<meta property="article:tag" content="LLM系统">
+<meta property="article:tag" content="分布式训练">
+<meta property="article:tag" content="DDP">
+<meta property="article:tag" content="NCCL">
+<meta property="article:tag" content="AllReduce">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "11868 LLM系统：分布式训练与DDP",
+  "url": "https://xloverflow.github.io/zh/2026/03/15/11868-LLM-Sys/11868-LLM-Sys-Distributed-Training-and-DDP/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png",
+  "datePublished": "2026-03-15T01:30:00.000Z",
+  "dateModified": "2026-03-15T01:30:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io/zh"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/zh/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/zh/2026/03/15/11868-LLM-Sys/11868-LLM-Sys-Distributed-Training-and-DDP/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/zh/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/zh/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '11868 LLM系统：分布式训练与DDP',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">62</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">116</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">22</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/zh/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/zh/"><span class="site-name">11868 LLM系统：分布式训练与DDP</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/"><i class="fas fa-language fa-fw"></i><span> English</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">11868 LLM系统：分布式训练与DDP</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-03-15T01:30:00.000Z" title="发表于 2026-03-14 21:30:00">2026-03-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-03-15T01:30:00.000Z" title="更新于 2026-03-14 21:30:00">2026-03-14</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/zh/categories/CMU-11-868-LLM%E7%B3%BB%E7%BB%9F/">CMU 11-868 LLM系统</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="lec13-分布式训练">Lec13 分布式训练</h1>
+<p>这一讲关注大规模训练中的通信问题：为什么现代 LLM
+训练必须走向分布式执行、NCCL 提供了哪些关键的 collective communication
+primitive，以及为什么<strong>基于 AllReduce
+的数据并行</strong>成为今天最主流的设计。</p>
+<h2 id="为什么必须做分布式训练">为什么必须做分布式训练</h2>
+<p>现代 LLM 的训练规模已经远远超出单卡能力：</p>
+<ul>
+<li><strong>DeepSeek-V3 (671B)</strong>：使用 <strong>2,048 张
+H800</strong> 训练约 <strong>2 个月</strong>，总计 <strong>2.664 million
+H800 GPU hours</strong></li>
+<li><strong>LLaMA 3.1 (405B)</strong>：使用 <strong>16,000 张
+H100</strong>，总计 <strong>30.84 million GPU hours</strong></li>
+</ul>
+<p>真正推动分布式训练的，有两个同时存在的扩张趋势：</p>
+<ol type="1">
+<li><strong>模型规模</strong>持续增长</li>
+<li><strong>训练数据规模</strong>持续增长</li>
+</ol>
+<h2 id="可扩展训练的主要策略">可扩展训练的主要策略</h2>
+<p>从高层看，大规模训练系统通常会组合以下一种或多种策略：</p>
+<ul>
+<li><strong>数据并行（Data
+Parallelism）</strong>：复制模型，切分数据</li>
+<li><strong>参数服务器（Parameter
+Server）</strong>：集中式维护参数更新</li>
+<li><strong>模型并行 / 张量并行（Model / Tensor
+Parallelism）</strong>：把模型本身切开</li>
+<li><strong>流水线并行（Pipeline
+Parallelism）</strong>：把不同层放到不同设备上</li>
+</ul>
+<p>Lec13 主要讨论这样一种场景：<strong>单份模型依然能放进单张
+GPU</strong>，但为了提升吞吐和缩短训练时间，需要让多张 GPU
+协同训练，因此重点是<strong>数据并行</strong>。</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260314191137070.png" alt="可扩展训练策略总览" style="zoom:30%;" /></p>
+<p><em>图：可扩展训练中的几类典型策略，包括数据并行、参数服务器、模型并行、流水线并行和张量并行。</em></p>
+<h2 id="经典分布式训练参数服务器">经典分布式训练：参数服务器</h2>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260314191237885.png" alt="参数服务器架构示意图" style="zoom:30%;" /></p>
+<p><em>图：经典 Parameter Server
+架构。工作节点负责本地前向和反向，中心服务器负责聚合梯度并更新参数。</em></p>
+<p>经典的 <strong>Parameter Server</strong> 训练流程如下：</p>
+<ol type="1">
+<li>把 mini-batch 划分到多个 worker 上</li>
+<li>每个 worker 本地执行 forward 和 backward</li>
+<li>worker 将本地梯度 <strong>push</strong> 到中心服务器</li>
+<li>服务器聚合梯度并更新参数</li>
+<li>worker 再把更新后的参数 <strong>pull</strong> 回来</li>
+</ol>
+<p>这个设计的概念很直接，但有两个明显问题：</p>
+<ul>
+<li>会形成<strong>中心化瓶颈</strong></li>
+<li>每轮迭代都需要<strong>两个方向的同步</strong>：
+<ul>
+<li>梯度从 worker 发往服务器</li>
+<li>参数从服务器广播回 worker</li>
+</ul></li>
+</ul>
+<p>在讲义里，这套设计也可以很自然地映射到 NCCL 原语：</p>
+<ul>
+<li><strong>拉取参数</strong>：<code>Broadcast</code></li>
+<li><strong>推送梯度</strong>：<code>Reduce</code></li>
+</ul>
+<p>问题在于，worker
+越多，服务器每轮需要收发的数据就越多，最终很容易成为整个系统的热点。</p>
+<h2 id="使用-nccl-的多-gpu-通信">使用 NCCL 的多 GPU 通信</h2>
+<p><strong>NCCL</strong>（NVIDIA Collective Communication
+Library）是现代多 GPU 训练系统里最核心的通信层之一。它提供：</p>
+<ul>
+<li><strong>collective communication</strong> 原语</li>
+<li><strong>point-to-point</strong> 的发送与接收</li>
+<li>对多种互联方式的支持：
+<ul>
+<li>PCIe</li>
+<li>NVLink</li>
+<li>InfiniBand</li>
+<li>IP sockets</li>
+</ul></li>
+</ul>
+<p>一个很重要的系统细节是：NCCL 操作会绑定到 <strong>CUDA
+stream</strong> 上，因此通信可以和 GPU
+上的计算协同调度，甚至做到部分重叠。</p>
+<h3 id="nccl-基本原语">NCCL 基本原语</h3>
+<p>这一讲中出现的核心原语如下：</p>
+<table>
+<thead>
+<tr class="header">
+<th>原语</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>Broadcast</code></td>
+<td>从一个 root rank 把数据复制到所有 rank</td>
+</tr>
+<tr class="even">
+<td><code>Reduce</code></td>
+<td>对所有 rank 的数据做聚合，并把结果写到一个 root rank</td>
+</tr>
+<tr class="odd">
+<td><code>AllReduce</code></td>
+<td>对所有 rank 的数据做聚合，并把结果写回每一个 rank</td>
+</tr>
+<tr class="even">
+<td><code>ReduceScatter</code></td>
+<td>先做 reduce，再把结果分片散到各个 rank</td>
+</tr>
+<tr class="odd">
+<td><code>AllGather</code></td>
+<td>把各 rank 的分片聚合起来，并复制给所有 rank</td>
+</tr>
+</tbody>
+</table>
+<p>讲义里有一个非常关键的等式：</p>
+<p><span class="math display">\[
+\text{AllReduce} = \text{ReduceScatter} + \text{AllGather}
+\]</span></p>
+<p>这不只是一个概念上的拆解，它本身就是高效 Ring AllReduce
+的实现基础。</p>
+<h3 id="为什么-ring-很重要">为什么 Ring 很重要</h3>
+<p>NCCL 大量使用 <strong>ring-based communication</strong>，核心原因是
+ring 结构既避免了中心节点瓶颈，也能尽可能让各条链路都保持忙碌。</p>
+<p>讲义先用 Broadcast 说明这个思想。假设有 <code>K</code> 个
+rank，每条链路带宽为 <code>B</code>，消息大小为 <code>N</code>。</p>
+<p>如果按单向 ring 朴素地广播：</p>
+<p><span class="math display">\[
+T_{\text{ring-broadcast}} = (K-1)\frac{N}{B}
+\]</span></p>
+<p>这个代价看起来并不理想，因为完整消息必须一跳一跳传过去。</p>
+<p>但如果把消息切成 <code>S</code> 个 chunk，并在 ring
+中做<strong>流水化（pipeline）</strong>传输，总时间就会变成：</p>
+<p><span class="math display">\[
+T_{\text{pipelined}} = (K-2+S)\frac{N}{SB}
+\]</span></p>
+<p>当 <code>S</code> 足够大时，它会逼近：</p>
+<p><span class="math display">\[
+T_{\text{pipelined}} \approx \frac{N}{B}
+\]</span></p>
+<p>这背后的核心思想是：<strong>通过分块和流水化，把高延迟的 collective
+操作转化成更接近带宽上限的传输过程</strong>。</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260314192039651.png" alt="Ring Broadcast 的分块与流水化" style="zoom:30%;" /></p>
+<p><em>图：Ring Broadcast
+在分块之后可以流水化执行，从而显著降低总耗时并更接近链路带宽上限。</em></p>
+<h3 id="分组通信">分组通信</h3>
+<p>当一个进程需要同时管理多张 GPU 时，NCCL 常用如下接口：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ncclGroupStart</span>();</span><br><span class="line"><span class="comment">// multiple NCCL calls</span></span><br><span class="line"><span class="built_in">ncclGroupEnd</span>();</span><br></pre></td></tr></table></figure>
+<p>这样做的目的是把一组相关通信操作打包交给运行时统一调度。讲义中的例子同时展示了它在
+communicator 初始化，以及在多设备场景下启动多个
+<code>ncclAllReduce</code> 调用时的使用方式。</p>
+<h2 id="基于-allreduce-的数据并行训练">基于 AllReduce
+的数据并行训练</h2>
+<p>数据并行训练的主流程非常简单：</p>
+<ol type="1">
+<li>把 mini-batch 分给多个 worker</li>
+<li>每个 worker 在自己的数据分片上执行 <strong>forward +
+backward</strong></li>
+<li>多个 worker <strong>同步梯度</strong></li>
+<li>每个 worker 都执行<strong>相同的 optimizer step</strong></li>
+</ol>
+<p>这和参数服务器最大的区别在于：这里没有一个专门负责更新参数的中心节点。每个
+worker
+都持有一份完整模型副本；在梯度同步之后，它们再各自执行一次完全相同的参数更新，因此所有副本依然保持一致。</p>
+<h3 id="为什么每张-gpu-本地更新参数是合理的">为什么每张 GPU
+本地更新参数是合理的</h3>
+<p>表面上看，让每张 GPU
+都各自更新一次参数似乎很冗余：为什么不只更新一次，然后把新的参数再传给其他设备？</p>
+<p>讲义给出的答案很实际：</p>
+<ul>
+<li><strong>本地参数更新很便宜</strong></li>
+<li><strong>跨 GPU 传输数据很贵</strong></li>
+</ul>
+<p>因此，通常更划算的做法是：先同步梯度，再让每个 worker
+在本地应用同一个更新。</p>
+<h2 id="ring-allreduce">Ring AllReduce</h2>
+<p>这一讲的重点是 <strong>Ring AllReduce</strong>。它是
+NCCL、Horovod、PyTorch DDP 等系统中最常见的数据并行梯度同步模式。</p>
+<p>假设现在有 <code>K</code> 个 worker，总梯度张量大小为
+<code>M</code>。</p>
+<h3 id="阶段一reduce-scatter">阶段一：Reduce-Scatter</h3>
+<ol type="1">
+<li>先把完整梯度切成 <code>K</code> 个 chunk</li>
+<li>把所有 worker 在逻辑上连成一个 ring</li>
+<li>在接下来的 <code>K-1</code> 个 step 中：
+<ul>
+<li>每个 worker 向右邻居发送一个 chunk</li>
+<li>同时从左邻居接收一个 chunk</li>
+<li>把收到的 chunk 累加到本地的部分结果中</li>
+</ul></li>
+</ol>
+<p>完成 <code>K-1</code> 步之后，每个 worker 都会持有<strong>一个已经
+fully reduced 的 chunk</strong>。</p>
+<h3 id="阶段二allgather">阶段二：AllGather</h3>
+<ol type="1">
+<li>从 Reduce-Scatter 结束时的这些已聚合分片出发</li>
+<li>再沿 ring 通信 <code>K-1</code> 步</li>
+<li>每一步转发一个已经完成聚合的 chunk</li>
+</ol>
+<p>最终，每个 worker 都重新拿到完整的梯度张量。</p>
+<h3 id="通信代价">通信代价</h3>
+<p>每一步每个 worker 只需要发送 <code>M / K</code> 的数据，总共会执行
+<code>2(K-1)</code> 步，因此：</p>
+<p><span class="math display">\[
+\text{communication per worker} = 2(K-1)\frac{M}{K} \approx 2M
+\]</span></p>
+<p>这也是 Ring AllReduce 的核心扩展性结论：<strong>从单个 worker
+的视角看，通信量基本不随 <code>K</code> 增长而线性恶化</strong>，同时
+ring 还能把链路负载分布得更均衡。</p>
+<h3 id="简化伪代码">简化伪代码</h3>
+<p>讲义还给出了 MPI 风格的两个阶段实现。</p>
+<p><strong>Reduce-Scatter</strong></p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">for i in 0 .. K-2:</span><br><span class="line">    recv_chunk = ...</span><br><span class="line">    send_chunk = ...</span><br><span class="line">    Irecv(buffer, recv_chunk)</span><br><span class="line">    Send(local_chunk[send_chunk])</span><br><span class="line">    Wait(recv)</span><br><span class="line">    local_chunk[recv_chunk] += buffer</span><br></pre></td></tr></table></figure>
+<p><strong>AllGather</strong></p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">for i in 0 .. K-2:</span><br><span class="line">    send_chunk = ...</span><br><span class="line">    recv_chunk = ...</span><br><span class="line">    SendRecv(local_chunk[send_chunk], local_chunk[recv_chunk])</span><br></pre></td></tr></table></figure>
+<p>这些底层代码细节不是最重要的。真正值得记住的是：<strong>先让 chunk 在
+ring 中一边流动一边被 reduce，再让已经完成的 chunk 在 ring
+中继续传播</strong>。</p>
+<h2 id="参数服务器-vs-allreduce">参数服务器 vs AllReduce</h2>
+<p>两种方法都能完成同步，但方式不同：</p>
+<table>
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 38%" />
+<col style="width: 38%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>方法</th>
+<th>通信模式</th>
+<th>主要限制</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>参数服务器</td>
+<td>worker 推梯度到中心节点，中心节点更新后再广播参数</td>
+<td>中心化瓶颈明显</td>
+</tr>
+<tr class="even">
+<td>AllReduce 数据并行</td>
+<td>worker 之间协同聚合梯度</td>
+<td>每个 worker 仍需保留完整模型副本</td>
+</tr>
+</tbody>
+</table>
+<p>这一讲的结论很明确：</p>
+<ul>
+<li><strong>参数服务器</strong>实现简单，但负载不均衡</li>
+<li><strong>AllReduce 数据并行</strong>消除了中心热点，因此成为同步 GPU
+训练中更常见的方案</li>
+</ul>
+<h2 id="lec13-小结">Lec13 小结</h2>
+<ul>
+<li>大规模 LLM
+训练无法在单卡上完成，因为模型规模和数据规模都在持续膨胀。</li>
+<li>NCCL 提供了现代多 GPU 训练中最核心的 collective communication
+primitive。</li>
+<li>Ring 结构之所以重要，是因为分块与流水化能更高效地利用带宽。</li>
+<li>在同步训练里，数据并行通常更偏向使用 <strong>AllReduce</strong>
+而不是参数服务器，因为前者避免了中心瓶颈。</li>
+</ul>
+<hr />
+<h1 id="lec14-分布式数据并行训练">Lec14 分布式数据并行训练</h1>
+<p>Lec14
+从通信原语进一步走到框架实现层面。核心问题是：<strong>框架如何在尽量少改用户代码的前提下，把分布式数据并行训练做得足够高效，并尽可能把通信隐藏在反向传播过程中？</strong></p>
+<h2 id="从数据并行到-ddp">从数据并行到 DDP</h2>
+<p>当数据并行的通信模式已经明确之后，下一个问题自然就是：<strong>框架层应该怎样把它暴露给用户？</strong></p>
+<p>PyTorch 给出的答案是 <strong>Distributed Data
+Parallel（DDP）</strong>。</p>
+<p>从概念上看，DDP 仍然属于数据并行：</p>
+<ul>
+<li>每个进程持有一份模型副本</li>
+<li>每个进程执行自己的本地 forward/backward</li>
+<li>梯度会在所有进程之间同步</li>
+<li>optimizer 在各个进程本地执行，但结果保持一致</li>
+</ul>
+<p>真正的区别在于：DDP
+是对这套思路的<strong>高效工程化实现</strong>，它支持<strong>多节点、多
+GPU</strong>环境，并且会主动优化通信与计算的调度顺序。</p>
+<h2 id="ddp-的设计目标">DDP 的设计目标</h2>
+<p>讲义引用了 PyTorch Distributed 论文中 DDP 的两个设计目标：</p>
+<ul>
+<li><strong>Non-intrusive</strong>：尽量少改动本地训练脚本</li>
+<li><strong>Interceptive</strong>：框架能够拦截梯度就绪事件，并在合适时机尽早触发通信</li>
+</ul>
+<p>第二点是 DDP 高性能的关键。</p>
+<h2 id="分布式进程的组织方式">分布式进程的组织方式</h2>
+<p>DDP 的基本执行单位是分布式 <strong>process</strong>。</p>
+<p>讲义里强调了三个概念：</p>
+<ul>
+<li><strong>World size</strong>：总进程数</li>
+<li><strong>Global rank</strong>：整个任务中的全局进程序号</li>
+<li><strong>Local rank</strong>：某个节点内部的本地进程序号</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260314193102693.png" alt="DDP 中 world size、global rank 与 local rank 的关系" style="zoom:30%;" /></p>
+<p><em>图：DDP 任务中 world size、global rank 和 local rank
+的组织关系。通常一个进程绑定一张 GPU。</em></p>
+<p>在多节点训练中，每台机器都会启动若干本地进程。launcher 会传入一些
+process group 相关的元信息，例如：</p>
+<ul>
+<li><code>MASTER_ADDR</code></li>
+<li><code>MASTER_PORT</code></li>
+<li><code>RANK</code></li>
+<li><code>WORLD_SIZE</code></li>
+</ul>
+<p>之后，每个进程都会初始化分布式通信：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> argparse</span><br><span class="line"><span class="keyword">import</span> torch.distributed <span class="keyword">as</span> dist</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">local_proc</span>(<span class="params">local_rank</span>):</span><br><span class="line">    dist.init_process_group(backend=<span class="string">&quot;nccl&quot;</span>)</span><br><span class="line">    local_train(local_rank)</span><br><span class="line">    dist.destroy_process_group()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    parser = argparse.ArgumentParser()</span><br><span class="line">    parser.add_argument(<span class="string">&quot;--local_rank&quot;</span>, <span class="built_in">type</span>=<span class="built_in">int</span>, default=<span class="number">0</span>)</span><br><span class="line">    args = parser.parse_args()</span><br><span class="line">    local_proc(args.local_rank)</span><br></pre></td></tr></table></figure>
+<h3 id="一个最小的-ddp-训练骨架">一个最小的 DDP 训练骨架</h3>
+<p>讲义给出的最小使用模式如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> torch.nn <span class="keyword">as</span> nn</span><br><span class="line"><span class="keyword">import</span> torch.optim <span class="keyword">as</span> optim</span><br><span class="line"><span class="keyword">from</span> torch.nn.parallel <span class="keyword">import</span> DistributedDataParallel <span class="keyword">as</span> DDP</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">train</span>(<span class="params">local_rank</span>):</span><br><span class="line">    torch.cuda.set_device(local_rank)</span><br><span class="line"></span><br><span class="line">    model = MyModel().cuda(local_rank)</span><br><span class="line">    ddp_model = DDP(model, device_ids=[local_rank])</span><br><span class="line"></span><br><span class="line">    loss_fn = nn.MSELoss()</span><br><span class="line">    optimizer = optim.SGD(ddp_model.parameters(), lr=<span class="number">1e-3</span>)</span><br><span class="line"></span><br><span class="line">    inputs = inputs.cuda(local_rank)</span><br><span class="line">    labels = labels.cuda(local_rank)</span><br><span class="line"></span><br><span class="line">    optimizer.zero_grad()</span><br><span class="line">    outputs = ddp_model(inputs)</span><br><span class="line">    loss = loss_fn(outputs, labels)</span><br><span class="line">    loss.backward()</span><br><span class="line">    optimizer.step()</span><br></pre></td></tr></table></figure>
+<p>在真实训练里，data loader 通常还需要做 shard，使得不同 rank
+看到不同样本，但核心思路和上面是一样的。</p>
+<h2 id="为什么朴素的-ddp-实现不够好">为什么朴素的 DDP 实现不够好</h2>
+<p>一个非常直观但低效的实现方式是：</p>
+<ol type="1">
+<li>先跑完整个 <strong>backward</strong></li>
+<li>等所有梯度都算出来</li>
+<li>再启动一次大的 <strong>AllReduce</strong></li>
+<li>最后执行 optimizer step</li>
+</ol>
+<p>这样虽然是正确的，但它把以下两件事完全串行化了：</p>
+<ul>
+<li>backward computation</li>
+<li>communication</li>
+</ul>
+<p>结果就是，GPU
+一部分时间在等梯度算完，另一部分时间又在等通信结束。</p>
+<h2 id="梯度分桶gradient-bucketing">梯度分桶（Gradient Bucketing）</h2>
+<p>DDP 对朴素实现的核心改进，就是 <strong>gradient
+bucketing</strong>。</p>
+<p>它不会等到所有梯度都准备好，而是：</p>
+<ol type="1">
+<li>把参数梯度划入若干个 <strong>bucket</strong></li>
+<li>在 backward 过程中跟踪每个梯度何时就绪</li>
+<li>一旦某个 bucket 的梯度都已经准备好，就立刻启动一次<strong>异步
+AllReduce</strong></li>
+</ol>
+<p>这样就能把通信与后续反向传播重叠起来。</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260314194136824.png" alt="梯度分桶触发异步 AllReduce" style="zoom:30%;" /></p>
+<p><em>图：当一个 bucket 内的梯度全部 ready 之后，DDP 就会异步启动该
+bucket 的 AllReduce。</em></p>
+<h3 id="bucket-的构建方式">Bucket 的构建方式</h3>
+<p>讲义里提到了几个很关键的工程细节：</p>
+<ul>
+<li>bucket 大小可以通过 <code>bucket_cap_mb</code> 配置</li>
+<li>参数到 bucket 的映射会在<strong>构造时</strong>固定下来</li>
+<li>参数通常会按照 <code>model.parameters()</code>
+的<strong>近似逆序</strong>放进 bucket</li>
+</ul>
+<p>之所以使用逆序，是因为反向传播时，梯度大概率会从<strong>最后一层向前一层一层</strong>准备好。这样组织
+bucket，更容易让某个 bucket 早点全部 ready，从而更早触发通信。</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260314194207787.png" alt="梯度与 bucket 的映射关系" style="zoom:40%;" /></p>
+<p><em>图：参数梯度在构造阶段被映射到不同 bucket 中，目标是让 backward
+中的就绪顺序尽量匹配 bucket 的完成顺序。</em></p>
+<h3 id="bucket-大小的权衡">Bucket 大小的权衡</h3>
+<p>Bucket 大小本质上是一个典型的系统权衡：</p>
+<ul>
+<li><strong>小 bucket</strong>
+<ul>
+<li>更容易产生重叠机会</li>
+<li>但 collective 次数更多，延迟开销更高</li>
+</ul></li>
+<li><strong>大 bucket</strong>
+<ul>
+<li>collective 次数更少</li>
+<li>但通信和计算的重叠程度会下降</li>
+</ul></li>
+</ul>
+<p>因此，DDP 的重点不只是“用了 AllReduce”，而是“以合适的粒度使用
+AllReduce”。</p>
+<h2 id="ddp-如何拦截反向传播">DDP 如何拦截反向传播</h2>
+<p>DDP 的 reducer 会为每个参数注册一个 <strong>autograd
+hook</strong>。当某个参数的梯度被计算并累加到梯度张量中时，这个 hook
+就会把它标记为 ready。</p>
+<p>讲义中的核心逻辑可以简化为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">autograd_hook(param_i):</span><br><span class="line">    bucket = locate_bucket(param_i)</span><br><span class="line">    bucket.pending -= 1</span><br><span class="line"></span><br><span class="line">    if bucket.pending == 0:</span><br><span class="line">        launch_async_allreduce(bucket)</span><br></pre></td></tr></table></figure>
+<p>真实实现当然还会维护更多元数据，但关键机制就是：</p>
+<ol type="1">
+<li>某个参数的梯度一旦完成，就触发 hook</li>
+<li>hook 会减少对应 bucket 的 pending 计数</li>
+<li>当 bucket 的 pending 降到 0，DDP 就立即启动这一桶的通信</li>
+</ol>
+<p>讲义里展示了这条调用链上的几个函数：</p>
+<ul>
+<li><code>autograd_hook</code></li>
+<li><code>mark_variable_ready</code></li>
+<li><code>mark_bucket_ready</code></li>
+<li><code>all_reduce_bucket</code></li>
+</ul>
+<p>这也正是 DDP “interceptive” 设计目标的具体体现。</p>
+<h2 id="通信与计算重叠">通信与计算重叠</h2>
+<p>这部分是 DDP 最重要的性能收益来源。</p>
+<p>在 backward 过程中：</p>
+<ul>
+<li>靠后的层会更早产出梯度</li>
+<li>DDP 一旦发现某个 bucket ready，就启动它的 AllReduce</li>
+<li>与此同时，更前面的层仍然继续执行 backward</li>
+</ul>
+<p>因此，一轮训练的时间线不再是完全割裂的：</p>
+<ul>
+<li><strong>backward compute</strong></li>
+<li><strong>communication</strong></li>
+</ul>
+<p>而是两者在 GPU 与网络层面上发生了部分重叠。</p>
+<p>这会显著降低暴露出来的通信延迟，并改善扩展性。</p>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260314194338992.png" alt="DDP 中通信与反向传播重叠" style="zoom:25%;" /></p>
+<p><em>图：DDP
+通过让梯度同步和反向传播并行推进，减少等待通信完成的空转时间。</em></p>
+<h2 id="ddp-真正优化的是什么">DDP 真正优化的是什么</h2>
+<p>从本质上说，DDP
+依然只是同步数据并行训练。它真正优化的是<strong>执行调度</strong>：</p>
+<ul>
+<li>它不再等到所有梯度都 ready 之后才开始通信</li>
+<li>它通过 bucket 减少过多的小通信操作</li>
+<li>它尽可能把 collective communication 藏到 backward compute 背后</li>
+</ul>
+<p>这也是为什么 DDP 会比“先 backward，再
+AllReduce”的朴素实现扩展得更好。</p>
+<h2 id="如何理解这套栈">如何理解这套栈</h2>
+<p>把 Lec13 和 Lec14 放在一起看，会更容易理解整个系统栈：</p>
+<ol type="1">
+<li><strong>算法层</strong>：采用同步数据并行</li>
+<li><strong>通信层</strong>：用 Ring AllReduce 这类高效 collective
+完成梯度同步</li>
+<li><strong>框架层</strong>：让用户继续写普通的 PyTorch 代码，而由 DDP
+自动调度通信</li>
+</ol>
+<p>这也是 DDP
+在工业界和研究中被广泛采用的原因：它让用户几乎不用自己写通信代码，就能获得相当好的分布式训练性能。</p>
+<h2 id="ddp-的边界">DDP 的边界</h2>
+<p>DDP 只解决了扩展性问题中的一部分。</p>
+<p>它适合的场景是：</p>
+<ul>
+<li>单份模型仍然能放进每张 GPU</li>
+<li>主要目标是通过切分数据来提升训练吞吐</li>
+</ul>
+<p>它<strong>并不能</strong>解决“单份模型本身就放不下单卡”的问题。到了这种情况下，就需要更激进的技术，例如：</p>
+<ul>
+<li>张量 / 模型并行</li>
+<li>流水线并行</li>
+<li>ZeRO、FSDP 这类参数或优化器状态分片方法</li>
+</ul>
+<p>所以，DDP
+更适合被理解为：<strong>同步数据并行训练的默认工程方案</strong>，而不是大模型训练的完整终点。</p>
+<h2 id="lec14-小结">Lec14 小结</h2>
+<ul>
+<li>DDP 保留了数据并行的编程模型，但比朴素的 post-backward AllReduce
+高效得多。</li>
+<li>它最核心的优化是 <strong>gradient bucketing</strong>：一个 bucket
+内梯度全部 ready 后立刻同步。</li>
+<li>autograd hook 让 DDP 能够在 backward
+过程中尽早截获梯度完成事件。</li>
+<li>DDP 最大的系统收益，是把 <strong>backward compute</strong> 和
+<strong>AllReduce communication</strong> 尽可能重叠起来。</li>
+</ul>
+<h2 id="全文总结">全文总结</h2>
+<table>
+<colgroup>
+<col style="width: 37%" />
+<col style="width: 62%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>主题</th>
+<th>核心思想</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>参数服务器</td>
+<td>把更新集中化，但会形成通信热点</td>
+</tr>
+<tr class="even">
+<td>NCCL Collectives</td>
+<td>提供高效的 GPU 间通信原语</td>
+</tr>
+<tr class="odd">
+<td>Ring AllReduce</td>
+<td>通过 ReduceScatter + AllGather 实现均衡、高效的梯度聚合</td>
+</tr>
+<tr class="even">
+<td>数据并行训练</td>
+<td>切分数据，复制模型，统一同步梯度</td>
+</tr>
+<tr class="odd">
+<td>DDP</td>
+<td>通过梯度分桶与通信重叠，让数据并行训练更高效</td>
+</tr>
+</tbody>
+</table>
+<p><strong>核心 takeaway</strong>：分布式训练真正难的不是“让很多 GPU
+同时算”，而是“让它们以尽量低的同步代价协同起来”。<strong>AllReduce</strong>
+去掉了中心节点瓶颈，而 <strong>DDP</strong> 则通过 bucket 和 overlap
+进一步降低了通信带来的延迟暴露。</p>
+<h2 id="参考资料">参考资料</h2>
+<ol type="1">
+<li>Li et al. “PyTorch Distributed: Experiences on Accelerating Data
+Parallel Training.” VLDB 2020.</li>
+<li>NVIDIA NCCL collective communication primitives and programming
+model.</li>
+</ol>
+<hr />
+<p><em>本文基于 CMU 11-868 LLM Systems 课程 Lei Li
+的讲义整理（Distributed Training, Lec13；Distributed Data Parallel
+Training, Lec14）。</em></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh/2026/03/15/11868-LLM-Sys/11868-LLM-Sys-Distributed-Training-and-DDP/">https://xloverflow.github.io/zh/2026/03/15/11868-LLM-Sys/11868-LLM-Sys-Distributed-Training-and-DDP/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://xloverflow.github.io/zh" target="_blank">Life is not a race, but a journey</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/zh/tags/CMU/">CMU</a><a class="post-meta__tags" href="/zh/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">学习笔记</a><a class="post-meta__tags" href="/zh/tags/11868/">11868</a><a class="post-meta__tags" href="/zh/tags/LLM%E7%B3%BB%E7%BB%9F/">LLM系统</a><a class="post-meta__tags" href="/zh/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E8%AE%AD%E7%BB%83/">分布式训练</a><a class="post-meta__tags" href="/zh/tags/DDP/">DDP</a><a class="post-meta__tags" href="/zh/tags/NCCL/">NCCL</a><a class="post-meta__tags" href="/zh/tags/AllReduce/">AllReduce</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/zh/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">15645 Database systems: Query Execution</div></div><div class="info-2"><div class="info-item-1">CMU 15-645 数据库系统课程笔记与总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/03/10/AI-Agent/AI-Agent-Engineering-Design-Curated-Reading-List/" title="AI Agent 工程设计精选文章"><img class="cover" src="https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">AI Agent 工程设计精选文章</div></div><div class="info-2"><div class="info-item-1">收录关于 AI Agent 工程设计的核心文章，涵盖 Claude Code、OpenAI Codex、上下文管理与记忆机制、OpenClaw 架构解析等主题。每篇文章附有原文引用与核心要点。</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/zh/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM系统：解码"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-12</div><div class="info-item-2">11868 LLM系统：解码</div></div><div class="info-2"><div class="info-item-1">CMU 11-868课程中关于LLM推理解码策略的笔记，涵盖高效采样、束搜索算法、推测性解码和EAGLE。</div></div></div></a><a class="pagination-related" href="/zh/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-21</div><div class="info-item-2">11868 LLM Sys: Systems for Mixture-of-Experts Models</div></div><div class="info-2"><div class="info-item-1">CMU 11-868 LLM Systems 第16讲笔记，涵盖 Mixture-of-Experts 架构、Switch Transformer、共享专家与路由专家、基于 GShard 的专家并行、负载均衡、DeepSeek V3 MoE 以及 DeepSpeed-MoE 推理优化。</div></div></div></a><a class="pagination-related" href="/zh/2026/02/13/15642-Machine-Learning-Systems/15642-ML-Systems-Distributed-Training-and-Parallelization/" title="15642 机器学习系统：分布式训练与并行化"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210733236.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-13</div><div class="info-item-2">15642 机器学习系统：分布式训练与并行化</div></div><div class="info-2"><div class="info-item-1">CMU 15-642 机器学习系统课程笔记与总结，涵盖分布式训练技术，包括数据并行、模型并行、流水线并行以及 ZeRO 等大规模模型训练的优化策略。</div></div></div></a><a class="pagination-related" href="/zh/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/" title="11711 Advanced NLP：评测与实验设计"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-05</div><div class="info-item-2">11711 Advanced NLP：评测与实验设计</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 Advanced NLP 课程关于 NLP 评测、基准测试与实验设计的笔记，涵盖损失指标、任务指标、LLM 评判、统计检验与标注质量。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/26/11868-LLM-Sys/11868-LLM-SyS-GPU-Programming-Acceleration/" title="11868 LLM Sys: GPU Programming &amp; Acceleration"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-25</div><div class="info-item-2">11868 LLM Sys: GPU Programming &amp; Acceleration</div></div><div class="info-2"><div class="info-item-1">CMU 11-868 LLM系统：GPU编程与加速的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/28/11868-LLM-Sys/11868-LLM-Sys-15642-ML-Sys-DL-Framworks-and-Auto-Differentiation/" title="11868 LLM Sys &amp; 15642 ML Sys: DL Frameworks and Auto Differentiation"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-28</div><div class="info-item-2">11868 LLM Sys &amp; 15642 ML Sys: DL Frameworks and Auto Differentiation</div></div><div class="info-2"><div class="info-item-1">关于CMU 11-868 LLM系统和15-642 ML系统课程的深度学习框架和自动微分的综合笔记。</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li 的中文博客</div><div class="site-data"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">62</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">116</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">22</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#lec13-%E5%88%86%E5%B8%83%E5%BC%8F%E8%AE%AD%E7%BB%83"><span class="toc-number">1.</span> <span class="toc-text">Lec13 分布式训练</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E5%BF%85%E9%A1%BB%E5%81%9A%E5%88%86%E5%B8%83%E5%BC%8F%E8%AE%AD%E7%BB%83"><span class="toc-number">1.1.</span> <span class="toc-text">为什么必须做分布式训练</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%AF%E6%89%A9%E5%B1%95%E8%AE%AD%E7%BB%83%E7%9A%84%E4%B8%BB%E8%A6%81%E7%AD%96%E7%95%A5"><span class="toc-number">1.2.</span> <span class="toc-text">可扩展训练的主要策略</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%8F%E5%85%B8%E5%88%86%E5%B8%83%E5%BC%8F%E8%AE%AD%E7%BB%83%E5%8F%82%E6%95%B0%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="toc-number">1.3.</span> <span class="toc-text">经典分布式训练：参数服务器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-nccl-%E7%9A%84%E5%A4%9A-gpu-%E9%80%9A%E4%BF%A1"><span class="toc-number">1.4.</span> <span class="toc-text">使用 NCCL 的多 GPU 通信</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#nccl-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E8%AF%AD"><span class="toc-number">1.4.1.</span> <span class="toc-text">NCCL 基本原语</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88-ring-%E5%BE%88%E9%87%8D%E8%A6%81"><span class="toc-number">1.4.2.</span> <span class="toc-text">为什么 Ring 很重要</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%86%E7%BB%84%E9%80%9A%E4%BF%A1"><span class="toc-number">1.4.3.</span> <span class="toc-text">分组通信</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E4%BA%8E-allreduce-%E7%9A%84%E6%95%B0%E6%8D%AE%E5%B9%B6%E8%A1%8C%E8%AE%AD%E7%BB%83"><span class="toc-number">1.5.</span> <span class="toc-text">基于 AllReduce
+的数据并行训练</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E6%AF%8F%E5%BC%A0-gpu-%E6%9C%AC%E5%9C%B0%E6%9B%B4%E6%96%B0%E5%8F%82%E6%95%B0%E6%98%AF%E5%90%88%E7%90%86%E7%9A%84"><span class="toc-number">1.5.1.</span> <span class="toc-text">为什么每张 GPU
+本地更新参数是合理的</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ring-allreduce"><span class="toc-number">1.6.</span> <span class="toc-text">Ring AllReduce</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%98%B6%E6%AE%B5%E4%B8%80reduce-scatter"><span class="toc-number">1.6.1.</span> <span class="toc-text">阶段一：Reduce-Scatter</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%98%B6%E6%AE%B5%E4%BA%8Callgather"><span class="toc-number">1.6.2.</span> <span class="toc-text">阶段二：AllGather</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%9A%E4%BF%A1%E4%BB%A3%E4%BB%B7"><span class="toc-number">1.6.3.</span> <span class="toc-text">通信代价</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AE%80%E5%8C%96%E4%BC%AA%E4%BB%A3%E7%A0%81"><span class="toc-number">1.6.4.</span> <span class="toc-text">简化伪代码</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E6%95%B0%E6%9C%8D%E5%8A%A1%E5%99%A8-vs-allreduce"><span class="toc-number">1.7.</span> <span class="toc-text">参数服务器 vs AllReduce</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#lec13-%E5%B0%8F%E7%BB%93"><span class="toc-number">1.8.</span> <span class="toc-text">Lec13 小结</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#lec14-%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%B9%B6%E8%A1%8C%E8%AE%AD%E7%BB%83"><span class="toc-number">2.</span> <span class="toc-text">Lec14 分布式数据并行训练</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%8E%E6%95%B0%E6%8D%AE%E5%B9%B6%E8%A1%8C%E5%88%B0-ddp"><span class="toc-number">2.1.</span> <span class="toc-text">从数据并行到 DDP</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ddp-%E7%9A%84%E8%AE%BE%E8%AE%A1%E7%9B%AE%E6%A0%87"><span class="toc-number">2.2.</span> <span class="toc-text">DDP 的设计目标</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E8%BF%9B%E7%A8%8B%E7%9A%84%E7%BB%84%E7%BB%87%E6%96%B9%E5%BC%8F"><span class="toc-number">2.3.</span> <span class="toc-text">分布式进程的组织方式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E4%B8%AA%E6%9C%80%E5%B0%8F%E7%9A%84-ddp-%E8%AE%AD%E7%BB%83%E9%AA%A8%E6%9E%B6"><span class="toc-number">2.3.1.</span> <span class="toc-text">一个最小的 DDP 训练骨架</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E6%9C%B4%E7%B4%A0%E7%9A%84-ddp-%E5%AE%9E%E7%8E%B0%E4%B8%8D%E5%A4%9F%E5%A5%BD"><span class="toc-number">2.4.</span> <span class="toc-text">为什么朴素的 DDP 实现不够好</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A2%AF%E5%BA%A6%E5%88%86%E6%A1%B6gradient-bucketing"><span class="toc-number">2.5.</span> <span class="toc-text">梯度分桶（Gradient Bucketing）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#bucket-%E7%9A%84%E6%9E%84%E5%BB%BA%E6%96%B9%E5%BC%8F"><span class="toc-number">2.5.1.</span> <span class="toc-text">Bucket 的构建方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#bucket-%E5%A4%A7%E5%B0%8F%E7%9A%84%E6%9D%83%E8%A1%A1"><span class="toc-number">2.5.2.</span> <span class="toc-text">Bucket 大小的权衡</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ddp-%E5%A6%82%E4%BD%95%E6%8B%A6%E6%88%AA%E5%8F%8D%E5%90%91%E4%BC%A0%E6%92%AD"><span class="toc-number">2.6.</span> <span class="toc-text">DDP 如何拦截反向传播</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%9A%E4%BF%A1%E4%B8%8E%E8%AE%A1%E7%AE%97%E9%87%8D%E5%8F%A0"><span class="toc-number">2.7.</span> <span class="toc-text">通信与计算重叠</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ddp-%E7%9C%9F%E6%AD%A3%E4%BC%98%E5%8C%96%E7%9A%84%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-number">2.8.</span> <span class="toc-text">DDP 真正优化的是什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E7%90%86%E8%A7%A3%E8%BF%99%E5%A5%97%E6%A0%88"><span class="toc-number">2.9.</span> <span class="toc-text">如何理解这套栈</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ddp-%E7%9A%84%E8%BE%B9%E7%95%8C"><span class="toc-number">2.10.</span> <span class="toc-text">DDP 的边界</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#lec14-%E5%B0%8F%E7%BB%93"><span class="toc-number">2.11.</span> <span class="toc-text">Lec14 小结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%A8%E6%96%87%E6%80%BB%E7%BB%93"><span class="toc-number">2.12.</span> <span class="toc-text">全文总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">2.13.</span> <span class="toc-text">参考资料</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11711 Advanced NLP: Parallelism and Scaling"/></a><div class="content"><a class="title" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling">11711 Advanced NLP: Parallelism and Scaling</a><time datetime="2026-04-07T03:00:00.000Z" title="发表于 2026-04-06 23:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11711 Advanced NLP: Quantization"/></a><div class="content"><a class="title" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization">11711 Advanced NLP: Quantization</a><time datetime="2026-04-07T02:00:00.000Z" title="发表于 2026-04-06 22:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11868 LLM Sys: Systems for Mixture-of-Experts Models"/></a><div class="content"><a class="title" href="/zh/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models">11868 LLM Sys: Systems for Mixture-of-Experts Models</a><time datetime="2026-03-21T19:00:00.000Z" title="发表于 2026-03-21 15:00:00">2026-03-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="15645 Database systems: Query Optimization"/></a><div class="content"><a class="title" href="/zh/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization">15645 Database systems: Query Optimization</a><time datetime="2026-03-20T18:00:00.000Z" title="发表于 2026-03-20 14:00:00">2026-03-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="15645 Database systems: Query Execution"/></a><div class="content"><a class="title" href="/zh/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution">15645 Database systems: Query Execution</a><time datetime="2026-03-15T18:00:00.000Z" title="发表于 2026-03-15 14:00:00">2026-03-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/zh/js/utils.js"></script><script src="/zh/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '8eb1cb76d8e7bb4970f58b8fbdd6c6e0'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/zh/404.html') : window.location.href = '/zh/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

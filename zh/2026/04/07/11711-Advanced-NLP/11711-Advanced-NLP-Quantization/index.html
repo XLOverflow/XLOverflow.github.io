@@ -1,0 +1,771 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>11711 Advanced NLP: Quantization | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="CMU 11-711 高级自然语言处理量化笔记，涵盖数值表示、8 位量化（absmax、zero-point）、LLM.int8()、GGML&#x2F;GGUF，以及量化感知训练与 QLoRA。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="11711 Advanced NLP: Quantization">
+<meta property="og:url" content="https://xloverflow.github.io/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="CMU 11-711 高级自然语言处理量化笔记，涵盖数值表示、8 位量化（absmax、zero-point）、LLM.int8()、GGML&#x2F;GGUF，以及量化感知训练与 QLoRA。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png">
+<meta property="article:published_time" content="2026-04-07T02:00:00.000Z">
+<meta property="article:modified_time" content="2026-04-07T02:00:00.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="Natural Language Processing">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="Study Notes">
+<meta property="article:tag" content="11711">
+<meta property="article:tag" content="AI">
+<meta property="article:tag" content="Quantization">
+<meta property="article:tag" content="Inference">
+<meta property="article:tag" content="Efficiency">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "11711 Advanced NLP: Quantization",
+  "url": "https://xloverflow.github.io/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png",
+  "datePublished": "2026-04-07T02:00:00.000Z",
+  "dateModified": "2026-04-07T02:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io/zh"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/zh/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/zh/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/zh/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '11711 Advanced NLP: Quantization',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">62</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">116</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">22</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/zh/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/zh/"><span class="site-name">11711 Advanced NLP: Quantization</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/"><i class="fas fa-language fa-fw"></i><span> English</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">11711 Advanced NLP: Quantization</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-04-07T02:00:00.000Z" title="发表于 2026-04-06 22:00:00">2026-04-06</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-04-07T02:00:00.000Z" title="更新于 2026-04-06 22:00:00">2026-04-06</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/zh/categories/CMU-11-711-%E9%AB%98%E7%BA%A7%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/">CMU 11-711 高级自然语言处理</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="lec19-量化">Lec19 量化</h1>
+<p>本讲解决一个核心部署问题：现代 LLM
+太大，无法在消费级硬件上运行。量化通过减少每个权重所用的比特数来大幅缩减内存需求，同时尽可能保留模型质量。</p>
+<h2 id="动机">动机</h2>
+<p>核心问题很直观：模型太大了。</p>
+<p>以 <strong>Qwen3-8B</strong> 为例： - 80 亿参数 × 16 位（BFloat16）=
+<strong>16 GB</strong>（仅权重） - 推理时激活值约需 ~1.5× 开销 → 总计约
+<strong>~24 GB</strong> - MacBook Air（16 GB
+共享内存）必须换页到磁盘才能运行 - T4 GPU（16 GB 显存）直接内存溢出</p>
+<p>量化提供了直接的解决方案：用更少的位数表示每个权重。Qwen3-8B 的 4-bit
+量化版本仅需 <strong>~6 GB</strong>，两种设备都能轻松容纳。</p>
+<h2 id="计算机中的数值表示">计算机中的数值表示</h2>
+<p>在理解量化之前，需要先了解数字的存储方式。</p>
+<h3 id="无符号整数">无符号整数</h3>
+<p>每一位代表 2 的某次幂。8 位无符号整数（U8）将各位为 1
+的位置对应的幂次求和：</p>
+<p><span class="math display">\[
+01010110_2 = 1 \times 2^6 + 1 \times 2^4 + 1 \times 2^2 + 1 \times 2^1 =
+64 + 16 + 4 + 2 = 86
+\]</span></p>
+<table>
+<thead>
+<tr class="header">
+<th>类型</th>
+<th>位数</th>
+<th>范围</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>U8</td>
+<td>8</td>
+<td>0 到 255</td>
+</tr>
+<tr class="even">
+<td>U16</td>
+<td>16</td>
+<td>0 到 65,535</td>
+</tr>
+<tr class="odd">
+<td>U32</td>
+<td>32</td>
+<td>0 到 4,294,967,295</td>
+</tr>
+</tbody>
+</table>
+<h3 id="有符号整数">有符号整数</h3>
+<p>最左位用作符号位。负数使用<strong>补码</strong>表示：将所有位取反再加
+1。</p>
+<ul>
+<li><strong>INT8</strong>：8 位，范围 [-128, 127]</li>
+<li><strong>INT16</strong>、<strong>INT32</strong> 同理，范围更大</li>
+</ul>
+<h3 id="浮点数">浮点数</h3>
+<p>浮点数使用三个部分来表示实数值：<strong>符号位</strong>、<strong>指数</strong>和<strong>尾数</strong>（significand）：</p>
+<p><span class="math display">\[
+\text{value} = (-1)^{\text{sign}} \times (1.\text{significand}) \times
+2^{\text{exponent} - \text{bias}}
+\]</span></p>
+<p>偏置（bias）使指数可以作为无符号整数存储。本质上就是二进制的科学计数法：<span
+class="math inline">\(1.101 \times 2^3 = (1 + 0.5 + 0.125) \times 8 =
+13\)</span>。</p>
+<p><strong>计算示例</strong>（Float32）：</p>
+<table>
+<thead>
+<tr class="header">
+<th>符号位</th>
+<th>指数（8 位）</th>
+<th>尾数（23 位）</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0</td>
+<td>10000001 = 129</td>
+<td>01100…0</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>指数 − 偏置：<span class="math inline">\(129 - 127 = 2\)</span></li>
+<li>尾数：<span class="math inline">\(1 + 0 \times 2^{-1} + 1 \times
+2^{-2} + 1 \times 2^{-3} = 1.375\)</span></li>
+<li>值：<span class="math inline">\(1.375 \times 2^2 = 5.5\)</span></li>
+</ul>
+<h3 id="浮点数类型">浮点数类型</h3>
+<table>
+<thead>
+<tr class="header">
+<th>格式</th>
+<th>总位数</th>
+<th>符号位</th>
+<th>指数</th>
+<th>尾数</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Float32（全精度）</td>
+<td>32</td>
+<td>1</td>
+<td>8</td>
+<td>23</td>
+</tr>
+<tr class="even">
+<td>Float16（半精度）</td>
+<td>16</td>
+<td>1</td>
+<td>5</td>
+<td>10</td>
+</tr>
+<tr class="odd">
+<td>BFloat16</td>
+<td>16</td>
+<td>1</td>
+<td>8</td>
+<td>7</td>
+</tr>
+</tbody>
+</table>
+<p>BFloat16 是一个值得注意的设计选择：它保留了与 Float32
+相同的指数范围（因此能表示相同量级的数值），但牺牲了尾数精度。这使得
+BFloat16 与 Float32
+之间的转换非常简单（只需在尾数后补零），并在训练过程中避免溢出问题，代价是相近数值之间的精度较低。大多数现代
+LLM（如 Qwen3-8B）以 BFloat16 格式存储权重。</p>
+<h2 id="推理量化">推理量化</h2>
+<h3 id="什么是量化">什么是量化？</h3>
+<p>量化是将大集合中的值映射到小集合中的过程。最简单的例子：将实数四舍五入到最近的整数。</p>
+<p><span class="math display">\[
+Q(x) = \text{round}(x)
+\]</span></p>
+<p><strong>量化误差</strong>是原始值与量化值之间的差。例如，<span
+class="math inline">\(Q(1.4) = 1\)</span>（误差 = 0.4），<span
+class="math inline">\(Q(0.8) = 1\)</span>（误差 = 0.2）。</p>
+<h3 id="为什么要量化-llm">为什么要量化 LLM？</h3>
+<p>在大型 Transformer 中，前馈层和注意力投影层占 <strong>~95%
+的参数</strong>和 <strong>65-85% 的计算量</strong>（Ilharco et al.,
+2020）。目标是： 1. 将这些参数量化到更少的位数（如 BFloat16 → INT8 或
+INT4） 2. 使用低位精度矩阵乘法 3.
+减少内存以便大模型能在消费级硬件上运行</p>
+<h3 id="位量化absmax">8 位量化：Absmax</h3>
+<p>Absmax 量化使用绝对最大值将整个输入张量缩放到 INT8 范围 <span
+class="math inline">\([-127, 127]\)</span>：</p>
+<p><span class="math display">\[
+X_{i8} = \text{round}\left(\frac{127 \cdot
+X_{f16}}{\max_{ij}(|X_{f16_{ij}}|)}\right)
+\]</span></p>
+<p>缩放因子为 <span class="math inline">\(s =
+\frac{127}{\max(|X|)}\)</span>。反量化时只需除以缩放因子。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line">x = np.array([-<span class="number">3.0</span>, <span class="number">1.0</span>, <span class="number">2.0</span>, <span class="number">4.0</span>])</span><br><span class="line"></span><br><span class="line">scale = <span class="number">127.0</span> / np.<span class="built_in">max</span>(np.<span class="built_in">abs</span>(x))</span><br><span class="line">x_quantized = np.<span class="built_in">round</span>(x * scale).astype(np.int8)</span><br><span class="line">x_dequantized = x_quantized.astype(np.float32) / scale</span><br><span class="line"></span><br><span class="line"><span class="comment"># Original:     [-3.   1.   2.   4. ]</span></span><br><span class="line"><span class="comment"># Quantized:    [-95  32  64  127]</span></span><br><span class="line"><span class="comment"># Dequantized:  [-2.99  1.01  2.02  4.0]</span></span><br><span class="line"><span class="comment"># MSE: 9.3e-05</span></span><br></pre></td></tr></table></figure>
+<p>Absmax
+的<strong>矩阵乘法</strong>使用<strong>逐向量量化</strong>：分别量化
+<span class="math inline">\(X\)</span> 的每一行和 <span
+class="math inline">\(W\)</span> 的每一列，在 INT8 下相乘（累加到
+INT32），然后反量化：</p>
+<p><span class="math display">\[
+XW = \frac{1}{s_x s_w} Z_{i32} \approx \frac{1}{s_x s_w} Q(X) Q(W)
+\]</span></p>
+<h3 id="位量化zero-point">8 位量化：Zero-Point</h3>
+<p>Zero-point 量化将浮点范围 <span class="math inline">\([\min,
+\max]\)</span> 映射到完整的 INT8 范围 <span class="math inline">\([-128,
+127]\)</span>，同时使用缩放因子和偏移量：</p>
+<p><span class="math display">\[
+\text{INT8} = \text{round}(s \cdot \text{FP}) + \text{offset}
+\]</span></p>
+<p>其中：</p>
+<p><span class="math display">\[
+s = \frac{255}{\max - \min}, \quad \text{offset} =
+-\text{round}\left(\frac{255}{\max - \min} \cdot \min\right) - 128
+\]</span></p>
+<p>反量化：</p>
+<p><span class="math display">\[
+\text{FP} = \frac{\text{INT8} - \text{offset}}{s}
+\]</span></p>
+<p>Zero-point 量化更适合<strong>非对称数据</strong>（如 ReLU
+之后的激活值，全为非负）。Absmax
+在这种情况下会浪费一半的整数范围在永远不会出现的负值上。</p>
+<h3 id="离群值问题">离群值问题</h3>
+<p>两种方法都基于张量的最小/最大值进行归一化。当存在<strong>离群值</strong>时，缩放因子被极端值主导，导致其他所有值挤压到整数范围的很小一部分。</p>
+<table>
+<thead>
+<tr class="header">
+<th>场景</th>
+<th>Absmax MSE</th>
+<th>Zero-Point MSE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>无离群值</td>
+<td>0.000001</td>
+<td>0.000001</td>
+</tr>
+<tr class="even">
+<td>有离群值（100.0）</td>
+<td>0.060013</td>
+<td>0.014756</td>
+</tr>
+</tbody>
+</table>
+<p>单个离群值就能使误差增大 <strong>4-5
+个数量级</strong>。这并非理论上的担忧——真实的 Transformer
+语言模型确实存在系统性的离群值特征。</p>
+<h3 id="llm.int8dettmers-et-al.-2022">LLM.int8()（Dettmers et al.,
+2022）</h3>
+<p>Dettmers 等人观察到 Transformer
+语言模型会产生<strong>离群值特征</strong>：激活矩阵中某些列的值远大于其他列。在参数量
+<span class="math inline">\(\geq\)</span> 67 亿的模型中，<strong>100%
+的层</strong>都存在离群值。朴素的 8
+位量化在这个规模上会崩溃——准确率急剧下降。</p>
+<p>关键洞察：仅有 <strong>~0.1%</strong>
+的激活特征是离群值。因此解决方案是<strong>混合精度分解</strong>：</p>
+<ol type="1">
+<li><strong>识别</strong>激活中的离群值列（绝对值超过阈值的列）</li>
+<li>从 <span class="math inline">\(X\)</span>
+中<strong>提取</strong>离群值列及 <span class="math inline">\(W\)</span>
+中对应的行</li>
+<li><strong>离群值部分</strong>在 FP16 下计算（高精度）</li>
+<li><strong>常规部分</strong>在 INT8 下计算（低精度，逐向量
+absmax）</li>
+<li><strong>合并</strong>两部分结果</li>
+</ol>
+<p><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/image-20260406224152373.png" alt="image-20260406224152373" style="zoom:50%;" /></p>
+<p>该方法在所有测试的模型规模（最大 175B 参数）上都达到了与 FP16
+基线匹配的精度，而朴素 8 位基线在 6.7B 之后急剧退化。</p>
+<table>
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>方法</th>
+<th>125M</th>
+<th>1.3B</th>
+<th>2.7B</th>
+<th>6.7B</th>
+<th>13B</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>32-bit Float</td>
+<td>25.65</td>
+<td>15.91</td>
+<td>14.43</td>
+<td>13.30</td>
+<td>12.45</td>
+</tr>
+<tr class="even">
+<td>Int8 absmax</td>
+<td>87.76</td>
+<td>16.55</td>
+<td>15.11</td>
+<td>14.59</td>
+<td>19.08</td>
+</tr>
+<tr class="odd">
+<td>Zeropoint LLM.int8()</td>
+<td><strong>25.69</strong></td>
+<td><strong>15.92</strong></td>
+<td><strong>14.43</strong></td>
+<td><strong>13.24</strong></td>
+<td><strong>12.45</strong></td>
+</tr>
+</tbody>
+</table>
+<p><em>（验证集困惑度——越低越好）</em></p>
+<h3 id="ggmlggufllama.cpp">GGML/GGUF/Llama.cpp</h3>
+<p><strong>GGML</strong>
+是一个张量运算库，拥有自己的量化方法，专为高效的 CPU 和 GPU
+推理设计。</p>
+<p>以量化方案 <strong>Q4_K</strong> 为例： -
+将权重分组为<strong>超级块</strong>，每个超级块包含 8 个块，每个块有 32
+个权重 - 每个权重存储为 <strong>4 位</strong> -
+每块的缩放因子和偏移量存储为 <strong>6 位</strong></p>
+<p>两个常用预设： - <strong>Q4_K_S</strong>：所有张量使用
+Q4_K（更小，精度略低） - <strong>Q4_K_M</strong>：某些注意力和 FFN
+张量的一半使用更高精度的 Q6（质量更好）</p>
+<p>GGML 支持多种后端：Metal（Apple Silicon）、ARM、CUDA 等。</p>
+<p><strong>GGUF</strong>
+是存储模型架构和量化权重的文件格式。<strong>Llama.cpp</strong> 是基于
+GGML/GGUF 构建的推理库，支持本地 LLM 推理：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">llama-server -hf Qwen/Qwen3-8B-GGUF:Q4_K_M --port 8080</span><br></pre></td></tr></table></figure>
+<p>Qwen3-8B-GGUF 文件大小示例：</p>
+<table>
+<thead>
+<tr class="header">
+<th>量化方式</th>
+<th>位数</th>
+<th>大小</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Q4_K_M</td>
+<td>4</td>
+<td>5.03 GB</td>
+</tr>
+<tr class="even">
+<td>Q5_K_M</td>
+<td>5</td>
+<td>5.85 GB</td>
+</tr>
+<tr class="odd">
+<td>Q6_K</td>
+<td>6</td>
+<td>6.73 GB</td>
+</tr>
+<tr class="even">
+<td>Q8_0</td>
+<td>8</td>
+<td>8.71 GB</td>
+</tr>
+</tbody>
+</table>
+<p>同一模型中不同张量可以使用不同的量化级别。例如在 Q4_K_M
+中，归一化权重保持 F32，而注意力和 FFN 权重使用 Q4_K 或 Q6_K。</p>
+<h3 id="超越整数nvfp4">超越整数：NVFP4</h3>
+<p>新的硬件原生数据类型正在涌现。<strong>NVFP4</strong> 是一种 4
+位浮点格式（E2M1：1 位符号、2 位指数、1 位尾数），随 NVIDIA Blackwell
+架构引入。它使用： - <strong>逐块缩放</strong>，每 16 个值一个
+FP8（E4M3）缩放因子 - <strong>逐张量缩放</strong>，使用 FP32
+进行全局归一化</p>
+<p>这将量化从纯整数推向低位浮点，更好地保留了权重值的分布。</p>
+<h2 id="量化与训练">量化与训练</h2>
+<h3 id="量化感知训练qat">量化感知训练（QAT）</h3>
+<p>训练后量化（PTQ）在预训练完成后直接对模型进行量化，无需额外训练。<strong>量化感知训练（QAT）</strong>则采用不同策略：在模拟量化的条件下微调模型，使权重学会对量化误差的鲁棒性。</p>
+<p>核心机制是在前向传播中插入<strong>伪量化-反量化</strong>操作：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># QAT: x_fq is still in float, but has been through quantize + dequantize</span></span><br><span class="line">x_fq = (x_float / scale + zp).<span class="built_in">round</span>().clamp(qmin, qmax)</span><br><span class="line">x_fq = (x_fq - zp) * scale</span><br></pre></td></tr></table></figure>
+<p>模型在全精度下训练，但在前向传播中”感知”量化噪声，从而学习到在实际量化时更具鲁棒性的权重配置。推理时，伪量化节点被替换为真正的量化操作。</p>
+<p>QAT 在各种位宽下始终优于
+PTQ，尤其是在更低位宽时。例如，Kimi-K2-Thinking 在后训练阶段使用 QAT
+实现原生 INT4 量化，在低延迟模式下达到了无损的 2 倍加速。</p>
+<h3 id="微调qloradettmers-et-al.-2023">微调：QLoRA（Dettmers et al.,
+2023）</h3>
+<p>QLoRA 将量化与 LoRA 结合，大幅减少微调所需的 GPU 内存：</p>
+<table>
+<thead>
+<tr class="header">
+<th>组件</th>
+<th>LoRA</th>
+<th>QLoRA</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>基础模型</td>
+<td>16 位</td>
+<td><strong>4 位</strong></td>
+</tr>
+<tr class="even">
+<td>适配器</td>
+<td>16 位</td>
+<td>16 位</td>
+</tr>
+<tr class="odd">
+<td>优化器状态</td>
+<td>32 位（GPU）</td>
+<td>32 位（<strong>CPU</strong>，分页）</td>
+</tr>
+</tbody>
+</table>
+<p>核心思路： 1. <strong>4-bit
+NormalFloat（NF4）</strong>：使用针对正态分布权重优化的数据类型，将冻结的基础模型量化到
+4 位 2.
+<strong>双重量化</strong>：对量化常数本身也进行量化，进一步节省内存 3.
+<strong>分页优化器</strong>：将优化器状态卸载到 CPU
+内存，仅在需要时分页加载到 GPU</p>
+<p>这使得在单张 48GB GPU 上微调 650
+亿参数的模型成为可能——否则需要多张高端 GPU。</p>
+<h2 id="lec19-要点总结">Lec19 要点总结</h2>
+<ul>
+<li><strong>量化是部署的关键</strong>：从 16 位降到 4
+位可将模型大小缩减约 4 倍，使数十亿参数的模型能在消费级硬件上运行</li>
+<li><strong>离群值会破坏朴素量化</strong>：Transformer
+语言模型在规模增大时会产生系统性离群值特征；混合精度分解（LLM.int8()）通过对约
+0.1% 的离群值特征使用高精度来解决这一问题</li>
+<li><strong>格式多样性在增长</strong>：从基于整数的（INT8、INT4）到浮点的（NVFP4、FP8），硬件协同设计推动着新格式的发展</li>
+<li><strong>QAT 优于
+PTQ</strong>：在训练中引入量化噪声使模型在实际量化时退化更小</li>
+<li><strong>QLoRA 让微调平民化</strong>：将 4 位量化与 LoRA
+和内存分页结合，使大模型微调在普通硬件上成为可能</li>
+</ul>
+<h2 id="总结">总结</h2>
+<table>
+<colgroup>
+<col style="width: 37%" />
+<col style="width: 62%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>主题</th>
+<th>核心思想</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>数值表示</td>
+<td>Float32/16、BFloat16 在精度和范围间权衡；BFloat16 保留 Float32
+的指数范围</td>
+</tr>
+<tr class="even">
+<td>Absmax 量化</td>
+<td>按绝对最大值缩放映射到 [-127, 127]；简单但对离群值敏感</td>
+</tr>
+<tr class="odd">
+<td>Zero-point 量化</td>
+<td>使用缩放因子和偏移量映射完整范围；更适合非对称分布</td>
+</tr>
+<tr class="even">
+<td>LLM.int8()</td>
+<td>混合精度：离群值特征（~0.1%）用 FP16，其余用 INT8</td>
+</tr>
+<tr class="odd">
+<td>GGML/Llama.cpp</td>
+<td>基于块的量化（Q4_K、Q6_K），逐块缩放；支持 Metal/CUDA</td>
+</tr>
+<tr class="even">
+<td>QAT</td>
+<td>训练时插入伪量化-反量化操作，学习对量化鲁棒的权重</td>
+</tr>
+<tr class="odd">
+<td>QLoRA</td>
+<td>4 位基础模型 + 16 位 LoRA 适配器 + CPU 分页优化器实现高效微调</td>
+</tr>
+</tbody>
+</table>
+<p><strong>核心要点</strong>：量化不仅仅是部署优化——它是 LLM
+生命周期中的一等考量，方法横跨推理（PTQ、LLM.int8()）、训练（QAT）和微调（QLoRA），每种方法都在模型大小与质量之间的根本权衡中寻找平衡。</p>
+<h2 id="参考文献">参考文献</h2>
+<ul>
+<li>Dettmers et al., “LLM.int8(): 8-bit Matrix Multiplication for
+Transformers at Scale,” 2022</li>
+<li>Dettmers et al., “QLoRA: Efficient Finetuning of Quantized Language
+Models,” 2023</li>
+<li>Ilharco et al., “High Performance Natural Language Processing,”
+2020</li>
+<li>GGML / Llama.cpp: <a
+target="_blank" rel="noopener" href="https://github.com/ggml-org/llama.cpp">github.com/ggml-org/llama.cpp</a></li>
+<li>NVIDIA, “Introducing NVFP4 for Efficient and Accurate Low-Precision
+Inference”</li>
+<li>HuggingFace Quantization Overview: <a
+target="_blank" rel="noopener" href="https://huggingface.co/docs/transformers/v4.57.1/quantization/overview">huggingface.co/docs/transformers/quantization/overview</a></li>
+</ul>
+<p><em>本文基于 CMU 11-711 Advanced NLP 课程资料，由 Sean Welleck
+讲授（Lecture 19: Quantization）。</em></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/">https://xloverflow.github.io/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://xloverflow.github.io/zh" target="_blank">Life is not a race, but a journey</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/zh/tags/Natural-Language-Processing/">Natural Language Processing</a><a class="post-meta__tags" href="/zh/tags/CMU/">CMU</a><a class="post-meta__tags" href="/zh/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/zh/tags/11711/">11711</a><a class="post-meta__tags" href="/zh/tags/AI/">AI</a><a class="post-meta__tags" href="/zh/tags/Quantization/">Quantization</a><a class="post-meta__tags" href="/zh/tags/Inference/">Inference</a><a class="post-meta__tags" href="/zh/tags/Efficiency/">Efficiency</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">11711 Advanced NLP: Parallelism and Scaling</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理并行与扩展笔记，涵盖单 GPU 训练基础、数据/张量/流水线并行、ZeRO 内存优化，以及大规模 LLM 训练的策略选择。</div></div></div></a><a class="pagination-related" href="/zh/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">11868 LLM Sys: Systems for Mixture-of-Experts Models</div></div><div class="info-2"><div class="info-item-1">CMU 11-868 LLM Systems 第16讲笔记，涵盖 Mixture-of-Experts 架构、Switch Transformer、共享专家与路由专家、基于 GShard 的专家并行、负载均衡、DeepSeek V3 MoE 以及 DeepSpeed-MoE 推理优化。</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/zh/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">关于CMU 11-711高级自然语言处理的RNN架构、编码器-解码器模型和注意力机制的笔记。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-22</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/" title="11711 Advanced NLP: Learning &amp; Inference"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Learning &amp; Inference</div></div><div class="info-2"><div class="info-item-1">卡内基梅隆大学 11-711 高级自然语言处理的学习算法和推理方法笔记。</div></div></div></a><a class="pagination-related" href="/zh/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Multimodal/" title="11711 Advanced NLP: Multimodal Modeling"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-04</div><div class="info-item-2">11711 Advanced NLP: Multimodal Modeling</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理中多模态建模的笔记，涵盖 ViT、CLIP、LLaVA 风格对接、基于 token 的图像生成、扩散模型与 flow matching。</div></div></div></a><a class="pagination-related" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-06</div><div class="info-item-2">11711 Advanced NLP: Parallelism and Scaling</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理并行与扩展笔记，涵盖单 GPU 训练基础、数据/张量/流水线并行、ZeRO 内存优化，以及大规模 LLM 训练的策略选择。</div></div></div></a><a class="pagination-related" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-14</div><div class="info-item-2">11711 Advanced NLP: Retrieval and RAG</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理中关于检索系统、检索器和检索增强生成（RAG）的笔记。</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li 的中文博客</div><div class="site-data"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">62</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">116</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">22</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#lec19-%E9%87%8F%E5%8C%96"><span class="toc-number">1.</span> <span class="toc-text">Lec19 量化</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8A%A8%E6%9C%BA"><span class="toc-number">1.1.</span> <span class="toc-text">动机</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%B8%AD%E7%9A%84%E6%95%B0%E5%80%BC%E8%A1%A8%E7%A4%BA"><span class="toc-number">1.2.</span> <span class="toc-text">计算机中的数值表示</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%97%A0%E7%AC%A6%E5%8F%B7%E6%95%B4%E6%95%B0"><span class="toc-number">1.2.1.</span> <span class="toc-text">无符号整数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%89%E7%AC%A6%E5%8F%B7%E6%95%B4%E6%95%B0"><span class="toc-number">1.2.2.</span> <span class="toc-text">有符号整数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%AE%E7%82%B9%E6%95%B0"><span class="toc-number">1.2.3.</span> <span class="toc-text">浮点数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%AE%E7%82%B9%E6%95%B0%E7%B1%BB%E5%9E%8B"><span class="toc-number">1.2.4.</span> <span class="toc-text">浮点数类型</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8E%A8%E7%90%86%E9%87%8F%E5%8C%96"><span class="toc-number">1.3.</span> <span class="toc-text">推理量化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E9%87%8F%E5%8C%96"><span class="toc-number">1.3.1.</span> <span class="toc-text">什么是量化？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E9%87%8F%E5%8C%96-llm"><span class="toc-number">1.3.2.</span> <span class="toc-text">为什么要量化 LLM？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%8D%E9%87%8F%E5%8C%96absmax"><span class="toc-number">1.3.3.</span> <span class="toc-text">8 位量化：Absmax</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%8D%E9%87%8F%E5%8C%96zero-point"><span class="toc-number">1.3.4.</span> <span class="toc-text">8 位量化：Zero-Point</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%A6%BB%E7%BE%A4%E5%80%BC%E9%97%AE%E9%A2%98"><span class="toc-number">1.3.5.</span> <span class="toc-text">离群值问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#llm.int8dettmers-et-al.-2022"><span class="toc-number">1.3.6.</span> <span class="toc-text">LLM.int8()（Dettmers et al.,
+2022）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ggmlggufllama.cpp"><span class="toc-number">1.3.7.</span> <span class="toc-text">GGML&#x2F;GGUF&#x2F;Llama.cpp</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B6%85%E8%B6%8A%E6%95%B4%E6%95%B0nvfp4"><span class="toc-number">1.3.8.</span> <span class="toc-text">超越整数：NVFP4</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%87%8F%E5%8C%96%E4%B8%8E%E8%AE%AD%E7%BB%83"><span class="toc-number">1.4.</span> <span class="toc-text">量化与训练</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%87%8F%E5%8C%96%E6%84%9F%E7%9F%A5%E8%AE%AD%E7%BB%83qat"><span class="toc-number">1.4.1.</span> <span class="toc-text">量化感知训练（QAT）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BE%AE%E8%B0%83qloradettmers-et-al.-2023"><span class="toc-number">1.4.2.</span> <span class="toc-text">微调：QLoRA（Dettmers et al.,
+2023）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#lec19-%E8%A6%81%E7%82%B9%E6%80%BB%E7%BB%93"><span class="toc-number">1.5.</span> <span class="toc-text">Lec19 要点总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.6.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">1.7.</span> <span class="toc-text">参考文献</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11711 Advanced NLP: Parallelism and Scaling"/></a><div class="content"><a class="title" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling">11711 Advanced NLP: Parallelism and Scaling</a><time datetime="2026-04-07T03:00:00.000Z" title="发表于 2026-04-06 23:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11711 Advanced NLP: Quantization"/></a><div class="content"><a class="title" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization">11711 Advanced NLP: Quantization</a><time datetime="2026-04-07T02:00:00.000Z" title="发表于 2026-04-06 22:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11868 LLM Sys: Systems for Mixture-of-Experts Models"/></a><div class="content"><a class="title" href="/zh/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models">11868 LLM Sys: Systems for Mixture-of-Experts Models</a><time datetime="2026-03-21T19:00:00.000Z" title="发表于 2026-03-21 15:00:00">2026-03-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="15645 Database systems: Query Optimization"/></a><div class="content"><a class="title" href="/zh/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization">15645 Database systems: Query Optimization</a><time datetime="2026-03-20T18:00:00.000Z" title="发表于 2026-03-20 14:00:00">2026-03-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="15645 Database systems: Query Execution"/></a><div class="content"><a class="title" href="/zh/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution">15645 Database systems: Query Execution</a><time datetime="2026-03-15T18:00:00.000Z" title="发表于 2026-03-15 14:00:00">2026-03-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/zh/js/utils.js"></script><script src="/zh/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '8848acfda00c84c30271904ffae6082d'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/zh/404.html') : window.location.href = '/zh/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

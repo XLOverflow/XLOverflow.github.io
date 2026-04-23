@@ -1,0 +1,955 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>AI Agent Engineering Design: A Curated Reading List | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="A curated collection of essential readings on AI Agent engineering design, covering Claude Code, OpenAI Codex, context management, memory mechanisms, and the OpenClaw architecture. Each article includ">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AI Agent Engineering Design: A Curated Reading List">
+<meta property="og:url" content="https://xloverflow.github.io/2026/03/10/AI-Agent/AI-Agent-Engineering-Design-Curated-Reading-List/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="A curated collection of essential readings on AI Agent engineering design, covering Claude Code, OpenAI Codex, context management, memory mechanisms, and the OpenClaw architecture. Each article includ">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg">
+<meta property="article:published_time" content="2026-03-10T04:00:00.000Z">
+<meta property="article:modified_time" content="2026-03-10T04:00:00.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="AI Agent">
+<meta property="article:tag" content="Claude Code">
+<meta property="article:tag" content="Context Management">
+<meta property="article:tag" content="Engineering Design">
+<meta property="article:tag" content="LLM">
+<meta property="article:tag" content="Memory System">
+<meta property="article:tag" content="OpenAI Codex">
+<meta property="article:tag" content="Technical Reading">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "AI Agent Engineering Design: A Curated Reading List",
+  "url": "https://xloverflow.github.io/2026/03/10/AI-Agent/AI-Agent-Engineering-Design-Curated-Reading-List/",
+  "image": "https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg",
+  "datePublished": "2026-03-10T04:00:00.000Z",
+  "dateModified": "2026-03-10T04:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2026/03/10/AI-Agent/AI-Agent-Engineering-Design-Curated-Reading-List/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'AI Agent Engineering Design: A Curated Reading List',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">119</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">AI Agent Engineering Design: A Curated Reading List</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">AI Agent Engineering Design: A Curated Reading List</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-03-10T04:00:00.000Z" title="Created 2026-03-10 00:00:00">2026-03-10</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-03-10T04:00:00.000Z" title="Updated 2026-03-10 00:00:00">2026-03-10</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/AI-Agent/">AI Agent</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>Curated: March 9, 2026 | Curator: Xiaolong Xia 🦞</p>
+<p>This collection covers core readings on AI Agent engineering design,
+including Claude Code, OpenAI Codex, context management, memory
+mechanisms, and more. Each entry includes original citations and key
+takeaways.</p>
+</blockquote>
+<hr />
+<h2 id="part-i-claude-code-engineering-design">Part I — Claude Code
+Engineering Design</h2>
+<h3 id="introducing-claude-code-anthropic-official">1.1 Introducing
+Claude Code (Anthropic Official)</h3>
+<p><strong>Source:</strong> Anthropic Official Blog
+<strong>Link:</strong> https://www.anthropic.com/news/claude-code
+<strong>Published:</strong> February 2025</p>
+<p>Anthropic released Claude Code, an agentic coding tool that runs in
+your terminal. It directly manipulates the filesystem, executes
+commands, accesses codebases, and can interact with GitHub.</p>
+<p><strong>Key Quote:</strong></p>
+<blockquote>
+<p>“Claude Code is an agentic coding tool that lives in your terminal,
+understands your codebase, and helps you code faster by executing
+multi-step tasks autonomously.”</p>
+</blockquote>
+<p><strong>Core Design Highlights:</strong></p>
+<ul>
+<li><strong>Tool-Calling Architecture:</strong> Core tools include bash
+execution, file read/write, grep search, and git operations</li>
+<li><strong>Permission-Based Design:</strong> Sensitive operations
+(writing files, executing commands) require explicit user
+confirmation</li>
+<li><strong>System-Prompt Driven:</strong> Contains detailed operating
+principles, safety boundaries, and role definitions</li>
+<li><strong>Agentic Loop:</strong> Observe → Think → Act → Observe
+cycle</li>
+</ul>
+<hr />
+<h3 id="claude-code-system-prompt-analysis-community">1.2 Claude Code
+System Prompt Analysis (Community)</h3>
+<p><strong>Source:</strong> Anthropic release + community researcher
+analysis</p>
+<p>Anthropic officially published the complete Claude Code system
+prompt, sparking extensive community analysis.</p>
+<p><strong>Core System Prompt Structure:</strong></p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Layer</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Role Layer</td>
+<td>Explicitly defines Claude Code as an engineering-focused AI
+assistant, distinct from general Claude</td>
+</tr>
+<tr class="even">
+<td>Tool Declaration Layer</td>
+<td>Explicitly lists all available tools and invocation
+specifications</td>
+</tr>
+<tr class="odd">
+<td>Safety Guardrail Layer</td>
+<td>Clear constraints on dangerous operations (rm -rf, network
+exfiltration, etc.)</td>
+</tr>
+<tr class="even">
+<td>Behavioral Principle Layer</td>
+<td>Includes proactive clarification, minimal footprint, and other
+principles</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key Design Principle Quote:</strong></p>
+<blockquote>
+<p>“The assistant should request only necessary permissions, avoid
+storing sensitive information beyond immediate needs, prefer reversible
+over irreversible actions, and err on the side of doing less and
+confirming with users when uncertain about intended scope.”</p>
+</blockquote>
+<hr />
+<h3 id="building-effective-agents-anthropic-engineering">1.3 Building
+Effective Agents (Anthropic Engineering)</h3>
+<p><strong>Source:</strong> Anthropic Engineering Blog
+<strong>Link:</strong>
+https://www.anthropic.com/engineering/building-effective-agents
+<strong>Published:</strong> December 2024</p>
+<p>This is the Anthropic engineering team’s summary of agent-building
+best practices — essential reading.</p>
+<p><strong>Key Quote:</strong></p>
+<blockquote>
+<p>“The most important lesson from deploying agents is to start simple.
+Many tasks that seem to require complex multi-agent architectures can be
+solved with simpler approaches.”</p>
+</blockquote>
+<p><strong>Five Core Workflow Patterns:</strong></p>
+<ol type="1">
+<li><strong>Prompt Chaining</strong> — Decompose tasks into sequential
+steps; each step’s output becomes the next step’s input. Best for
+pipeline processing.</li>
+<li><strong>Routing</strong> — Classify inputs and direct them to
+different specialized processing flows, improving domain-specific
+capability.</li>
+<li><strong>Parallelization</strong> — Execute independent sub-tasks in
+parallel then aggregate, or use multi-model voting to improve
+reliability.</li>
+<li><strong>Orchestrator-Subagents</strong> — A primary Agent decomposes
+tasks and dispatches sub-Agents for specialized execution.</li>
+<li><strong>Evaluator-Optimizer</strong> — An iterative optimization
+loop combining a generator Agent and an evaluator Agent.</li>
+</ol>
+<p><strong>When to Use Agents:</strong></p>
+<blockquote>
+<p>“Agents are valuable when tasks require dynamic decision-making, when
+the right sequence of steps is hard to specify upfront, or when the task
+benefits from checking intermediate results.”</p>
+</blockquote>
+<hr />
+<h2 id="part-ii-openai-codex-engineering-design">Part II — OpenAI Codex
+Engineering Design</h2>
+<h3 id="introducing-codex-openai-official">2.1 Introducing Codex (OpenAI
+Official)</h3>
+<p><strong>Source:</strong> OpenAI Official Blog <strong>Link:</strong>
+https://openai.com/blog/introducing-codex <strong>Published:</strong>
+2025</p>
+<p>OpenAI released a new generation of Codex, positioned as a
+cloud-based AI software engineer designed for asynchronous, long-horizon
+programming tasks, capable of handling multiple tasks in parallel.</p>
+<p><strong>Core Design Features:</strong></p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Feature</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Sandbox Isolation</td>
+<td>Each task runs in an independent containerized sandbox — secure,
+isolated, non-interfering</td>
+</tr>
+<tr class="even">
+<td>Async Execution</td>
+<td>No need for real-time user supervision; supports long-horizon
+background tasks</td>
+</tr>
+<tr class="odd">
+<td>Deep GitHub Integration</td>
+<td>Autonomously submits PRs, creates branches, and responds to code
+reviews</td>
+</tr>
+<tr class="even">
+<td>Limited Network Access</td>
+<td>Sandbox can only access pre-whitelisted resources, preventing data
+exfiltration</td>
+</tr>
+<tr class="odd">
+<td>Parallel Processing</td>
+<td>Supports multiple independent tasks simultaneously for significantly
+improved throughput</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Comparison with Claude Code:</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th>Dimension</th>
+<th>Claude Code</th>
+<th>OpenAI Codex</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Deployment</td>
+<td>Local terminal</td>
+<td>Cloud service</td>
+</tr>
+<tr class="even">
+<td>Interaction</td>
+<td>Real-time</td>
+<td>Asynchronous</td>
+</tr>
+<tr class="odd">
+<td>Task Model</td>
+<td>Single task</td>
+<td>Multi-task parallel</td>
+</tr>
+<tr class="even">
+<td>Environment</td>
+<td>Native machine</td>
+<td>Isolated container</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="part-iii-general-ai-agent-engineering-design">Part III — General
+AI Agent Engineering Design</h2>
+<h3 id="llm-powered-autonomous-agents-essential-classic">3.1 LLM Powered
+Autonomous Agents (Essential Classic)</h3>
+<p><strong>Author:</strong> Lilian Weng (OpenAI)
+<strong>Source:</strong> Lilian Weng’s Blog <strong>Link:</strong>
+https://lilianweng.github.io/posts/2023-06-23-agent/
+<strong>Published:</strong> June 2023</p>
+<p>The most systematic and comprehensive survey on AI Agent architecture
+to date, authored by an OpenAI researcher.</p>
+<p><strong>Core Framework Quote:</strong></p>
+<blockquote>
+<p>“A LLM-based autonomous agent system is comprised of: Planning,
+Memory, and Tool Use.”</p>
+</blockquote>
+<p><strong>Three Core Components:</strong></p>
+<p><strong>Planning:</strong> - <strong>Chain of Thought (CoT)</strong>
+— Explicit reasoning steps improve complex problem-solving -
+<strong>Tree of Thoughts (ToT)</strong> — Extends reasoning to
+tree-structured search, exploring multiple solution paths -
+<strong>ReAct</strong> — Alternates between Reason and Act to interact
+with the external environment in real time - <strong>Reflexion</strong>
+— Corrects past mistakes through self-reflection and verbal feedback,
+without gradient updates</p>
+<p><strong>Memory:</strong> - <strong>Sensory Memory</strong> — Raw
+input buffer (analogous to sensory memory) - <strong>Short-term Memory
+(In-context)</strong> — Working memory within the current context window
+- <strong>Long-term Memory</strong> — External vector database
+supporting fuzzy semantic retrieval</p>
+<p><strong>Tool Use:</strong> - <strong>MRKL</strong> — Modular
+Reasoning, Knowledge, and Language - <strong>Toolformer</strong> — Model
+learns autonomously when to call APIs - <strong>HuggingGPT</strong> —
+LLM as controller, orchestrating specialized AI models</p>
+<hr />
+<h3 id="react-synergizing-reasoning-and-acting-in-language-models">3.2
+ReAct: Synergizing Reasoning and Acting in Language Models</h3>
+<p><strong>Authors:</strong> Shunyu Yao et al. (Google Brain /
+Princeton) <strong>Link:</strong> https://arxiv.org/abs/2210.03629
+<strong>Published:</strong> October 2022</p>
+<p><strong>Key Quote:</strong></p>
+<blockquote>
+<p>“ReAct prompts LLMs to generate both verbal reasoning traces and
+actions pertaining to a task in an interleaved manner, allowing the
+model to perform dynamic reasoning to create, maintain, and adjust
+high-level plans for acting.”</p>
+</blockquote>
+<p><strong>Core Mechanism:</strong></p>
+<p>The <strong>Thought → Action → Observation</strong> alternating loop
+deeply integrates reasoning chains with external tool calls. Explicit
+reasoning steps significantly improve interpretability.</p>
+<p>Demonstrated strong performance over pure Chain-of-Thought on
+HotpotQA, FEVER, and ALFWorld benchmarks.</p>
+<p><strong>Why It Matters:</strong> ReAct is a foundational paradigm for
+modern AI Agents (including Claude Code, LangChain Agents, etc.).</p>
+<hr />
+<h2 id="part-iv-context-management-and-memory-mechanisms">Part IV —
+Context Management and Memory Mechanisms</h2>
+<h3 id="memgpt-towards-llms-as-operating-systems">4.1 MemGPT: Towards
+LLMs as Operating Systems</h3>
+<p><strong>Authors:</strong> Charles Packer et al. (UC Berkeley)
+<strong>Link:</strong> https://arxiv.org/abs/2310.08560
+<strong>Published:</strong> October 2023 <strong>Venue:</strong> NeurIPS
+2023 Workshop</p>
+<p>This paper proposes applying OS memory hierarchy mechanisms to LLM
+context management — an important reference for Agent memory design.</p>
+<p><strong>Core Argument:</strong></p>
+<blockquote>
+<p>“We propose MemGPT, a system that intelligently manages different
+memory tiers to effectively provide extended context within the LLM’s
+limited context window, drawing inspiration from traditional OS
+hierarchical memory systems.”</p>
+</blockquote>
+<p><strong>Memory Layering Architecture:</strong></p>
+<p><strong>Main Context (In-Window, analogous to RAM):</strong> - System
+Instructions - Working Context (current task information) - FIFO Queue
+(rolling window of conversation history)</p>
+<p><strong>External Storage (analogous to Disk):</strong> - Archival
+Storage (vector-indexed archive) - Recall Storage (complete conversation
+history)</p>
+<p><strong>Core Mechanisms:</strong> - <strong>Active Memory
+Management</strong> — The model autonomously decides when to
+store/retrieve information from external storage -
+<strong>Interrupt-Driven</strong> — OS-style event-driven mechanism for
+memory operations - <strong>Seamless Extension</strong> — Breaks through
+the context window limit, enabling infinitely long sessions</p>
+<hr />
+<h3 id="cognitive-architectures-for-language-agents-coala">4.2 Cognitive
+Architectures for Language Agents (CoALA)</h3>
+<p><strong>Authors:</strong> Theodore R. Sumers et al. (Princeton /
+Google DeepMind) <strong>Link:</strong> https://arxiv.org/abs/2309.02427
+<strong>Published:</strong> September 2023</p>
+<p>An important survey systematically combining cognitive science with
+LLM Agent design.</p>
+<p><strong>Key Quote:</strong></p>
+<blockquote>
+<p>“We present a systematic framework for thinking about and building
+language agents, drawing on insights from cognitive science, AI
+planning, and recent work on LLM-based agents.”</p>
+</blockquote>
+<p><strong>Four-Category Memory Framework:</strong></p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Memory Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Episodic Memory</td>
+<td>Specific past events, retrievable chronologically</td>
+</tr>
+<tr class="even">
+<td>Semantic Memory</td>
+<td>General knowledge and facts, context-independent</td>
+</tr>
+<tr class="odd">
+<td>Procedural Memory</td>
+<td>Skills and operation methods, manifested as behavioral patterns</td>
+</tr>
+<tr class="even">
+<td>Working Memory</td>
+<td>Active information in current context, limited capacity</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Action Space Classification:</strong> - <strong>External
+Actions</strong> — Environmental interaction (tool calls, API requests)
+- <strong>Internal Actions</strong> — Reasoning, retrieval, memory
+read/write - <strong>Model Storage</strong> — Parameter updates
+(fine-tuning)</p>
+<hr />
+<h3 id="a-survey-on-large-language-model-based-autonomous-agents">4.3 A
+Survey on Large Language Model based Autonomous Agents</h3>
+<p><strong>Authors:</strong> Lei Wang et al. (Renmin University of
+China) <strong>Link:</strong> https://arxiv.org/abs/2308.11432
+<strong>Published:</strong> August 2023</p>
+<p>One of the most comprehensive LLM Agent surveys, covering three
+dimensions: construction, application, and evaluation.</p>
+<p><strong>Key Quote:</strong></p>
+<blockquote>
+<p>“We propose a unified framework to systematically organize and
+understand the field of LLM-based autonomous agents, encompassing the
+construction, application, and evaluation of such agents.”</p>
+</blockquote>
+<p><strong>Three Pillars of Agent Construction:</strong> -
+<strong>Profiling Module</strong> — Defines the Agent’s role,
+capabilities, and constraints - <strong>Memory Module</strong> — Designs
+storage, retrieval, and update mechanisms for memory - <strong>Action
+Module</strong> — Plans action sequences and interacts with the
+environment</p>
+<hr />
+<h2 id="part-v-openclaw-engineering-design-deep-dive">Part V — OpenClaw
+Engineering Design Deep Dive</h2>
+<blockquote>
+<p>This section synthesizes the OpenClaw official docs, source code
+analysis, and multiple technical blogs for a systematic review of its
+core engineering design.</p>
+</blockquote>
+<p><strong>Reference Sources:</strong> - Official Docs:
+https://docs.openclaw.ai - Towards AI Deep Analysis: <a
+target="_blank" rel="noopener" href="https://towardsai.net/p/machine-learning/openclaw-architecture-deep-dive-building-production-ready-ai-agents-from-scratch">OpenClaw
+Architecture Deep Dive</a> - Memory System Deep Dive: <a
+target="_blank" rel="noopener" href="https://snowan.gitbook.io/study-notes/ai-blogs/openclaw-memory-system-deep-dive">How
+OpenClaw’s Memory System Works</a> - Three-Layer Architecture: <a
+target="_blank" rel="noopener" href="https://eastondev.com/blog/en/posts/ai/20260205-openclaw-architecture-guide/">Technical
+Principles and Extension Practices</a> - System Architecture Overview:
+<a
+target="_blank" rel="noopener" href="https://ppaolo.substack.com/p/openclaw-system-architecture-overview">OpenClaw
+System Architecture Overview</a> - Medium Analysis: <a
+target="_blank" rel="noopener" href="https://bibek-poudel.medium.com/how-openclaw-works-understanding-ai-agents-through-a-real-architecture-5d59cc7a4764">How
+OpenClaw Works</a></p>
+<hr />
+<h3 id="three-layer-architecture-overview">5.1 Three-Layer Architecture
+Overview</h3>
+<p>OpenClaw’s core design philosophy is to treat AI as an
+<strong>infrastructure problem</strong>, not merely an application-layer
+wrapper. It adopts a three-layer architecture with clear separation of
+concerns.</p>
+<p><strong>Design Philosophy Quote (eastondev.com):</strong></p>
+<blockquote>
+<p>“OpenClaw divides the entire system into three layers, each managing
+its own concerns… Without layering, all logic piled together means
+changing one place might affect everything — completely
+unmaintainable.”</p>
+</blockquote>
+<p><strong>Layer Responsibilities:</strong></p>
+<p><strong>① Gateway Layer (Session Management Hub)</strong> - Manages
+the complete lifecycle of user sessions - Message queue and scheduling
+(who gets processed first) - Authentication and permission control -
+WebSocket persistent connection maintenance - <strong>Single-Writer
+Architecture:</strong> Only one Agent run per Session at any given time,
+preventing concurrent write state races</p>
+<p><strong>② Channel Layer (Platform Adapter)</strong> - Adapts
+platform-specific message formats (WhatsApp / Telegram / Discord /
+Feishu differ significantly) - Message routing rules (DM vs. group chat,
+whether <span class="citation" data-cites="mention">@mention</span> is
+required) - <strong>Adapter Pattern:</strong> Normalizes multi-platform
+input into a unified internal format, decoupling Gateway from the LLM
+layer - Each Channel + user combination has an independently isolated
+Session, preventing cross-platform context contamination</p>
+<p><strong>③ LLM Layer (Model Interface)</strong> - Unified Provider
+interface (Claude / GPT / local models called identically) - Tool
+Calling (Function Calling) - Streaming response handling - MCP Server
+integration - <strong>Provider Plugin System (2026 refactor):</strong>
+Supports dynamic registration of different model Providers</p>
+<p><strong>Complete Message Flow (Feishu example):</strong> 1. Channel
+layer receives webhook → normalizes message format 2. Routing decision:
+DM or group chat, permission check 3. Gateway finds (or creates) the
+user’s Session, message enters queue 4. LLM layer selects Provider per
+config, sends conversation context 5. Model returns result → Channel
+layer formats response</p>
+<hr />
+<h3 id="memory-system-deep-dive">5.2 Memory System Deep Dive</h3>
+<p>OpenClaw’s memory system is one of its most valuable engineering
+designs. Its core philosophy is <strong>File-First</strong> — Markdown
+files are the Source of Truth; the LLM’s Context Window is merely a
+dynamic cache.</p>
+<p><strong>Core Design Quote (snowan.gitbook.io):</strong></p>
+<blockquote>
+<p>“Unlike traditional RAG systems that rely on vector databases,
+OpenClaw takes a file-first approach: Markdown files are the source of
+truth, and the memory system is designed to help AI agents remember
+context across conversations.”</p>
+</blockquote>
+<p><strong>Three-Layer Memory Structure:</strong></p>
+<p><strong>① Long-Term Core Memory (MEMORY.md)</strong> - Stores the
+Agent’s preferences, operating principles, and persistent knowledge -
+Only loaded in private primary sessions — prevents privacy leakage to
+group chats / sub-Agents - Human-readable and editable; highly
+transparent</p>
+<p><strong>② Daily Logs (memory/YYYY-MM-DD.md)</strong> - Append-only
+writes; records daily activities, decisions, and conversation summaries
+- Today’s + yesterday’s logs auto-loaded at Session start - Analogous to
+a rolling window of working memory</p>
+<p><strong>③ Session Memory (SQLite + Vector Embeddings)</strong> -
+Storage path: <code>~/.openclaw/memory/&lt;agentId&gt;.sqlite</code> -
+Conversation history auto-indexed with vector embeddings, supports
+semantic retrieval - Isolated by Agent ID — each Agent has an
+independent knowledge base</p>
+<p><strong>Core Implementation: MemoryIndexManager</strong></p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">class</span> <span class="title class_">MemoryIndexManager</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">readonly</span> <span class="attr">agentId</span>: <span class="built_in">string</span>;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">readonly</span> <span class="attr">workspaceDir</span>: <span class="built_in">string</span>;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">provider</span>: <span class="title class_">EmbeddingProvider</span>;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">db</span>: <span class="title class_">DatabaseSync</span>;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">watcher</span>: <span class="title class_">FSWatcher</span> | <span class="literal">null</span> = <span class="literal">null</span>;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Key engineering decisions: - <strong>Singleton + Cache</strong> —
+Prevents redundant index rebuilding (INDEX_CACHE) - <strong>File
+Watching</strong> — Debounced file change sync, real-time index updates
+- <strong>Provider Fallback Chain</strong> — Local → OpenAI → Gemini →
+Voyage, graceful degradation - <strong>Delta-Based Incremental
+Sync</strong> — Only processes changed content, optimizing performance -
+<strong>SHA-256 Deduplication</strong> — Avoids re-embedding unchanged
+content</p>
+<p><strong>Hybrid Retrieval:</strong> - <strong>BM25 keyword search +
+vector semantic search</strong> running in parallel - Combines exact
+keyword matching with semantic understanding; recall significantly
+outperforms either approach alone</p>
+<p><strong>Markdown Chunking Algorithm:</strong></p>
+<p>OpenClaw uses a sliding window + overlap-preserving algorithm for
+Markdown chunking:</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">chunkMarkdown</span>(<span class="params"></span></span><br><span class="line"><span class="params">  <span class="attr">content</span>: <span class="built_in">string</span>,</span></span><br><span class="line"><span class="params">  <span class="attr">chunking</span>: &#123; tokens: <span class="built_in">number</span>; overlap: <span class="built_in">number</span> &#125;,</span></span><br><span class="line"><span class="params"></span>): <span class="title class_">MemoryChunk</span>[] &#123;</span><br><span class="line">  <span class="comment">// Sliding window, preserving overlap region to prevent semantic truncation</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>Auto-Compaction and Memory Flush:</strong> - When the Context
+Window approaches its limit, automatically compresses (compacts) old
+conversations - <strong>Pre-Compaction Flush:</strong> Triggers memory
+writes before compaction to ensure important information is not lost -
+Analogous to the OS page flush mechanism</p>
+<hr />
+<h3 id="skill-hot-swap-system">5.3 Skill Hot-Swap System</h3>
+<p><strong>The “Skills as Configuration” Philosophy:</strong></p>
+<p>Each skill is self-describing via <code>SKILL.md</code>, supporting
+trigger condition declarations and invocation specification definitions.
+Built-in skills include: <code>feishu-doc</code>,
+<code>feishu-wiki</code>, <code>weather</code>,
+<code>healthcheck</code>, <code>skill-creator</code>, and others.
+Community skills are distributed via ClaWHub (https://clawhub.com).</p>
+<p><strong>Design Advantages:</strong> - <strong>Self-Describing
+Interface</strong> — <code>SKILL.md</code> defines trigger intents, tool
+call specifications, and examples - <strong>On-Demand Loading</strong> —
+Only reads <code>SKILL.md</code> when intent matches; zero fixed Context
+overhead - <strong>Extensible Ecosystem</strong> — Users can install
+community Skills without modifying core code</p>
+<p><strong>Security Warning (Towards AI):</strong></p>
+<blockquote>
+<p>“Security researchers found 400+ malicious plugins in its marketplace
+within two minutes of looking.”</p>
+</blockquote>
+<p>This incident highlights supply chain security risks in Agent plugin
+ecosystems — an important lesson for AI Agent engineering.</p>
+<hr />
+<h3 id="multi-session-sub-agent-architecture">5.4 Multi-Session /
+Sub-Agent Architecture</h3>
+<p><strong>Session Hierarchy Design:</strong></p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Session Type</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Main Session</td>
+<td>Primary session in direct dialogue with the user</td>
+</tr>
+<tr class="even">
+<td>Subagent</td>
+<td>Parallel task execution; isolated toolset; independent state</td>
+</tr>
+<tr class="odd">
+<td>ACP Session</td>
+<td>Integration with external coding Agents like Claude Code /
+Codex</td>
+</tr>
+<tr class="even">
+<td>Thread Session</td>
+<td>Persistent dialogue threads bound to platforms like Discord</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Engineering Highlights:</strong> -
+<code>sessions_spawn</code> isolates sub-sessions, preventing state
+contamination and Context conflicts - Sub-Agents push notifications to
+the main session upon completion, avoiding inefficient polling -
+<strong>ACP Harness</strong> uniformly orchestrates external Agents
+(Claude Code, Gemini, etc.) - <strong>Single-Writer Queue</strong> —
+Only one Run per Session at a time, guaranteeing message order
+consistency</p>
+<hr />
+<h3 id="heartbeat-proactive-scheduling">5.5 Heartbeat Proactive
+Scheduling</h3>
+<p>OpenClaw’s built-in <strong>Heartbeat</strong> mechanism transforms
+the Agent from passive response to proactive scheduling:</p>
+<ul>
+<li>Triggers periodically to check emails, calendar events, and pending
+notifications</li>
+<li>Automatically suppresses interruptions during quiet periods (e.g.,
+late night)</li>
+<li>Supports background work (memory organization, code checks, file
+sync)</li>
+<li>Cooperates with Cron system: precise scheduled tasks go through
+Cron; batch periodic checks go through Heartbeat</li>
+</ul>
+<hr />
+<h3 id="design-highlights-summary">5.6 Design Highlights Summary</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Engineering Dimension</th>
+<th>OpenClaw Design</th>
+<th>Academic Concept</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Memory Layering</td>
+<td>MEMORY.md / Daily Logs / SQLite</td>
+<td>MemGPT Memory Hierarchy</td>
+</tr>
+<tr class="even">
+<td>Hybrid Retrieval</td>
+<td>BM25 + Vector Hybrid</td>
+<td>Dense-Sparse Hybrid Retrieval</td>
+</tr>
+<tr class="odd">
+<td>Context Management</td>
+<td>File as State / On-Demand Loading</td>
+<td>CoALA Working Memory</td>
+</tr>
+<tr class="even">
+<td>Multi-Agent Coordination</td>
+<td>Subagent + Push Notification</td>
+<td>Orchestrator-Subagents Pattern</td>
+</tr>
+<tr class="odd">
+<td>Tool Calling</td>
+<td>Skill Hot-Swap / SKILL.md</td>
+<td>ReAct Tool Use Paradigm</td>
+</tr>
+<tr class="even">
+<td>Proactive Scheduling</td>
+<td>Heartbeat Mechanism</td>
+<td>Proactive Agent Design</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="further-reading">Further Reading</h2>
+<p><strong>General LLM/Agent Engineering:</strong> - Simon Willison’s
+Blog — LLM/Agent practical analysis:
+https://simonwillison.net/tags/agents/ - Eugene Yan — LLM Patterns
+(engineering-oriented): https://eugeneyan.com/writing/llm-patterns/ -
+Chip Huyen — Building LLM Applications for Production:
+https://huyenchip.com/2023/04/11/llm-engineering.html - LangChain Blog —
+Agent Design Patterns: https://blog.langchain.dev - Anthropic Research
+Blog: https://www.anthropic.com/research</p>
+<p><strong>OpenClaw Specific:</strong> - Official Docs:
+https://docs.openclaw.ai - Memory System Deep Dive (Gitbook):
+https://snowan.gitbook.io/study-notes/ai-blogs/openclaw-memory-system-deep-dive
+- Three-Layer Architecture (eastondev.com):
+https://eastondev.com/blog/en/posts/ai/20260205-openclaw-architecture-guide/
+- Towards AI Production Agent Architecture:
+https://towardsai.net/p/machine-learning/openclaw-architecture-deep-dive-building-production-ready-ai-agents-from-scratch
+- System Architecture Overview (Substack):
+https://ppaolo.substack.com/p/openclaw-system-architecture-overview</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2026/03/10/AI-Agent/AI-Agent-Engineering-Design-Curated-Reading-List/">https://xloverflow.github.io/2026/03/10/AI-Agent/AI-Agent-Engineering-Design-Curated-Reading-List/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/AI-Agent/">AI Agent</a><a class="post-meta__tags" href="/tags/LLM/">LLM</a><a class="post-meta__tags" href="/tags/Engineering-Design/">Engineering Design</a><a class="post-meta__tags" href="/tags/Claude-Code/">Claude Code</a><a class="post-meta__tags" href="/tags/OpenAI-Codex/">OpenAI Codex</a><a class="post-meta__tags" href="/tags/Memory-System/">Memory System</a><a class="post-meta__tags" href="/tags/Context-Management/">Context Management</a><a class="post-meta__tags" href="/tags/Technical-Reading/">Technical Reading</a></div><div class="post-share"><div class="social-share" data-image="https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/03/15/11868-LLM-Sys/11868-LLM-Sys-Distributed-Training-and-DDP/" title="11868 LLM Sys: Distributed Training, DDP, and Model Parallelism"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">11868 LLM Sys: Distributed Training, DDP, and Model Parallelism</div></div><div class="info-2"><div class="info-item-1">Notes on CMU 11-868 LLM Systems Lec13-15, covering distributed training, NCCL collectives, Ring AllReduce, PyTorch DDP, pipeline parallelism, tensor parallelism, and their combination.</div></div></div></a><a class="pagination-related" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Join-Algorithms/" title="15645 Database systems: Join Algorithms"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">15645 Database systems: Join Algorithms</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/01/12/Personal/Deconstructing%20Agentic%20Coding%20with%20First%20Principles:%20From%20Theory%20to%20Practice/" title="Deconstructing Agentic Coding with First Principles: From Theory to Practice"><img class="cover" src="https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-12</div><div class="info-item-2">Deconstructing Agentic Coding with First Principles: From Theory to Practice</div></div><div class="info-2"><div class="info-item-1">This article is from a ByteDance expert, titled "Deconstructing Agentic Coding with First Principles: From Theory to Practice." I gained a lot from reading it.</div></div></div></a><a class="pagination-related" href="/2025/12/14/Personal/%E6%B7%98%E5%A4%A9ai-agent%E9%9D%A2%E7%BB%8F/" title="淘天ai agent面经"><img class="cover" src="https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-12-13</div><div class="info-item-2">淘天ai agent面经</div></div><div class="info-2"><div class="info-item-1">Collected interview experiences for the TaoTian AI agent.</div></div></div></a><a class="pagination-related" href="/2026/02/09/CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch/" title="CS336 Assignment 1: Building a Transformer Language Model from Scratch"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-08</div><div class="info-item-2">CS336 Assignment 1: Building a Transformer Language Model from Scratch</div></div><div class="info-2"><div class="info-item-1">A comprehensive reflection on implementing a complete Transformer language model pipeline from scratch — including BPE tokenizer with parallel pre-tokenization, decoder-only Transformer with RMSNorm/RoPE/SwiGLU, AdamW optimizer, and autoregressive text generation. Trained on TinyStories and OpenWebText with extensive experiments on learning rate sweeps, batch size studies, and architectural ablations.</div></div></div></a><a class="pagination-related" href="/2025/12/14/CS336/CS336-Lec1-Tokenization/" title="CS336-Lec1 Tokenization"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-12-14</div><div class="info-item-2">CS336-Lec1 Tokenization</div></div><div class="info-2"><div class="info-item-1">Lec1 mainly introduces the basic concepts of Tokenization and several common Tokenizer methods, including Character Tokenizer, Byte Tokenizer, Word Tokenizer, and BPE Tokenizer, analyzing their advantages, disadvantages, and applicable scenarios.</div></div></div></a><a class="pagination-related" href="/2025/12/15/CS336/CS336-Lec2-PyTorch-Resource-accounting/" title="CS336-Lec2 PyTorch &amp; Resource accounting"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-12-14</div><div class="info-item-2">CS336-Lec2 PyTorch &amp; Resource accounting</div></div><div class="info-2"><div class="info-item-1">This section focuses on the 'compute black box' behind model training. Starting from the microscopic details of floating-point formats, it delves into FLOPs calculation formulas, analyzes the characteristics of modern hardware, and finally provides a comprehensive optimization guide ranging from mathematical principles to PyTorch code implementation.</div></div></div></a><a class="pagination-related" href="/2025/12/16/CS336/CS336-Lec3-Architectures-Hyperparameters/" title="CS336-Lec3 Architectures &amp; Hyperparameters"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-12-16</div><div class="info-item-2">CS336-Lec3 Architectures &amp; Hyperparameters</div></div><div class="info-2"><div class="info-item-1">This article summarizes the content of the third lecture of the CS336 course, focusing on the evolution of Transformer architectures and their hyperparameter choices, including the latest developments in normalization methods, activation functions, position encoding, and more.</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">119</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#part-i-claude-code-engineering-design"><span class="toc-number">1.</span> <span class="toc-text">Part I — Claude Code
+Engineering Design</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#introducing-claude-code-anthropic-official"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 Introducing
+Claude Code (Anthropic Official)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#claude-code-system-prompt-analysis-community"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 Claude Code
+System Prompt Analysis (Community)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#building-effective-agents-anthropic-engineering"><span class="toc-number">1.3.</span> <span class="toc-text">1.3 Building
+Effective Agents (Anthropic Engineering)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#part-ii-openai-codex-engineering-design"><span class="toc-number">2.</span> <span class="toc-text">Part II — OpenAI Codex
+Engineering Design</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#introducing-codex-openai-official"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 Introducing Codex (OpenAI
+Official)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#part-iii-general-ai-agent-engineering-design"><span class="toc-number">3.</span> <span class="toc-text">Part III — General
+AI Agent Engineering Design</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#llm-powered-autonomous-agents-essential-classic"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 LLM Powered
+Autonomous Agents (Essential Classic)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#react-synergizing-reasoning-and-acting-in-language-models"><span class="toc-number">3.2.</span> <span class="toc-text">3.2
+ReAct: Synergizing Reasoning and Acting in Language Models</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#part-iv-context-management-and-memory-mechanisms"><span class="toc-number">4.</span> <span class="toc-text">Part IV —
+Context Management and Memory Mechanisms</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#memgpt-towards-llms-as-operating-systems"><span class="toc-number">4.1.</span> <span class="toc-text">4.1 MemGPT: Towards
+LLMs as Operating Systems</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#cognitive-architectures-for-language-agents-coala"><span class="toc-number">4.2.</span> <span class="toc-text">4.2 Cognitive
+Architectures for Language Agents (CoALA)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#a-survey-on-large-language-model-based-autonomous-agents"><span class="toc-number">4.3.</span> <span class="toc-text">4.3 A
+Survey on Large Language Model based Autonomous Agents</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#part-v-openclaw-engineering-design-deep-dive"><span class="toc-number">5.</span> <span class="toc-text">Part V — OpenClaw
+Engineering Design Deep Dive</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#three-layer-architecture-overview"><span class="toc-number">5.1.</span> <span class="toc-text">5.1 Three-Layer Architecture
+Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#memory-system-deep-dive"><span class="toc-number">5.2.</span> <span class="toc-text">5.2 Memory System Deep Dive</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#skill-hot-swap-system"><span class="toc-number">5.3.</span> <span class="toc-text">5.3 Skill Hot-Swap System</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#multi-session-sub-agent-architecture"><span class="toc-number">5.4.</span> <span class="toc-text">5.4 Multi-Session &#x2F;
+Sub-Agent Architecture</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#heartbeat-proactive-scheduling"><span class="toc-number">5.5.</span> <span class="toc-text">5.5 Heartbeat Proactive
+Scheduling</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#design-highlights-summary"><span class="toc-number">5.6.</span> <span class="toc-text">5.6 Design Highlights Summary</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#further-reading"><span class="toc-number">6.</span> <span class="toc-text">Further Reading</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Parallelism and Scaling"/></a><div class="content"><a class="title" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling">11711 Advanced NLP: Parallelism and Scaling</a><time datetime="2026-04-07T03:00:00.000Z" title="Created 2026-04-06 23:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Quantization"/></a><div class="content"><a class="title" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization">11711 Advanced NLP: Quantization</a><time datetime="2026-04-07T02:00:00.000Z" title="Created 2026-04-06 22:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Systems for Mixture-of-Experts Models"/></a><div class="content"><a class="title" href="/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models">11868 LLM Sys: Systems for Mixture-of-Experts Models</a><time datetime="2026-03-21T19:00:00.000Z" title="Created 2026-03-21 15:00:00">2026-03-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Query Optimization"/></a><div class="content"><a class="title" href="/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization">15645 Database systems: Query Optimization</a><time datetime="2026-03-20T18:00:00.000Z" title="Created 2026-03-20 14:00:00">2026-03-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Query Execution"/></a><div class="content"><a class="title" href="/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution">15645 Database systems: Query Execution</a><time datetime="2026-03-15T18:00:00.000Z" title="Created 2026-03-15 14:00:00">2026-03-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || 'a3090e59f06269718db07fdc25b0643c'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

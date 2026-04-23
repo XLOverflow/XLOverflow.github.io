@@ -1,0 +1,772 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>11711 Advanced NLP: Parallelism and Scaling | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="CMU 11-711 高级自然语言处理并行与扩展笔记，涵盖单 GPU 训练基础、数据&#x2F;张量&#x2F;流水线并行、ZeRO 内存优化，以及大规模 LLM 训练的策略选择。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="11711 Advanced NLP: Parallelism and Scaling">
+<meta property="og:url" content="https://xloverflow.github.io/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="CMU 11-711 高级自然语言处理并行与扩展笔记，涵盖单 GPU 训练基础、数据&#x2F;张量&#x2F;流水线并行、ZeRO 内存优化，以及大规模 LLM 训练的策略选择。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png">
+<meta property="article:published_time" content="2026-04-07T03:00:00.000Z">
+<meta property="article:modified_time" content="2026-04-07T03:00:00.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="Natural Language Processing">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="Study Notes">
+<meta property="article:tag" content="11711">
+<meta property="article:tag" content="AI">
+<meta property="article:tag" content="Distributed Training">
+<meta property="article:tag" content="Parallelism">
+<meta property="article:tag" content="Scaling">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "11711 Advanced NLP: Parallelism and Scaling",
+  "url": "https://xloverflow.github.io/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png",
+  "datePublished": "2026-04-07T03:00:00.000Z",
+  "dateModified": "2026-04-07T03:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io/zh"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/zh/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/zh/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/zh/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '11711 Advanced NLP: Parallelism and Scaling',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">62</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">116</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">22</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/zh/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/zh/"><span class="site-name">11711 Advanced NLP: Parallelism and Scaling</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/"><i class="fas fa-language fa-fw"></i><span> English</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">11711 Advanced NLP: Parallelism and Scaling</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-04-07T03:00:00.000Z" title="发表于 2026-04-06 23:00:00">2026-04-06</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-04-07T03:00:00.000Z" title="更新于 2026-04-06 23:00:00">2026-04-06</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/zh/categories/CMU-11-711-%E9%AB%98%E7%BA%A7%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/">CMU 11-711 高级自然语言处理</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="lec20-并行与扩展">Lec20 并行与扩展</h1>
+<p>本讲解决 LLM 预训练的核心系统问题：如何高效利用多 GPU
+来训练更大的模型、处理更多的数据。关键问题在于如何在设备间分配工作，同时最小化通信和空闲气泡造成的浪费。</p>
+<h2 id="动机">动机</h2>
+<p>预训练同时受益于更多数据和更大模型——两者都能降低训练损失。问题在于扩展需要高效利用多
+GPU，这引入了三个相互制约的因素：</p>
+<ul>
+<li><strong>内存占用</strong>：所有训练状态（权重、梯度、优化器状态、激活值）必须装入
+GPU 显存</li>
+<li><strong>计算效率</strong>：GPU
+应把大部分时间花在计算上，而非等待</li>
+<li><strong>通信开销</strong>：GPU 间的同步会导致空闲</li>
+</ul>
+<p>正确配置的影响是巨大的。课件展示了同一个 3.57B 模型在 32
+节点上的两种配置：一种达到 17.4% MFU、1.7M tok/s，另一种仅 0.7% MFU、60K
+tok/s——仅因并行策略不同，吞吐量相差 <strong>28 倍</strong>。</p>
+<h2 id="单-gpu-训练基础">单 GPU 训练基础</h2>
+<h3 id="计算量">计算量</h3>
+<p>训练计算量以浮点运算（FLOPs）衡量。一次前向和反向传播的计算量为：</p>
+<p><span class="math display">\[
+\text{FLOPs} = 6 \times \text{model\_parameters} \times
+\text{token\_batch\_size}
+\]</span></p>
+<p>系数 6 来自：前向传播中乘加运算 2x，反向传播 4x（两次反向计算各
+2x）。</p>
+<p><strong>模型浮点运算利用率（MFU）</strong>衡量硬件的使用效率：</p>
+<p><span class="math display">\[
+\text{MFU} = \frac{\text{实际 FLOPS}}{\text{理论峰值 FLOPS}}
+\]</span></p>
+<p>作为参考，H100 SXM 在 BFloat16 Tensor Core 下的理论峰值为 1,979
+teraFLOPS。实际训练通常达到 30-45%
+MFU，原因在于通信开销、内存带宽限制和空闲时间。</p>
+<h3 id="内存占用">内存占用</h3>
+<p>一个训练步骤需要存储四类张量：</p>
+<p><span class="math display">\[
+\text{峰值内存} = \text{model\_bf16} + \text{model\_fp32} +
+\text{grads\_fp32} + \text{optim\_states} + \text{activations}
+\]</span></p>
+<p>使用混合精度 Adam 时，每个参数的大致开销：</p>
+<table>
+<thead>
+<tr class="header">
+<th>组件</th>
+<th>每参数字节数</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>BF16 模型权重</td>
+<td>2</td>
+</tr>
+<tr class="even">
+<td>FP32 主权重</td>
+<td>4</td>
+</tr>
+<tr class="odd">
+<td>FP32 梯度</td>
+<td>4</td>
+</tr>
+<tr class="even">
+<td>Adam 动量（FP32）</td>
+<td>4</td>
+</tr>
+<tr class="odd">
+<td>Adam 方差（FP32）</td>
+<td>4</td>
+</tr>
+<tr class="even">
+<td><strong>总计（不含激活值）</strong></td>
+<td><strong>18</strong></td>
+</tr>
+</tbody>
+</table>
+<p>对于 7B 模型，仅参数/梯度/优化器就需要约 126 GB——已经超过单张 H100 的
+80 GB。70B 模型需要约 1,120-1,400 GB。</p>
+<h3 id="激活值内存">激活值内存</h3>
+<p>激活值内存与 batch size 线性相关，与序列长度二次相关：</p>
+<p><span class="math display">\[
+m_{\text{act}} = L \cdot seq \cdot bs \cdot h \cdot \left(34 + \frac{5
+\cdot n_{\text{heads}} \cdot seq}{h}\right)
+\]</span></p>
+<p>其中 <span class="math inline">\(L\)</span> 为层数，<span
+class="math inline">\(seq\)</span> 为序列长度，<span
+class="math inline">\(bs\)</span> 为 batch size，<span
+class="math inline">\(h\)</span> 为隐藏维度，<span
+class="math inline">\(n_{\text{heads}}\)</span>
+为注意力头数。二次项来自注意力分数矩阵（<span class="math inline">\(seq
+\times seq\)</span>）。在长序列（8K+）下，激活值主导内存占用。</p>
+<h3 id="激活值重计算">激活值重计算</h3>
+<p><strong>激活值重计算</strong>（梯度检查点）不在前向传播中保存所有激活值，而是仅保存某些激活值作为”检查点”，在反向传播中重新计算其余部分。</p>
+<p>权衡很明确：用更多计算换更少内存。选择性重计算针对最耗内存的激活值（如注意力分数），同时保留较便宜的激活值，在两个极端之间取得平衡。</p>
+<h3 id="梯度累积">梯度累积</h3>
+<p>梯度累积将大 batch 拆分为小的
+micro-batch，依次执行前向/反向传播并在更新前平均梯度：</p>
+<p><span class="math display">\[
+bs = gbs = mbs \cdot grad\_acc
+\]</span></p>
+<p>这使你可以在恒定内存下模拟大 batch size。内存消耗由 micro-batch size
+决定，而有效 batch size 等于 micro-batch size
+乘以累积步数。预训练通常使用每 batch 400-6000 万 token。</p>
+<h2 id="数据并行">数据并行</h2>
+<h3 id="基本思路">基本思路</h3>
+<p>数据并行（DP）在每个 GPU 上复制完整模型。每个 GPU 处理不同的
+micro-batch，独立计算梯度，然后所有 GPU 通过 <strong>all-reduce</strong>
+操作平均梯度后更新权重。</p>
+<p>全局 batch size 变为：</p>
+<p><span class="math display">\[
+\text{global batch size} = mbs \cdot grad\_acc \cdot dp
+\]</span></p>
+<p>其中 <span class="math inline">\(dp\)</span> 为数据并行副本数。</p>
+<h3 id="通信集合操作">通信：集合操作</h3>
+<p>多 GPU 训练依赖集合通信原语：</p>
+<table>
+<thead>
+<tr class="header">
+<th>操作</th>
+<th>模式</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Send/Recv</td>
+<td>两个 rank 之间的点对点传输</td>
+</tr>
+<tr class="even">
+<td>Scatter</td>
+<td>一个 rank 向所有 rank 分发数据块</td>
+</tr>
+<tr class="odd">
+<td>Gather</td>
+<td>一个 rank 从所有 rank 收集数据块</td>
+</tr>
+<tr class="even">
+<td>Broadcast</td>
+<td>一个 rank 向所有 rank 发送相同数据</td>
+</tr>
+<tr class="odd">
+<td>Reduce</td>
+<td>所有 rank 贡献数据，一个 rank 获得聚合结果</td>
+</tr>
+<tr class="even">
+<td>All-Reduce</td>
+<td>所有 rank 贡献数据，所有 rank 获得聚合结果</td>
+</tr>
+<tr class="odd">
+<td>All-Gather</td>
+<td>所有 rank 贡献数据块，所有 rank 获得完整数据</td>
+</tr>
+</tbody>
+</table>
+<p>朴素数据并行中，整个反向传播完成后发起一次 all-reduce。这意味着 GPU
+在整个通信阶段处于空闲状态。</p>
+<h3 id="重叠-分桶">重叠 + 分桶</h3>
+<p>关键优化是<strong>将通信与计算重叠</strong>：</p>
+<ol type="1">
+<li><strong>梯度就绪后立即启动 all-reduce</strong> —
+不等待完整的反向传播</li>
+<li><strong>将梯度分组到桶中</strong> — 每个桶发起一次 all-reduce
+而非每个参数一次</li>
+</ol>
+<p>由于反向传播从最后一层开始计算梯度，后面层的 all-reduce
+可以与前面层的梯度计算重叠，将大部分通信延迟隐藏在有用的计算背后。</p>
+<h3 id="扩展行为">扩展行为</h3>
+<p>数据并行<strong>不会</strong>减少每 GPU 内存——每个 GPU
+仍持有模型、梯度和优化器状态的完整副本。它仅通过并行处理更多数据来提升吞吐量。</p>
+<p>随着 GPU 数量增加，由于通信开销增长，每 GPU 吞吐量下降。课件展示 3B
+模型从 DP=8 时的约 38K tokens/sec/GPU 降至 DP=256 时的约 22K
+tokens/sec/GPU（-40.6%）。</p>
+<h3 id="实例计算">实例计算</h3>
+<p>假设全局 batch size 为 400 万 token，序列长度 4,000： - 序列数：4M /
+4K = 1,024 - 若单 GPU 可容纳 mbs=2 个序列，128 个 GPU：2 × 128 = 256
+个序列/步 - 需要 grad_acc = 1024 / 256 = 4 个累积步</p>
+<p>若改为 512 个 GPU：2 × 512 = 1,024 个序列/步，grad_acc =
+1（无需累积，每步更快）。</p>
+<h2 id="张量并行">张量并行</h2>
+<h3 id="基本思路-1">基本思路</h3>
+<p>当模型太大无法放入单个 GPU 时，张量并行（TP）将单个权重矩阵拆分到多个
+GPU 上。每个 GPU 计算矩阵乘法的一部分，然后通过通信合并结果。</p>
+<h3 id="列并行">列并行</h3>
+<p>将权重矩阵 <span class="math inline">\(W\)</span> 按列拆分。每个 GPU
+持有一个列块，独立计算 <span class="math inline">\(X \cdot
+W_i\)</span>。输入 <span class="math inline">\(X\)</span>
+<strong>广播</strong>到所有 GPU，部分输出 <span
+class="math inline">\(Y_i\)</span> 通过 <strong>all-gather</strong>
+重建完整输出。</p>
+<p>2 GPU 拆分 <span class="math inline">\(Y = XW\)</span>： - GPU 0
+计算：<span class="math inline">\(Y_0 = X \cdot W_0\)</span>（前半列） -
+GPU 1 计算：<span class="math inline">\(Y_1 = X \cdot
+W_1\)</span>（后半列） - All-gather 得到：<span class="math inline">\(Y
+= [Y_0, Y_1]\)</span></p>
+<h3 id="行并行">行并行</h3>
+<p>将权重矩阵按行拆分（相应地将输入按列拆分）。每个 GPU
+计算部分结果，然后通过 <strong>all-reduce</strong>（求和）合并。</p>
+<p>2 GPU 拆分： - GPU 0 计算：<span class="math inline">\(Y_0 = X_0
+\cdot W_0\)</span> - GPU 1 计算：<span class="math inline">\(Y_1 = X_1
+\cdot W_1\)</span> - All-reduce 得到：<span class="math inline">\(Y =
+Y_0 + Y_1\)</span></p>
+<h3 id="应用于-transformer-层">应用于 Transformer 层</h3>
+<p><strong>前馈层</strong>第一个线性层（<span
+class="math inline">\(A\)</span>）使用列并行，第二个线性层（<span
+class="math inline">\(B\)</span>）使用行并行。这避免了两者之间的中间
+all-reduce/all-gather——列并行的输出自然成为行并行的输入：</p>
+<p><span class="math display">\[
+Y = \text{GeLU}(XA), \quad Z = \text{Dropout}(YB)
+\]</span></p>
+<p><span class="math inline">\(A = [A_1, A_2]\)</span>（列拆分）、<span
+class="math inline">\(B = \begin{bmatrix} B_1 \\ B_2
+\end{bmatrix}\)</span>（行拆分），每个 GPU 计算 <span
+class="math inline">\(\text{GeLU}(X \cdot A_i) \cdot
+B_i\)</span>，最后只需一次 all-reduce。</p>
+<p><strong>注意力层</strong>按注意力头自然拆分。Q、K、V
+投影按列拆分，每个 GPU 独立处理其子集的注意力头，输出投影按行拆分。</p>
+<h3 id="权衡">权衡</h3>
+<p>张量并行减少了权重、梯度、优化器状态和激活值的每 GPU 内存。70B
+模型在无并行时需要 140 GB，TP=8 或 TP=16 可降至 80 GB 以内。</p>
+<p>代价是通信。每个 Transformer 层在前向和反向传播中都需要 all-reduce 或
+all-gather 操作。吞吐量随 TP 增大急剧下降：3B 模型 TP=2 时约 13K
+tokens/sec/GPU，TP=32 时降至约 4.5K（-65.6%）。</p>
+<p>跨节点通信带宽大幅下降（节点内 436 GB/s vs 64 节点时约 34
+GB/s），因此<strong>张量并行应限制在单节点内</strong>（通常每节点 8 个
+GPU）。</p>
+<h2 id="流水线并行">流水线并行</h2>
+<h3 id="基本思路-2">基本思路</h3>
+<p>流水线并行（PP）按<strong>层</strong>将模型拆分到多个 GPU 上。GPU 1
+持有第 1-4 层，GPU 2 持有第 5-8 层，以此类推。数据依次流过流水线。</p>
+<p>这按比例减少每 GPU 内存——8B 模型在 PP=8 下从约 140 GB 降至约 40
+GB/GPU。</p>
+<h3 id="气泡问题">气泡问题</h3>
+<p>朴素方法有巨大的低效：当 GPU 1 处理前向传播时，GPU 2-4 处于空闲；当
+GPU 4 处理反向传播时，GPU 1-3
+空闲。这些浪费的时间称为<strong>流水线气泡</strong>。</p>
+<h3
+id="one-forward-one-backward1f1b调度">One-Forward-One-Backward（1F1B）调度</h3>
+<p>1F1B 调度通过在 micro-batch 间交替前向和反向传播来减少气泡。每个 GPU
+不等所有前向传播完成就开始反向传播，而是在最后一个流水线阶段完成后立即开始。</p>
+<p>更多 micro-batch 使气泡占总时间的比例更小。课件显示 PP=2 时吞吐量约
+15K tokens/sec/GPU，PP=32 且少量 microbatch 时下降 -44.3%。32 个
+microbatch 时，PP=32 的退化为 -52.4%，仍然显著。</p>
+<p>流水线并行最适合<strong>跨节点</strong>使用，因为它仅需点对点通信（向下一阶段发送激活值、从下一阶段接收梯度），不像张量并行需要
+all-reduce。</p>
+<h2 id="内存优化zero">内存优化：ZeRO</h2>
+<h3 id="冗余问题">冗余问题</h3>
+<p>标准数据并行中，每个 GPU
+存储模型参数、梯度和优化器状态的完整副本。对于 7B 模型使用
+Adam，这意味着约 126 GB 在每个 GPU 上重复存储——极其浪费。</p>
+<h3 id="zero-阶段">ZeRO 阶段</h3>
+<p><strong>零冗余优化器（ZeRO）</strong>渐进式地将训练状态分片到各
+GPU：</p>
+<table>
+<thead>
+<tr class="header">
+<th>阶段</th>
+<th>分片内容</th>
+<th>内存节省</th>
+<th>通信开销</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>基线（DP）</td>
+<td>无</td>
+<td>无</td>
+<td>低（仅 all-reduce）</td>
+</tr>
+<tr class="even">
+<td>ZeRO-1</td>
+<td>优化器状态</td>
+<td>优化器内存约 4x 减少</td>
+<td>低</td>
+</tr>
+<tr class="odd">
+<td>ZeRO-2</td>
+<td>+ 梯度</td>
+<td>进一步减少</td>
+<td>中等</td>
+</tr>
+<tr class="even">
+<td>ZeRO-3</td>
+<td>+ 参数</td>
+<td>最大减少</td>
+<td>高（每层 all-gather）</td>
+</tr>
+</tbody>
+</table>
+<h3 id="zero-3-工作原理">ZeRO-3 工作原理</h3>
+<p>每个 GPU 仅存储 <span class="math inline">\(1/N\)</span>
+的参数（<span class="math inline">\(N\)</span> 为 GPU
+数量）。在前向/反向传播的每一层： 1. GPU 发起
+<strong>all-gather</strong> 从所有对端获取该层的完整参数 2.
+使用完整参数计算激活值/梯度 3. 释放获取的参数，继续下一层</p>
+<p>与张量/流水线并行的关键区别：ZeRO
+分片的是<strong>内存</strong>，而非<strong>计算</strong>。每个 GPU
+仍在完整数据上执行完整计算——只是不同时存储所有内容。这意味着 ZeRO-3
+通信开销最高（前向和反向传播中每层都需要
+all-gather），但提供最大的内存节省。</p>
+<h2 id="策略选择">策略选择</h2>
+<h3 id="方法总结">方法总结</h3>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 30%" />
+<col style="width: 20%" />
+<col style="width: 30%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>策略</th>
+<th>核心思想</th>
+<th>权衡</th>
+<th>最佳场景</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>数据并行（DP）</td>
+<td>在 batch 维度并行</td>
+<td>冗余内存；模型须能放入 GPU</td>
+<td>能放入 GPU 内存的标准模型</td>
+</tr>
+<tr class="even">
+<td>张量并行（TP）</td>
+<td>在隐藏维度并行</td>
+<td>高通信（每层 all-reduce）</td>
+<td>大型层；节点内并行</td>
+</tr>
+<tr class="odd">
+<td>流水线并行（PP）</td>
+<td>在模型维度并行</td>
+<td>流水线气泡浪费时间</td>
+<td>大型深层模型；跨节点并行</td>
+</tr>
+<tr class="even">
+<td>ZeRO</td>
+<td>在 DP 中分片模型/优化器/梯度</td>
+<td>高通信（all-gather）</td>
+<td>无法放入 GPU 内存的大模型</td>
+</tr>
+</tbody>
+</table>
+<h3 id="决策框架">决策框架</h3>
+<p>配置训练时的目标： 1. <strong>将模型装入内存</strong> — 使用 TP、PP
+或 ZeRO 减少每 GPU 内存 2. <strong>满足目标全局 batch size</strong> —
+使用 DP 和梯度累积 3. <strong>最大化训练吞吐量</strong> —
+最小化通信开销和空闲时间</p>
+<p>实践中，这些策略需要<strong>组合使用</strong>。典型配置可能为： -
+节点内使用 TP（如 TP=4 或 TP=8），利用快速节点内通信减少内存 -
+跨节点使用 PP（如 PP=2 或 PP=4），仅需点对点跨节点通信 - 剩余 GPU 使用
+DP 扩展吞吐量 - ZeRO-1 分片优化器状态，通信开销不大</p>
+<h3 id="最佳配置实验">最佳配置实验</h3>
+<p>Ultra-Scale Playbook
+的基准测试展示了最优配置如何随模型大小和集群规模变化（1M token
+GBS，序列长度 4096，H100 节点）：</p>
+<ul>
+<li><strong>小模型（1.3B）</strong>少量节点：纯 DP 效果好（如 DP=4,
+TP=1, PP=2, MFU ~38%）</li>
+<li><strong>中等模型（3.5-8.8B）</strong>：节点内 TP=4 + 适度 PP + DP
+可达 ~40-46% MFU</li>
+<li><strong>大模型（80B）</strong>：需要激进的 TP（TP=4-16）+
+PP（PP=4-16）+ ZeRO-1，MFU 根据集群规模在 ~15-45% 之间</li>
+<li><strong>更多节点通常降低 MFU</strong>：1.3B 模型从 1 节点到 64
+节点，MFU 从约 45% 降至约 5%，通信开销占主导</li>
+</ul>
+<h3 id="训练框架">训练框架</h3>
+<p>两个主要框架实现了这些并行策略：</p>
+<ul>
+<li><strong>torchtitan</strong>：PyTorch 原生平台，支持 FSDP2、Tensor
+Parallel、Pipeline Parallel、Context
+Parallel、激活检查点、Float8、梯度累积等</li>
+<li><strong>Megatron-LM</strong>：NVIDIA 的 GPU 优化库，Megatron Core
+提供内核、张量/流水线并行、分布式训练（FSDP、DDP）和后训练支持</li>
+</ul>
+<h2 id="lec20-要点总结">Lec20 要点总结</h2>
+<ul>
+<li><strong>内存是第一个瓶颈</strong>：7B 模型仅训练状态就需要约 126
+GB；激活值重计算和梯度累积有帮助但对大模型无法根本解决</li>
+<li><strong>数据并行扩展吞吐量，不减内存</strong>：每个 GPU
+仍持有完整模型；通信开销随 GPU 数量增长</li>
+<li><strong>张量并行以通信换内存</strong>：在节点内拆分权重矩阵；应限制在快速节点内链路中</li>
+<li><strong>流水线并行引入气泡</strong>：跨 GPU 拆分层产生空闲时间；1F1B
+调度和更多 microbatch 减少但不能消除气泡</li>
+<li><strong>ZeRO
+消除冗余</strong>：渐进式分片优化器状态、梯度和参数，以通信换内存节省；与
+TP/PP 本质不同，分片的是内存而非计算</li>
+</ul>
+<h2 id="总结">总结</h2>
+<table>
+<colgroup>
+<col style="width: 40%" />
+<col style="width: 60%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>主题</th>
+<th>核心思想</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>计算量与 MFU</td>
+<td>每步 6 × 参数 × token 数；MFU = 实际/峰值 FLOPS；实际训练约
+30-45%</td>
+</tr>
+<tr class="even">
+<td>内存分解</td>
+<td>混合精度 Adam 每参数 18 字节；激活值随序列长度二次增长</td>
+</tr>
+<tr class="odd">
+<td>激活值重计算</td>
+<td>用约 33% 更多计算换取大幅减少的激活值内存</td>
+</tr>
+<tr class="even">
+<td>梯度累积</td>
+<td>通过 micro-batch 平均在恒定内存下模拟大 batch</td>
+</tr>
+<tr class="odd">
+<td>数据并行</td>
+<td>复制模型，拆分数据；all-reduce 梯度；通过分桶重叠通信</td>
+</tr>
+<tr class="even">
+<td>张量并行</td>
+<td>拆分权重矩阵（列/行）；因通信开销应限于节点内</td>
+</tr>
+<tr class="odd">
+<td>流水线并行</td>
+<td>跨 GPU 拆分层；1F1B 调度减少气泡；适合跨节点</td>
+</tr>
+<tr class="even">
+<td>ZeRO</td>
+<td>跨 DP rank 分片优化器/梯度/参数；内存分片而非计算分片</td>
+</tr>
+<tr class="odd">
+<td>策略选择</td>
+<td>组合 TP（节点内）+ PP（跨节点）+ DP（其余）+ ZeRO-1；优化 MFU</td>
+</tr>
+</tbody>
+</table>
+<p><strong>核心要点</strong>：训练大型 LLM
+需要组合多种并行策略——每种解决问题的不同维度（数据、隐藏维度、层、内存），最优组合取决于模型大小、集群拓扑和
+batch size 约束。</p>
+<h2 id="参考文献">参考文献</h2>
+<ul>
+<li>The Ultra-Scale Playbook: Training LLMs on GPU Clusters
+(HuggingFace)</li>
+<li>torchtitan: <a
+target="_blank" rel="noopener" href="https://github.com/pytorch/torchtitan">github.com/pytorch/torchtitan</a></li>
+<li>Megatron-LM: <a
+target="_blank" rel="noopener" href="https://github.com/NVIDIA/Megatron-LM">github.com/NVIDIA/Megatron-LM</a></li>
+<li>Rajbhandari et al., “ZeRO: Memory Optimizations Toward Training
+Trillion Parameter Models,” 2020</li>
+<li>Shoeybi et al., “Megatron-LM: Training Multi-Billion Parameter
+Language Models Using Model Parallelism,” 2019</li>
+</ul>
+<p><em>本文基于 CMU 11-711 Advanced NLP 课程资料，由 Sean Welleck
+讲授（Lecture 20: Parallelism and Scaling）。</em></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/">https://xloverflow.github.io/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://xloverflow.github.io/zh" target="_blank">Life is not a race, but a journey</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/zh/tags/Natural-Language-Processing/">Natural Language Processing</a><a class="post-meta__tags" href="/zh/tags/CMU/">CMU</a><a class="post-meta__tags" href="/zh/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/zh/tags/11711/">11711</a><a class="post-meta__tags" href="/zh/tags/AI/">AI</a><a class="post-meta__tags" href="/zh/tags/Distributed-Training/">Distributed Training</a><a class="post-meta__tags" href="/zh/tags/Parallelism/">Parallelism</a><a class="post-meta__tags" href="/zh/tags/Scaling/">Scaling</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">11711 Advanced NLP: Quantization</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理量化笔记，涵盖数值表示、8 位量化（absmax、zero-point）、LLM.int8()、GGML/GGUF，以及量化感知训练与 QLoRA。</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/zh/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">关于CMU 11-711高级自然语言处理的RNN架构、编码器-解码器模型和注意力机制的笔记。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-22</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/" title="11711 Advanced NLP: Learning &amp; Inference"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Learning &amp; Inference</div></div><div class="info-2"><div class="info-item-1">卡内基梅隆大学 11-711 高级自然语言处理的学习算法和推理方法笔记。</div></div></div></a><a class="pagination-related" href="/zh/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Multimodal/" title="11711 Advanced NLP: Multimodal Modeling"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-04</div><div class="info-item-2">11711 Advanced NLP: Multimodal Modeling</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理中多模态建模的笔记，涵盖 ViT、CLIP、LLaVA 风格对接、基于 token 的图像生成、扩散模型与 flow matching。</div></div></div></a><a class="pagination-related" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-06</div><div class="info-item-2">11711 Advanced NLP: Quantization</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理量化笔记，涵盖数值表示、8 位量化（absmax、zero-point）、LLM.int8()、GGML/GGUF，以及量化感知训练与 QLoRA。</div></div></div></a><a class="pagination-related" href="/zh/2026/02/14/11711-Advanced-NLP/11711-Advanced-NLP-Retrieval-RAG/" title="11711 Advanced NLP: Retrieval and RAG"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-14</div><div class="info-item-2">11711 Advanced NLP: Retrieval and RAG</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理中关于检索系统、检索器和检索增强生成（RAG）的笔记。</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li 的中文博客</div><div class="site-data"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">62</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">116</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">22</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#lec20-%E5%B9%B6%E8%A1%8C%E4%B8%8E%E6%89%A9%E5%B1%95"><span class="toc-number">1.</span> <span class="toc-text">Lec20 并行与扩展</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8A%A8%E6%9C%BA"><span class="toc-number">1.1.</span> <span class="toc-text">动机</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%95-gpu-%E8%AE%AD%E7%BB%83%E5%9F%BA%E7%A1%80"><span class="toc-number">1.2.</span> <span class="toc-text">单 GPU 训练基础</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E9%87%8F"><span class="toc-number">1.2.1.</span> <span class="toc-text">计算量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E5%8D%A0%E7%94%A8"><span class="toc-number">1.2.2.</span> <span class="toc-text">内存占用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%BF%80%E6%B4%BB%E5%80%BC%E5%86%85%E5%AD%98"><span class="toc-number">1.2.3.</span> <span class="toc-text">激活值内存</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%BF%80%E6%B4%BB%E5%80%BC%E9%87%8D%E8%AE%A1%E7%AE%97"><span class="toc-number">1.2.4.</span> <span class="toc-text">激活值重计算</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A2%AF%E5%BA%A6%E7%B4%AF%E7%A7%AF"><span class="toc-number">1.2.5.</span> <span class="toc-text">梯度累积</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%B9%B6%E8%A1%8C"><span class="toc-number">1.3.</span> <span class="toc-text">数据并行</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E6%80%9D%E8%B7%AF"><span class="toc-number">1.3.1.</span> <span class="toc-text">基本思路</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%9A%E4%BF%A1%E9%9B%86%E5%90%88%E6%93%8D%E4%BD%9C"><span class="toc-number">1.3.2.</span> <span class="toc-text">通信：集合操作</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%87%8D%E5%8F%A0-%E5%88%86%E6%A1%B6"><span class="toc-number">1.3.3.</span> <span class="toc-text">重叠 + 分桶</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%A9%E5%B1%95%E8%A1%8C%E4%B8%BA"><span class="toc-number">1.3.4.</span> <span class="toc-text">扩展行为</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E4%BE%8B%E8%AE%A1%E7%AE%97"><span class="toc-number">1.3.5.</span> <span class="toc-text">实例计算</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%A0%E9%87%8F%E5%B9%B6%E8%A1%8C"><span class="toc-number">1.4.</span> <span class="toc-text">张量并行</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E6%80%9D%E8%B7%AF-1"><span class="toc-number">1.4.1.</span> <span class="toc-text">基本思路</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%97%E5%B9%B6%E8%A1%8C"><span class="toc-number">1.4.2.</span> <span class="toc-text">列并行</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%8C%E5%B9%B6%E8%A1%8C"><span class="toc-number">1.4.3.</span> <span class="toc-text">行并行</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BA%94%E7%94%A8%E4%BA%8E-transformer-%E5%B1%82"><span class="toc-number">1.4.4.</span> <span class="toc-text">应用于 Transformer 层</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9D%83%E8%A1%A1"><span class="toc-number">1.4.5.</span> <span class="toc-text">权衡</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B5%81%E6%B0%B4%E7%BA%BF%E5%B9%B6%E8%A1%8C"><span class="toc-number">1.5.</span> <span class="toc-text">流水线并行</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E6%80%9D%E8%B7%AF-2"><span class="toc-number">1.5.1.</span> <span class="toc-text">基本思路</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B0%94%E6%B3%A1%E9%97%AE%E9%A2%98"><span class="toc-number">1.5.2.</span> <span class="toc-text">气泡问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#one-forward-one-backward1f1b%E8%B0%83%E5%BA%A6"><span class="toc-number">1.5.3.</span> <span class="toc-text">One-Forward-One-Backward（1F1B）调度</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96zero"><span class="toc-number">1.6.</span> <span class="toc-text">内存优化：ZeRO</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%97%E4%BD%99%E9%97%AE%E9%A2%98"><span class="toc-number">1.6.1.</span> <span class="toc-text">冗余问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#zero-%E9%98%B6%E6%AE%B5"><span class="toc-number">1.6.2.</span> <span class="toc-text">ZeRO 阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#zero-3-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">1.6.3.</span> <span class="toc-text">ZeRO-3 工作原理</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AD%96%E7%95%A5%E9%80%89%E6%8B%A9"><span class="toc-number">1.7.</span> <span class="toc-text">策略选择</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%B3%95%E6%80%BB%E7%BB%93"><span class="toc-number">1.7.1.</span> <span class="toc-text">方法总结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%B3%E7%AD%96%E6%A1%86%E6%9E%B6"><span class="toc-number">1.7.2.</span> <span class="toc-text">决策框架</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E4%BD%B3%E9%85%8D%E7%BD%AE%E5%AE%9E%E9%AA%8C"><span class="toc-number">1.7.3.</span> <span class="toc-text">最佳配置实验</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%AD%E7%BB%83%E6%A1%86%E6%9E%B6"><span class="toc-number">1.7.4.</span> <span class="toc-text">训练框架</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#lec20-%E8%A6%81%E7%82%B9%E6%80%BB%E7%BB%93"><span class="toc-number">1.8.</span> <span class="toc-text">Lec20 要点总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.9.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">1.10.</span> <span class="toc-text">参考文献</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11711 Advanced NLP: Parallelism and Scaling"/></a><div class="content"><a class="title" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling">11711 Advanced NLP: Parallelism and Scaling</a><time datetime="2026-04-07T03:00:00.000Z" title="发表于 2026-04-06 23:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11711 Advanced NLP: Quantization"/></a><div class="content"><a class="title" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization">11711 Advanced NLP: Quantization</a><time datetime="2026-04-07T02:00:00.000Z" title="发表于 2026-04-06 22:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11868 LLM Sys: Systems for Mixture-of-Experts Models"/></a><div class="content"><a class="title" href="/zh/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models">11868 LLM Sys: Systems for Mixture-of-Experts Models</a><time datetime="2026-03-21T19:00:00.000Z" title="发表于 2026-03-21 15:00:00">2026-03-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="15645 Database systems: Query Optimization"/></a><div class="content"><a class="title" href="/zh/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization">15645 Database systems: Query Optimization</a><time datetime="2026-03-20T18:00:00.000Z" title="发表于 2026-03-20 14:00:00">2026-03-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="15645 Database systems: Query Execution"/></a><div class="content"><a class="title" href="/zh/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution">15645 Database systems: Query Execution</a><time datetime="2026-03-15T18:00:00.000Z" title="发表于 2026-03-15 14:00:00">2026-03-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/zh/js/utils.js"></script><script src="/zh/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '6a689199de2029cf208d72f5b9f55f86'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/zh/404.html') : window.location.href = '/zh/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

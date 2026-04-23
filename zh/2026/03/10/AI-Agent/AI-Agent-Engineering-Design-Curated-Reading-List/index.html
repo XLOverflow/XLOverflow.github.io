@@ -1,0 +1,864 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>AI Agent 工程设计精选文章 | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="收录关于 AI Agent 工程设计的核心文章，涵盖 Claude Code、OpenAI Codex、上下文管理与记忆机制、OpenClaw 架构解析等主题。每篇文章附有原文引用与核心要点。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AI Agent 工程设计精选文章">
+<meta property="og:url" content="https://xloverflow.github.io/zh/2026/03/10/AI-Agent/AI-Agent-Engineering-Design-Curated-Reading-List/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="收录关于 AI Agent 工程设计的核心文章，涵盖 Claude Code、OpenAI Codex、上下文管理与记忆机制、OpenClaw 架构解析等主题。每篇文章附有原文引用与核心要点。">
+<meta property="og:locale">
+<meta property="og:image" content="https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg">
+<meta property="article:published_time" content="2026-03-10T04:00:00.000Z">
+<meta property="article:modified_time" content="2026-03-10T04:00:00.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="AI Agent">
+<meta property="article:tag" content="LLM">
+<meta property="article:tag" content="工程设计">
+<meta property="article:tag" content="Claude Code">
+<meta property="article:tag" content="OpenAI Codex">
+<meta property="article:tag" content="记忆系统">
+<meta property="article:tag" content="上下文管理">
+<meta property="article:tag" content="精选阅读">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "AI Agent 工程设计精选文章",
+  "url": "https://xloverflow.github.io/zh/2026/03/10/AI-Agent/AI-Agent-Engineering-Design-Curated-Reading-List/",
+  "image": "https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg",
+  "datePublished": "2026-03-10T04:00:00.000Z",
+  "dateModified": "2026-03-10T04:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io/zh"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/zh/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/zh/2026/03/10/AI-Agent/AI-Agent-Engineering-Design-Curated-Reading-List/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/zh/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/zh/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'AI Agent 工程设计精选文章',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">62</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">116</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">22</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/zh/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/zh/"><span class="site-name">AI Agent 工程设计精选文章</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/"><i class="fas fa-language fa-fw"></i><span> English</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">AI Agent 工程设计精选文章</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-03-10T04:00:00.000Z" title="发表于 2026-03-10 00:00:00">2026-03-10</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-03-10T04:00:00.000Z" title="更新于 2026-03-10 00:00:00">2026-03-10</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/zh/categories/AI-Agent/">AI Agent</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>整理时间：2026年3月9日 | 整理者：小龙虾 🦞</p>
+<p>本文档收录关于 AI Agent 工程设计的核心文章，涵盖 Claude Code、OpenAI
+Codex、上下文管理与记忆机制等主题。每篇文章附有原文引用（Recitation）与核心要点。</p>
+</blockquote>
+<hr />
+<h2 id="一claude-code-工程设计">一、Claude Code 工程设计</h2>
+<h3 id="introducing-claude-codeanthropic-官方">1.1 Introducing Claude
+Code（Anthropic 官方）</h3>
+<p><strong>来源：</strong> Anthropic 官方博客 <strong>链接：</strong>
+https://www.anthropic.com/news/claude-code <strong>发布时间：</strong>
+2025年2月</p>
+<p>Anthropic 发布 Claude Code，一个运行在终端的 agentic
+编程工具。它直接操作文件系统、执行命令、访问代码库，并可与 GitHub
+交互。</p>
+<p><strong>关键引用：</strong></p>
+<blockquote>
+<p>“Claude Code is an agentic coding tool that lives in your terminal,
+understands your codebase, and helps you code faster by executing
+multi-step tasks autonomously.”</p>
+</blockquote>
+<p><strong>核心设计要点：</strong></p>
+<ul>
+<li><strong>工具调用架构：</strong> 核心工具包括 bash
+执行、文件读写、grep 搜索、git 操作</li>
+<li><strong>Permission-based 设计：</strong>
+敏感操作（如写文件、执行命令）需要用户显式确认</li>
+<li><strong>系统提示驱动：</strong>
+包含详细的操作原则、安全边界与角色定义</li>
+<li><strong>Agentic Loop：</strong> 观察（Observe）→ 思考（Think）→
+行动（Act）→ 观察的循环</li>
+</ul>
+<hr />
+<h3 id="claude-code-系统提示分析社区">1.2 Claude Code
+系统提示分析（社区）</h3>
+<p><strong>来源：</strong> Anthropic 发布 + 社区研究者整理</p>
+<p>Anthropic 官方公开了 Claude Code
+的完整系统提示，引发大量社区分析。</p>
+<p><strong>系统提示核心结构：</strong></p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>层次</th>
+<th>职责</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>角色层</td>
+<td>明确 Claude Code 是专注工程任务的 AI assistant，有别于通用
+Claude</td>
+</tr>
+<tr class="even">
+<td>工具声明层</td>
+<td>显式列出所有可用工具及调用规范</td>
+</tr>
+<tr class="odd">
+<td>安全护栏层</td>
+<td>对危险操作（rm -rf、网络外发等）有明确约束</td>
+</tr>
+<tr class="even">
+<td>行为准则层</td>
+<td>包括 proactive clarification、minimal footprint 等原则</td>
+</tr>
+</tbody>
+</table>
+<p><strong>关键设计原则引用：</strong></p>
+<blockquote>
+<p>“The assistant should request only necessary permissions, avoid
+storing sensitive information beyond immediate needs, prefer reversible
+over irreversible actions, and err on the side of doing less and
+confirming with users when uncertain about intended scope.”</p>
+</blockquote>
+<hr />
+<h3 id="building-effective-agentsanthropic-engineering">1.3 Building
+Effective Agents（Anthropic Engineering）</h3>
+<p><strong>来源：</strong> Anthropic Engineering Blog
+<strong>链接：</strong>
+https://www.anthropic.com/engineering/building-effective-agents
+<strong>发布时间：</strong> 2024年12月</p>
+<p>这是 Anthropic 工程团队总结的 Agent 构建最佳实践，非常值得精读。</p>
+<p><strong>关键引用：</strong></p>
+<blockquote>
+<p>“The most important lesson from deploying agents is to start simple.
+Many tasks that seem to require complex multi-agent architectures can be
+solved with simpler approaches.”</p>
+</blockquote>
+<p><strong>五大核心工作流模式：</strong></p>
+<ol type="1">
+<li><strong>Prompt Chaining</strong> —
+任务分解为顺序步骤，每步输出作为下一步输入，适合流水线处理</li>
+<li><strong>Routing</strong> —
+将输入分类并导向不同专用处理流程，提高专项能力</li>
+<li><strong>Parallelization</strong> —
+并行执行独立子任务后汇总，或多模型投票提升可靠性</li>
+<li><strong>Orchestrator-Subagents</strong> — 主 Agent 分解任务并调度子
+Agent 专项执行</li>
+<li><strong>Evaluator-Optimizer</strong> — 生成 Agent + 评估 Agent
+的迭代优化循环</li>
+</ol>
+<p><strong>Agent 适用场景判断：</strong></p>
+<blockquote>
+<p>“Agents are valuable when tasks require dynamic decision-making, when
+the right sequence of steps is hard to specify upfront, or when the task
+benefits from checking intermediate results.”</p>
+</blockquote>
+<hr />
+<h2 id="二openai-codex-工程设计">二、OpenAI Codex 工程设计</h2>
+<h3 id="introducing-codexopenai-官方">2.1 Introducing Codex（OpenAI
+官方）</h3>
+<p><strong>来源：</strong> OpenAI 官方博客 <strong>链接：</strong>
+https://openai.com/blog/introducing-codex <strong>发布时间：</strong>
+2025年</p>
+<p>OpenAI 发布新一代 Codex，定位为云端 AI
+软件工程师，专为异步、长周期的编程任务设计，可并行处理多个任务。</p>
+<p><strong>核心设计特点：</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th>特性</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>沙箱隔离</td>
+<td>每个任务运行在独立容器化沙箱，安全隔离互不影响</td>
+</tr>
+<tr class="even">
+<td>异步执行</td>
+<td>无需用户实时监督，支持长周期后台任务</td>
+</tr>
+<tr class="odd">
+<td>深度 GitHub 集成</td>
+<td>自主提交 PR、创建分支、回应 code review</td>
+</tr>
+<tr class="even">
+<td>有限网络访问</td>
+<td>沙箱内仅可访问预设白名单资源，防止数据泄露</td>
+</tr>
+<tr class="odd">
+<td>并行处理</td>
+<td>支持同时推进多个独立任务，大幅提升效率</td>
+</tr>
+</tbody>
+</table>
+<p><strong>与 Claude Code 对比：</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th>维度</th>
+<th>Claude Code</th>
+<th>OpenAI Codex</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>部署方式</td>
+<td>本地终端</td>
+<td>云端服务</td>
+</tr>
+<tr class="even">
+<td>交互模式</td>
+<td>实时交互</td>
+<td>异步任务</td>
+</tr>
+<tr class="odd">
+<td>任务模型</td>
+<td>单任务</td>
+<td>多任务并行</td>
+</tr>
+<tr class="even">
+<td>运行环境</td>
+<td>本机环境</td>
+<td>隔离容器</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="三ai-agent-通用工程设计">三、AI Agent 通用工程设计</h2>
+<h3 id="llm-powered-autonomous-agents必读经典">3.1 LLM Powered
+Autonomous Agents（必读经典）</h3>
+<p><strong>作者：</strong> Lilian Weng（OpenAI） <strong>来源：</strong>
+Lilian Weng’s Blog <strong>链接：</strong>
+https://lilianweng.github.io/posts/2023-06-23-agent/
+<strong>发布时间：</strong> 2023年6月</p>
+<p>这是目前关于 AI Agent 架构最系统全面的综述文章，作者为 OpenAI
+研究员。</p>
+<p><strong>核心框架引用：</strong></p>
+<blockquote>
+<p>“A LLM-based autonomous agent system is comprised of: Planning,
+Memory, and Tool Use.”</p>
+</blockquote>
+<p><strong>三大组件深度分析：</strong></p>
+<p><strong>规划（Planning）：</strong> - <strong>Chain of
+Thought（CoT）：</strong> 让模型显式写出推理步骤，提升复杂问题解决能力 -
+<strong>Tree of Thoughts（ToT）：</strong>
+将推理扩展为树形搜索，探索多条解题路径 - <strong>ReAct：</strong>
+交替进行推理（Reason）和行动（Act），与外部环境实时交互 -
+<strong>Reflexion：</strong>
+通过自我反思与语言反馈纠正过去错误，无需梯度更新</p>
+<p><strong>记忆（Memory）：</strong> - <strong>Sensory Memory：</strong>
+原始输入缓冲（对应感觉记忆） - <strong>Short-term
+Memory（In-context）：</strong> 当前上下文窗口内的工作记忆 -
+<strong>Long-term Memory：</strong> 外部向量数据库，支持模糊语义检索</p>
+<p><strong>工具使用（Tool Use）：</strong> -
+<strong>MRKL</strong>（模块化推理、知识、语言） -
+<strong>Toolformer：</strong> 模型自主学习何时调用 API -
+<strong>HuggingGPT：</strong> LLM 作为控制器，调度专业 AI
+模型完成任务</p>
+<hr />
+<h3 id="react-synergizing-reasoning-and-acting-in-language-models">3.2
+ReAct: Synergizing Reasoning and Acting in Language Models</h3>
+<p><strong>作者：</strong> Shunyu Yao et al.（Google Brain / Princeton）
+<strong>链接：</strong> https://arxiv.org/abs/2210.03629
+<strong>发布时间：</strong> 2022年10月</p>
+<p><strong>关键引用：</strong></p>
+<blockquote>
+<p>“ReAct prompts LLMs to generate both verbal reasoning traces and
+actions pertaining to a task in an interleaved manner, allowing the
+model to perform dynamic reasoning to create, maintain, and adjust
+high-level plans for acting.”</p>
+</blockquote>
+<p><strong>核心机制：</strong></p>
+<p><strong>Thought → Action → Observation</strong>
+的交替循环，将推理链与外部工具调用深度结合。显式推理步骤大幅提升可解释性。</p>
+<p>在 HotpotQA、FEVER、ALFWorld 等任务上显著优于纯
+Chain-of-Thought。</p>
+<p><strong>为什么重要：</strong> ReAct 是现代 AI Agent（包括 Claude
+Code、LangChain Agent 等）的基础范式之一。</p>
+<hr />
+<h2 id="四上下文管理与记忆机制">四、上下文管理与记忆机制</h2>
+<h3 id="memgpt-towards-llms-as-operating-systems">4.1 MemGPT: Towards
+LLMs as Operating Systems</h3>
+<p><strong>作者：</strong> Charles Packer et al.（UC Berkeley）
+<strong>链接：</strong> https://arxiv.org/abs/2310.08560
+<strong>发布时间：</strong> 2023年10月 <strong>会议：</strong> NeurIPS
+2023 Workshop</p>
+<p>这篇论文提出将操作系统内存分层机制应用于 LLM 上下文管理，是 Agent
+记忆设计的重要参考。</p>
+<p><strong>核心论点引用：</strong></p>
+<blockquote>
+<p>“We propose MemGPT, a system that intelligently manages different
+memory tiers to effectively provide extended context within the LLM’s
+limited context window, drawing inspiration from traditional OS
+hierarchical memory systems.”</p>
+</blockquote>
+<p><strong>内存分层架构：</strong></p>
+<p><strong>主上下文（In-Window，类比 RAM）包含：</strong> - System
+Instructions - Working Context（当前任务信息） - FIFO
+Queue（对话历史滚动窗口）</p>
+<p><strong>外部存储（类比 Disk）包含：</strong> - Archival
+Storage（向量检索归档） - Recall Storage（对话历史完整版）</p>
+<p><strong>核心机制：</strong> - <strong>主动内存管理：</strong>
+模型自主决定何时将信息存入/读取外部存储 - <strong>中断驱动：</strong>
+类似操作系统的事件驱动机制处理记忆操作 - <strong>无缝扩展：</strong>
+突破上下文窗口限制，支持无限长会话</p>
+<hr />
+<h3 id="cognitive-architectures-for-language-agents-coala">4.2 Cognitive
+Architectures for Language Agents (CoALA)</h3>
+<p><strong>作者：</strong> Theodore R. Sumers et al.（Princeton / Google
+DeepMind） <strong>链接：</strong> https://arxiv.org/abs/2309.02427
+<strong>发布时间：</strong> 2023年9月</p>
+<p>一篇将认知科学与 LLM Agent 设计系统结合的重要综述。</p>
+<p><strong>关键引用：</strong></p>
+<blockquote>
+<p>“We present a systematic framework for thinking about and building
+language agents, drawing on insights from cognitive science, AI
+planning, and recent work on LLM-based agents.”</p>
+</blockquote>
+<p><strong>记忆系统四分类框架：</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th>记忆类型</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Episodic Memory（情节记忆）</td>
+<td>过去经历的具体事件，可按时序检索</td>
+</tr>
+<tr class="even">
+<td>Semantic Memory（语义记忆）</td>
+<td>通用知识与事实，不依附于具体情境</td>
+</tr>
+<tr class="odd">
+<td>Procedural Memory（程序记忆）</td>
+<td>技能与操作方法，体现为行为模式</td>
+</tr>
+<tr class="even">
+<td>Working Memory（工作记忆）</td>
+<td>当前 context 中的活跃信息，容量有限</td>
+</tr>
+</tbody>
+</table>
+<p><strong>行动空间分类：</strong> - <strong>外部行动：</strong>
+与环境交互（工具调用、API 请求） - <strong>内部行动：</strong>
+推理、检索、记忆写入/读取 - <strong>模型存储：</strong>
+参数更新（fine-tuning）</p>
+<hr />
+<h3 id="a-survey-on-large-language-model-based-autonomous-agents">4.3 A
+Survey on Large Language Model based Autonomous Agents</h3>
+<p><strong>作者：</strong> Lei Wang et al.（Renmin University of China）
+<strong>链接：</strong> https://arxiv.org/abs/2308.11432
+<strong>发布时间：</strong> 2023年8月</p>
+<p>最全面的 LLM Agent 综述之一，覆盖构建、应用、评估三大维度。</p>
+<p><strong>关键引用：</strong></p>
+<blockquote>
+<p>“We propose a unified framework to systematically organize and
+understand the field of LLM-based autonomous agents, encompassing the
+construction, application, and evaluation of such agents.”</p>
+</blockquote>
+<p><strong>Agent 构建三大支柱：</strong> - <strong>Profiling
+Module：</strong> 定义 Agent 的角色、能力与限制 - <strong>Memory
+Module：</strong> 设计记忆的存储、检索与更新机制 - <strong>Action
+Module：</strong> 规划行动序列并与环境交互</p>
+<hr />
+<h2 id="五openclaw-工程设计深度解析">五、OpenClaw 工程设计深度解析</h2>
+<blockquote>
+<p>本章综合 OpenClaw
+官方文档、源码分析及多篇专业技术博客，对其核心工程设计进行系统梳理。</p>
+</blockquote>
+<p><strong>参考来源：</strong> - 官方文档：https://docs.openclaw.ai -
+Towards AI 深度分析：<a
+target="_blank" rel="noopener" href="https://towardsai.net/p/machine-learning/openclaw-architecture-deep-dive-building-production-ready-ai-agents-from-scratch">OpenClaw
+Architecture Deep Dive</a> - Memory 系统深度解析：<a
+target="_blank" rel="noopener" href="https://snowan.gitbook.io/study-notes/ai-blogs/openclaw-memory-system-deep-dive">Deep
+Dive: How OpenClaw’s Memory System Works</a> - 三层架构技术原理：<a
+target="_blank" rel="noopener" href="https://eastondev.com/blog/en/posts/ai/20260205-openclaw-architecture-guide/">Deep
+Dive into OpenClaw Architecture</a> - 系统架构概览：<a
+target="_blank" rel="noopener" href="https://ppaolo.substack.com/p/openclaw-system-architecture-overview">OpenClaw
+System Architecture Overview</a> - Medium 实战分析：<a
+target="_blank" rel="noopener" href="https://bibek-poudel.medium.com/how-openclaw-works-understanding-ai-agents-through-a-real-architecture-5d59cc7a4764">How
+OpenClaw Works</a></p>
+<hr />
+<h3 id="三层架构总体设计">5.1 三层架构总体设计</h3>
+<p>OpenClaw 的核心设计哲学是将 AI
+视为<strong>基础设施问题</strong>，而非单纯的应用层封装。它采用职责分离清晰的三层架构：</p>
+<p><strong>架构设计哲学引用（eastondev.com）：</strong></p>
+<blockquote>
+<p>“OpenClaw divides the entire system into three layers, each managing
+its own concerns… Without layering, all logic piled together means
+changing one place might affect everything — completely
+unmaintainable.”</p>
+</blockquote>
+<p><strong>三层职责划分：</strong></p>
+<p><strong>① Gateway 层（会话管理中枢）</strong> -
+管理用户会话的完整生命周期 - 消息队列与调度（谁先处理） -
+身份验证与权限控制 - WebSocket 持久连接维护 - <strong>Single-Writer
+架构：</strong> 每个 Session 同一时间只允许一个 Agent
+run，防止并发写入导致状态竞争</p>
+<p><strong>② Channel 层（平台适配器）</strong> -
+适配各平台消息格式（WhatsApp / Telegram / Discord / Feishu 格式各异） -
+消息路由规则（私信 or 群聊，是否需要 @） - <strong>Adapter
+Pattern：</strong> 将多平台输入标准化为统一内部格式，解耦 Gateway 与 LLM
+层 - 每个 Channel+用户组合独立隔离 Session，防止跨平台上下文混淆</p>
+<p><strong>③ LLM 层（模型接口）</strong> - 统一 Provider 接口（Claude /
+GPT / 本地模型调用方式一致） - Tool Calling（Function Calling） -
+流式响应处理 - MCP Server 集成 - <strong>Provider Plugin
+System（2026年重构）：</strong> 支持动态注册不同模型 Provider</p>
+<p><strong>完整消息流转（以 Feishu 为例）：</strong> 1. Channel 层接收
+webhook → 标准化消息格式 2. 路由决策：私聊 or 群聊，权限校验 3. Gateway
+找到（或创建）该用户 Session，消息入队 4. LLM 层按配置选择
+Provider，发送对话上下文 5. 模型返回结果 → Channel 层格式化回包</p>
+<hr />
+<h3 id="记忆系统深度解析">5.2 记忆系统深度解析</h3>
+<p>OpenClaw
+的记忆系统是其最具工程价值的设计之一，其核心哲学是<strong>文件优先（File-First）</strong>——Markdown
+文件是 Source of Truth，LLM 的 Context Window 仅是动态缓存。</p>
+<p><strong>核心设计引用（snowan.gitbook.io）：</strong></p>
+<blockquote>
+<p>“Unlike traditional RAG systems that rely on vector databases,
+OpenClaw takes a file-first approach: Markdown files are the source of
+truth, and the memory system is designed to help AI agents remember
+context across conversations.”</p>
+</blockquote>
+<p><strong>三层记忆结构：</strong></p>
+<p><strong>① 长期精华记忆（MEMORY.md）</strong> - 存储 Agent
+的偏好、操作原则、持久化知识 -
+仅在私密主会话中加载，防止隐私泄露至群聊/子 Agent -
+人工可读、可编辑，具有极高透明度</p>
+<p><strong>② 每日日志（memory/YYYY-MM-DD.md）</strong> - Append-only
+追加写入，记录当日活动、决策、对话摘要 - Session 启动时自动加载今日 +
+昨日日志 - 类比工作记忆的滚动窗口</p>
+<p><strong>③ Session 记忆（SQLite + Vector Embeddings）</strong> -
+存储位置：<code>~/.openclaw/memory/&lt;agentId&gt;.sqlite</code> -
+对话历史自动建立向量索引，支持语义检索 - 按 Agent ID 隔离，每个 Agent
+独立知识库</p>
+<p><strong>核心实现：MemoryIndexManager</strong></p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">class</span> <span class="title class_">MemoryIndexManager</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">readonly</span> <span class="attr">agentId</span>: <span class="built_in">string</span>;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">readonly</span> <span class="attr">workspaceDir</span>: <span class="built_in">string</span>;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">provider</span>: <span class="title class_">EmbeddingProvider</span>;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">db</span>: <span class="title class_">DatabaseSync</span>;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">watcher</span>: <span class="title class_">FSWatcher</span> | <span class="literal">null</span> = <span class="literal">null</span>;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>关键工程决策： - <strong>Singleton + 缓存：</strong>
+防止重复建索引（INDEX_CACHE） - <strong>文件监听：</strong> Debounced
+文件变更同步，实时更新索引 - <strong>Provider 降级链：</strong> 本地 →
+OpenAI → Gemini → Voyage，优雅降级 - <strong>Delta-Based
+增量同步：</strong> 只处理变更部分，优化性能 - <strong>SHA-256
+去重：</strong> 避免对未变更内容重复 Embedding</p>
+<p><strong>混合检索（Hybrid Retrieval）：</strong> - <strong>BM25
+关键词检索 + 向量语义检索</strong> 双路并行 -
+结合精确关键词匹配与语义理解，召回率显著优于单一方式</p>
+<p><strong>Markdown 分块算法：</strong></p>
+<p>OpenClaw 使用滑动窗口 + 重叠保留算法对 Markdown 内容分块：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">chunkMarkdown</span>(<span class="params"></span></span><br><span class="line"><span class="params">  <span class="attr">content</span>: <span class="built_in">string</span>,</span></span><br><span class="line"><span class="params">  <span class="attr">chunking</span>: &#123; tokens: <span class="built_in">number</span>; overlap: <span class="built_in">number</span> &#125;,</span></span><br><span class="line"><span class="params"></span>): <span class="title class_">MemoryChunk</span>[] &#123;</span><br><span class="line">  <span class="comment">// 滑动窗口，保留 overlap 区域防止语义截断</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>自动压缩与 Memory Flush：</strong> - 当 Context Window
+接近上限时，自动压缩（Compaction）旧对话 - <strong>Pre-Compaction
+Flush：</strong> 压缩前触发记忆写入，确保重要信息不丢失 - 类似操作系统的
+Page Flush 机制</p>
+<hr />
+<h3 id="skill-热插拔系统">5.3 Skill 热插拔系统</h3>
+<p><strong>技能即配置的设计哲学：</strong></p>
+<p>每个技能通过 <code>SKILL.md</code>
+自描述，支持触发条件声明与调用规范定义。内置技能包括：<code>feishu-doc</code>、<code>feishu-wiki</code>、<code>weather</code>、<code>healthcheck</code>、<code>skill-creator</code>
+等，社区技能通过 ClaWHub（https://clawhub.com）分发。</p>
+<p><strong>设计优势：</strong> - <strong>自描述接口：</strong>
+<code>SKILL.md</code> 定义触发意图、工具调用规范、示例 -
+<strong>按需加载：</strong> 仅在意图匹配时读取
+<code>SKILL.md</code>，零固定 Context 占用 -
+<strong>可扩展生态：</strong> 用户可安装社区
+Skill，不需要修改核心代码</p>
+<p><strong>安全隐患（Towards AI 警示）：</strong></p>
+<blockquote>
+<p>“Security researchers found 400+ malicious plugins in its marketplace
+within two minutes of looking.”</p>
+</blockquote>
+<p>这一事件凸显了 Agent 插件生态的<strong>供应链安全风险</strong>，是 AI
+Agent 工程的重要教训。</p>
+<hr />
+<h3 id="多会话-子-agent-架构">5.4 多会话 / 子 Agent 架构</h3>
+<p><strong>会话层级设计：</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th>Session 类型</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Main Session</td>
+<td>与用户直接对话的主会话</td>
+</tr>
+<tr class="even">
+<td>Subagent</td>
+<td>并行任务执行，工具集隔离，状态独立</td>
+</tr>
+<tr class="odd">
+<td>ACP Session</td>
+<td>接入 Claude Code / Codex 等外部编程 Agent</td>
+</tr>
+<tr class="even">
+<td>Thread Session</td>
+<td>绑定 Discord 等平台的持久化对话线程</td>
+</tr>
+</tbody>
+</table>
+<p><strong>工程亮点：</strong> - <code>sessions_spawn</code>
+隔离子会话，防止状态污染与 Context 竞争 - 子 Agent 完成后 Push
+通知主会话，避免低效轮询 - <strong>ACP Harness</strong> 统一编排外部
+Agent（Claude Code、Gemini 等） - <strong>Single-Writer 队列：</strong>
+同一 Session 同时只允许一个 Run，保证消息顺序一致性</p>
+<hr />
+<h3 id="heartbeat-主动调度机制">5.5 Heartbeat 主动调度机制</h3>
+<p>OpenClaw 内置 <strong>Heartbeat</strong> 机制，使 Agent
+从被动响应转变为主动调度：</p>
+<ul>
+<li>定时触发，检查邮件、日历、通知等待处理项</li>
+<li>在安静时段（如深夜）自动抑制打扰</li>
+<li>支持后台工作（内存整理、代码检查、文件同步）</li>
+<li>与 Cron 系统协作：精确定时任务走 Cron，批量周期检查走 Heartbeat</li>
+</ul>
+<hr />
+<h3 id="设计亮点对标总结">5.6 设计亮点对标总结</h3>
+<table>
+<thead>
+<tr class="header">
+<th>工程维度</th>
+<th>OpenClaw 设计</th>
+<th>对标学术概念</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>记忆分层</td>
+<td>MEMORY.md / 日志 / SQLite</td>
+<td>MemGPT 内存分层架构</td>
+</tr>
+<tr class="even">
+<td>混合检索</td>
+<td>BM25 + Vector Hybrid</td>
+<td>Dense-Sparse 混合检索</td>
+</tr>
+<tr class="odd">
+<td>上下文管理</td>
+<td>文件即状态 / 按需加载</td>
+<td>CoALA Working Memory</td>
+</tr>
+<tr class="even">
+<td>多 Agent 协作</td>
+<td>Subagent + Push 通知</td>
+<td>Orchestrator-Subagents 模式</td>
+</tr>
+<tr class="odd">
+<td>工具调用</td>
+<td>Skill 热插拔 / SKILL.md</td>
+<td>ReAct Tool Use 范式</td>
+</tr>
+<tr class="even">
+<td>主动调度</td>
+<td>Heartbeat 机制</td>
+<td>Proactive Agent 设计</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="延伸阅读推荐">延伸阅读推荐</h2>
+<p><strong>通用 LLM/Agent 工程：</strong> - Simon Willison’s Blog —
+LLM/Agent 实践分析：https://simonwillison.net/tags/agents/ - Eugene Yan
+— LLM
+Patterns（工程实践向）：https://eugeneyan.com/writing/llm-patterns/ -
+Chip Huyen — Building LLM Applications for
+Production：https://huyenchip.com/2023/04/11/llm-engineering.html -
+LangChain Blog — Agent Design Patterns：https://blog.langchain.dev -
+Anthropic Research Blog：https://www.anthropic.com/research</p>
+<p><strong>OpenClaw 专项：</strong> - 官方文档：https://docs.openclaw.ai
+- Memory
+系统深度解析（Gitbook）：https://snowan.gitbook.io/study-notes/ai-blogs/openclaw-memory-system-deep-dive
+-
+三层架构技术原理（eastondev.com）：https://eastondev.com/blog/en/posts/ai/20260205-openclaw-architecture-guide/
+- Towards AI 生产级 Agent
+架构分析：https://towardsai.net/p/machine-learning/openclaw-architecture-deep-dive-building-production-ready-ai-agents-from-scratch
+-
+系统架构概览（Substack）：https://ppaolo.substack.com/p/openclaw-system-architecture-overview</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh/2026/03/10/AI-Agent/AI-Agent-Engineering-Design-Curated-Reading-List/">https://xloverflow.github.io/zh/2026/03/10/AI-Agent/AI-Agent-Engineering-Design-Curated-Reading-List/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://xloverflow.github.io/zh" target="_blank">Life is not a race, but a journey</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/zh/tags/AI-Agent/">AI Agent</a><a class="post-meta__tags" href="/zh/tags/LLM/">LLM</a><a class="post-meta__tags" href="/zh/tags/%E5%B7%A5%E7%A8%8B%E8%AE%BE%E8%AE%A1/">工程设计</a><a class="post-meta__tags" href="/zh/tags/Claude-Code/">Claude Code</a><a class="post-meta__tags" href="/zh/tags/OpenAI-Codex/">OpenAI Codex</a><a class="post-meta__tags" href="/zh/tags/%E8%AE%B0%E5%BF%86%E7%B3%BB%E7%BB%9F/">记忆系统</a><a class="post-meta__tags" href="/zh/tags/%E4%B8%8A%E4%B8%8B%E6%96%87%E7%AE%A1%E7%90%86/">上下文管理</a><a class="post-meta__tags" href="/zh/tags/%E7%B2%BE%E9%80%89%E9%98%85%E8%AF%BB/">精选阅读</a></div><div class="post-share"><div class="social-share" data-image="https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/zh/2026/03/15/11868-LLM-Sys/11868-LLM-Sys-Distributed-Training-and-DDP/" title="11868 LLM系统：分布式训练与DDP"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">11868 LLM系统：分布式训练与DDP</div></div><div class="info-2"><div class="info-item-1">CMU 11-868 LLM Systems 第13-14讲笔记，涵盖分布式训练、NCCL通信原语、Ring AllReduce，以及PyTorch Distributed Data Parallel。</div></div></div></a><a class="pagination-related" href="/zh/2026/03/08/15645-Database-Systems/15645-Database-systems-Join-Algorithms/" title="15645 Database systems: Join Algorithms"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">15645 Database systems: Join Algorithms</div></div><div class="info-2"><div class="info-item-1">CMU 15-645 数据库系统的笔记和总结。</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/zh/2026/01/12/Personal/Deconstructing%20Agentic%20Coding%20with%20First%20Principles:%20From%20Theory%20to%20Practice/" title="用第一性原理拆解 Agentic Coding：从理论到实操"><img class="cover" src="https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-12</div><div class="info-item-2">用第一性原理拆解 Agentic Coding：从理论到实操</div></div><div class="info-2"><div class="info-item-1">本文章来自字节跳动专家，《用第一性原理拆解 Agentic Coding：从理论到实操》，读完之后受益匪浅</div></div></div></a><a class="pagination-related" href="/zh/2025/12/14/Personal/%E6%B7%98%E5%A4%A9ai-agent%E9%9D%A2%E7%BB%8F/" title="淘天ai agent面经"><img class="cover" src="https://pica.zhimg.com/80/v2-24ea206b8da2b8b916c63fed288cd862_1440w.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-12-13</div><div class="info-item-2">淘天ai agent面经</div></div><div class="info-2"><div class="info-item-1">搜集的淘天ai agent面经</div></div></div></a><a class="pagination-related" href="/zh/2026/02/09/CS336/CS336-Assignment-1-Building-a-Transformer-Language-Model-from-Scratch/" title="CS336 Assignment 1: Building a Transformer Language Model from Scratch"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-08</div><div class="info-item-2">CS336 Assignment 1: Building a Transformer Language Model from Scratch</div></div><div class="info-2"><div class="info-item-1">从头开始实现完整的Transformer语言模型管道的全面反思——包括带并行预标记的BPE分词器、仅解码的Transformer（使用RMSNorm/RoPE/SwiGLU）、AdamW优化器和自回归文本生成。使用TinyStories和OpenWebText进行训练，并进行了学习率扫描、批量大小研究和架构消融的广泛实验。</div></div></div></a><a class="pagination-related" href="/zh/2025/12/14/CS336/CS336-Lec1-Tokenization/" title="CS336-Lec1 Tokenization"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-12-14</div><div class="info-item-2">CS336-Lec1 Tokenization</div></div><div class="info-2"><div class="info-item-1">Lec1主要介绍了Tokenization的基本概念和几种常见的Tokenizer方法，包括Character Tokenizer、Byte Tokenizer、Word Tokenizer和BPE Tokenizer，分析了它们的优缺点及适用场景。</div></div></div></a><a class="pagination-related" href="/zh/2025/12/15/CS336/CS336-Lec2-PyTorch-Resource-accounting/" title="CS336-Lec2 PyTorch &amp; Resource accounting"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-12-14</div><div class="info-item-2">CS336-Lec2 PyTorch &amp; Resource accounting</div></div><div class="info-2"><div class="info-item-1">本节主要围绕模型训练背后的“算力黑盒”展开，从微观的浮点数格式讲起，深入到FLOPs的计算公式，剖析了现代硬件的特性，最后给出从数学原理到PyTorch代码实现的完整优化指南”</div></div></div></a><a class="pagination-related" href="/zh/2025/12/16/CS336/CS336-Lec3-Architectures-Hyperparameters/" title="CS336-Lec3 Architectures &amp; Hyperparameters"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-12-16</div><div class="info-item-2">CS336-Lec3 Architectures &amp; Hyperparameters</div></div><div class="info-2"><div class="info-item-1">本文总结了CS336课程第三讲的内容，重点介绍了Transformer架构的演变及其超参数选择，包括归一化方法、激活函数、位置编码等方面的最新进展。</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li 的中文博客</div><div class="site-data"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">62</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">116</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">22</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80claude-code-%E5%B7%A5%E7%A8%8B%E8%AE%BE%E8%AE%A1"><span class="toc-number">1.</span> <span class="toc-text">一、Claude Code 工程设计</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#introducing-claude-codeanthropic-%E5%AE%98%E6%96%B9"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 Introducing Claude
+Code（Anthropic 官方）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#claude-code-%E7%B3%BB%E7%BB%9F%E6%8F%90%E7%A4%BA%E5%88%86%E6%9E%90%E7%A4%BE%E5%8C%BA"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 Claude Code
+系统提示分析（社区）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#building-effective-agentsanthropic-engineering"><span class="toc-number">1.3.</span> <span class="toc-text">1.3 Building
+Effective Agents（Anthropic Engineering）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8Copenai-codex-%E5%B7%A5%E7%A8%8B%E8%AE%BE%E8%AE%A1"><span class="toc-number">2.</span> <span class="toc-text">二、OpenAI Codex 工程设计</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#introducing-codexopenai-%E5%AE%98%E6%96%B9"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 Introducing Codex（OpenAI
+官方）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89ai-agent-%E9%80%9A%E7%94%A8%E5%B7%A5%E7%A8%8B%E8%AE%BE%E8%AE%A1"><span class="toc-number">3.</span> <span class="toc-text">三、AI Agent 通用工程设计</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#llm-powered-autonomous-agents%E5%BF%85%E8%AF%BB%E7%BB%8F%E5%85%B8"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 LLM Powered
+Autonomous Agents（必读经典）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#react-synergizing-reasoning-and-acting-in-language-models"><span class="toc-number">3.2.</span> <span class="toc-text">3.2
+ReAct: Synergizing Reasoning and Acting in Language Models</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E4%B8%8A%E4%B8%8B%E6%96%87%E7%AE%A1%E7%90%86%E4%B8%8E%E8%AE%B0%E5%BF%86%E6%9C%BA%E5%88%B6"><span class="toc-number">4.</span> <span class="toc-text">四、上下文管理与记忆机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#memgpt-towards-llms-as-operating-systems"><span class="toc-number">4.1.</span> <span class="toc-text">4.1 MemGPT: Towards
+LLMs as Operating Systems</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#cognitive-architectures-for-language-agents-coala"><span class="toc-number">4.2.</span> <span class="toc-text">4.2 Cognitive
+Architectures for Language Agents (CoALA)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#a-survey-on-large-language-model-based-autonomous-agents"><span class="toc-number">4.3.</span> <span class="toc-text">4.3 A
+Survey on Large Language Model based Autonomous Agents</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94openclaw-%E5%B7%A5%E7%A8%8B%E8%AE%BE%E8%AE%A1%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90"><span class="toc-number">5.</span> <span class="toc-text">五、OpenClaw 工程设计深度解析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%E5%B1%82%E6%9E%B6%E6%9E%84%E6%80%BB%E4%BD%93%E8%AE%BE%E8%AE%A1"><span class="toc-number">5.1.</span> <span class="toc-text">5.1 三层架构总体设计</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%B0%E5%BF%86%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90"><span class="toc-number">5.2.</span> <span class="toc-text">5.2 记忆系统深度解析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#skill-%E7%83%AD%E6%8F%92%E6%8B%94%E7%B3%BB%E7%BB%9F"><span class="toc-number">5.3.</span> <span class="toc-text">5.3 Skill 热插拔系统</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%9A%E4%BC%9A%E8%AF%9D-%E5%AD%90-agent-%E6%9E%B6%E6%9E%84"><span class="toc-number">5.4.</span> <span class="toc-text">5.4 多会话 &#x2F; 子 Agent 架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#heartbeat-%E4%B8%BB%E5%8A%A8%E8%B0%83%E5%BA%A6%E6%9C%BA%E5%88%B6"><span class="toc-number">5.5.</span> <span class="toc-text">5.5 Heartbeat 主动调度机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BE%E8%AE%A1%E4%BA%AE%E7%82%B9%E5%AF%B9%E6%A0%87%E6%80%BB%E7%BB%93"><span class="toc-number">5.6.</span> <span class="toc-text">5.6 设计亮点对标总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BB%B6%E4%BC%B8%E9%98%85%E8%AF%BB%E6%8E%A8%E8%8D%90"><span class="toc-number">6.</span> <span class="toc-text">延伸阅读推荐</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11711 Advanced NLP: Parallelism and Scaling"/></a><div class="content"><a class="title" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling">11711 Advanced NLP: Parallelism and Scaling</a><time datetime="2026-04-07T03:00:00.000Z" title="发表于 2026-04-06 23:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11711 Advanced NLP: Quantization"/></a><div class="content"><a class="title" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization">11711 Advanced NLP: Quantization</a><time datetime="2026-04-07T02:00:00.000Z" title="发表于 2026-04-06 22:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11868 LLM Sys: Systems for Mixture-of-Experts Models"/></a><div class="content"><a class="title" href="/zh/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models">11868 LLM Sys: Systems for Mixture-of-Experts Models</a><time datetime="2026-03-21T19:00:00.000Z" title="发表于 2026-03-21 15:00:00">2026-03-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="15645 Database systems: Query Optimization"/></a><div class="content"><a class="title" href="/zh/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization">15645 Database systems: Query Optimization</a><time datetime="2026-03-20T18:00:00.000Z" title="发表于 2026-03-20 14:00:00">2026-03-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="15645 Database systems: Query Execution"/></a><div class="content"><a class="title" href="/zh/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution">15645 Database systems: Query Execution</a><time datetime="2026-03-15T18:00:00.000Z" title="发表于 2026-03-15 14:00:00">2026-03-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/zh/js/utils.js"></script><script src="/zh/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '06baba89e85f212d2a9d550fc8a4fe37'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/zh/404.html') : window.location.href = '/zh/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

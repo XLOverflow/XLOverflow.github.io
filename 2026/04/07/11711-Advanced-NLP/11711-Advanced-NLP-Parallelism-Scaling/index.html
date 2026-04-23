@@ -1,0 +1,870 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>11711 Advanced NLP: Parallelism and Scaling | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Notes on parallelism and scaling from CMU 11-711 Advanced NLP, covering single-GPU training basics, data&#x2F;tensor&#x2F;pipeline parallelism, ZeRO memory optimization, and strategy selection for large-scale L">
+<meta property="og:type" content="article">
+<meta property="og:title" content="11711 Advanced NLP: Parallelism and Scaling">
+<meta property="og:url" content="https://xloverflow.github.io/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Notes on parallelism and scaling from CMU 11-711 Advanced NLP, covering single-GPU training basics, data&#x2F;tensor&#x2F;pipeline parallelism, ZeRO memory optimization, and strategy selection for large-scale L">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png">
+<meta property="article:published_time" content="2026-04-07T03:00:00.000Z">
+<meta property="article:modified_time" content="2026-04-07T03:00:00.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="11711">
+<meta property="article:tag" content="AI">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="Distributed Training">
+<meta property="article:tag" content="Natural Language Processing">
+<meta property="article:tag" content="Parallelism">
+<meta property="article:tag" content="Scaling">
+<meta property="article:tag" content="Study Notes">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "11711 Advanced NLP: Parallelism and Scaling",
+  "url": "https://xloverflow.github.io/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png",
+  "datePublished": "2026-04-07T03:00:00.000Z",
+  "dateModified": "2026-04-07T03:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '11711 Advanced NLP: Parallelism and Scaling',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">119</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">11711 Advanced NLP: Parallelism and Scaling</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">11711 Advanced NLP: Parallelism and Scaling</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-04-07T03:00:00.000Z" title="Created 2026-04-06 23:00:00">2026-04-06</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-04-07T03:00:00.000Z" title="Updated 2026-04-06 23:00:00">2026-04-06</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CMU-11-711-Advanced-NLP/">CMU 11-711 Advanced NLP</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="lec20-parallelism-and-scaling">Lec20 Parallelism and
+Scaling</h1>
+<p>This lecture addresses the central systems challenge of LLM
+pre-training: how to efficiently use multiple GPUs to train larger
+models on more data. The key question is how to split work across
+devices while minimizing wasted time on communication and idle
+bubbles.</p>
+<h2 id="motivation">Motivation</h2>
+<p>Pre-training benefits from both more data and bigger models — both
+reduce training loss. The problem is that scaling requires leveraging
+multiple GPUs effectively, which introduces three competing
+concerns:</p>
+<ul>
+<li><strong>Memory usage</strong>: all training state (weights,
+gradients, optimizer states, activations) must fit in GPU memory</li>
+<li><strong>Compute efficiency</strong>: GPUs should spend most of their
+time computing, not waiting</li>
+<li><strong>Communication overhead</strong>: synchronization between
+GPUs keeps them idle</li>
+</ul>
+<p>The impact of getting this right is dramatic. The slides show two
+configurations for the same 3.57B model on 32 nodes: one achieves 17.4%
+MFU at 1.7M tok/s, the other gets 0.7% MFU at 60K tok/s — a <strong>28x
+throughput difference</strong> just from parallelism strategy
+choices.</p>
+<h2 id="training-basics-on-one-gpu">Training Basics on One GPU</h2>
+<h3 id="compute">Compute</h3>
+<p>Training compute is measured in floating point operations (FLOPs).
+For a forward and backward pass:</p>
+<p><span class="math display">\[
+\text{FLOPs} = 6 \times \text{model\_parameters} \times
+\text{token\_batch\_size}
+\]</span></p>
+<p>The factor of 6 comes from: 2x for multiply-accumulate in the forward
+pass, and 4x for the backward pass (2x for each of the two backward
+computations).</p>
+<p><strong>Model FLOP Utilization (MFU)</strong> measures how
+effectively the hardware is used:</p>
+<p><span class="math display">\[
+\text{MFU} = \frac{\text{Achieved FLOPS}}{\text{Theoretical Peak FLOPS}}
+\]</span></p>
+<p>For reference, an H100 SXM achieves 1,979 teraFLOPS peak in BFloat16
+with Tensor Cores. Real training runs typically achieve 30-45% MFU due
+to communication overhead, memory bandwidth limits, and idle time.</p>
+<h3 id="memory-usage">Memory Usage</h3>
+<p>A training step requires storing four categories of tensors:</p>
+<p><span class="math display">\[
+\text{peak\_memory} = \text{model\_bf16} + \text{model\_fp32} +
+\text{grads\_fp32} + \text{optim\_states} + \text{activations}
+\]</span></p>
+<p>The rough breakdown per parameter (using mixed precision with
+Adam):</p>
+<table>
+<thead>
+<tr class="header">
+<th>Component</th>
+<th>Bytes per Parameter</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>BF16 model weights</td>
+<td>2</td>
+</tr>
+<tr class="even">
+<td>FP32 master weights</td>
+<td>4</td>
+</tr>
+<tr class="odd">
+<td>FP32 gradients</td>
+<td>4</td>
+</tr>
+<tr class="even">
+<td>Adam momentum (FP32)</td>
+<td>4</td>
+</tr>
+<tr class="odd">
+<td>Adam variance (FP32)</td>
+<td>4</td>
+</tr>
+<tr class="even">
+<td><strong>Total (excl. activations)</strong></td>
+<td><strong>18</strong></td>
+</tr>
+</tbody>
+</table>
+<p>For a 7B model, this is ~126 GB just for
+parameters/gradients/optimizer — already exceeding a single H100’s 80
+GB. A 70B model needs ~1,120-1,400 GB.</p>
+<h3 id="memory-usage-activations">Memory Usage: Activations</h3>
+<p>Activation memory scales linearly with batch size and quadratically
+with sequence length:</p>
+<p><span class="math display">\[
+m_{\text{act}} = L \cdot seq \cdot bs \cdot h \cdot \left(34 + \frac{5
+\cdot n_{\text{heads}} \cdot seq}{h}\right)
+\]</span></p>
+<p>where <span class="math inline">\(L\)</span> is the number of layers,
+<span class="math inline">\(seq\)</span> is sequence length, <span
+class="math inline">\(bs\)</span> is batch size, <span
+class="math inline">\(h\)</span> is hidden dimension, and <span
+class="math inline">\(n_{\text{heads}}\)</span> is the number of
+attention heads. The quadratic term comes from the attention score
+matrix (<span class="math inline">\(seq \times seq\)</span>). At long
+sequence lengths (8K+), activations dominate memory usage.</p>
+<h3 id="activation-recomputation">Activation Recomputation</h3>
+<p>Rather than storing all activations during the forward pass,
+<strong>activation recomputation</strong> (gradient checkpointing) saves
+only certain activations as “checkpoints” and recomputes the rest during
+the backward pass.</p>
+<p>The tradeoff is clear: more compute for less memory. Selective
+recomputation targets the most memory-expensive activations (like
+attention scores) while keeping cheaper ones, striking a balance between
+the two extremes.</p>
+<h3 id="gradient-accumulation">Gradient Accumulation</h3>
+<p>Gradient accumulation splits a large batch into smaller
+micro-batches, running forward/backward on each sequentially and
+averaging the gradients before updating:</p>
+<p><span class="math display">\[
+bs = gbs = mbs \cdot grad\_acc
+\]</span></p>
+<p>This lets you simulate a large batch size without needing the memory
+to hold all activations at once. The memory cost is determined by the
+micro-batch size, while the effective batch size equals micro-batch size
+times the number of accumulation steps. Pre-training typically uses 4-60
+million tokens per batch.</p>
+<h2 id="data-parallelism">Data Parallelism</h2>
+<h3 id="basic-idea">Basic Idea</h3>
+<p>Data parallelism (DP) replicates the entire model on every GPU. Each
+GPU processes a different micro-batch, computes gradients independently,
+then all GPUs average their gradients via an <strong>all-reduce</strong>
+operation before updating weights.</p>
+<p>The global batch size becomes:</p>
+<p><span class="math display">\[
+\text{global batch size} = mbs \cdot grad\_acc \cdot dp
+\]</span></p>
+<p>where <span class="math inline">\(dp\)</span> is the number of
+data-parallel replicas.</p>
+<h3 id="communication-collective-operations">Communication: Collective
+Operations</h3>
+<p>Multi-GPU training relies on collective communication primitives:</p>
+<table>
+<colgroup>
+<col style="width: 55%" />
+<col style="width: 45%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Operation</th>
+<th>Pattern</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Send/Recv</td>
+<td>Point-to-point transfer between two ranks</td>
+</tr>
+<tr class="even">
+<td>Scatter</td>
+<td>One rank distributes chunks to all ranks</td>
+</tr>
+<tr class="odd">
+<td>Gather</td>
+<td>One rank collects chunks from all ranks</td>
+</tr>
+<tr class="even">
+<td>Broadcast</td>
+<td>One rank sends identical data to all ranks</td>
+</tr>
+<tr class="odd">
+<td>Reduce</td>
+<td>All ranks contribute, one rank gets the aggregated result</td>
+</tr>
+<tr class="even">
+<td>All-Reduce</td>
+<td>All ranks contribute, all ranks get the aggregated result</td>
+</tr>
+<tr class="odd">
+<td>All-Gather</td>
+<td>All ranks contribute chunks, all ranks get the full data</td>
+</tr>
+</tbody>
+</table>
+<p>In naive data parallelism, a single all-reduce happens after the
+entire backward pass completes. This means GPUs sit idle during the
+entire communication phase.</p>
+<h3 id="overlap-bucketing">Overlap + Bucketing</h3>
+<p>The key optimization is to <strong>overlap communication with
+computation</strong>:</p>
+<ol type="1">
+<li><strong>Start all-reduce as soon as gradients are ready</strong> —
+don’t wait for the full backward pass</li>
+<li><strong>Group gradients into buckets</strong> — launch one
+all-reduce per bucket instead of per parameter</li>
+</ol>
+<p>Since the backward pass computes gradients starting from the last
+layer, the all-reduce for later layers can overlap with gradient
+computation for earlier layers. This hides much of the communication
+latency behind useful compute.</p>
+<h3 id="scaling-behavior">Scaling Behavior</h3>
+<p>Data parallelism does <strong>not</strong> reduce per-GPU memory —
+each GPU still holds a full copy of the model, gradients, and optimizer
+states. It only increases throughput by processing more data in
+parallel.</p>
+<p>As the number of GPUs increases, per-GPU throughput drops due to
+growing communication overhead. The slides show a 3B model going from
+~38K tokens/sec/GPU at DP=8 down to ~22K tokens/sec/GPU at DP=256
+(-40.6% degradation).</p>
+<h3 id="worked-example">Worked Example</h3>
+<p>Consider training with a global batch size of 4 million tokens and
+sequence length of 4,000: - Batch size in sequences: 4M / 4K = 1,024 -
+If one GPU fits mbs=2 sequences, with 128 GPUs: 2 × 128 = 256 sequences
+per step - Need grad_acc = 1024 / 256 = 4 accumulation steps</p>
+<p>With 512 GPUs instead: 2 × 512 = 1,024 sequences per step, so
+grad_acc = 1 (no accumulation needed, faster per step).</p>
+<h2 id="tensor-parallelism">Tensor Parallelism</h2>
+<h3 id="basic-idea-1">Basic Idea</h3>
+<p>When a model is too large for a single GPU, tensor parallelism (TP)
+splits individual weight matrices across GPUs. Each GPU computes a
+portion of the matrix multiplication, then results are combined via
+communication.</p>
+<h3 id="column-wise-parallelism">Column-Wise Parallelism</h3>
+<p>Split the weight matrix <span class="math inline">\(W\)</span> into
+column chunks. Each GPU holds one chunk and computes <span
+class="math inline">\(X \cdot W_i\)</span> independently. The input
+<span class="math inline">\(X\)</span> is <strong>broadcast</strong> to
+all GPUs, and the partial outputs <span
+class="math inline">\(Y_i\)</span> are <strong>all-gathered</strong> to
+reconstruct the full output.</p>
+<p>For a 2-GPU split of <span class="math inline">\(Y = XW\)</span>: -
+GPU 0 computes: <span class="math inline">\(Y_0 = X \cdot W_0\)</span>
+(first half of columns) - GPU 1 computes: <span
+class="math inline">\(Y_1 = X \cdot W_1\)</span> (second half of
+columns) - All-gather produces: <span class="math inline">\(Y = [Y_0,
+Y_1]\)</span></p>
+<h3 id="row-wise-parallelism">Row-Wise Parallelism</h3>
+<p>Split the weight matrix into row chunks (and correspondingly split
+the input into column chunks). Each GPU computes a partial result, then
+an <strong>all-reduce</strong> (sum) combines them.</p>
+<p>For a 2-GPU split: - GPU 0 computes: <span class="math inline">\(Y_0
+= X_0 \cdot W_0\)</span> - GPU 1 computes: <span
+class="math inline">\(Y_1 = X_1 \cdot W_1\)</span> - All-reduce
+produces: <span class="math inline">\(Y = Y_0 + Y_1\)</span></p>
+<h3 id="application-to-transformer-layers">Application to Transformer
+Layers</h3>
+<p><strong>Feed-forward layers</strong> use column parallel for the
+first linear (<span class="math inline">\(A\)</span>), then row parallel
+for the second linear (<span class="math inline">\(B\)</span>). This
+avoids an intermediate all-reduce/all-gather between the two — the
+output of column parallel naturally becomes the input for row
+parallel:</p>
+<p><span class="math display">\[
+Y = \text{GeLU}(XA), \quad Z = \text{Dropout}(YB)
+\]</span></p>
+<p>With <span class="math inline">\(A = [A_1, A_2]\)</span> (column
+split) and <span class="math inline">\(B = \begin{bmatrix} B_1 \\ B_2
+\end{bmatrix}\)</span> (row split), each GPU computes <span
+class="math inline">\(\text{GeLU}(X \cdot A_i) \cdot B_i\)</span> and
+only needs one all-reduce at the end.</p>
+<p><strong>Attention layers</strong> split naturally by assigning
+different attention heads to different GPUs. The Q, K, V projections are
+column-split, each GPU handles its subset of heads independently, and
+the output projection is row-split.</p>
+<h3 id="tradeoffs">Tradeoffs</h3>
+<p>Tensor parallelism reduces per-GPU memory for weights, gradients,
+optimizer states, and activations. A 70B model that requires 140 GB with
+no parallelism fits within 80 GB with TP=8 or TP=16.</p>
+<p>The cost is communication. Each transformer layer requires all-reduce
+or all-gather operations in both forward and backward passes. Throughput
+drops sharply as TP increases: for a 3B model, TP=2 achieves ~13K
+tokens/sec/GPU while TP=32 drops to ~4.5K (-65.6%).</p>
+<p>Cross-node communication bandwidth drops dramatically (436 GB/s
+intra-node vs ~34 GB/s at 64 nodes), so <strong>tensor parallelism
+should be confined within a single node</strong> (typically 8 GPUs per
+node).</p>
+<h2 id="pipeline-parallelism">Pipeline Parallelism</h2>
+<h3 id="basic-idea-2">Basic Idea</h3>
+<p>Pipeline parallelism (PP) splits the model by <strong>layers</strong>
+across GPUs. GPU 1 holds layers 1-4, GPU 2 holds layers 5-8, and so on.
+Data flows sequentially through the pipeline.</p>
+<p>This reduces per-GPU memory proportionally — an 8B model with PP=8
+drops from ~140 GB to ~40 GB per GPU.</p>
+<h3 id="the-bubble-problem">The Bubble Problem</h3>
+<p>The naive approach has a massive inefficiency: while GPU 1 processes
+the forward pass, GPUs 2-4 sit idle. Then while GPU 4 processes the
+backward pass, GPUs 1-3 are idle. This wasted time is called the
+<strong>pipeline bubble</strong>.</p>
+<h3 id="one-forward-one-backward-1f1b-schedule">One-Forward-One-Backward
+(1F1B) Schedule</h3>
+<p>The 1F1B schedule reduces the bubble by interleaving forward and
+backward passes across micro-batches. Instead of completing all forward
+passes before starting backward, each GPU begins its backward pass as
+soon as the last pipeline stage finishes.</p>
+<p>With more micro-batches, the bubble becomes a smaller fraction of
+total time. The slides show that with PP=2, throughput is ~15K
+tokens/sec/GPU, but at PP=32 with few microbatches it drops -44.3%. With
+32 microbatches, the degradation at PP=32 is better at -52.4% but still
+significant.</p>
+<p>Pipeline parallelism is best suited for <strong>cross-node</strong>
+parallelism since it only requires point-to-point communication (send
+activations to the next stage, receive gradients from the next stage),
+unlike tensor parallelism which requires all-reduce.</p>
+<h2 id="memory-optimization-zero">Memory Optimization: ZeRO</h2>
+<h3 id="the-redundancy-problem">The Redundancy Problem</h3>
+<p>In standard data parallelism, every GPU stores a complete copy of
+model parameters, gradients, and optimizer states. For a 7B model with
+Adam, that’s ~126 GB replicated across every GPU — enormously
+wasteful.</p>
+<h3 id="zero-stages">ZeRO Stages</h3>
+<p>The <strong>Zero Redundancy Optimizer (ZeRO)</strong> progressively
+partitions training state across GPUs:</p>
+<table>
+<colgroup>
+<col style="width: 12%" />
+<col style="width: 27%" />
+<col style="width: 27%" />
+<col style="width: 32%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Stage</th>
+<th>What is Sharded</th>
+<th>Memory Savings</th>
+<th>Communication Cost</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Baseline (DP)</td>
+<td>Nothing</td>
+<td>None</td>
+<td>Low (all-reduce only)</td>
+</tr>
+<tr class="even">
+<td>ZeRO-1</td>
+<td>Optimizer states</td>
+<td>~4x reduction in optimizer memory</td>
+<td>Low</td>
+</tr>
+<tr class="odd">
+<td>ZeRO-2</td>
+<td>+ Gradients</td>
+<td>Further reduction</td>
+<td>Moderate</td>
+</tr>
+<tr class="even">
+<td>ZeRO-3</td>
+<td>+ Parameters</td>
+<td>Maximum reduction</td>
+<td>High (all-gather per layer)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="how-zero-3-works">How ZeRO-3 Works</h3>
+<p>Each GPU stores only <span class="math inline">\(1/N\)</span> of the
+parameters (where <span class="math inline">\(N\)</span> is the number
+of GPUs). At each layer during forward/backward: 1. GPU issues an
+<strong>all-gather</strong> to fetch the full parameters for that layer
+from all peers 2. Compute activations/gradients using the full
+parameters 3. Free the fetched parameters and move to the next layer</p>
+<p>The key distinction from tensor/pipeline parallelism: ZeRO shards
+<strong>memory</strong>, not <strong>computation</strong>. Every GPU
+still performs the full computation on the full data — it just doesn’t
+store everything simultaneously. This means ZeRO-3 has the highest
+communication cost (all-gather for every layer in both forward and
+backward), but provides the largest memory savings.</p>
+<h2 id="choosing-strategies">Choosing Strategies</h2>
+<h3 id="summary-of-approaches">Summary of Approaches</h3>
+<table>
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 22%" />
+<col style="width: 22%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Strategy</th>
+<th>Key Idea</th>
+<th>Tradeoff</th>
+<th>Best Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Data Parallelism (DP)</td>
+<td>Parallelize on batch dimension</td>
+<td>Redundant memory; model must fit on GPU</td>
+<td>Standard models that fit in GPU memory</td>
+</tr>
+<tr class="even">
+<td>Tensor Parallelism (TP)</td>
+<td>Parallelize on hidden dimension</td>
+<td>High communication (all-reduce per layer)</td>
+<td>Large layers; within a single node</td>
+</tr>
+<tr class="odd">
+<td>Pipeline Parallelism (PP)</td>
+<td>Parallelize on model dimension</td>
+<td>Pipeline bubbles waste time</td>
+<td>Large deep models; across nodes</td>
+</tr>
+<tr class="even">
+<td>ZeRO</td>
+<td>Shard model/optimizer/gradients in DP</td>
+<td>High communication (all-gather)</td>
+<td>Big models that don’t fit in GPU memory</td>
+</tr>
+</tbody>
+</table>
+<h3 id="decision-framework">Decision Framework</h3>
+<p>When configuring a training run, the goals are: 1. <strong>Fit the
+model into memory</strong> — use TP, PP, or ZeRO to reduce per-GPU
+memory 2. <strong>Satisfy the target global batch size</strong> — use DP
+and gradient accumulation 3. <strong>Maximize training
+throughput</strong> — minimize communication overhead and idle time</p>
+<p>In practice, these strategies are <strong>combined</strong>. A
+typical configuration might use: - TP within a node (e.g., TP=4 or TP=8)
+for memory reduction with fast intra-node communication - PP across
+nodes (e.g., PP=2 or PP=4) for additional memory reduction with only
+point-to-point cross-node traffic - DP across the remaining GPUs for
+throughput scaling - ZeRO-1 to shard optimizer states without major
+communication overhead</p>
+<h3 id="best-configuration-experiments">Best Configuration
+Experiments</h3>
+<p>The Ultra-Scale Playbook benchmarks show how optimal configurations
+vary by model size and cluster scale (1M token GBS, seq length 4096,
+H100 nodes):</p>
+<ul>
+<li><strong>Small models (1.3B)</strong> on few nodes: pure DP works
+well (e.g., DP=4, TP=1, PP=2, MFU ~38%)</li>
+<li><strong>Medium models (3.5-8.8B)</strong>: TP=4 within nodes +
+moderate PP + DP achieves ~40-46% MFU</li>
+<li><strong>Large models (80B)</strong>: require aggressive TP (TP=4-16)
++ PP (PP=4-16) + ZeRO-1, with MFU dropping to ~15-45% depending on
+cluster size</li>
+<li><strong>More nodes generally hurts MFU</strong>: going from 1 node
+to 64 nodes drops MFU from ~45% to ~5% for a 1.3B model, as
+communication overhead dominates</li>
+</ul>
+<h3 id="training-frameworks">Training Frameworks</h3>
+<p>Two major frameworks implement these parallelism strategies:</p>
+<ul>
+<li><strong>torchtitan</strong>: PyTorch-native platform supporting
+FSDP2, Tensor Parallel, Pipeline Parallel, Context Parallel, activation
+checkpointing, Float8, gradient accumulation, and more</li>
+<li><strong>Megatron-LM</strong>: NVIDIA’s GPU-optimized library with
+Megatron Core providing kernels, tensor/pipeline parallelism,
+distributed training (FSDP, DDP), and post-training support</li>
+</ul>
+<h2 id="lec20-takeaways">Lec20 Takeaways</h2>
+<ul>
+<li><strong>Memory is the first bottleneck</strong>: a 7B model needs
+~126 GB for training state alone; activation recomputation and gradient
+accumulation help but cannot solve the problem for large models</li>
+<li><strong>Data parallelism scales throughput, not memory</strong>:
+each GPU still holds the full model; communication overhead grows with
+more GPUs</li>
+<li><strong>Tensor parallelism trades communication for memory</strong>:
+split weight matrices across GPUs within a node; keep TP within fast
+intra-node links</li>
+<li><strong>Pipeline parallelism introduces bubbles</strong>: splitting
+layers across GPUs creates idle time; 1F1B scheduling and more
+microbatches reduce but don’t eliminate the bubble</li>
+<li><strong>ZeRO eliminates redundancy</strong>: progressively sharding
+optimizer states, gradients, and parameters trades communication for
+memory savings; fundamentally different from TP/PP since it shards
+memory, not computation</li>
+</ul>
+<h2 id="final-summary">Final Summary</h2>
+<table>
+<colgroup>
+<col style="width: 41%" />
+<col style="width: 58%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Topic</th>
+<th>Key Idea</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Compute &amp; MFU</td>
+<td>6 × params × tokens per step; MFU = achieved / peak FLOPS; real runs
+get 30-45%</td>
+</tr>
+<tr class="even">
+<td>Memory breakdown</td>
+<td>18 bytes/param for mixed-precision Adam; activations scale
+quadratically with seq length</td>
+</tr>
+<tr class="odd">
+<td>Activation recomputation</td>
+<td>Trade ~33% more compute for dramatically less activation memory</td>
+</tr>
+<tr class="even">
+<td>Gradient accumulation</td>
+<td>Simulate large batches with constant memory via micro-batch
+averaging</td>
+</tr>
+<tr class="odd">
+<td>Data parallelism</td>
+<td>Replicate model, split data; all-reduce gradients; overlap with
+bucketing</td>
+</tr>
+<tr class="even">
+<td>Tensor parallelism</td>
+<td>Split weight matrices (column/row); best within a node due to
+communication cost</td>
+</tr>
+<tr class="odd">
+<td>Pipeline parallelism</td>
+<td>Split layers across GPUs; 1F1B schedule reduces bubble; best across
+nodes</td>
+</tr>
+<tr class="even">
+<td>ZeRO</td>
+<td>Shard optimizer/gradients/params across DP ranks; memory sharding,
+not compute sharding</td>
+</tr>
+<tr class="odd">
+<td>Strategy selection</td>
+<td>Combine TP (intra-node) + PP (inter-node) + DP (remaining) + ZeRO-1;
+tune for MFU</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key takeaway</strong>: Training large LLMs requires combining
+multiple parallelism strategies — each addresses a different dimension
+of the problem (data, hidden, layers, memory), and the optimal
+combination depends on model size, cluster topology, and batch size
+constraints.</p>
+<h2 id="references">References</h2>
+<ul>
+<li>The Ultra-Scale Playbook: Training LLMs on GPU Clusters
+(HuggingFace)</li>
+<li>torchtitan: <a
+target="_blank" rel="noopener" href="https://github.com/pytorch/torchtitan">github.com/pytorch/torchtitan</a></li>
+<li>Megatron-LM: <a
+target="_blank" rel="noopener" href="https://github.com/NVIDIA/Megatron-LM">github.com/NVIDIA/Megatron-LM</a></li>
+<li>Rajbhandari et al., “ZeRO: Memory Optimizations Toward Training
+Trillion Parameter Models,” 2020</li>
+<li>Shoeybi et al., “Megatron-LM: Training Multi-Billion Parameter
+Language Models Using Model Parallelism,” 2019</li>
+</ul>
+<p><em>This post is based on lecture materials from CMU 11-711 Advanced
+NLP by Sean Welleck (Lecture 20: Parallelism and Scaling).</em></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/">https://xloverflow.github.io/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Natural-Language-Processing/">Natural Language Processing</a><a class="post-meta__tags" href="/tags/CMU/">CMU</a><a class="post-meta__tags" href="/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/tags/11711/">11711</a><a class="post-meta__tags" href="/tags/AI/">AI</a><a class="post-meta__tags" href="/tags/Distributed-Training/">Distributed Training</a><a class="post-meta__tags" href="/tags/Parallelism/">Parallelism</a><a class="post-meta__tags" href="/tags/Scaling/">Scaling</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">11711 Advanced NLP: Quantization</div></div><div class="info-2"><div class="info-item-1">Notes on quantization from CMU 11-711 Advanced NLP, covering number representation, 8-bit quantization (absmax, zero-point), LLM.int8(), GGML/GGUF, and quantization-aware training with QLoRA.</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">Notes on RNN architectures, encoder-decoder models, and attention mechanisms from CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/" title="11711 Advanced NLP: Evaluation &amp; Experimental Design"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-05</div><div class="info-item-2">11711 Advanced NLP: Evaluation &amp; Experimental Design</div></div><div class="info-2"><div class="info-item-1">Notes on NLP evaluation, benchmarks, and experimental design from CMU 11-711 Advanced NLP, covering loss-based metrics, task metrics, LLM-as-judge, statistical testing, and annotation quality.</div></div></div></a><a class="pagination-related" href="/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-22</div><div class="info-item-2">11711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/" title="11711 Advanced NLP: Learning &amp; Inference"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Learning &amp; Inference</div></div><div class="info-2"><div class="info-item-1">Notes on learning algorithms and inference methods from CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Multimodal/" title="11711 Advanced NLP: Multimodal Modeling"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-04</div><div class="info-item-2">11711 Advanced NLP: Multimodal Modeling</div></div><div class="info-2"><div class="info-item-1">Notes on multimodal modeling from CMU 11-711 Advanced NLP, covering ViT, CLIP, LLaVA-style integration, token-based image generation, diffusion, and flow matching.</div></div></div></a><a class="pagination-related" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-06</div><div class="info-item-2">11711 Advanced NLP: Quantization</div></div><div class="info-2"><div class="info-item-1">Notes on quantization from CMU 11-711 Advanced NLP, covering number representation, 8-bit quantization (absmax, zero-point), LLM.int8(), GGML/GGUF, and quantization-aware training with QLoRA.</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">119</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#lec20-parallelism-and-scaling"><span class="toc-number">1.</span> <span class="toc-text">Lec20 Parallelism and
+Scaling</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#motivation"><span class="toc-number">1.1.</span> <span class="toc-text">Motivation</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#training-basics-on-one-gpu"><span class="toc-number">1.2.</span> <span class="toc-text">Training Basics on One GPU</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#compute"><span class="toc-number">1.2.1.</span> <span class="toc-text">Compute</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#memory-usage"><span class="toc-number">1.2.2.</span> <span class="toc-text">Memory Usage</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#memory-usage-activations"><span class="toc-number">1.2.3.</span> <span class="toc-text">Memory Usage: Activations</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#activation-recomputation"><span class="toc-number">1.2.4.</span> <span class="toc-text">Activation Recomputation</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#gradient-accumulation"><span class="toc-number">1.2.5.</span> <span class="toc-text">Gradient Accumulation</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#data-parallelism"><span class="toc-number">1.3.</span> <span class="toc-text">Data Parallelism</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#basic-idea"><span class="toc-number">1.3.1.</span> <span class="toc-text">Basic Idea</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#communication-collective-operations"><span class="toc-number">1.3.2.</span> <span class="toc-text">Communication: Collective
+Operations</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#overlap-bucketing"><span class="toc-number">1.3.3.</span> <span class="toc-text">Overlap + Bucketing</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#scaling-behavior"><span class="toc-number">1.3.4.</span> <span class="toc-text">Scaling Behavior</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#worked-example"><span class="toc-number">1.3.5.</span> <span class="toc-text">Worked Example</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#tensor-parallelism"><span class="toc-number">1.4.</span> <span class="toc-text">Tensor Parallelism</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#basic-idea-1"><span class="toc-number">1.4.1.</span> <span class="toc-text">Basic Idea</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#column-wise-parallelism"><span class="toc-number">1.4.2.</span> <span class="toc-text">Column-Wise Parallelism</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#row-wise-parallelism"><span class="toc-number">1.4.3.</span> <span class="toc-text">Row-Wise Parallelism</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#application-to-transformer-layers"><span class="toc-number">1.4.4.</span> <span class="toc-text">Application to Transformer
+Layers</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#tradeoffs"><span class="toc-number">1.4.5.</span> <span class="toc-text">Tradeoffs</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#pipeline-parallelism"><span class="toc-number">1.5.</span> <span class="toc-text">Pipeline Parallelism</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#basic-idea-2"><span class="toc-number">1.5.1.</span> <span class="toc-text">Basic Idea</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#the-bubble-problem"><span class="toc-number">1.5.2.</span> <span class="toc-text">The Bubble Problem</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#one-forward-one-backward-1f1b-schedule"><span class="toc-number">1.5.3.</span> <span class="toc-text">One-Forward-One-Backward
+(1F1B) Schedule</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#memory-optimization-zero"><span class="toc-number">1.6.</span> <span class="toc-text">Memory Optimization: ZeRO</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#the-redundancy-problem"><span class="toc-number">1.6.1.</span> <span class="toc-text">The Redundancy Problem</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#zero-stages"><span class="toc-number">1.6.2.</span> <span class="toc-text">ZeRO Stages</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#how-zero-3-works"><span class="toc-number">1.6.3.</span> <span class="toc-text">How ZeRO-3 Works</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#choosing-strategies"><span class="toc-number">1.7.</span> <span class="toc-text">Choosing Strategies</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#summary-of-approaches"><span class="toc-number">1.7.1.</span> <span class="toc-text">Summary of Approaches</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#decision-framework"><span class="toc-number">1.7.2.</span> <span class="toc-text">Decision Framework</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#best-configuration-experiments"><span class="toc-number">1.7.3.</span> <span class="toc-text">Best Configuration
+Experiments</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#training-frameworks"><span class="toc-number">1.7.4.</span> <span class="toc-text">Training Frameworks</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#lec20-takeaways"><span class="toc-number">1.8.</span> <span class="toc-text">Lec20 Takeaways</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#final-summary"><span class="toc-number">1.9.</span> <span class="toc-text">Final Summary</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#references"><span class="toc-number">1.10.</span> <span class="toc-text">References</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Parallelism and Scaling"/></a><div class="content"><a class="title" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling">11711 Advanced NLP: Parallelism and Scaling</a><time datetime="2026-04-07T03:00:00.000Z" title="Created 2026-04-06 23:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Quantization"/></a><div class="content"><a class="title" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization">11711 Advanced NLP: Quantization</a><time datetime="2026-04-07T02:00:00.000Z" title="Created 2026-04-06 22:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Systems for Mixture-of-Experts Models"/></a><div class="content"><a class="title" href="/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models">11868 LLM Sys: Systems for Mixture-of-Experts Models</a><time datetime="2026-03-21T19:00:00.000Z" title="Created 2026-03-21 15:00:00">2026-03-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Query Optimization"/></a><div class="content"><a class="title" href="/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization">15645 Database systems: Query Optimization</a><time datetime="2026-03-20T18:00:00.000Z" title="Created 2026-03-20 14:00:00">2026-03-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Query Execution"/></a><div class="content"><a class="title" href="/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution">15645 Database systems: Query Execution</a><time datetime="2026-03-15T18:00:00.000Z" title="Created 2026-03-15 14:00:00">2026-03-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '66b92bd1570d72c7f144b1edb012f498'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

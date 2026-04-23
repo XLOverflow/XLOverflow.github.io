@@ -1,0 +1,715 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>15645 Database systems: Index Concurrency Control | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="CMU 15-645 数据库系统的笔记和总结。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="15645 Database systems: Index Concurrency Control">
+<meta property="og:url" content="https://xloverflow.github.io/zh/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="CMU 15-645 数据库系统的笔记和总结。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png">
+<meta property="article:published_time" content="2026-03-08T14:30:00.000Z">
+<meta property="article:modified_time" content="2026-03-08T14:30:00.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="Study Notes">
+<meta property="article:tag" content="Database Systems">
+<meta property="article:tag" content="15645">
+<meta property="article:tag" content="Concurrency Control">
+<meta property="article:tag" content="Latches">
+<meta property="article:tag" content="B+Tree">
+<meta property="article:tag" content="Hash Table">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "15645 Database systems: Index Concurrency Control",
+  "url": "https://xloverflow.github.io/zh/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png",
+  "datePublished": "2026-03-08T14:30:00.000Z",
+  "dateModified": "2026-03-08T14:30:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io/zh"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/zh/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/zh/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/zh/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/zh/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '15645 Database systems: Index Concurrency Control',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">62</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">116</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">22</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/zh/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/zh/"><span class="site-name">15645 Database systems: Index Concurrency Control</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/"><i class="fas fa-language fa-fw"></i><span> English</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">15645 Database systems: Index Concurrency Control</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-03-08T14:30:00.000Z" title="发表于 2026-03-08 10:30:00">2026-03-08</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-03-08T14:30:00.000Z" title="更新于 2026-03-08 10:30:00">2026-03-08</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/zh/categories/CMU-15-645-%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/">CMU 15-645 数据库系统</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="lec-10-索引并发控制">Lec 10 索引并发控制</h1>
+<h2 id="学习地图">0. 学习地图</h2>
+<p>这讲的核心问题只有一个：<strong>如何让多个 worker
+同时访问同一个索引，又不把数据结构弄坏？</strong></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>结构 / 场景</th>
+<th>难点</th>
+<th>常见解决方式</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Hash Table 查找 / 插入</td>
+<td>多个线程会竞争同一个 bucket</td>
+<td>按表 / 页 / 槽位加 latch</td>
+</tr>
+<tr class="even">
+<td>B+Tree 查找 / 更新</td>
+<td>遍历可能和 split / merge 并发发生</td>
+<td>Latch crabbing / coupling</td>
+</tr>
+<tr class="odd">
+<td>叶子页范围扫描</td>
+<td>遍历不再是严格自顶向下</td>
+<td>sibling latch 需要 no-wait 协议</td>
+</tr>
+</tbody>
+</table>
+<h3 id="复杂度速查">复杂度速查</h3>
+<p>记号：</p>
+<ul>
+<li><code>n</code> = 索引中的 entry 数</li>
+<li><code>f</code> = B+Tree 的有效 fanout</li>
+<li><code>h</code> = 树高，因此 <code>h = O(\log_f n)</code></li>
+</ul>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>结构 / 操作</th>
+<th>期望复杂度</th>
+<th>最坏情况 / 关键注意点</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Hash table lookup</td>
+<td><code>O(1)</code></td>
+<td>极端冲突下可能到 <code>O(n)</code></td>
+</tr>
+<tr class="even">
+<td>Hash table insert</td>
+<td>均摊 <code>O(1)</code></td>
+<td>resize 需要全局协调</td>
+</tr>
+<tr class="odd">
+<td>B+Tree 点查</td>
+<td><code>O(h) = O(\log_f n)</code></td>
+<td>每层都要拿一次 latch</td>
+</tr>
+<tr class="even">
+<td>B+Tree 插入 / 删除</td>
+<td>常见情况 <code>O(h)</code></td>
+<td>split / merge 最多可向上级联 <code>O(h)</code> 层</td>
+</tr>
+<tr class="odd">
+<td>叶子页范围扫描</td>
+<td><code>O(h + \#leaf\_pages\_touched)</code></td>
+<td>no-wait 失败会导致重试</td>
+</tr>
+</tbody>
+</table>
+<h2 id="正确性locks-vs.-latches">1. 正确性：Locks vs. Latches</h2>
+<p>DBMS 里的并发正确性有两个层面：</p>
+<ul>
+<li><strong>逻辑正确性（Logical correctness）</strong>：worker
+能不能看到它应该看到的数据。</li>
+<li><strong>物理正确性（Physical
+correctness）</strong>：数据结构内部表示是否仍然合法。</li>
+</ul>
+<p>这讲讨论的是 <strong>latch</strong>，不是事务层的 lock。</p>
+<table>
+<thead>
+<tr class="header">
+<th>维度</th>
+<th>Locks</th>
+<th>Latches</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>保护对象</td>
+<td>数据库的逻辑内容</td>
+<td>DBMS 的内存数据结构</td>
+</tr>
+<tr class="even">
+<td>持有者</td>
+<td>事务</td>
+<td>worker / 线程</td>
+</tr>
+<tr class="odd">
+<td>持有时间</td>
+<td>整个事务期间</td>
+<td>一次操作的临界区</td>
+</tr>
+<tr class="even">
+<td>模式</td>
+<td>shared / exclusive / intention 等</td>
+<td>通常只有 read / write</td>
+</tr>
+<tr class="odd">
+<td>死锁处理</td>
+<td>检测与回滚</td>
+<td>主要靠编码纪律避免</td>
+</tr>
+</tbody>
+</table>
+<h3 id="latch-模式">Latch 模式</h3>
+<ul>
+<li><strong>Read latch</strong>：允许多个 reader 同时持有。</li>
+<li><strong>Write latch</strong>：独占访问，不能与任何读写并存。</li>
+</ul>
+<h2 id="latch-的设计目标与实现">2. Latch 的设计目标与实现</h2>
+<h3 id="设计目标">设计目标</h3>
+<p>一个好的 latch 应该：</p>
+<ul>
+<li>占用元数据小</li>
+<li>在无竞争时足够快</li>
+<li>尽量分散管理</li>
+<li>避免昂贵的系统调用</li>
+</ul>
+<h3 id="常见实现">常见实现</h3>
+<h4 id="test-and-set-spin-latch">Test-and-Set Spin Latch</h4>
+<ul>
+<li>无竞争时非常快。</li>
+<li>通常只需要一个原子指令。</li>
+<li>竞争激烈时会不停自旋，带来缓存抖动。</li>
+<li>不够 cache-friendly，也不够 OS-friendly。</li>
+</ul>
+<h3 id="compare-and-swapcas">Compare-and-Swap（CAS）</h3>
+<p>很多 latch 的基础原语是 CAS：</p>
+<ul>
+<li>比较内存位置 <code>M</code> 是否等于期望值 <code>V</code></li>
+<li>如果相等，就写入新值 <code>V'</code></li>
+<li>否则失败并重试或退让</li>
+</ul>
+<h4 id="blocking-os-mutex">Blocking OS Mutex</h4>
+<ul>
+<li>编程模型简单。</li>
+<li>高竞争下比纯自旋更稳妥。</li>
+<li>但 lock / unlock 成本更高，可能需要进入内核。</li>
+</ul>
+<h4 id="reader-writer-latch">Reader-Writer Latch</h4>
+<ul>
+<li>支持多 reader 并发。</li>
+<li>很适合树结构中的读遍历。</li>
+<li>代价是更多元数据和队列管理。</li>
+<li>还要处理 reader / writer 饥饿问题。</li>
+</ul>
+<h2 id="hash-table-的-latching">3. Hash Table 的 Latching</h2>
+<p>Hash table 的并发控制相对简单，原因是：</p>
+<ul>
+<li>worker 的访问路径更单一</li>
+<li>通常一次只会碰一个 page 或 slot</li>
+<li>访问方向更统一，因此更不容易死锁</li>
+</ul>
+<p>如果需要 <strong>resize</strong>，通常会在整个表上拿一个
+<strong>global write latch</strong>。</p>
+<h3 id="不同粒度">不同粒度</h3>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>方案</th>
+<th>思路</th>
+<th>优点</th>
+<th>代价</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Global latch</td>
+<td>整个表共用一个 latch</td>
+<td>最简单</td>
+<td>并发度最差</td>
+</tr>
+<tr class="even">
+<td>Page / block latch</td>
+<td>每个页 / bucket block 一个 latch</td>
+<td>实现与并发较平衡</td>
+<td>热页会形成竞争</td>
+</tr>
+<tr class="odd">
+<td>Slot latch</td>
+<td>每个 slot 一个 latch</td>
+<td>并发度最高</td>
+<td>元数据和管理成本更高</td>
+</tr>
+</tbody>
+</table>
+<h3 id="实践结论">实践结论</h3>
+<ul>
+<li>想要实现简单，就用更粗粒度。</li>
+<li>热 bucket 多的时候，用 page/slot latch 更合适。</li>
+<li>resize 要尽量少做，因为它往往意味着全局临界区。</li>
+</ul>
+<h2 id="为什么-btree-更难">4. 为什么 B+Tree 更难</h2>
+<p>B+Tree 并发访问同时要处理两类问题：</p>
+<ul>
+<li>两个 worker 同时修改同一个节点</li>
+<li>一个 worker 在遍历，另一个 worker 正在 split / merge</li>
+</ul>
+<p>第二类问题决定了 B+Tree 的 latch 协议要比 hash table 精细得多。</p>
+<h2 id="latch-crabbing-coupling">5. Latch Crabbing / Coupling</h2>
+<p>标准做法是 <strong>latch crabbing</strong>：</p>
+<ol type="1">
+<li>先锁住 parent。</li>
+<li>再锁住 child。</li>
+<li>如果 child 已经“安全”，就释放 parent。</li>
+</ol>
+<h3 id="safe-node">Safe Node</h3>
+<p>所谓 <strong>safe
+node</strong>，就是本次更新不会引起结构变化的节点：</p>
+<ul>
+<li><strong>插入时</strong>：节点不会 split。</li>
+<li><strong>删除时</strong>：节点不会 merge / underflow。</li>
+</ul>
+<p>如果一个节点最多能容纳 <code>m</code> 个 key，那么常见教材里的 safe
+条件可以写成：</p>
+<p><span class="math display">\[
+\text{Insert safe} \iff \text{occupancy} &lt; m
+\]</span></p>
+<p><span class="math display">\[
+\text{Delete safe} \iff \text{occupancy} &gt; \left\lceil \frac{m}{2}
+\right\rceil
+\]</span></p>
+<p>真实系统里可能会用 merge threshold 代替“半满”规则，但本质相同：safe
+就是 <strong>这一步不会触发结构变化</strong>。</p>
+<h3 id="查找协议">查找协议</h3>
+<p>对于 <code>Find</code>：</p>
+<ol type="1">
+<li>从 root 开始。</li>
+<li>给 child 加 <strong>read latch</strong>。</li>
+<li>释放 parent。</li>
+<li>重复直到 leaf。</li>
+</ol>
+<p>这样 reader 不需要一直把整条路径都锁住。</p>
+<p>复杂度：</p>
+<p><span class="math display">\[
+O(h) = O(\log_f n)
+\]</span></p>
+<p>因为 worker 只会走一条 root-to-leaf 路径。</p>
+<h3 id="插入-删除协议">插入 / 删除协议</h3>
+<p>对于写操作：</p>
+<ol type="1">
+<li>从 root 往下，按需获取 <strong>write latch</strong>。</li>
+<li>到达 child 后判断它是否 safe。</li>
+<li>如果 child safe，就释放祖先节点上的 latch。</li>
+<li>只保留那些对 split / merge 仍然必要的 latch。</li>
+</ol>
+<p>这是更保守但最稳妥的版本。</p>
+<p>常见情况下它的复杂度仍然是：</p>
+<p><span class="math display">\[
+O(h)
+\]</span></p>
+<p>但最坏情况下，split / merge 可以一路级联到
+root，因此结构修改本身也可能达到 <code>O(h)</code>。</p>
+<h2 id="更好的-btree-latching">6. 更好的 B+Tree Latching</h2>
+<p>课上专门指出一个瓶颈：很多更新一开始就会对 <strong>root 加 write
+latch</strong>。</p>
+<p>但现实里，大多数 insert / delete 其实只改 leaf，并不会真的触发 split
+/ merge。</p>
+<h3 id="乐观协议">乐观协议</h3>
+<p>因此可以采用两阶段思路：</p>
+<ol type="1">
+<li>先像查找一样，用 <strong>read latch</strong> 一路往下。</li>
+<li>到叶子后再获取 / 升级成 <strong>write latch</strong>。</li>
+<li>如果 leaf 是 safe 的，就直接完成。</li>
+<li>如果 leaf 不 safe，就释放并重启，改用保守的写锁协议。</li>
+</ol>
+<p>这样能明显减少 root write latch 的争用。</p>
+<p>可以把乐观协议理解成：</p>
+<ul>
+<li><strong>常见情况</strong>：只走一次 root-to-leaf，约
+<code>O(h)</code></li>
+<li><strong>猜错时</strong>：先走一次读路径，再重走一次写路径，渐进复杂度仍是
+<code>O(h)</code>，但路径代价大约接近 <code>2h</code></li>
+</ul>
+<h2 id="叶子页扫描">7. 叶子页扫描</h2>
+<p>前面的遍历都是 <strong>自顶向下</strong>。但 range scan 会从一个 leaf
+横向走到 sibling。</p>
+<p>这会带来新问题：</p>
+<ul>
+<li><code>T1</code> 可能在删除时持有某个 leaf 的 write latch</li>
+<li><code>T2</code> 可能持有 read latch，并想横向走到 sibling</li>
+<li>如果 sibling latch 只能傻等，就可能形成死锁</li>
+</ul>
+<h3 id="必须遵守的规则">必须遵守的规则</h3>
+<p>leaf sibling 的 latch 获取必须支持 <strong>no-wait
+模式</strong>。</p>
+<p>如果拿不到下一个 sibling 的 latch：</p>
+<ul>
+<li>不能无限等待</li>
+<li>应该重启、放弃，或者按数据结构允许的方式恢复</li>
+</ul>
+<p>因为 latch 一般不像 lock 那样有完整的死锁检测与恢复机制。</p>
+<p>如果第一次定位之后还要继续横向扫描 <code>k</code> 个 leaf
+page，那么代价大致是：</p>
+<p><span class="math display">\[
+O(h + k)
+\]</span></p>
+<p>这里还没有把 no-wait 失败后的重试算进去。</p>
+<h2 id="代价总结">8. 代价总结</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>操作</th>
+<th>Latch 模式</th>
+<th>路径 / 时间代价</th>
+<th>主要风险</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Hash table lookup</td>
+<td>page/slot latch</td>
+<td>期望 <code>O(1)</code></td>
+<td>hot bucket 竞争</td>
+</tr>
+<tr class="even">
+<td>B+Tree search</td>
+<td>自顶向下 read latch</td>
+<td><code>O(\log_f n)</code></td>
+<td>只要不横向走，一般不会死锁</td>
+</tr>
+<tr class="odd">
+<td>B+Tree insert/delete</td>
+<td>保守 crabbing</td>
+<td>常见情况 <code>O(\log_f n)</code></td>
+<td>split / merge 级联</td>
+</tr>
+<tr class="even">
+<td>B+Tree insert/delete</td>
+<td>先乐观再回退</td>
+<td>常见情况 <code>O(\log_f n)</code></td>
+<td>leaf 不 safe 时需要重启</td>
+</tr>
+<tr class="odd">
+<td>Leaf range scan</td>
+<td>read latch + no-wait sibling</td>
+<td><code>O(\log_f n + k)</code></td>
+<td>如果允许等待 sibling，会死锁</td>
+</tr>
+</tbody>
+</table>
+<h2 id="write-set-纪律">9. Write-Set 纪律</h2>
+<p>对于 B+Tree 写操作，worker 会维护一个私有的
+<strong>write-set</strong> 来记录本次修改过的节点。</p>
+<ul>
+<li>修改过的节点上的 write latch 要一直持有到操作结束。</li>
+<li>不能把“做了一半”的结构更新暴露给别的线程。</li>
+<li>如果后续拿不到需要的 write latch，就根据 write-set 回滚，并释放全部
+latch。</li>
+</ul>
+<p>这是把“物理正确性”真正落实到代码里的关键规则。</p>
+<h2 id="最终总结">10. 最终总结</h2>
+<ol type="1">
+<li>Latch 负责保护物理结构，lock 负责保护逻辑数据。</li>
+<li>Hash table 的并发控制更简单，因为访问模式更规则。</li>
+<li>B+Tree 的核心协议是 <strong>latch crabbing</strong>，关键概念是
+<strong>safe node</strong>。</li>
+<li>乐观树遍历很重要，否则 root write latch 很快会成为瓶颈。</li>
+<li>范围扫描必须使用 <strong>no-wait sibling
+协议</strong>，否则迟早会遇到死锁。</li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/zh/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/">https://xloverflow.github.io/zh/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://xloverflow.github.io/zh" target="_blank">Life is not a race, but a journey</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/zh/tags/CMU/">CMU</a><a class="post-meta__tags" href="/zh/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/zh/tags/Database-Systems/">Database Systems</a><a class="post-meta__tags" href="/zh/tags/15645/">15645</a><a class="post-meta__tags" href="/zh/tags/Concurrency-Control/">Concurrency Control</a><a class="post-meta__tags" href="/zh/tags/Latches/">Latches</a><a class="post-meta__tags" href="/zh/tags/B-Tree/">B+Tree</a><a class="post-meta__tags" href="/zh/tags/Hash-Table/">Hash Table</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/zh/2026/03/08/15645-Database-Systems/15645-Database-systems-Sorting-Aggregation/" title="15645 Database systems: Sorting &amp; Aggregation"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">15645 Database systems: Sorting & Aggregation</div></div><div class="info-2"><div class="info-item-1">CMU 15-645 数据库系统的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Evaluation-Experimentation/" title="11711 Advanced NLP：评测与实验设计"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">11711 Advanced NLP：评测与实验设计</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 Advanced NLP 课程关于 NLP 评测、基准测试与实验设计的笔记，涵盖损失指标、任务指标、LLM 评判、统计检验与标注质量。</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/zh/2026/02/09/15645-Database-Systems/15645-Database-systems-Index-Filter/" title="15645 Database systems: Index &amp; Filter"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-09</div><div class="info-item-2">15645 Database systems: Index &amp; Filter</div></div><div class="info-2"><div class="info-item-1">CMU 15-645 数据库系统的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/02/07/15645-Database-Systems/15645-Database-systems-Hash-Tables/" title="15645 Database systems: Hash Tables"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-07</div><div class="info-item-2">15645 Database systems: Hash Tables</div></div><div class="info-2"><div class="info-item-1">CMU 15-645 数据库系统的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/16/15645-Database-Systems/15645-Database-Systems-relational-model-and-SQL/" title="15645 Database Systems Lecture Notes"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-15</div><div class="info-item-2">15645 Database Systems Lecture Notes</div></div><div class="info-2"><div class="info-item-1">CMU 15-645 数据库系统的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/03/08/15645-Database-Systems/15645-Database-systems-Join-Algorithms/" title="15645 Database systems: Join Algorithms"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-08</div><div class="info-item-2">15645 Database systems: Join Algorithms</div></div><div class="info-2"><div class="info-item-1">CMU 15-645 数据库系统的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-15</div><div class="info-item-2">15645 Database systems: Query Execution</div></div><div class="info-2"><div class="info-item-1">CMU 15-645 数据库系统课程笔记与总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-20</div><div class="info-item-2">15645 Database systems: Query Optimization</div></div><div class="info-2"><div class="info-item-1">CMU 15-645 数据库系统课程笔记与总结。</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li 的中文博客</div><div class="site-data"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">62</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">116</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">22</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#lec-10-%E7%B4%A2%E5%BC%95%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6"><span class="toc-number">1.</span> <span class="toc-text">Lec 10 索引并发控制</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%A6%E4%B9%A0%E5%9C%B0%E5%9B%BE"><span class="toc-number">1.1.</span> <span class="toc-text">0. 学习地图</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%8D%E6%9D%82%E5%BA%A6%E9%80%9F%E6%9F%A5"><span class="toc-number">1.1.1.</span> <span class="toc-text">复杂度速查</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%AD%A3%E7%A1%AE%E6%80%A7locks-vs.-latches"><span class="toc-number">1.2.</span> <span class="toc-text">1. 正确性：Locks vs. Latches</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#latch-%E6%A8%A1%E5%BC%8F"><span class="toc-number">1.2.1.</span> <span class="toc-text">Latch 模式</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#latch-%E7%9A%84%E8%AE%BE%E8%AE%A1%E7%9B%AE%E6%A0%87%E4%B8%8E%E5%AE%9E%E7%8E%B0"><span class="toc-number">1.3.</span> <span class="toc-text">2. Latch 的设计目标与实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BE%E8%AE%A1%E7%9B%AE%E6%A0%87"><span class="toc-number">1.3.1.</span> <span class="toc-text">设计目标</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E5%AE%9E%E7%8E%B0"><span class="toc-number">1.3.2.</span> <span class="toc-text">常见实现</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#test-and-set-spin-latch"><span class="toc-number">1.3.2.1.</span> <span class="toc-text">Test-and-Set Spin Latch</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#compare-and-swapcas"><span class="toc-number">1.3.3.</span> <span class="toc-text">Compare-and-Swap（CAS）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#blocking-os-mutex"><span class="toc-number">1.3.3.1.</span> <span class="toc-text">Blocking OS Mutex</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#reader-writer-latch"><span class="toc-number">1.3.3.2.</span> <span class="toc-text">Reader-Writer Latch</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#hash-table-%E7%9A%84-latching"><span class="toc-number">1.4.</span> <span class="toc-text">3. Hash Table 的 Latching</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8D%E5%90%8C%E7%B2%92%E5%BA%A6"><span class="toc-number">1.4.1.</span> <span class="toc-text">不同粒度</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E8%B7%B5%E7%BB%93%E8%AE%BA"><span class="toc-number">1.4.2.</span> <span class="toc-text">实践结论</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88-btree-%E6%9B%B4%E9%9A%BE"><span class="toc-number">1.5.</span> <span class="toc-text">4. 为什么 B+Tree 更难</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#latch-crabbing-coupling"><span class="toc-number">1.6.</span> <span class="toc-text">5. Latch Crabbing &#x2F; Coupling</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#safe-node"><span class="toc-number">1.6.1.</span> <span class="toc-text">Safe Node</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9F%A5%E6%89%BE%E5%8D%8F%E8%AE%AE"><span class="toc-number">1.6.2.</span> <span class="toc-text">查找协议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8F%92%E5%85%A5-%E5%88%A0%E9%99%A4%E5%8D%8F%E8%AE%AE"><span class="toc-number">1.6.3.</span> <span class="toc-text">插入 &#x2F; 删除协议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E5%A5%BD%E7%9A%84-btree-latching"><span class="toc-number">1.7.</span> <span class="toc-text">6. 更好的 B+Tree Latching</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B9%90%E8%A7%82%E5%8D%8F%E8%AE%AE"><span class="toc-number">1.7.1.</span> <span class="toc-text">乐观协议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%B6%E5%AD%90%E9%A1%B5%E6%89%AB%E6%8F%8F"><span class="toc-number">1.8.</span> <span class="toc-text">7. 叶子页扫描</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BF%85%E9%A1%BB%E9%81%B5%E5%AE%88%E7%9A%84%E8%A7%84%E5%88%99"><span class="toc-number">1.8.1.</span> <span class="toc-text">必须遵守的规则</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%A3%E4%BB%B7%E6%80%BB%E7%BB%93"><span class="toc-number">1.9.</span> <span class="toc-text">8. 代价总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#write-set-%E7%BA%AA%E5%BE%8B"><span class="toc-number">1.10.</span> <span class="toc-text">9. Write-Set 纪律</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%80%E7%BB%88%E6%80%BB%E7%BB%93"><span class="toc-number">1.11.</span> <span class="toc-text">10. 最终总结</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11711 Advanced NLP: Parallelism and Scaling"/></a><div class="content"><a class="title" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling">11711 Advanced NLP: Parallelism and Scaling</a><time datetime="2026-04-07T03:00:00.000Z" title="发表于 2026-04-06 23:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11711 Advanced NLP: Quantization"/></a><div class="content"><a class="title" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization">11711 Advanced NLP: Quantization</a><time datetime="2026-04-07T02:00:00.000Z" title="发表于 2026-04-06 22:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11868 LLM Sys: Systems for Mixture-of-Experts Models"/></a><div class="content"><a class="title" href="/zh/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models">11868 LLM Sys: Systems for Mixture-of-Experts Models</a><time datetime="2026-03-21T19:00:00.000Z" title="发表于 2026-03-21 15:00:00">2026-03-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="15645 Database systems: Query Optimization"/></a><div class="content"><a class="title" href="/zh/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization">15645 Database systems: Query Optimization</a><time datetime="2026-03-20T18:00:00.000Z" title="发表于 2026-03-20 14:00:00">2026-03-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="15645 Database systems: Query Execution"/></a><div class="content"><a class="title" href="/zh/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution">15645 Database systems: Query Execution</a><time datetime="2026-03-15T18:00:00.000Z" title="发表于 2026-03-15 14:00:00">2026-03-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/zh/js/utils.js"></script><script src="/zh/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || 'f40b35f5842a27400d7f04b0aec09571'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/zh/404.html') : window.location.href = '/zh/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

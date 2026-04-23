@@ -1,0 +1,873 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>11868 LLM Sys: Systems for Mixture-of-Experts Models | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Notes on CMU 11-868 LLM Systems Lec16, covering Mixture-of-Experts architecture, Switch Transformer, shared vs. routed experts, expert parallelism with GShard, load balancing, DeepSeek V3 MoE, and Dee">
+<meta property="og:type" content="article">
+<meta property="og:title" content="11868 LLM Sys: Systems for Mixture-of-Experts Models">
+<meta property="og:url" content="https://xloverflow.github.io/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Notes on CMU 11-868 LLM Systems Lec16, covering Mixture-of-Experts architecture, Switch Transformer, shared vs. routed experts, expert parallelism with GShard, load balancing, DeepSeek V3 MoE, and Dee">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png">
+<meta property="article:published_time" content="2026-03-21T19:00:00.000Z">
+<meta property="article:modified_time" content="2026-03-21T19:00:00.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="11868">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="DeepSeek">
+<meta property="article:tag" content="DeepSpeed-MoE">
+<meta property="article:tag" content="Expert Parallelism">
+<meta property="article:tag" content="GShard">
+<meta property="article:tag" content="LLM Systems">
+<meta property="article:tag" content="Mixture of Experts">
+<meta property="article:tag" content="MoE">
+<meta property="article:tag" content="Study Notes">
+<meta property="article:tag" content="Switch Transformer">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "11868 LLM Sys: Systems for Mixture-of-Experts Models",
+  "url": "https://xloverflow.github.io/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png",
+  "datePublished": "2026-03-21T19:00:00.000Z",
+  "dateModified": "2026-03-21T19:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '11868 LLM Sys: Systems for Mixture-of-Experts Models',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">119</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">11868 LLM Sys: Systems for Mixture-of-Experts Models</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">11868 LLM Sys: Systems for Mixture-of-Experts Models</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-03-21T19:00:00.000Z" title="Created 2026-03-21 15:00:00">2026-03-21</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-03-21T19:00:00.000Z" title="Updated 2026-03-21 15:00:00">2026-03-21</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CMU-11-868-LLM-Systems/">CMU 11-868 LLM Systems</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="lec16-systems-for-moe-models">Lec16 Systems for MoE Models</h1>
+<p>This lecture addresses the systems challenges behind
+Mixture-of-Experts (MoE) models: how sparse expert architectures scale
+model capacity without proportionally increasing compute, what
+communication patterns expert parallelism introduces, and how systems
+like GShard, DeepSpeed-MoE, and DeepSeek V3 solve routing, load
+balancing, and inference efficiency at scale.</p>
+<h2 id="motivation-why-sparse-models">Motivation: Why Sparse
+Models?</h2>
+<p>Dense models are expensive to scale. Training a 175B OPT model takes
+992 A100 GPUs for 56 days; PaLM at 540B needs 6144 TPU v4 chips for 57
+days. The compute cost grows roughly linearly with model size because
+every parameter participates in every forward pass.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Model</th>
+<th>Model Size</th>
+<th>Hardware</th>
+<th>Days to Train</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Megatron-LM GPT-2</td>
+<td>8.3B</td>
+<td>512 V100 GPU</td>
+<td>9.2 days</td>
+</tr>
+<tr class="even">
+<td>OPT</td>
+<td>175B</td>
+<td>992 A100 GPU</td>
+<td>56 days</td>
+</tr>
+<tr class="odd">
+<td>MT-NLG</td>
+<td>530B</td>
+<td>2200 A100 GPU</td>
+<td>60 days</td>
+</tr>
+<tr class="even">
+<td>PaLM</td>
+<td>540B</td>
+<td>6144 TPU v4</td>
+<td>57 days</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Sparse models</strong> offer a different scaling path:
+increase total parameters while keeping per-token compute constant.
+Mixture-of-Experts is the dominant sparse architecture for LLMs. MoE
+pretraining is much faster than dense models of equivalent quality, and
+MoE inference is faster than a dense model with the same total parameter
+count because only a subset of parameters activates per token.</p>
+<h2 id="transformer-mixture-of-experts-architecture">Transformer
+Mixture-of-Experts Architecture</h2>
+<p>The core idea of Transformer MoE is simple: replace the single dense
+FFN in each Transformer block with <strong>multiple small expert
+FFNs</strong> and a <strong>gating network</strong> (router) that
+selects which expert(s) to activate for each input token.</p>
+<p>This is distinct from the classical Mixture-of-Experts learning
+algorithm, which learns a weighted average of predictor models. In
+Transformer MoE, the experts are sub-networks within the model itself,
+and the router makes a hard or soft selection per token.</p>
+<h3 id="switch-transformer">Switch Transformer</h3>
+<p>The Switch Transformer (Fedus et al., JMLR 2022) is the canonical MoE
+architecture. Each token is routed to exactly <strong>one</strong>
+selected FFN expert based on the router’s output:</p>
+<ul>
+<li>The gating network computes a probability distribution over
+experts:</li>
+</ul>
+<p><span class="math display">\[G_\sigma(x) = \text{Softmax}(x \cdot
+W_g)\]</span></p>
+<ul>
+<li>The output is a weighted combination of expert outputs:</li>
+</ul>
+<p><span class="math display">\[y = \sum_{i=1}^{n} G(x)_i
+E_i(x)\]</span></p>
+<ul>
+<li><strong>Top-k gating</strong> keeps only the top-<span
+class="math inline">\(k\)</span> expert scores and sets the rest to
+<span class="math inline">\(-\infty\)</span>:</li>
+</ul>
+<p><span class="math display">\[\text{KeepTopK}(v, k)_i = \begin{cases}
+v_i &amp; \text{if } v_i \text{ is in the top } k \text{ elements of } v
+\\ -\infty &amp; \text{otherwise} \end{cases}\]</span></p>
+<p><span class="math display">\[G(x) =
+\text{Softmax}(\text{KeepTopK}(H(x), k))\]</span></p>
+<p>In the Switch Transformer specifically, <span
+class="math inline">\(k=1\)</span>: each token goes to exactly one
+expert. This simplifies routing and reduces communication overhead
+compared to top-2 designs.</p>
+<h3 id="shared-vs.-routed-experts">Shared vs. Routed Experts</h3>
+<p>A refinement introduced in DeepSpeed-MoE and later adopted by
+DeepSeek is the <strong>shared-routed expert</strong> design:</p>
+<table>
+<colgroup>
+<col style="width: 40%" />
+<col style="width: 31%" />
+<col style="width: 28%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Expert Type</th>
+<th>Behavior</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Shared Expert</td>
+<td>Always activated for every token</td>
+<td>Captures common knowledge shared across all inputs</td>
+</tr>
+<tr class="even">
+<td>Routed Expert</td>
+<td>Conditionally activated by the router</td>
+<td>Captures token-specific, specialized knowledge</td>
+</tr>
+</tbody>
+</table>
+<p>The shared expert acts as a fixed FFN that every token passes
+through, while the routed experts provide conditional capacity. The
+final output is the sum of the shared expert output and the weighted
+routed expert outputs:</p>
+<p><span class="math display">\[\text{output} = \text{SharedFFN}(h) +
+\sum_{i \in \text{TopK}} g_i \cdot \text{Expert}_i(h)\]</span></p>
+<p>where the routing weights are computed as <span
+class="math inline">\(\text{Softmax}(\text{TopK}(h_t \cdot
+W))\)</span>.</p>
+<h3 id="what-experts-learn">What Experts Learn</h3>
+<p>Encoder experts tend to specialize in token groups or shallow
+concepts: punctuation, proper nouns, sentinel tokens, verbs, visual
+descriptions, counting and numbers. Decoder experts exhibit less
+specialization. In multilingual setups, experts do <strong>not</strong>
+specialize by language — load balancing and token routing prevent that
+kind of clustering.</p>
+<h3 id="activated-experts-differ-across-layers">Activated Experts Differ
+Across Layers</h3>
+<p>Different tokens activate different experts at each layer. Token
+“red” might route to Expert 3 at layer 1 and Expert 1 at layer 2, while
+“fox” routes to Expert 2 and Expert N at the same layers. The routing
+pattern is dynamic and learned end-to-end.</p>
+<h3 id="parameters-of-moe">Parameters of MoE</h3>
+<p>MoE models have fewer total parameters than the naive multiplication
+suggests. Mixtral 8x7B has <strong>47B</strong> parameters, not 56B,
+because only the FFN layers are replicated as experts — attention
+layers, embeddings, and layer norms are shared across all experts.</p>
+<h3 id="overfitting-risk">Overfitting Risk</h3>
+<p>MoE models are prone to overfitting on small datasets. With many more
+parameters than a comparable dense model, the sparse model can memorize
+small training sets while the dense counterpart generalizes better. On
+larger tasks, MoE performs well. This is a key consideration when
+fine-tuning MoE models on downstream tasks.</p>
+<h2 id="training-and-inference-for-moe">Training and Inference for
+MoE</h2>
+<h3 id="expert-parallelism-gshard">Expert Parallelism (GShard)</h3>
+<p>Expert parallelism (Lepikhin et al., ICLR 2021) is the standard
+approach to distributing MoE models across devices:</p>
+<ul>
+<li><strong>Each expert lives on one worker device</strong> — experts
+are split across GPUs</li>
+<li><strong>All other components (attention, embedding, layer norm) are
+replicated</strong> on every device</li>
+<li><strong>All-to-all communication</strong> dispatches tokens to the
+correct expert device and collects results</li>
+</ul>
+<p>The forward pass follows four steps:</p>
+<ol type="1">
+<li><strong>Route</strong>: each device runs its local router to
+determine which expert each token should go to</li>
+<li><strong>All-to-All Dispatch</strong>: tokens are sent to the device
+hosting their assigned expert</li>
+<li><strong>Expert Compute</strong>: each device runs its local expert
+FFN on the received tokens</li>
+<li><strong>All-to-All Combine</strong>: expert outputs are sent back to
+the originating device</li>
+</ol>
+<p>GShard also introduces <strong>interleaving</strong>: MoE layers
+alternate with standard dense FFN layers (every other layer uses MoE).
+This balances the communication overhead with the capacity benefits of
+sparse routing.</p>
+<h3 id="token-computation-path-in-moe">Token Computation Path in
+MoE</h3>
+<p>During inference with expert parallelism, each token’s computation
+path crosses device boundaries at the MoE layers. The token starts on
+its “home” device for embedding and attention, gets dispatched to a
+remote device for expert computation, then returns. Each device
+maintains its own KV-caches for the attention layers, but expert
+computation requires cross-device communication at every MoE layer.</p>
+<h3 id="load-balancing-in-moe-training">Load Balancing in MoE
+Training</h3>
+<p>Without intervention, the router can collapse into sending all tokens
+to a few popular experts, leaving most experts undertrained. The
+<strong>load balancing loss</strong> prevents this:</p>
+<p><span class="math display">\[L_{ExpBal} = \alpha_1 M
+\sum_{i=1}^{\text{\#experts}} f_i P_i\]</span></p>
+<p>where: - <span class="math inline">\(f_i = \frac{\text{\#tokens to
+expert } i}{\text{\#tokens}}\)</span> is the fraction of tokens routed
+to expert <span class="math inline">\(i\)</span> - <span
+class="math inline">\(P_i = \frac{1}{\text{\#tokens}}
+\sum_{t=1}^{\text{\#tokens}} s_{i,t}\)</span> is the average routing
+weight for expert <span class="math inline">\(i\)</span> - <span
+class="math inline">\(M\)</span> is the number of experts - <span
+class="math inline">\(\alpha_1\)</span> is a hyperparameter controlling
+the balance loss strength</p>
+<p>The product <span class="math inline">\(f_i \cdot P_i\)</span>
+penalizes experts that receive both a high fraction of tokens and high
+routing probability. This loss is differentiable through <span
+class="math inline">\(P_i\)</span> (the routing weights), encouraging
+the router to spread tokens more evenly.</p>
+<h3 id="moe-inference-challenges">MoE Inference Challenges</h3>
+<p>MoE inference performance depends on three factors:</p>
+<ul>
+<li><strong>Overall model size</strong> — determines total memory
+footprint</li>
+<li><strong>Number of activated experts</strong> — determines per-token
+compute</li>
+<li><strong>Overall memory bandwidth</strong> — since only a subset of
+experts activate, inference is often memory-bandwidth-bound</li>
+</ul>
+<p>The default implementation keeps all experts in GPU memory, which
+requires large memory capacity even though only a few experts are active
+per token.</p>
+<h3 id="optimizing-moe-inference">Optimizing MoE Inference</h3>
+<p>The system design goal for MoE inference is to minimize the critical
+data path per device and maximize aggregate memory bandwidth. Key
+optimization strategies:</p>
+<ul>
+<li><strong>Group and route tokens with the same critical data path
+together</strong> to reduce data access per device and achieve maximum
+aggregate bandwidth</li>
+<li><strong>Optimize communication scheduling</strong> with parallelism
+coordination</li>
+<li><strong>Optimize transformer and MoE-related kernels</strong> to
+improve per-device performance</li>
+</ul>
+<h3 id="expert-parallelism-and-tensor-parallelism-deepspeed-moe">Expert
+Parallelism and Tensor Parallelism (DeepSpeed-MoE)</h3>
+<p>DeepSpeed-MoE (Rajbhandari et al., 2022) combines multiple
+parallelism strategies for MoE models:</p>
+<ul>
+<li><strong>Expert Parallelism / Expert Slicing</strong>: group all
+tokens assigned to the same experts under the same critical data path,
+and parallelize processing of token groups with different critical paths
+across different devices</li>
+<li><strong>Tensor Parallelism / Tensor Slicing</strong>: partition the
+non-expert parameters (attention) across devices, usually within a
+node</li>
+<li><strong>Data Parallelism</strong>: replicate the above setup across
+additional device groups</li>
+</ul>
+<p>This multi-dimensional parallelism approach handles expert and
+non-expert parameters differently, applying the most appropriate
+parallelism strategy to each.</p>
+<h3 id="optimizing-moe-kernels">Optimizing MoE Kernels</h3>
+<p>MoE-specific kernel optimizations include:</p>
+<ul>
+<li><strong>Fusing the gating function into a single kernel</strong> —
+avoids multiple kernel launches for the softmax, top-k, and dispatch
+operations</li>
+<li><strong>Dense token-to-expert mapping table</strong> — enables
+efficient batched computation</li>
+</ul>
+<p>These optimizations achieve over <strong>6x reduction</strong> in MoE
+kernel-related latency.</p>
+<h3 id="optimizing-all-to-all-communication">Optimizing All-to-All
+Communication</h3>
+<p>Expert parallelism requires all-to-all communication between all
+expert parallel devices, and the latency increases linearly with the
+number of devices. Two key optimizations:</p>
+<ul>
+<li><strong>Hierarchical all-to-all communication</strong>: reduces
+communication hops by first communicating within a node, then across
+nodes</li>
+<li><strong>Parallelism-coordinated communication</strong>: schedules
+communications based on the model’s parallelism strategy to minimize
+overhead</li>
+</ul>
+<h3 id="moe-training-and-inference-results">MoE Training and Inference
+Results</h3>
+<p>DeepSpeed-MoE demonstrates that a 1.3B+MoE-128 model (52B total
+parameters) achieves the same validation loss as a 6.7B dense model
+while training at <strong>5x higher throughput</strong> (372 vs. 70
+samples/sec on 128 A100 GPUs).</p>
+<p>For inference, DeepSpeed achieves significantly lower latency and
+higher throughput compared to PyTorch baseline across all GPU counts (8,
+16, 32, 64 GPUs), with throughput scaling nearly linearly with GPU
+count.</p>
+<h2 id="deepseek-moe">DeepSeek MoE</h2>
+<h3 id="fine-grained-expert-design">Fine-Grained Expert Design</h3>
+<p>DeepSeek MoE (Dai et al., 2024) introduces <strong>fine-grained
+experts</strong>: each original FFN is split into <span
+class="math inline">\(k\)</span> smaller experts, yielding <span
+class="math inline">\(kN\)</span> total experts (where <span
+class="math inline">\(N\)</span> is the original number of experts).
+This finer granularity allows more flexible routing — the model
+activates <span class="math inline">\(kM\)</span> experts per token
+(where <span class="math inline">\(M\)</span> is the base activation
+count), each smaller than in a standard MoE design.</p>
+<p>The architecture combines shared experts with routed experts, and
+uses top-k weighted averaging of the activated routing experts.</p>
+<h3 id="deepseek-v3-moe-670b">DeepSeek V3 MoE (670B)</h3>
+<p>DeepSeek V3 is a 670B-parameter MoE model with the following
+configuration:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Parameter</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Vocabulary</td>
+<td>129,280</td>
+</tr>
+<tr class="even">
+<td>Hidden dimension</td>
+<td>7,168</td>
+</tr>
+<tr class="odd">
+<td>Number of layers</td>
+<td>61</td>
+</tr>
+<tr class="even">
+<td>Dense layers (lowest)</td>
+<td>3</td>
+</tr>
+<tr class="odd">
+<td>Number of attention heads</td>
+<td>128</td>
+</tr>
+<tr class="even">
+<td>FFN intermediate dimension</td>
+<td>18,432</td>
+</tr>
+<tr class="odd">
+<td>MoE dimension</td>
+<td>2,048</td>
+</tr>
+<tr class="even">
+<td>Shared experts</td>
+<td>1</td>
+</tr>
+<tr class="odd">
+<td>Routed experts</td>
+<td>256</td>
+</tr>
+<tr class="even">
+<td>Activated experts per token</td>
+<td>8</td>
+</tr>
+<tr class="odd">
+<td>Expert groups</td>
+<td>8</td>
+</tr>
+<tr class="even">
+<td>Limited groups</td>
+<td>4</td>
+</tr>
+</tbody>
+</table>
+<p>The architecture uses <strong>Multi-head Latent Attention
+(MLA)</strong> instead of standard multi-head attention. Each MoE layer
+has 1 shared expert FFN that processes every token, plus 256 routed
+experts of which 8 are activated per token. The routing uses <span
+class="math inline">\(\text{TopK}(\text{Softmax}(h_t \cdot W),
+8)\)</span>.</p>
+<p>Each expert uses the SwiGLU activation:</p>
+<p><span class="math display">\[\text{FFN}_{SwiGLU}(x) = (\text{Swish}(x
+\cdot W_1) \odot (x \cdot W_2)) \cdot W_3\]</span></p>
+<p>The first 3 layers are dense (standard FFN), and the remaining 58
+layers use MoE. This design lets the lowest layers build general
+representations before introducing sparse routing.</p>
+<h3 id="load-balancing-in-deepseek-moe">Load Balancing in DeepSeek
+MoE</h3>
+<p>DeepSeek V3 uses two levels of load balancing loss:</p>
+<p><strong>Expert-Level Balance Loss</strong> (to avoid routing
+collapse):</p>
+<p><span class="math display">\[L_{ExpBal} = \alpha_1
+\sum_{i=1}^{\text{\#experts}} f_i P_i\]</span></p>
+<p>where <span class="math inline">\(f_i =
+\frac{\text{\#experts}}{\text{\#activated\_experts}} \cdot
+\frac{\text{\#tokens to expert } i}{\text{\#tokens}}\)</span> and <span
+class="math inline">\(P_i = \frac{1}{\text{\#tokens}}
+\sum_{t=1}^{\text{\#tokens}} s_{i,t}\)</span> (the average routing
+weight).</p>
+<p><strong>Device-Level Balance Loss</strong> (to balance computation
+across devices):</p>
+<p><span class="math display">\[L_{DevBal} = \alpha_2
+\sum_{j=1}^{\text{\#groups}} f_j P_j\]</span></p>
+<p>where <span class="math inline">\(f_j\)</span> is the average <span
+class="math inline">\(f\)</span> across experts in group <span
+class="math inline">\(j\)</span>, and <span
+class="math inline">\(P_j\)</span> is the sum of <span
+class="math inline">\(P\)</span> across experts in group <span
+class="math inline">\(j\)</span>.</p>
+<p>The two-level design ensures both individual expert utilization and
+cross-device computational balance.</p>
+<h3 id="deepseek-libraries-for-moe">DeepSeek Libraries for MoE</h3>
+<p>DeepSeek has open-sourced two libraries to accelerate MoE:</p>
+<ul>
+<li><strong>DeepEP</strong>: a communication library tailored for MoE
+and expert parallelism, optimizing the all-to-all dispatch and combine
+operations</li>
+<li><strong>EPLB</strong> (Expert Parallelism Load Balancer): handles
+dynamic load balancing across expert parallel devices</li>
+</ul>
+<h3 id="deepspeed-moe-code-example">DeepSpeed MoE Code Example</h3>
+<p>DeepSpeed provides a simple API for adding MoE layers:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> deepspeed</span><br><span class="line"><span class="keyword">import</span> deepspeed.utils.groups <span class="keyword">as</span> groups</span><br><span class="line"><span class="keyword">from</span> deepspeed.moe.layer <span class="keyword">import</span> MoE</span><br><span class="line"></span><br><span class="line">WORLD_SIZE = <span class="number">4</span></span><br><span class="line">EP_WORLD_SIZE = <span class="number">2</span></span><br><span class="line">EXPERTS = <span class="number">8</span></span><br><span class="line"></span><br><span class="line">fc3 = torch.nn.Linear(<span class="number">84</span>, <span class="number">84</span>)</span><br><span class="line">fc3 = MoE(hidden_size=<span class="number">84</span>, expert=<span class="variable language_">self</span>.fc3,</span><br><span class="line">           num_experts=EXPERTS, ep_size=EP_WORLD_SIZE, k=<span class="number">1</span>)</span><br><span class="line">fc4 = torch.nn.Linear(<span class="number">84</span>, <span class="number">10</span>)</span><br></pre></td></tr></table></figure>
+<p>The <code>MoE</code> class wraps an existing <code>nn.Module</code>
+(the expert template) and handles replication, gating, and
+expert-parallel communication. Key parameters include:</p>
+<ul>
+<li><code>hidden_size</code>: model hidden dimension (input and output
+dimension)</li>
+<li><code>expert</code>: the base expert module (e.g., an MLP or
+<code>torch.nn.Linear</code>)</li>
+<li><code>num_experts</code>: total number of experts per layer</li>
+<li><code>ep_size</code>: number of ranks in the expert parallel
+group</li>
+<li><code>k</code>: top-k gating value (1 or 2)</li>
+<li><code>capacity_factor</code>: controls expert capacity at training
+time</li>
+<li><code>drop_tokens</code>: whether to drop tokens exceeding expert
+capacity</li>
+</ul>
+<p>Internally, the <code>Experts</code> class deep-copies the expert
+module for each local expert, sets <code>param.allreduce = False</code>
+on expert parameters (since they use expert parallelism, not data
+parallelism), and chunks input for per-expert processing:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Experts</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, expert, num_local_experts=<span class="number">1</span>, expert_group_name=<span class="literal">None</span></span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        <span class="variable language_">self</span>.deepspeed_experts = nn.ModuleList(</span><br><span class="line">            [copy.deepcopy(expert) <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(num_local_experts)])</span><br><span class="line">        <span class="keyword">for</span> expert <span class="keyword">in</span> <span class="variable language_">self</span>.deepspeed_experts:</span><br><span class="line">            <span class="keyword">for</span> param <span class="keyword">in</span> expert.parameters():</span><br><span class="line">                param.allreduce = <span class="literal">False</span></span><br><span class="line">                param.group_name = expert_group_name</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, inputs</span>):</span><br><span class="line">        chunks = inputs.chunk(<span class="variable language_">self</span>.num_local_experts, dim=<span class="number">1</span>)</span><br><span class="line">        expert_outputs = []</span><br><span class="line">        <span class="keyword">for</span> chunk, expert <span class="keyword">in</span> <span class="built_in">zip</span>(chunks, <span class="variable language_">self</span>.deepspeed_experts):</span><br><span class="line">            expert_outputs += [expert(chunk)]</span><br><span class="line">        <span class="keyword">return</span> torch.cat(expert_outputs, dim=<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="lec16-takeaways">Lec16 Takeaways</h2>
+<ul>
+<li><strong>MoE scales capacity without scaling compute</strong>: by
+activating only a subset of experts per token, MoE models can have
+trillions of parameters while maintaining the per-token FLOPS of a much
+smaller dense model</li>
+<li><strong>Expert parallelism is the natural distribution
+strategy</strong>: split experts across devices, replicate everything
+else, and use all-to-all communication to dispatch tokens — but
+all-to-all becomes the bottleneck at scale</li>
+<li><strong>Load balancing is critical</strong>: without auxiliary
+losses, routers collapse to a few popular experts, wasting capacity and
+creating compute imbalance across devices</li>
+<li><strong>DeepSeek V3 pushes fine-grained design</strong>: 256 routed
+experts with only 8 activated, shared experts for common knowledge,
+two-level balance losses, and MLA attention in a 670B model</li>
+<li><strong>Multi-dimensional parallelism (EP + TP + DP)</strong> is
+necessary at scale, with each strategy applied to the part of the model
+it fits best</li>
+</ul>
+<h2 id="final-summary">Final Summary</h2>
+<table>
+<colgroup>
+<col style="width: 41%" />
+<col style="width: 58%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Topic</th>
+<th>Key Idea</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Sparse vs. Dense</td>
+<td>MoE increases model capacity without proportionally increasing
+per-token compute</td>
+</tr>
+<tr class="even">
+<td>Switch Transformer</td>
+<td>routes each token to one expert via top-1 gating with softmax over
+expert scores</td>
+</tr>
+<tr class="odd">
+<td>Shared vs. Routed Experts</td>
+<td>shared experts capture common knowledge; routed experts specialize
+per token</td>
+</tr>
+<tr class="even">
+<td>Expert Parallelism (GShard)</td>
+<td>split experts across devices, replicate non-expert params, use
+all-to-all communication</td>
+</tr>
+<tr class="odd">
+<td>Load Balancing Loss</td>
+<td>auxiliary loss penalizing uneven token distribution across experts
+to prevent routing collapse</td>
+</tr>
+<tr class="even">
+<td>MoE Inference</td>
+<td>memory-bandwidth-bound; optimize by grouping tokens, fusing kernels,
+hierarchical all-to-all</td>
+</tr>
+<tr class="odd">
+<td>DeepSpeed-MoE</td>
+<td>combines expert parallelism, tensor parallelism, and data
+parallelism with optimized kernels</td>
+</tr>
+<tr class="even">
+<td>DeepSeek V3 (670B)</td>
+<td>fine-grained experts (256 routed, 8 activated), shared expert,
+two-level balance loss, SwiGLU</td>
+</tr>
+<tr class="odd">
+<td>DeepEP / EPLB</td>
+<td>DeepSeek libraries for optimized MoE communication and dynamic
+expert load balancing</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key takeaway</strong>: MoE is the dominant approach to
+scaling LLMs beyond the compute budget of dense models. The systems
+challenge shifts from parallelizing a uniform computation to
+orchestrating <strong>dynamic, token-dependent routing</strong> across
+devices — requiring expert parallelism with all-to-all communication,
+load balancing to prevent routing collapse, and multi-dimensional
+parallelism to handle both expert and non-expert parameters
+efficiently.</p>
+<h2 id="references">References</h2>
+<ol type="1">
+<li>Fedus et al. “Switch Transformers: Scaling to Trillion Parameter
+Models with Simple and Efficient Sparsity.” JMLR 2022.</li>
+<li>Lepikhin et al. “GShard: Scaling Giant Models with Conditional
+Computation and Automatic Sharding.” ICLR 2021.</li>
+<li>Rajbhandari et al. “DeepSpeed-MoE: Advancing Mixture-of-Experts
+Inference and Training to Power Next-Generation AI Scale.” 2022.</li>
+<li>Dai, D. et al. “DeepSeekMoE: Towards Ultimate Expert Specialization
+in Mixture-of-Experts Language Models.” 2024.</li>
+<li>DeepSeek-V3 inference code:
+https://github.com/deepseek-ai/DeepSeek-V3/blob/main/inference/model.py</li>
+<li>DeepEP: https://github.com/deepseek-ai/DeepEP</li>
+<li>EPLB: https://github.com/deepseek-ai/EPLB</li>
+</ol>
+<hr />
+<p><em>This post is based on lecture materials from CMU 11-868 LLM
+Systems by Lei Li (System for MOE Models, Lec16).</em></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/">https://xloverflow.github.io/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/CMU/">CMU</a><a class="post-meta__tags" href="/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/tags/LLM-Systems/">LLM Systems</a><a class="post-meta__tags" href="/tags/11868/">11868</a><a class="post-meta__tags" href="/tags/Mixture-of-Experts/">Mixture of Experts</a><a class="post-meta__tags" href="/tags/MoE/">MoE</a><a class="post-meta__tags" href="/tags/Expert-Parallelism/">Expert Parallelism</a><a class="post-meta__tags" href="/tags/Switch-Transformer/">Switch Transformer</a><a class="post-meta__tags" href="/tags/DeepSeek/">DeepSeek</a><a class="post-meta__tags" href="/tags/GShard/">GShard</a><a class="post-meta__tags" href="/tags/DeepSpeed-MoE/">DeepSpeed-MoE</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">11711 Advanced NLP: Quantization</div></div><div class="info-2"><div class="info-item-1">Notes on quantization from CMU 11-711 Advanced NLP, covering number representation, 8-bit quantization (absmax, zero-point), LLM.int8(), GGML/GGUF, and quantization-aware training with QLoRA.</div></div></div></a><a class="pagination-related" href="/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">15645 Database systems: Query Optimization</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/01/26/11868-LLM-Sys/11868-LLM-SyS-GPU-Programming-Acceleration/" title="11868 LLM Sys: GPU Programming &amp; Acceleration"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-25</div><div class="info-item-2">11868 LLM Sys: GPU Programming &amp; Acceleration</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 11-868 LLM Systems: GPU Programming & Acceleration.</div></div></div></a><a class="pagination-related" href="/2026/01/28/11868-LLM-Sys/11868-LLM-Sys-15642-ML-Sys-DL-Framworks-and-Auto-Differentiation/" title="11868 LLM Sys &amp; 15642 ML Sys: DL Frameworks and Auto Differentiation"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-28</div><div class="info-item-2">11868 LLM Sys &amp; 15642 ML Sys: DL Frameworks and Auto Differentiation</div></div><div class="info-2"><div class="info-item-1">Comprehensive notes on deep learning frameworks and automatic differentiation from CMU 11-868 LLM Systems and 15-642 ML Systems courses.</div></div></div></a><a class="pagination-related" href="/2026/02/13/11868-LLM-Sys/11868-LLM-Sys-Decoding/" title="11868 LLM Sys: Decoding"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-12</div><div class="info-item-2">11868 LLM Sys: Decoding</div></div><div class="info-2"><div class="info-item-1">Notes on decoding strategies for LLM inference from CMU 11-868, covering efficient sampling, beam search algorithms, speculative decoding, and EAGLE.</div></div></div></a><a class="pagination-related" href="/2026/03/15/11868-LLM-Sys/11868-LLM-Sys-Distributed-Training-and-DDP/" title="11868 LLM Sys: Distributed Training, DDP, and Model Parallelism"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-14</div><div class="info-item-2">11868 LLM Sys: Distributed Training, DDP, and Model Parallelism</div></div><div class="info-2"><div class="info-item-1">Notes on CMU 11-868 LLM Systems Lec13-15, covering distributed training, NCCL collectives, Ring AllReduce, PyTorch DDP, pipeline parallelism, tensor parallelism, and their combination.</div></div></div></a><a class="pagination-related" href="/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11868 LLM Sys: Tokenization and Embedding"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-12</div><div class="info-item-2">11868 LLM Sys: Tokenization and Embedding</div></div><div class="info-2"><div class="info-item-1">Comprehensive notes on tokenization techniques and vocabulary learning for Large Language Models, covering BPE, VOLT, and practical considerations in multilingual LLMs.</div></div></div></a><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Architectures/" title="11711 Advanced NLP: Architectures"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11711 Advanced NLP: Architectures</div></div><div class="info-2"><div class="info-item-1">Notes on RNN architectures, encoder-decoder models, and attention mechanisms from CMU 11-711 Advanced NLP.</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">119</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#lec16-systems-for-moe-models"><span class="toc-number">1.</span> <span class="toc-text">Lec16 Systems for MoE Models</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#motivation-why-sparse-models"><span class="toc-number">1.1.</span> <span class="toc-text">Motivation: Why Sparse
+Models?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#transformer-mixture-of-experts-architecture"><span class="toc-number">1.2.</span> <span class="toc-text">Transformer
+Mixture-of-Experts Architecture</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#switch-transformer"><span class="toc-number">1.2.1.</span> <span class="toc-text">Switch Transformer</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#shared-vs.-routed-experts"><span class="toc-number">1.2.2.</span> <span class="toc-text">Shared vs. Routed Experts</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#what-experts-learn"><span class="toc-number">1.2.3.</span> <span class="toc-text">What Experts Learn</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#activated-experts-differ-across-layers"><span class="toc-number">1.2.4.</span> <span class="toc-text">Activated Experts Differ
+Across Layers</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#parameters-of-moe"><span class="toc-number">1.2.5.</span> <span class="toc-text">Parameters of MoE</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#overfitting-risk"><span class="toc-number">1.2.6.</span> <span class="toc-text">Overfitting Risk</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#training-and-inference-for-moe"><span class="toc-number">1.3.</span> <span class="toc-text">Training and Inference for
+MoE</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#expert-parallelism-gshard"><span class="toc-number">1.3.1.</span> <span class="toc-text">Expert Parallelism (GShard)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#token-computation-path-in-moe"><span class="toc-number">1.3.2.</span> <span class="toc-text">Token Computation Path in
+MoE</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#load-balancing-in-moe-training"><span class="toc-number">1.3.3.</span> <span class="toc-text">Load Balancing in MoE
+Training</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#moe-inference-challenges"><span class="toc-number">1.3.4.</span> <span class="toc-text">MoE Inference Challenges</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#optimizing-moe-inference"><span class="toc-number">1.3.5.</span> <span class="toc-text">Optimizing MoE Inference</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#expert-parallelism-and-tensor-parallelism-deepspeed-moe"><span class="toc-number">1.3.6.</span> <span class="toc-text">Expert
+Parallelism and Tensor Parallelism (DeepSpeed-MoE)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#optimizing-moe-kernels"><span class="toc-number">1.3.7.</span> <span class="toc-text">Optimizing MoE Kernels</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#optimizing-all-to-all-communication"><span class="toc-number">1.3.8.</span> <span class="toc-text">Optimizing All-to-All
+Communication</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#moe-training-and-inference-results"><span class="toc-number">1.3.9.</span> <span class="toc-text">MoE Training and Inference
+Results</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#deepseek-moe"><span class="toc-number">1.4.</span> <span class="toc-text">DeepSeek MoE</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#fine-grained-expert-design"><span class="toc-number">1.4.1.</span> <span class="toc-text">Fine-Grained Expert Design</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#deepseek-v3-moe-670b"><span class="toc-number">1.4.2.</span> <span class="toc-text">DeepSeek V3 MoE (670B)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#load-balancing-in-deepseek-moe"><span class="toc-number">1.4.3.</span> <span class="toc-text">Load Balancing in DeepSeek
+MoE</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#deepseek-libraries-for-moe"><span class="toc-number">1.4.4.</span> <span class="toc-text">DeepSeek Libraries for MoE</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#deepspeed-moe-code-example"><span class="toc-number">1.4.5.</span> <span class="toc-text">DeepSpeed MoE Code Example</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#lec16-takeaways"><span class="toc-number">1.5.</span> <span class="toc-text">Lec16 Takeaways</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#final-summary"><span class="toc-number">1.6.</span> <span class="toc-text">Final Summary</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#references"><span class="toc-number">1.7.</span> <span class="toc-text">References</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Parallelism and Scaling"/></a><div class="content"><a class="title" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling">11711 Advanced NLP: Parallelism and Scaling</a><time datetime="2026-04-07T03:00:00.000Z" title="Created 2026-04-06 23:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Quantization"/></a><div class="content"><a class="title" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization">11711 Advanced NLP: Quantization</a><time datetime="2026-04-07T02:00:00.000Z" title="Created 2026-04-06 22:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Systems for Mixture-of-Experts Models"/></a><div class="content"><a class="title" href="/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models">11868 LLM Sys: Systems for Mixture-of-Experts Models</a><time datetime="2026-03-21T19:00:00.000Z" title="Created 2026-03-21 15:00:00">2026-03-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Query Optimization"/></a><div class="content"><a class="title" href="/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization">15645 Database systems: Query Optimization</a><time datetime="2026-03-20T18:00:00.000Z" title="Created 2026-03-20 14:00:00">2026-03-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Query Execution"/></a><div class="content"><a class="title" href="/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution">15645 Database systems: Query Execution</a><time datetime="2026-03-15T18:00:00.000Z" title="Created 2026-03-15 14:00:00">2026-03-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '8cdd8ef48ff851df26c7f66ad983df30'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

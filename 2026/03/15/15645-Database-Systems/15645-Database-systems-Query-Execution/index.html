@@ -1,0 +1,1157 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>15645 Database systems: Query Execution | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Notes and summaries for CMU 15-645 Database Systems.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="15645 Database systems: Query Execution">
+<meta property="og:url" content="https://xloverflow.github.io/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Notes and summaries for CMU 15-645 Database Systems.">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png">
+<meta property="article:published_time" content="2026-03-15T18:00:00.000Z">
+<meta property="article:modified_time" content="2026-03-15T18:00:00.000Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="15645">
+<meta property="article:tag" content="CMU">
+<meta property="article:tag" content="Database Systems">
+<meta property="article:tag" content="Parallelism">
+<meta property="article:tag" content="Query Execution">
+<meta property="article:tag" content="SIMD">
+<meta property="article:tag" content="Study Notes">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "15645 Database systems: Query Execution",
+  "url": "https://xloverflow.github.io/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png",
+  "datePublished": "2026-03-15T18:00:00.000Z",
+  "dateModified": "2026-03-15T18:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://xloverflow.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://xloverflow.github.io/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '15645 Database systems: Query Execution',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">119</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">15645 Database systems: Query Execution</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">15645 Database systems: Query Execution</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-03-15T18:00:00.000Z" title="Created 2026-03-15 14:00:00">2026-03-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-03-15T18:00:00.000Z" title="Updated 2026-03-15 14:00:00">2026-03-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CMU-15-645-Database-Systems/">CMU 15-645 Database Systems</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1
+id="lec13-query-execution-i-processing-models-access-methods-expression-evaluation">Lec13
+Query Execution I — Processing Models, Access Methods, Expression
+Evaluation</h1>
+<p>This lecture addresses the fundamental question: <strong>once the
+DBMS has a query plan, how does it actually execute it?</strong> It
+covers three processing models for driving tuple flow through operators,
+the main access methods for reading data from tables, and how the DBMS
+evaluates expressions efficiently.</p>
+<h2 id="query-execution-overview">Query Execution Overview</h2>
+<p>Before diving into processing models, the lecture establishes key
+terminology. A <strong>query plan</strong> is a DAG of operators. Within
+a plan:</p>
+<ul>
+<li>A <strong>pipeline</strong> is a sequence of operators where tuples
+continuously flow between them without intermediate storage.</li>
+<li>A <strong>pipeline breaker</strong> is an operator that cannot
+finish until all its children emit all their tuples — for example, Joins
+(build side), Subqueries, and Order By.</li>
+</ul>
+<p>The DBMS splits a query plan into pipeline segments separated by
+pipeline breakers, then executes each segment.</p>
+<h2 id="processing-models">Processing Models</h2>
+<p>A DBMS’s <strong>processing model</strong> defines how the system
+executes a query plan and moves data from one operator to the next.
+Different models make different trade-offs for OLTP vs. OLAP workloads.
+Each model is comprised of two types of execution paths: -
+<strong>Control Flow</strong>: how the DBMS invokes an operator -
+<strong>Data Flow</strong>: how an operator sends its results</p>
+<p>The output of an operator can be either whole tuples (NSM) or subsets
+of columns (DSM). The three main models differ in the granularity of
+data each operator processes at a time.</p>
+<h3 id="iterator-model-volcano-pipeline">Iterator Model (Volcano /
+Pipeline)</h3>
+<p>The most widely used processing model (<strong>Most Common</strong>).
+Every operator implements three functions:</p>
+<ul>
+<li><code>Open()</code>: initialize the operator’s state and call
+<code>Open()</code> on children</li>
+<li><code>Next()</code>: return the next single tuple, or a null/EOF
+marker when finished</li>
+<li><code>Close()</code>: clean up resources and call
+<code>Close()</code> on children</li>
+</ul>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">function Next():</span><br><span class="line">    for each child in children:</span><br><span class="line">        tuple = child.Next()</span><br><span class="line">        if tuple is not null:</span><br><span class="line">            process(tuple)</span><br><span class="line">            emit(tuple)</span><br><span class="line">    return null  // no more tuples</span><br></pre></td></tr></table></figure>
+<p>Key properties: - Each call to <code>Next()</code> returns <strong>a
+single tuple</strong> (or a null marker for end-of-stream) - The
+top-level operator repeatedly calls <code>Next()</code> on its child,
+which recursively calls its child, and so on down to the leaf (scan)
+operators - Tuples flow <strong>upward</strong> through the tree one at
+a time — this is also called the <strong>pipeline model</strong> because
+tuples are processed as soon as they are produced - Used by almost every
+DBMS: PostgreSQL, MySQL, SQLite, MongoDB, etc.</p>
+<p>The beauty of this model is its simplicity — each operator is
+self-contained and only needs to implement one interface. However, the
+per-tuple function call overhead can become significant for analytical
+workloads processing billions of tuples.</p>
+<h3 id="materialization-model">Materialization Model</h3>
+<p>The opposite extreme (<strong>Rare</strong>): each operator processes
+<strong>all</strong> its input and produces <strong>all</strong> its
+output at once.</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">function Output():</span><br><span class="line">    result = []</span><br><span class="line">    for each child in children:</span><br><span class="line">        child_result = child.Output()</span><br><span class="line">        for tuple in child_result:</span><br><span class="line">            process(tuple)</span><br><span class="line">            result.append(tuple)</span><br><span class="line">    return result</span><br></pre></td></tr></table></figure>
+<p>Key properties: - Each operator returns its <strong>entire result
+set</strong> as a materialized collection - Better for OLTP workloads
+where queries touch small amounts of data — fewer function calls,
+simpler control flow - The DBMS can send down hints like
+<code>LIMIT</code> to avoid unnecessary materialization - Worse for OLAP
+workloads with large intermediate results — materializing millions of
+tuples wastes memory - Enables <strong>operator fusion</strong>: since
+each operator sees all its input at once, the DBMS can fuse adjacent
+operators (e.g., scan + filter + projection) into a single pass over the
+data</p>
+<h3 id="vectorized-batch-model">Vectorized / Batch Model</h3>
+<p>A middle ground (<strong>Common</strong> in modern systems) that
+captures the best of both worlds. Each operator emits a <strong>batch of
+tuples</strong> (typically 1024 or so) per call. Originally proposed in
+the MonetDB/X100 system.</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">function Next():</span><br><span class="line">    batch = []</span><br><span class="line">    for each child in children:</span><br><span class="line">        child_batch = child.Next()</span><br><span class="line">        for tuple in child_batch:</span><br><span class="line">            process(tuple)</span><br><span class="line">            batch.append(tuple)</span><br><span class="line">        if len(batch) &gt;= BATCH_SIZE:</span><br><span class="line">            return batch</span><br><span class="line">    return batch</span><br></pre></td></tr></table></figure>
+<p>Key properties: - Amortizes function call overhead across many tuples
+(like materialization) while maintaining the streaming property (like
+iterator) - Ideal for OLAP workloads — the batch size is chosen to fit
+in CPU cache, enabling efficient vectorized operations via SIMD - Each
+batch internally uses a column-oriented layout, and operators include
+<strong>null bitmaps</strong> to track which entries in the batch are
+valid - Used by modern analytical systems: DuckDB, Snowflake,
+Databricks, ClickHouse, etc.</p>
+<h3 id="comparison">Comparison</h3>
+<table>
+<colgroup>
+<col style="width: 13%" />
+<col style="width: 23%" />
+<col style="width: 19%" />
+<col style="width: 43%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Model</th>
+<th>Granularity</th>
+<th>Best For</th>
+<th>Function Call Overhead</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Iterator</td>
+<td>Single tuple</td>
+<td>General purpose</td>
+<td>High (per tuple)</td>
+</tr>
+<tr class="even">
+<td>Materialization</td>
+<td>Entire result</td>
+<td>OLTP (small results)</td>
+<td>Low (per operator)</td>
+</tr>
+<tr class="odd">
+<td>Vectorized</td>
+<td>Batch of tuples</td>
+<td>OLAP (large scans)</td>
+<td>Medium (per batch)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="plan-processing-direction">Plan Processing Direction</h2>
+<p>Regardless of the processing model, the DBMS must decide the
+<strong>direction</strong> in which data flows through the plan
+tree.</p>
+<h3 id="top-to-bottom-pull">Top-to-Bottom (Pull)</h3>
+<ul>
+<li>The root operator “pulls” tuples from its children by calling
+<code>Next()</code> or <code>Output()</code></li>
+<li>Control flow starts at the top and recurses downward</li>
+<li>Data flows upward from leaves to root</li>
+<li>This is the classic approach used by the iterator model</li>
+</ul>
+<h3 id="bottom-to-top-push">Bottom-to-Top (Push)</h3>
+<ul>
+<li>Leaf operators “push” tuples to their parent operators</li>
+<li>Control flow starts at the leaves</li>
+<li>Allows tighter loops — the operator at the leaf can push tuples
+through a compiled pipeline without returning control between each
+tuple</li>
+<li>Enables <strong>operator fusion</strong>: adjacent operators in a
+pipeline can be fused into a single tight loop, eliminating virtual
+function call overhead between operators</li>
+<li>Used by HyPer and systems that employ <strong>push-based query
+compilation</strong></li>
+</ul>
+<p>The push model can achieve better performance because it avoids the
+overhead of recursive function calls. Instead of each operator pulling
+from its child, a leaf operator (e.g., a table scan) runs a tight loop
+that pushes tuples through a chain of operators compiled into a single
+function.</p>
+<h3 id="push-vs-pull-tradeoffs">Push vs Pull Tradeoffs</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Aspect</th>
+<th>Pull (Top-to-Bottom)</th>
+<th>Push (Bottom-to-Top)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Virtual function overhead</td>
+<td>One <code>Next()</code> call per tuple/batch</td>
+<td>Compiled away via operator fusion</td>
+</tr>
+<tr class="even">
+<td>LIMIT handling</td>
+<td>Easy — just stop calling <code>Next()</code></td>
+<td>Harder — must propagate “stop” signal back to leaf</td>
+</tr>
+<tr class="odd">
+<td>Sort-Merge Join</td>
+<td>Natural — can alternate pulling from two sorted inputs</td>
+<td>Difficult — two push sources must be coordinated</td>
+</tr>
+<tr class="even">
+<td>Scheduling</td>
+<td>Simple recursive control flow</td>
+<td>Needs a scheduler to manage which pipeline runs when</td>
+</tr>
+<tr class="odd">
+<td>Output control</td>
+<td>Consumer controls the pace</td>
+<td>Producer controls the pace; needs output buffers</td>
+</tr>
+</tbody>
+</table>
+<h2 id="access-methods">Access Methods</h2>
+<p>An <strong>access method</strong> is the way the DBMS reads data from
+a table. The query optimizer chooses the access method based on cost
+estimates.</p>
+<h3 id="sequential-scan">Sequential Scan</h3>
+<p>The simplest method: read every page in the table, one after
+another.</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">for page in table.pages:</span><br><span class="line">    for tuple in page.tuples:</span><br><span class="line">        if evaluate(predicate, tuple):</span><br><span class="line">            emit(tuple)</span><br></pre></td></tr></table></figure>
+<p>This is often the worst-case scenario, but the DBMS can apply several
+optimizations:</p>
+<ul>
+<li><strong>Prefetching</strong>: fetch the next few pages into the
+buffer pool before they are needed</li>
+<li><strong>Buffer Pool Bypass</strong>: for large sequential scans,
+bypass the buffer pool to avoid polluting the cache with pages that
+won’t be re-read</li>
+<li><strong>Parallelization</strong>: divide the scan across multiple
+threads or workers</li>
+<li><strong>Late Materialization</strong>: in columnar storage, delay
+stitching columns together until absolutely necessary — only read the
+columns the query actually needs</li>
+<li><strong>Heap Clustering</strong>: if the table is physically sorted
+on a key, range predicates on that key can skip large portions of the
+heap</li>
+<li><strong>Data Encoding / Compression</strong>: operate directly on
+compressed data without decompressing (e.g., run-length encoding can
+answer some predicates without expanding)</li>
+<li><strong>Scan Sharing (Synchronized Scans)</strong>: if multiple
+queries scan the same table concurrently, share the scan cursor so they
+piggyback on each other’s I/O</li>
+<li><strong>Materialized Views / Cached Results</strong>: precompute and
+cache common query results so scans can be avoided entirely</li>
+<li><strong>Code Specialization / Compilation</strong>: generate
+specialized scan code for a specific schema and predicate at query
+compile time, avoiding generic interpretation overhead</li>
+</ul>
+<h4 id="data-skipping">Data Skipping</h4>
+<p>The idea behind data skipping is to avoid examining pages or tuples
+that are guaranteed not to satisfy a query’s predicates. There are two
+categories:</p>
+<p><strong>Approximate Queries (Lossy)</strong>: execute queries on a
+sampled subset of the data to produce approximate answers. This
+sacrifices precision for speed — useful for exploratory analytics where
+exact answers are not required.</p>
+<p><strong>Zone Maps (Lossless)</strong>: pre-computed metadata about
+the values in each page (or range of pages) that allows the DBMS to skip
+pages with certainty:</p>
+<ul>
+<li>Stores the MIN, MAX, AVG, SUM, COUNT for each attribute in a
+contiguous range of pages</li>
+<li>Before scanning a page, check the zone map — if the predicate cannot
+match any value in the range, skip the entire page</li>
+<li>Extremely effective for range predicates on sorted or semi-sorted
+data</li>
+<li>Zone maps are maintained automatically as data is
+inserted/updated</li>
+<li>Used by: Netezza, Oracle, Vertica, SingleStore, Snowflake, and
+supported natively in columnar file formats like Parquet, ORC, Vortex,
+and LanceDB</li>
+</ul>
+<p>For example, if a query asks for <code>WHERE val &gt; 600</code> and
+a page’s zone map shows <code>MAX(val) = 400</code>, that entire page
+can be skipped.</p>
+<h3 id="index-scan">Index Scan</h3>
+<p>If the table has an index on the attribute(s) used in the predicate,
+the DBMS can use the index to find matching tuples directly, avoiding a
+full table scan.</p>
+<p>The query optimizer must decide: <strong>is it cheaper to use the
+index or just do a sequential scan?</strong> This depends on: -
+Selectivity of the predicate (how many tuples match) - Whether the index
+is clustered (data physically sorted by index key) - Cost of random I/O
+vs sequential I/O</p>
+<p>For low-selectivity predicates (few matching tuples), an index scan
+is usually faster. For high-selectivity predicates, the random I/O from
+an unclustered index can make a sequential scan cheaper.</p>
+<h3 id="multi-index-scan">Multi-Index Scan</h3>
+<p>When a query has predicates on multiple attributes and indexes exist
+on each, the DBMS can:</p>
+<ol type="1">
+<li>Scan each index independently to get a set of matching Record IDs
+(RIDs)</li>
+<li>Compute the intersection (for AND) or union (for OR) of these RID
+sets using set operations</li>
+<li>Retrieve the actual tuples using the resulting RID set</li>
+</ol>
+<p>This approach can be more efficient than using a single index when
+multiple selective predicates are combined.</p>
+<h2 id="modification-queries">Modification Queries</h2>
+<p>Operators that modify the database (INSERT, UPDATE, DELETE) need
+special handling because they both read and write data.</p>
+<h3 id="the-halloween-problem">The Halloween Problem</h3>
+<p>Named after it was discovered on Halloween 1976 at IBM. The problem:
+<strong>an UPDATE query can see its own modifications</strong> if the
+scan and update operate on the same index.</p>
+<p>Example: <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> employees <span class="keyword">SET</span> salary <span class="operator">=</span> salary <span class="operator">+</span> <span class="number">100</span> <span class="keyword">WHERE</span> salary <span class="operator">&lt;</span> <span class="number">1100</span>;</span><br></pre></td></tr></table></figure></p>
+<p>If the table is scanned via an index on <code>salary</code>, a tuple
+with <code>salary = 1000</code> gets updated to <code>1100</code>. But
+the scan hasn’t finished — it may encounter that same tuple again at its
+new position in the index (now at key 1100, which is still within the
+scan range if the cursor hasn’t passed it). The tuple gets updated again
+to <code>1200</code>, and so on — creating an infinite loop where the
+tuple keeps “running ahead” of the scan cursor.</p>
+<p>Solutions: - <strong>Track modified tuples</strong>: record the RIDs
+of updated tuples and skip them if encountered again -
+<strong>Materialize first</strong>: scan all qualifying tuples first,
+then apply updates — this breaks the pipeline but guarantees
+correctness</p>
+<h2 id="expression-evaluation">Expression Evaluation</h2>
+<p>The DBMS must evaluate expressions in WHERE clauses, SELECT lists,
+and other contexts.</p>
+<h3 id="execution-context">Execution Context</h3>
+<p>For each expression evaluation, the DBMS maintains an
+<strong>execution context</strong> that tracks:</p>
+<ul>
+<li><strong>Current Tuple</strong>: the tuple being processed</li>
+<li><strong>Query Parameters</strong>: bound values for parameterized
+queries</li>
+<li><strong>Table Schema</strong>: metadata needed to interpret column
+references</li>
+</ul>
+<p>The naive approach for evaluating expressions is an
+<strong>expression tree</strong> where each node is an operator or
+value.</p>
+<h3 id="expression-tree-evaluation">Expression Tree Evaluation</h3>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">    &gt;</span><br><span class="line">   / \</span><br><span class="line">  +   600</span><br><span class="line"> / \</span><br><span class="line">A   B</span><br></pre></td></tr></table></figure>
+<p>To evaluate, walk the tree recursively. The problem: for every single
+tuple, the DBMS traverses the tree, checks node types at runtime, and
+follows pointers — this is slow due to: - Poor instruction cache
+behavior (pointer chasing) - Branch mispredictions (type-checking at
+each node) - Function call overhead</p>
+<h3 id="optimizations">Optimizations</h3>
+<ol type="1">
+<li><strong>Constant Folding</strong>: pre-compute expressions that
+don’t depend on tuple data at planning time
+<ul>
+<li><code>WHERE 1 = 0</code> → skip the entire query</li>
+<li><code>WHERE x &gt; 3 + 2</code> → <code>WHERE x &gt; 5</code></li>
+<li><code>SELECT UPPER('wutang')</code> → <code>SELECT 'WUTANG'</code>
+(function calls on constants are folded too)</li>
+</ul></li>
+<li><strong>Common Sub-Expression Elimination (CSE)</strong>: if the
+same sub-expression appears multiple times, compute it once and reuse
+the result
+<ul>
+<li>Example:
+<code>WHERE STRPOS(name, 'Andy') &gt; 0 AND STRPOS(name, 'Andy') &lt; 5</code>
+— the <code>STRPOS(name, 'Andy')</code> call is computed once and the
+result is shared</li>
+</ul></li>
+<li><strong>JIT Compilation</strong>: compile the expression (or the
+entire query pipeline) into native machine code at query time,
+eliminating the overhead of tree interpretation
+<ul>
+<li>PostgreSQL uses LLVM for JIT compilation of expressions</li>
+<li>HyPer/Umbra compile entire query pipelines to native code</li>
+<li>Eliminates type-checking, pointer-chasing, and function call
+overhead</li>
+</ul></li>
+</ol>
+<h2 id="lec13-takeaways">Lec13 Takeaways</h2>
+<ul>
+<li>The <strong>vectorized model</strong> is the sweet spot for
+analytical workloads: it amortizes function-call overhead while keeping
+data in cache and enabling SIMD</li>
+<li><strong>Zone maps</strong> are a simple but powerful optimization
+for sequential scans — they let the DBMS skip irrelevant pages without
+maintaining a full index</li>
+<li>The <strong>Halloween Problem</strong> is a subtle correctness issue
+that arises when modifications and scans share the same index
+structure</li>
+<li><strong>Push-based execution</strong> can outperform pull-based by
+compiling operators into tight loops that avoid recursive function
+calls</li>
+<li><strong>JIT compilation</strong> of expressions and pipelines
+removes the interpretation overhead that dominates CPU time in
+analytical queries</li>
+</ul>
+<hr />
+<h1 id="lec14-query-execution-ii-parallelism">Lec14 Query Execution II —
+Parallelism</h1>
+<p>This lecture asks: <strong>how does the DBMS exploit parallel
+hardware to speed up query execution?</strong> It covers process models
+for managing workers, three types of query parallelism, data-level
+parallelism via SIMD, and I/O parallelism techniques.</p>
+<h2 id="parallel-vs-distributed">Parallel vs Distributed</h2>
+<p>Before diving in, an important distinction:</p>
+<table>
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 37%" />
+<col style="width: 45%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Aspect</th>
+<th>Parallel DBMS</th>
+<th>Distributed DBMS</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Resources</td>
+<td>Physically close, communicate via high-speed interconnect</td>
+<td>Nodes can be far apart, communicate over a slower network</td>
+</tr>
+<tr class="even">
+<td>Communication</td>
+<td>Cheap and assumed reliable</td>
+<td>Cost cannot be ignored; messages may be lost</td>
+</tr>
+<tr class="odd">
+<td>Examples</td>
+<td>Single multi-core machine, shared-memory cluster</td>
+<td>CockroachDB, Spanner</td>
+</tr>
+</tbody>
+</table>
+<p>This lecture focuses on <strong>parallel</strong> execution within a
+single machine or tightly coupled cluster. Distributed query execution
+is covered in later lectures.</p>
+<h2 id="process-models">Process Models</h2>
+<p>A DBMS <strong>process model</strong> defines how the system maps its
+internal worker abstractions to OS-level processes or threads. This is
+separate from the query processing model discussed in Lec13.</p>
+<h3 id="process-per-dbms-worker">Process per DBMS Worker</h3>
+<p>Each worker is a separate OS process: - Relies on OS scheduler for
+CPU time - Workers communicate via shared memory for global data
+structures (buffer pool, lock table, etc.) - A crash in one worker does
+not necessarily bring down the entire system - Higher context-switch
+overhead than threads - Used by: PostgreSQL, Oracle (historically), IBM
+DB2</p>
+<h3 id="thread-per-dbms-worker-most-common">Thread per DBMS Worker (Most
+Common)</h3>
+<p>Each worker is an OS thread within a single DBMS process: - Lower
+overhead — threads share the same address space, no need for shared
+memory segments - The DBMS manages its own scheduling (or relies on the
+OS thread scheduler) - A crash in one thread can bring down the entire
+process - Every major DBMS from the last ~25 years uses native OS
+threads (not green threads or user-level coroutines) - Used by: MySQL,
+SQL Server, Oracle (modern versions), most modern systems</p>
+<p>Important: using the thread-per-worker model does
+<strong>not</strong> automatically mean the DBMS supports intra-query
+parallelism. It only means the DBMS can run multiple queries
+concurrently on separate threads. Exploiting parallelism within a single
+query requires additional infrastructure (exchange operators,
+parallel-aware operators, etc.).</p>
+<h3 id="embedded-dbms">Embedded DBMS</h3>
+<p>The DBMS runs inside the application’s process (no separate server):
+- No inter-process communication needed - The application is responsible
+for managing concurrency - Used by: SQLite, DuckDB, LevelDB, RocksDB,
+BerkeleyDB, WiredTiger (MongoDB’s storage engine)</p>
+<h3 id="comparison-1">Comparison</h3>
+<table>
+<colgroup>
+<col style="width: 18%" />
+<col style="width: 29%" />
+<col style="width: 27%" />
+<col style="width: 24%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Model</th>
+<th>Isolation</th>
+<th>Overhead</th>
+<th>Used By</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Process per Worker</td>
+<td>High (process boundary)</td>
+<td>High (context switch)</td>
+<td>PostgreSQL</td>
+</tr>
+<tr class="even">
+<td>Thread per Worker (<strong>Most Common</strong>)</td>
+<td>Low (shared address space)</td>
+<td>Low (lightweight)</td>
+<td>MySQL, SQL Server</td>
+</tr>
+<tr class="odd">
+<td>Embedded</td>
+<td>None (in-process)</td>
+<td>Minimal</td>
+<td>SQLite, DuckDB</td>
+</tr>
+</tbody>
+</table>
+<h3 id="scheduling">Scheduling</h3>
+<p>For thread-per-worker systems, the DBMS must decide how to assign
+tasks to worker threads. Two approaches:</p>
+<ul>
+<li><strong>OS-level scheduling</strong>: let the OS decide which thread
+runs on which core. Simple but the DBMS has no control over placement
+decisions.</li>
+<li><strong>DBMS-level scheduling</strong>: the DBMS maintains its own
+work queues and assigns tasks to threads. This allows NUMA-aware
+placement (schedule work on the core closest to the data) and avoids
+excessive context switching.</li>
+</ul>
+<p>Modern high-performance systems (e.g., SQL Server, Oracle) prefer
+DBMS-level scheduling to maintain control over resource allocation.</p>
+<h2 id="query-parallelism">Query Parallelism</h2>
+<p>There are two top-level categories: parallelism
+<strong>between</strong> queries and parallelism <strong>within</strong>
+a single query.</p>
+<h3 id="inter-query-parallelism">Inter-Query Parallelism</h3>
+<p>Execute multiple queries simultaneously on different workers. This is
+straightforward — each query runs independently. The main challenge is
+<strong>concurrency control</strong> (ensuring transactions don’t
+interfere with each other), which is the subject of later lectures.</p>
+<p>Improves <strong>throughput</strong> (queries per second) rather than
+latency of individual queries.</p>
+<h3 id="intra-query-parallelism">Intra-Query Parallelism</h3>
+<p>Execute a single query using multiple workers. This improves the
+<strong>latency</strong> of individual queries. There are three
+approaches:</p>
+<h4
+id="intra-operator-parallelism-horizontal-most-common">Intra-Operator
+Parallelism (Horizontal) — Most Common</h4>
+<p>Decompose a single operator into independent fragments that operate
+on different subsets of the data:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">     Gather</span><br><span class="line">    /  |  \</span><br><span class="line">Scan₁ Scan₂ Scan₃    ← same operator, different data partitions</span><br></pre></td></tr></table></figure>
+<ul>
+<li>A table scan is split across 3 workers, each reading a different
+range of pages</li>
+<li>Results are merged at an <strong>Exchange</strong> operator
+above</li>
+<li>Also called <strong>horizontal partitioning</strong> or <strong>data
+parallelism</strong> at the operator level</li>
+<li>The most common form of intra-query parallelism</li>
+<li>Example: <strong>Parallel Grace Hash Join</strong> — partition both
+tables using hash on the join key, then run independent hash join
+instances on each partition pair across multiple workers</li>
+</ul>
+<h4
+id="inter-operator-parallelism-vertical-pipelining-less-common">Inter-Operator
+Parallelism (Vertical / Pipelining) — Less Common</h4>
+<p>Different operators in the query plan run simultaneously on different
+workers, passing tuples between them in a
+<strong>producer/consumer</strong> paradigm:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Worker 1: Scan → Filter  ──tuples──▶  Worker 2: Join → Project</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Also called <strong>pipeline parallelism</strong> — operators are
+stages in a pipeline</li>
+<li>Limited by the slowest stage (pipeline stalls if one operator is
+much slower)</li>
+<li>Less common in practice because it requires careful balancing</li>
+<li>More common in streaming systems (e.g., Apache Kafka, Flink, Spark
+Streaming, Storm) than in traditional DBMS</li>
+</ul>
+<h4 id="bushy-parallelism-higher-end-systems">Bushy Parallelism —
+Higher-End Systems</h4>
+<p>A combination of both: different branches of the plan tree execute in
+parallel, and within each branch, operators can also be
+parallelized:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">     Join</span><br><span class="line">    /    \</span><br><span class="line">Scan₁   Scan₂    ← two branches in parallel</span><br><span class="line">(W1,W2) (W3,W4)  ← each branch also uses multiple workers</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Most flexible but most complex to schedule</li>
+<li>Used by modern MPP systems for complex multi-way joins</li>
+</ul>
+<h3 id="exchange-operator">Exchange Operator</h3>
+<p>The <strong>Exchange</strong> operator is the key mechanism for
+implementing intra-query parallelism. It sits between parallel fragments
+of a query plan and manages data distribution.</p>
+<p>Three types:</p>
+<table>
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 38%" />
+<col style="width: 38%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Type</th>
+<th>Behavior</th>
+<th>Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Gather</strong></td>
+<td>Merge results from multiple workers into one stream</td>
+<td>Combining parallel scan results</td>
+</tr>
+<tr class="even">
+<td><strong>Distribute</strong></td>
+<td>Split one stream across multiple workers</td>
+<td>Partitioning data for parallel join</td>
+</tr>
+<tr class="odd">
+<td><strong>Repartition</strong></td>
+<td>Redistribute data from N workers to M workers</td>
+<td>Changing partition scheme mid-query</td>
+</tr>
+</tbody>
+</table>
+<p>The exchange operator abstracts away parallelism — the operators
+above and below it don’t need to know they are running in parallel. This
+is a clean architectural separation.</p>
+<p>Google BigQuery uses the Repartition (shuffle) exchange extensively —
+its execution engine performs massive redistributions of intermediate
+data across thousands of workers to execute distributed joins and
+aggregations.</p>
+<h2 id="data-parallelism-with-simd">Data Parallelism with SIMD</h2>
+<p><strong>SIMD</strong> (Single Instruction, Multiple Data) applies the
+same operation to multiple data elements simultaneously using wide CPU
+registers.</p>
+<h3 id="why-simd-matters-for-databases">Why SIMD Matters for
+Databases</h3>
+<p>A typical database scan applies a simple predicate (e.g.,
+<code>val &gt; 100</code>) to millions of values. Without SIMD, this
+requires one comparison per value. With SIMD, a single instruction can
+compare 4, 8, or even 16 values at once (depending on the register
+width: SSE=128-bit, AVX2=256-bit, AVX-512=512-bit).</p>
+<h3 id="simd-selection-scans">SIMD Selection Scans</h3>
+<p>Consider a selection scan:
+<code>SELECT * FROM T WHERE val &gt; 100</code></p>
+<p>Without SIMD: <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">for each value v in column:</span><br><span class="line">    if v &gt; 100: output v</span><br></pre></td></tr></table></figure></p>
+<p>With SIMD (AVX2, 256-bit registers, 32-bit integers = 8 values per
+register): <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">threshold = broadcast(100)  // [100, 100, 100, 100, 100, 100, 100, 100]</span><br><span class="line">for each group of 8 values:</span><br><span class="line">    data = load(values[i:i+8])</span><br><span class="line">    mask = compare_gt(data, threshold)  // produces bitmask</span><br><span class="line">    output matching values using mask</span><br></pre></td></tr></table></figure></p>
+<p>This is 8x more values processed per instruction cycle (in
+theory).</p>
+<p>Potential speedup compounds with multicore parallelism. For example,
+a machine with 32 cores each executing 4-wide SIMD instructions achieves
+up to <strong>128x</strong> throughput compared to scalar single-core
+execution.</p>
+<h3 id="filter-representations">Filter Representations</h3>
+<p>After a SIMD comparison produces a bitmask of qualifying tuples, how
+should the DBMS represent and use this filter?</p>
+<p><strong>Selection Vectors</strong>: store the positions (indices) of
+qualifying tuples in an array. - Compact when selectivity is low (few
+matches) - Downstream operators iterate over positions - Used by:
+DuckDB, Vectorwise</p>
+<p><strong>Bitmaps</strong>: a bit vector where bit <code>i</code> = 1
+if tuple <code>i</code> qualifies. - Fixed-size regardless of
+selectivity - Efficient for bitwise AND/OR of multiple predicates - Used
+by: Oracle, many columnar stores</p>
+<table>
+<colgroup>
+<col style="width: 30%" />
+<col style="width: 14%" />
+<col style="width: 22%" />
+<col style="width: 32%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Representation</th>
+<th>Space</th>
+<th>Best When</th>
+<th>Set Operations</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Selection Vector</td>
+<td>O(matches)</td>
+<td>Low selectivity</td>
+<td>Requires merge</td>
+</tr>
+<tr class="even">
+<td>Bitmap</td>
+<td>O(n) fixed</td>
+<td>High selectivity, multiple predicates</td>
+<td>Bitwise AND/OR</td>
+</tr>
+</tbody>
+</table>
+<h2 id="io-parallelism">I/O Parallelism</h2>
+<p>When the bottleneck is disk I/O rather than CPU, the DBMS can use
+multiple storage devices in parallel. A single disk’s bandwidth is
+fundamentally limited, so scaling I/O requires spreading data across
+multiple devices.</p>
+<h3 id="multi-disk-parallelism">Multi-Disk Parallelism</h3>
+<p>Spread the database across multiple disks to increase aggregate I/O
+bandwidth.</p>
+<p><strong>RAID 0 (Striping)</strong>: split each file across multiple
+disks in round-robin fashion. - Read/write bandwidth scales linearly
+with the number of disks - No redundancy — any single disk failure loses
+data - Transparent to the DBMS</p>
+<p><strong>RAID 1 (Mirroring)</strong>: duplicate each file on multiple
+disks. - Read bandwidth doubles (can read from either copy) - Write
+bandwidth unchanged (must write both copies) - Fault tolerant — survives
+single disk failure - Transparent to the DBMS</p>
+<p>In practice, production systems use <strong>RAID 10</strong>
+(mirrored stripes) or rely on distributed storage systems that handle
+redundancy at a higher level. RAID is typically configured at the
+hardware or OS level — transparent to the DBMS. Modern cloud/distributed
+systems often replace hardware RAID with software-defined erasure
+codes.</p>
+<p>The fundamental tradeoff triangle for multi-disk configurations is
+<strong>Performance vs Durability vs Capacity</strong> — you can
+optimize for at most two at the expense of the third.</p>
+<h3 id="database-partitioning">Database Partitioning</h3>
+<p>Split the logical database into disjoint segments stored on separate
+disks (or separate machines in a distributed system).</p>
+<p><strong>Vertical Partitioning</strong>: split a table by columns —
+store different columns on different disks. - Similar to column-store
+layout - Useful when queries only access a subset of columns</p>
+<p><strong>Horizontal Partitioning</strong>: split a table by rows —
+different ranges or hash buckets on different disks. - Common partition
+strategies: range, hash, round-robin - Enables parallel scans where each
+worker reads from a different partition - Must be careful with partition
+pruning for point queries - PostgreSQL supports this via
+<strong>Tablespaces</strong>, allowing different tables/indexes to be
+stored on different disk volumes</p>
+<h2 id="challenges-of-parallelism">Challenges of Parallelism</h2>
+<p>Parallelism introduces several practical challenges that the DBMS
+must handle:</p>
+<ul>
+<li><strong>Coordination overhead</strong>: synchronizing workers adds
+latency (e.g., exchange operators, barriers)</li>
+<li><strong>Scheduling</strong>: deciding how many workers to allocate
+to each query, and how to divide work among them</li>
+<li><strong>Concurrency issues</strong>: parallel access to shared data
+structures (hash tables, buffer pool) requires careful locking or
+lock-free designs</li>
+<li><strong>Resource contention</strong>: multiple parallel queries
+compete for CPU, memory, and I/O bandwidth</li>
+</ul>
+<p>The goal is to maximize throughput and minimize latency while keeping
+these overheads manageable.</p>
+<h2 id="lec14-takeaways">Lec14 Takeaways</h2>
+<ul>
+<li><strong>Thread-per-worker</strong> is the dominant process model in
+modern DBMS — but using threads does not automatically mean the DBMS
+supports intra-query parallelism</li>
+<li><strong>Intra-operator (horizontal) parallelism</strong> is the most
+common form of intra-query parallelism, cleanly abstracted via the
+<strong>Exchange operator</strong></li>
+<li><strong>SIMD</strong> provides significant speedups for scan-heavy
+analytical workloads — combined with multicore parallelism, it can
+achieve 100x+ throughput improvements</li>
+<li><strong>I/O parallelism</strong> through RAID and partitioning is
+essential when disk bandwidth is the bottleneck, with a fundamental
+tradeoff between performance, durability, and capacity</li>
+<li>Parallelism introduces coordination overhead, scheduling complexity,
+and resource contention — the DBMS must balance these costs against
+throughput gains</li>
+</ul>
+<hr />
+<h2 id="final-summary">Final Summary</h2>
+<table>
+<colgroup>
+<col style="width: 41%" />
+<col style="width: 58%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Topic</th>
+<th>Key Idea</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Processing Models</td>
+<td>Iterator (per-tuple), Materialization (all-at-once), Vectorized
+(per-batch) — vectorized wins for OLAP</td>
+</tr>
+<tr class="even">
+<td>Plan Direction</td>
+<td>Pull (top-down) is simple; Push (bottom-up) enables compiled
+pipelines</td>
+</tr>
+<tr class="odd">
+<td>Access Methods</td>
+<td>Sequential scan with zone maps, index scan for selective queries,
+multi-index for compound predicates</td>
+</tr>
+<tr class="even">
+<td>Halloween Problem</td>
+<td>UPDATE can see its own changes through a shared index — must track
+or materialize first</td>
+</tr>
+<tr class="odd">
+<td>Expression Evaluation</td>
+<td>Expression trees are slow; JIT compilation eliminates interpretation
+overhead</td>
+</tr>
+<tr class="even">
+<td>Parallel vs Distributed</td>
+<td>Parallel = close resources, cheap communication; Distributed = far
+nodes, unreliable network</td>
+</tr>
+<tr class="odd">
+<td>Process Models</td>
+<td>Process-per-worker (isolation) vs thread-per-worker (performance,
+most common) vs embedded (simplicity)</td>
+</tr>
+<tr class="even">
+<td>Intra-Query Parallelism</td>
+<td>Horizontal (most common), Vertical/pipelining (less common), Bushy
+(higher-end systems)</td>
+</tr>
+<tr class="odd">
+<td>Exchange Operator</td>
+<td>Gather / Distribute / Repartition — abstracts parallelism from
+operators</td>
+</tr>
+<tr class="even">
+<td>SIMD</td>
+<td>Apply one instruction to many data values — combined with multicore
+yields 100x+ speedup</td>
+</tr>
+<tr class="odd">
+<td>Filter Representations</td>
+<td>Selection vectors (sparse, good for low selectivity) vs bitmaps
+(dense, good for combining predicates)</td>
+</tr>
+<tr class="even">
+<td>I/O Parallelism</td>
+<td>RAID striping/mirroring for bandwidth, partitioning for parallel
+scans; tradeoff: performance vs durability vs capacity</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key takeaway</strong>: Modern query execution is a co-design
+of processing models, parallelism strategies, and hardware exploitation
+— the vectorized batch model, exchange operators, and SIMD collectively
+enable analytical systems to process billions of tuples per second.</p>
+<h2 id="references">References</h2>
+<ul>
+<li>A. Pavlo, “Query Execution I,” CMU 15-445/645 Lecture #13, Spring
+2024.</li>
+<li>A. Pavlo &amp; J. Patel, “Query Execution II,” CMU 15-445/645
+Lecture #14, Spring 2024.</li>
+<li>G. Graefe, “Volcano — An Extensible and Parallel Query Evaluation
+System,” IEEE TKDE, 1994.</li>
+<li>T. Neumann, “Efficiently Compiling Efficient Query Plans for Modern
+Hardware,” VLDB, 2011.</li>
+<li>P. Boncz, M. Zukowski, N. Nes, “MonetDB/X100: Hyper-Pipelining Query
+Execution,” CIDR, 2005.</li>
+</ul>
+<p><em>This post is based on lecture materials from CMU 15-445/645
+Database Systems by Andy Pavlo &amp; Jignesh Patel (Lecture #13: Query
+Execution I, Lecture #14: Query Execution II).</em></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://xloverflow.github.io/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/">https://xloverflow.github.io/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/CMU/">CMU</a><a class="post-meta__tags" href="/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/tags/Parallelism/">Parallelism</a><a class="post-meta__tags" href="/tags/SIMD/">SIMD</a><a class="post-meta__tags" href="/tags/Database-Systems/">Database Systems</a><a class="post-meta__tags" href="/tags/15645/">15645</a><a class="post-meta__tags" href="/tags/Query-Execution/">Query Execution</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">15645 Database systems: Query Optimization</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/03/15/11868-LLM-Sys/11868-LLM-Sys-Distributed-Training-and-DDP/" title="11868 LLM Sys: Distributed Training, DDP, and Model Parallelism"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">11868 LLM Sys: Distributed Training, DDP, and Model Parallelism</div></div><div class="info-2"><div class="info-item-1">Notes on CMU 11-868 LLM Systems Lec13-15, covering distributed training, NCCL collectives, Ring AllReduce, PyTorch DDP, pipeline parallelism, tensor parallelism, and their combination.</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Sorting-Aggregation/" title="15645 Database systems: Sorting &amp; Aggregation"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-08</div><div class="info-item-2">15645 Database systems: Sorting &amp; Aggregation</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/01/16/15645-Database-Systems/15645-Database-Systems-relational-model-and-SQL/" title="15645 Database systems: Relational Model and SQL"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-15</div><div class="info-item-2">15645 Database systems: Relational Model and SQL</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/02/07/15645-Database-Systems/15645-Database-systems-Hash-Tables/" title="15645 Database systems: Hash Tables"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-07</div><div class="info-item-2">15645 Database systems: Hash Tables</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Index-Concurrency-Control/" title="15645 Database systems: Index Concurrency Control"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-08</div><div class="info-item-2">15645 Database systems: Index Concurrency Control</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/02/09/15645-Database-Systems/15645-Database-systems-Index-Filter/" title="15645 Database systems: Index &amp; Filter"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-09</div><div class="info-item-2">15645 Database systems: Index &amp; Filter</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a><a class="pagination-related" href="/2026/03/08/15645-Database-Systems/15645-Database-systems-Join-Algorithms/" title="15645 Database systems: Join Algorithms"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-08</div><div class="info-item-2">15645 Database systems: Join Algorithms</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 15-645 Database Systems.</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">119</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#lec13-query-execution-i-processing-models-access-methods-expression-evaluation"><span class="toc-number">1.</span> <span class="toc-text">Lec13
+Query Execution I — Processing Models, Access Methods, Expression
+Evaluation</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#query-execution-overview"><span class="toc-number">1.1.</span> <span class="toc-text">Query Execution Overview</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#processing-models"><span class="toc-number">1.2.</span> <span class="toc-text">Processing Models</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#iterator-model-volcano-pipeline"><span class="toc-number">1.2.1.</span> <span class="toc-text">Iterator Model (Volcano &#x2F;
+Pipeline)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#materialization-model"><span class="toc-number">1.2.2.</span> <span class="toc-text">Materialization Model</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#vectorized-batch-model"><span class="toc-number">1.2.3.</span> <span class="toc-text">Vectorized &#x2F; Batch Model</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#comparison"><span class="toc-number">1.2.4.</span> <span class="toc-text">Comparison</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#plan-processing-direction"><span class="toc-number">1.3.</span> <span class="toc-text">Plan Processing Direction</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#top-to-bottom-pull"><span class="toc-number">1.3.1.</span> <span class="toc-text">Top-to-Bottom (Pull)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#bottom-to-top-push"><span class="toc-number">1.3.2.</span> <span class="toc-text">Bottom-to-Top (Push)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#push-vs-pull-tradeoffs"><span class="toc-number">1.3.3.</span> <span class="toc-text">Push vs Pull Tradeoffs</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#access-methods"><span class="toc-number">1.4.</span> <span class="toc-text">Access Methods</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#sequential-scan"><span class="toc-number">1.4.1.</span> <span class="toc-text">Sequential Scan</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#data-skipping"><span class="toc-number">1.4.1.1.</span> <span class="toc-text">Data Skipping</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#index-scan"><span class="toc-number">1.4.2.</span> <span class="toc-text">Index Scan</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#multi-index-scan"><span class="toc-number">1.4.3.</span> <span class="toc-text">Multi-Index Scan</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#modification-queries"><span class="toc-number">1.5.</span> <span class="toc-text">Modification Queries</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#the-halloween-problem"><span class="toc-number">1.5.1.</span> <span class="toc-text">The Halloween Problem</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#expression-evaluation"><span class="toc-number">1.6.</span> <span class="toc-text">Expression Evaluation</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#execution-context"><span class="toc-number">1.6.1.</span> <span class="toc-text">Execution Context</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#expression-tree-evaluation"><span class="toc-number">1.6.2.</span> <span class="toc-text">Expression Tree Evaluation</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#optimizations"><span class="toc-number">1.6.3.</span> <span class="toc-text">Optimizations</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#lec13-takeaways"><span class="toc-number">1.7.</span> <span class="toc-text">Lec13 Takeaways</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#lec14-query-execution-ii-parallelism"><span class="toc-number">2.</span> <span class="toc-text">Lec14 Query Execution II —
+Parallelism</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#parallel-vs-distributed"><span class="toc-number">2.1.</span> <span class="toc-text">Parallel vs Distributed</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#process-models"><span class="toc-number">2.2.</span> <span class="toc-text">Process Models</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#process-per-dbms-worker"><span class="toc-number">2.2.1.</span> <span class="toc-text">Process per DBMS Worker</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#thread-per-dbms-worker-most-common"><span class="toc-number">2.2.2.</span> <span class="toc-text">Thread per DBMS Worker (Most
+Common)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#embedded-dbms"><span class="toc-number">2.2.3.</span> <span class="toc-text">Embedded DBMS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#comparison-1"><span class="toc-number">2.2.4.</span> <span class="toc-text">Comparison</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#scheduling"><span class="toc-number">2.2.5.</span> <span class="toc-text">Scheduling</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#query-parallelism"><span class="toc-number">2.3.</span> <span class="toc-text">Query Parallelism</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#inter-query-parallelism"><span class="toc-number">2.3.1.</span> <span class="toc-text">Inter-Query Parallelism</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#intra-query-parallelism"><span class="toc-number">2.3.2.</span> <span class="toc-text">Intra-Query Parallelism</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#intra-operator-parallelism-horizontal-most-common"><span class="toc-number">2.3.2.1.</span> <span class="toc-text">Intra-Operator
+Parallelism (Horizontal) — Most Common</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#inter-operator-parallelism-vertical-pipelining-less-common"><span class="toc-number">2.3.2.2.</span> <span class="toc-text">Inter-Operator
+Parallelism (Vertical &#x2F; Pipelining) — Less Common</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#bushy-parallelism-higher-end-systems"><span class="toc-number">2.3.2.3.</span> <span class="toc-text">Bushy Parallelism —
+Higher-End Systems</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#exchange-operator"><span class="toc-number">2.3.3.</span> <span class="toc-text">Exchange Operator</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#data-parallelism-with-simd"><span class="toc-number">2.4.</span> <span class="toc-text">Data Parallelism with SIMD</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#why-simd-matters-for-databases"><span class="toc-number">2.4.1.</span> <span class="toc-text">Why SIMD Matters for
+Databases</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#simd-selection-scans"><span class="toc-number">2.4.2.</span> <span class="toc-text">SIMD Selection Scans</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#filter-representations"><span class="toc-number">2.4.3.</span> <span class="toc-text">Filter Representations</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#io-parallelism"><span class="toc-number">2.5.</span> <span class="toc-text">I&#x2F;O Parallelism</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#multi-disk-parallelism"><span class="toc-number">2.5.1.</span> <span class="toc-text">Multi-Disk Parallelism</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#database-partitioning"><span class="toc-number">2.5.2.</span> <span class="toc-text">Database Partitioning</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#challenges-of-parallelism"><span class="toc-number">2.6.</span> <span class="toc-text">Challenges of Parallelism</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#lec14-takeaways"><span class="toc-number">2.7.</span> <span class="toc-text">Lec14 Takeaways</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#final-summary"><span class="toc-number">2.8.</span> <span class="toc-text">Final Summary</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#references"><span class="toc-number">2.9.</span> <span class="toc-text">References</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Parallelism and Scaling"/></a><div class="content"><a class="title" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11711 Advanced NLP: Parallelism and Scaling">11711 Advanced NLP: Parallelism and Scaling</a><time datetime="2026-04-07T03:00:00.000Z" title="Created 2026-04-06 23:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11711 Advanced NLP: Quantization"/></a><div class="content"><a class="title" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11711 Advanced NLP: Quantization">11711 Advanced NLP: Quantization</a><time datetime="2026-04-07T02:00:00.000Z" title="Created 2026-04-06 22:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11868 LLM Sys: Systems for Mixture-of-Experts Models"/></a><div class="content"><a class="title" href="/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11868 LLM Sys: Systems for Mixture-of-Experts Models">11868 LLM Sys: Systems for Mixture-of-Experts Models</a><time datetime="2026-03-21T19:00:00.000Z" title="Created 2026-03-21 15:00:00">2026-03-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Query Optimization"/></a><div class="content"><a class="title" href="/2026/03/20/15645-Database-Systems/15645-Database-systems-Query-Optimization/" title="15645 Database systems: Query Optimization">15645 Database systems: Query Optimization</a><time datetime="2026-03-20T18:00:00.000Z" title="Created 2026-03-20 14:00:00">2026-03-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260122210604434.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="15645 Database systems: Query Execution"/></a><div class="content"><a class="title" href="/2026/03/15/15645-Database-Systems/15645-Database-systems-Query-Execution/" title="15645 Database systems: Query Execution">15645 Database systems: Query Execution</a><time datetime="2026-03-15T18:00:00.000Z" title="Created 2026-03-15 14:00:00">2026-03-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '4075423293bfb7531fd3c4f603ef1082'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
