@@ -1,0 +1,1086 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>How Diffusion Models Do Reinforcement Learning: From the Cosmos3 Dual Tower to One Round of FlowGRPO | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Two things I worked out while adding RL training for Cosmos3-Nano to UniRL. How text gets read inside a dual-tower model, and how a diffusion model does reinforcement learning by adding noise to a few">
+<meta property="og:type" content="article">
+<meta property="og:title" content="How Diffusion Models Do Reinforcement Learning: From the Cosmos3 Dual Tower to One Round of FlowGRPO">
+<meta property="og:url" content="https://blog.li-xiang.xyz/2026/11/17/Deep-Learning/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="Two things I worked out while adding RL training for Cosmos3-Nano to UniRL. How text gets read inside a dual-tower model, and how a diffusion model does reinforcement learning by adding noise to a few">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/01-three-architectures.png">
+<meta property="article:published_time" content="2026-11-17T01:30:00.000Z">
+<meta property="article:modified_time" content="2026-11-17T04:01:10.010Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="Deep Learning">
+<meta property="article:tag" content="Diffusion">
+<meta property="article:tag" content="Flow Matching">
+<meta property="article:tag" content="Multimodal">
+<meta property="article:tag" content="Reinforcement Learning">
+<meta property="article:tag" content="Study Notes">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/01-three-architectures.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "How Diffusion Models Do Reinforcement Learning: From the Cosmos3 Dual Tower to One Round of FlowGRPO",
+  "url": "https://blog.li-xiang.xyz/2026/11/17/Deep-Learning/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/01-three-architectures.png",
+  "datePublished": "2026-11-17T01:30:00.000Z",
+  "dateModified": "2026-11-17T04:01:10.010Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://blog.li-xiang.xyz"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://blog.li-xiang.xyz/2026/11/17/Deep-Learning/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'How Diffusion Models Do Reinforcement Learning: From the Cosmos3 Dual Tower to One Round of FlowGRPO',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/site-widgets.css?v=align3"><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">64</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">123</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div><div class="menus_item"><a class="site-page" href="/guestbook/"><i class="fa-fw fas fa-comment-dots"></i><span> Guestbook</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://li-xiang.xyz"><i class="fa-fw fas fa-globe"></i><span> Main site</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/01-three-architectures.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/"><span class="site-name">How Diffusion Models Do Reinforcement Learning: From the Cosmos3 Dual Tower to One Round of FlowGRPO</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/List/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/List/gallery/"><i class="fa-fw fa fa-image"></i><span> Album</span></a></li><li><a class="site-page child" href="/List/movies/"><i class="fa-fw fas fa-video"></i><span> Videos</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> Books</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div><div class="menus_item"><a class="site-page" href="/guestbook/"><i class="fa-fw fas fa-comment-dots"></i><span> Guestbook</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://li-xiang.xyz"><i class="fa-fw fas fa-globe"></i><span> Main site</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/zh/"><i class="fas fa-language fa-fw"></i><span> 中文</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">How Diffusion Models Do Reinforcement Learning: From the Cosmos3 Dual Tower to One Round of FlowGRPO</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-11-17T01:30:00.000Z" title="Created 2026-11-16 20:30:00">2026-11-16</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-11-17T04:01:10.010Z" title="Updated 2026-11-16 23:01:10">2026-11-16</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Deep-Learning/">Deep Learning</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">Word Count:</span><span class="word-count">4.5k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">Reading Time:</span><span>28mins</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1
+id="how-diffusion-models-do-reinforcement-learning-from-the-cosmos3-dual-tower-to-one-round-of-flowgrpo">How
+Diffusion Models Do Reinforcement Learning: From the Cosmos3 Dual Tower
+to One Round of FlowGRPO</h1>
+<p>I have been adding text-to-image generation and an RL training recipe
+for NVIDIA Cosmos3-Nano to the open-source project UniRL. Once the code
+ran, I noticed there were two things I could not explain: how this
+“dual-tower” model actually joins text and image, and why a diffusion
+model can do reinforcement learning at all. This post is the record of
+me asking until both made sense.</p>
+<p>The one sentence I took away: <strong>doing RL on a diffusion model
+means adding a little noise to a few denoising steps, so that “the next
+latent” becomes an action whose probability you can compute; whether the
+model is dual-tower or single-tower only decides how text gets read
+inside that one forward pass.</strong></p>
+<p>The post has six parts. It first separates diffusion from
+transformers, then looks at the Cosmos3 dual tower and the MiniMax-H3
+single tower, then explains how added noise gives you a log-prob, then
+walks through one round of FlowGRPO, and finally covers DiffusionNFT, a
+route that needs no log-prob. The “Where I got stuck” blocks are
+questions I actually asked.</p>
+<p>The structures and numbers come from the UniRL repository’s code and
+recipe files, and from <code>transformer_cosmos3.py</code> in
+diffusers.</p>
+<h2 id="diffusion-and-transformer-are-not-alternatives">Diffusion and
+transformer are not alternatives</h2>
+<blockquote>
+<p><strong>Where I got stuck</strong>: H3 produces video and audio
+together. Is it diffusion or a transformer? I know images have diffusion
+models and transformer models.</p>
+<p>It is both. The two words answer different questions.
+<strong>Diffusion</strong> (which includes <strong>flow
+matching</strong>) is about how you generate: start from noise and
+denoise step by step. <strong>Transformer</strong> is about which
+network you use: the neural network that, at every denoising step,
+computes which way to move.</p>
+</blockquote>
+<p>The two axes combine freely. Stable Diffusion 1.5 is diffusion with a
+convolutional U-Net. SD3, Flux, the Cosmos3 generation tower and H3 are
+all diffusion with a transformer. Models that cut an image into discrete
+tokens and predict them one by one are autoregression with a
+transformer. What I had thought of as “the diffusion camp and the
+transformer camp” is really one kind of network paired with two
+generation methods.</p>
+<p>Both models in this post use flow matching. The convention is</p>
+<p><span class="math display">\[
+x_t = (1-\sigma)\,x_0 + \sigma\,\varepsilon
+\]</span></p>
+<p>where <span class="math inline">\(x_0\)</span> is the clean latent,
+<span class="math inline">\(\varepsilon\)</span> is Gaussian noise, and
+<span class="math inline">\(\sigma\)</span> goes from 1 down to 0. The
+model predicts the <strong>velocity</strong> <span
+class="math inline">\(v = \varepsilon - x_0\)</span>. Sampling lowers
+<span class="math inline">\(\sigma\)</span> to 0 over a number of steps,
+moving a little each time: <span class="math inline">\(x \leftarrow x +
+v\,dt\)</span>, with <span class="math inline">\(dt =
+\sigma_{\text{next}} - \sigma &lt; 0\)</span>. This is an Euler
+step.</p>
+<h2 id="how-text-enters-the-model-the-cosmos3-dual-tower">How text
+enters the model: the Cosmos3 dual tower</h2>
+<p>Cosmos3-Nano has about 16B parameters and is a
+<strong>Mixture-of-Transformers</strong> (MoT): an understanding tower
+of about 8B reads the text, and a generation tower of about 7B predicts
+the velocity. There is no separate text encoder.</p>
+<p>The design is easier to see next to two other structures.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/01-three-architectures.png"
+alt="Three ways to feed text into a generation network. (a) A text encoder hands only its last-layer features to the diffusion transformer. (b) In H3 the text also comes from a separate encoder, and video and audio share one set of weights. (c) In Cosmos3 the understanding tower lends its K and V to the generation tower at every layer, and no arrow goes the other way. Drawn by the author" />
+<figcaption aria-hidden="true">Three ways to feed text into a generation
+network. (a) A text encoder hands only its last-layer features to the
+diffusion transformer. (b) In H3 the text also comes from a separate
+encoder, and video and audio share one set of weights. (c) In Cosmos3
+the understanding tower lends its K and V to the generation tower at
+every layer, and no arrow goes the other way. Drawn by the
+author</figcaption>
+</figure>
+<p>The two models in this post are (b) and (c). (a) is the common
+text-to-image structure and is here as a reference: H3’s text path is
+the same as (a), and the difference is that its backbone handles video
+tokens and audio tokens together.</p>
+<p><strong>The test for a tower is whether, inside one layer, different
+modalities use different backbone weights.</strong> In each Cosmos3
+layer, <code>Cosmos3VLTextMoTDecoderLayer</code>, text goes through
+<code>to_q / to_k / to_v / to_out</code> and <code>mlp</code>, while
+image goes through
+<code>add_q_proj / add_k_proj / add_v_proj / to_add_out</code> and
+<code>mlp_moe_gen</code>. So there are two towers.</p>
+<h3 id="how-shapes-change-in-one-forward-pass">How shapes change in one
+forward pass</h3>
+<p>Take a single 832×480 image. The VAE is the one from Wan2.2, with 48
+channels and 16× spatial compression, so the latent is
+<code>[48, 1, 30, 52]</code>.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/02-cosmos3-forward-shapes.png"
+alt="The full path of one Cosmos3 forward pass. The left column is text and the right column is image; through all 36 layers they stay two separate tensors. The timestep is added only on the right. Drawn by the author" />
+<figcaption aria-hidden="true">The full path of one Cosmos3 forward
+pass. The left column is text and the right column is image; through all
+36 layers they stay two separate tensors. The timestep is added only on
+the right. Drawn by the author</figcaption>
+</figure>
+<p>The “causal” label on the understanding tower in the figure is the
+same rule in training and in inference. The prompt is given in full, so
+one forward pass computes all text positions in parallel, but each text
+token still sees only the text before it.</p>
+<p>Where the numbers come from:</p>
+<ul>
+<li><strong>390 image tokens</strong>: the 30×52 grid is merged 2×2 into
+15×26 = 390 patches. Each patch concatenates the 48 channels of 4
+positions, giving 192 dimensions, which <code>proj_in</code> maps to
+4096.</li>
+<li><strong>The timestep is added once, at the input</strong>: <span
+class="math inline">\(\sigma \times 1000\)</span> goes through
+<code>time_embedder</code> and the resulting vector is added to the
+noisy image tokens. Text tokens do not get it.</li>
+<li><strong>The output mirrors the input</strong>: <code>proj_out</code>
+maps 4096 dimensions back to 192, and the patches are reassembled into
+<code>[48, 1, 30, 52]</code>, which is the velocity <span
+class="math inline">\(v\)</span>.</li>
+</ul>
+<p>The 36 layers, hidden size 4096, 32 query heads, 8 key-value heads
+and vocabulary of 151936 are the default arguments of this class in
+diffusers. The parameter count I estimate from them matches the size of
+Nano, but I did not confirm them by reading the checkpoint’s config.</p>
+<h3 id="attention-runs-twice-per-layer">Attention runs twice per
+layer</h3>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/03-one-layer-two-passes.png"
+alt="Inside one decoder layer. The first pass involves only text. In the second pass the image provides the queries, and the keys and values are the text ones concatenated with the image ones. LoRA sits on the four linear layers in the right-hand box. Drawn by the author" />
+<figcaption aria-hidden="true">Inside one decoder layer. The first pass
+involves only text. In the second pass the image provides the queries,
+and the keys and values are the text ones concatenated with the image
+ones. LoRA sits on the four linear layers in the right-hand box. Drawn
+by the author</figcaption>
+</figure>
+<p>“The generation tower can see the understanding tower, but not the
+reverse” is not implemented with one large attention mask. The layer
+simply computes attention twice:</p>
+<ul>
+<li><strong>First pass</strong>: the text Q, K and V all come from text,
+with causal attention, so each text token sees only the text before
+it.</li>
+<li><strong>Second pass</strong>: Q comes from the image
+(<code>add_q_proj</code>), and K and V are the text ones and the image
+ones concatenated. Image tokens see all of the text and all of the
+image.</li>
+</ul>
+<p>The text K and V borrowed in the second pass are computed by the
+understanding tower’s own <code>to_k / to_v</code>. The generation tower
+has no second set of weights for processing text.</p>
+<blockquote>
+<p><strong>Where I got stuck</strong>: During generation, are the text
+tokens given all at once? What about during training?</p>
+<p>Yes, in both cases. Tokenization happens once before generation
+starts and produces two fixed token strings, for the positive and the
+negative prompt. Every forward pass after that packs the whole text
+string and the current image latent into one sequence. The understanding
+tower is used here only as a reader and never generates word by word.
+The causal mask is structure and autoregressive sampling is a way of
+using it; only the first is present here. Training is the same: the SFT
+loss is computed only on the noisy image tokens, and RL replay uses the
+two token strings stored at sampling time. In the diffusers forward,
+<code>lm_head</code> exists but is not called.</p>
+</blockquote>
+<blockquote>
+<p><strong>Where I got stuck</strong>: Then why connect at every layer?
+Compute the text once and concatenate it in on every forward pass.</p>
+<p>It depends on what “concatenate once” concatenates. Structure (a)
+also puts text in the sequence, but what it puts there is the encoder’s
+last-layer output, which the diffusion model then reprocesses with its
+own weights. The dual tower lets layer <span
+class="math inline">\(\ell\)</span> of the generation tower read the
+representation at layer <span class="math inline">\(\ell\)</span> of the
+understanding tower directly, so both the literal information in shallow
+layers and the semantic information in deep layers are available; the
+generation tower’s parameters handle only the image; and the
+understanding tower’s weights are left untouched, so it remains a
+complete language model.</p>
+<p>My intuition was half right. Text cannot see the image and carries no
+timestep, so every layer of the understanding tower gives exactly the
+same result across the 16 denoising steps. In principle it could be
+computed once and stored, although what you would store is the K and V
+of every layer rather than one layer’s output. In the current code,
+every forward pass recomputes the understanding tower from layer 1 to
+layer 36.</p>
+</blockquote>
+<p><strong>In short</strong>: what the dual tower means for training is
+simple. The understanding tower is frozen. LoRA goes only on the
+generation tower’s attention, that is
+<code>add_q_proj / add_k_proj / add_v_proj / to_add_out</code>.</p>
+<h2 id="the-single-tower-h3-and-other-multimodal-routes">The
+single-tower H3, and other multimodal routes</h2>
+<p>MiniMax-H3 is a different structure: text in, video plus stereo audio
+out, 33B parameters. Its text is encoded into vectors by a separate
+Qwen3-VL, and those vectors then enter the same diffusion transformer
+together with the video and audio tokens.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/04-joint-audio-video.png"
+alt="H3 lines up text vectors, video tokens and audio tokens in one sequence, passes them through the same transformer blocks, and outputs two velocities at once. AI-generated" />
+<figcaption aria-hidden="true">H3 lines up text vectors, video tokens
+and audio tokens in one sequence, passes them through the same
+transformer blocks, and outputs two velocities at once.
+AI-generated</figcaption>
+</figure>
+<p>It works in four steps. Video and audio each have a VAE that
+compresses them into a string of vectors. The three kinds of tokens are
+concatenated into one sequence, each token carrying “which modality I
+am” and “where I am in time and space”. One transformer runs
+self-attention over the whole sequence and outputs a video velocity and
+an audio velocity. Both sides take one step, and this repeats for 10
+steps.</p>
+<p>Sound and picture line up because in the third step video tokens and
+audio tokens can see each other. The two go from blurry to sharp
+together, so the picture of a door closing and the sound of it land at
+the same moment.</p>
+<blockquote>
+<p><strong>Where I got stuck</strong>: Can I think of H3 as three
+towers?</p>
+<p>No. It is one tower with three doors. Each H3 block has one attention
+and one feed-forward layer, and all three kinds of tokens go through the
+same weights. Only three things differ by modality, and all are thin:
+one linear layer each at the input, one linear layer each at the output,
+and the scale and shift after each layer’s normalization, which are
+looked up by “timestep × modality”.</p>
+</blockquote>
+<p>The two models side by side:</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Cosmos3-Nano</th>
+<th>MiniMax-H3</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Parameters</td>
+<td>About 16B (understanding about 8B, generation about 7B)</td>
+<td>33B, plus a separate text encoder</td>
+</tr>
+<tr class="even">
+<td>Structure</td>
+<td>Dual tower, two sets of weights per layer</td>
+<td>Single tower, one set of weights per layer</td>
+</tr>
+<tr class="odd">
+<td>How text enters</td>
+<td>Tokens go straight into the understanding tower, and the generation
+tower reads its K and V at every layer</td>
+<td>Qwen3-VL encodes it into vectors, which are concatenated into the
+sequence</td>
+</tr>
+<tr class="even">
+<td>Output of each forward pass</td>
+<td>Velocity of the image latent</td>
+<td>One velocity each for the video latent and the audio latent</td>
+</tr>
+<tr class="odd">
+<td>Final product</td>
+<td>Image (this post uses a single frame)</td>
+<td>Video plus stereo audio</td>
+</tr>
+<tr class="even">
+<td>How the timestep is injected</td>
+<td>Added once at the input</td>
+<td>Modulation after each layer’s normalization, by “timestep ×
+modality”</td>
+</tr>
+<tr class="odd">
+<td>Can it output text</td>
+<td>The understanding tower has an <code>lm_head</code>, unused on the
+text-to-image path</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td>Where LoRA goes</td>
+<td>Generation-tower attention only</td>
+<td>The shared attention and feed-forward layers</td>
+</tr>
+</tbody>
+</table>
+<p>The last row follows directly from the structural difference. Cosmos3
+lets you pick only generation-tower layers to train. H3 has no such
+split, so once LoRA is attached, the processing of text, video and audio
+tokens all changes.</p>
+<blockquote>
+<p><strong>Where I got stuck</strong>: Is all multimodal training done
+this way, so the model can output both text and images?</p>
+<p>No, the dual tower is only one route. Others: a language model writes
+a prompt and hands it to an independent text-to-image model; images are
+also cut into discrete tokens and put in the same vocabulary as text, so
+everything is next-token prediction (Chameleon); one transformer does
+next-token prediction at text positions and diffusion at image positions
+(Transfusion). They all answer the same question: text is discrete and
+images are continuous, so how do you put both in one model.</p>
+<p>Also, Cosmos3’s two abilities were not trained together here. The
+text ability comes from the understanding tower, which is frozen during
+training; the image ability comes from the generation tower. H3 has no
+text output at all.</p>
+</blockquote>
+<blockquote>
+<p><strong>Where I got stuck</strong>: Does the training cost for
+audio-video depend entirely on the number of frames?</p>
+<p>More precisely it depends on the total number of tokens, and the
+frame count is one factor in that product. But for H3 the frame count is
+not a freely adjustable knob: the VAE also compresses in time, so 124
+pixel frames become 37 latent frames; the frame rate is fixed at 24 fps,
+and 124 frames is the smallest valid value. What the recipe actually
+uses to save memory is resolution: replay costs about 2.2 GB per step at
+256×384 and about 12 GB at 768×768.</p>
+</blockquote>
+<h2 id="why-deterministic-sampling-cannot-do-policy-gradient">Why
+deterministic sampling cannot do policy gradient</h2>
+<p>Policy gradient needs to know “how probable was this action”, which
+is the log-prob. In an Euler step, given the current latent, the next
+latent is uniquely determined, so there is no probability to speak
+of.</p>
+<p>Deterministic sampling does not produce the same image every time:
+the starting noise is drawn at random, and a different draw gives a
+different image. But the distribution of the starting noise does not
+depend on the model’s parameters, so it provides no gradient. Also,
+“cannot” here applies only to policy gradient, which needs a log-prob;
+DiffusionNFT, covered later, samples deterministically.</p>
+<p>The fix is to add a little Gaussian noise to the result at a few of
+the steps.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/05-euler-vs-sde.png"
+alt="(a) A deterministic step has exactly one outcome. (b) With noise added, the next latent follows a Gaussian centered on the mean, and the point actually reached has a probability. AI-generated" />
+<figcaption aria-hidden="true">(a) A deterministic step has exactly one
+outcome. (b) With noise added, the next latent follows a Gaussian
+centered on the mean, and the point actually reached has a probability.
+AI-generated</figcaption>
+</figure>
+<p>Now “the next latent” follows a Gaussian distribution, and the
+model’s output sets its mean. In RL vocabulary:</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>RL</th>
+<th>Here</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>State</td>
+<td>Current latent <span class="math inline">\(x\)</span>, step index,
+prompt</td>
+</tr>
+<tr class="even">
+<td>Action</td>
+<td>Next latent <span
+class="math inline">\(x_{\text{next}}\)</span></td>
+</tr>
+<tr class="odd">
+<td>Policy</td>
+<td>Gaussian <span class="math inline">\(\mathcal{N}(\mu,
+\text{std}^2)\)</span>, with <span class="math inline">\(\mu\)</span>
+set by the model with LoRA</td>
+</tr>
+<tr class="even">
+<td>Trajectory</td>
+<td>The whole 16-step denoising chain</td>
+</tr>
+<tr class="odd">
+<td>Reward</td>
+<td>Given only at the end: decode to an image and score it</td>
+</tr>
+</tbody>
+</table>
+<h3 id="mean-and-variance-in-flowsde">Mean and variance in FlowSDE</h3>
+<p>The Cosmos3 recipe uses <code>FlowSDEStrategy</code>. With <span
+class="math inline">\(s = \eta\sqrt{\sigma/(1-\sigma)}\)</span>, the
+mean in the code simplifies to</p>
+<p><span class="math display">\[
+\mu = x\left(1 + \frac{\eta^2\,dt}{2(1-\sigma)}\right) + v\left(1 +
+\frac{\eta^2}{2}\right)dt
+\]</span></p>
+<p><span class="math display">\[
+\text{std} = s\,\sqrt{-dt}, \qquad x_{\text{next}} = \mu +
+\text{std}\cdot z,\quad z \sim \mathcal{N}(0, I)
+\]</span></p>
+<p><span class="math inline">\(\eta\)</span> controls the size of the
+noise. With <span class="math inline">\(\eta = 0\)</span> the mean falls
+back to <span class="math inline">\(x + v\,dt\)</span> and the standard
+deviation is 0, which is the Euler step. So the same class takes both
+kinds of step, and the code switches with
+<code>eta if index in sde_set else 0.0</code>.</p>
+<p>A worked example. At step 8, <span class="math inline">\(\sigma =
+0.75\)</span>, the next value is <span
+class="math inline">\(\sigma_{\text{next}} = 0.70\)</span>, <span
+class="math inline">\(dt = -0.05\)</span> and <span
+class="math inline">\(\eta = 0.7\)</span>. Then <span
+class="math inline">\(s = 0.7\sqrt{3} \approx 1.21\)</span>, <span
+class="math inline">\(\text{std} \approx 1.21 \times \sqrt{0.05} \approx
+0.27\)</span>, and the mean is <span class="math inline">\(0.951\,x -
+0.062\,v\)</span>.</p>
+<p>The log-prob is the Gaussian log density, per element</p>
+<p><span class="math display">\[
+\log p = -\frac{(x_{\text{next}} - \mu)^2}{2\,\text{std}^2} - \log
+\text{std} - \tfrac{1}{2}\log 2\pi
+\]</span></p>
+<p>Two details are easy to miss. First, the code takes the
+<strong>mean</strong> over all latent dimensions rather than the sum, so
+the values are small, which is why <code>clip_range</code> ends up on
+the order of 1e-3. Second, <span
+class="math inline">\(x_{\text{next}}\)</span> in this expression is
+<code>.detach()</code>ed, so the gradient flows only through <span
+class="math inline">\(\mu\)</span>, which means only through the model
+output <span class="math inline">\(v\)</span>.</p>
+<h3 id="cps-another-way-to-add-noise">CPS: another way to add noise</h3>
+<p>The H3 recipe switches to <code>CPSSDEStrategy</code>. The reason
+given in its comments is that FlowSDE at <span
+class="math inline">\(\eta = 0.7\)</span> leaves visible noise in the
+picture.</p>
+<p>FlowSDE adds noise on top of the existing step. <strong>CPS</strong>
+(coefficients-preserving sampling) first estimates the clean-image
+component and the noise component from the current state:</p>
+<p><span class="math display">\[
+\hat{x}_0 = x - \sigma v, \qquad \hat{\varepsilon} = x + (1-\sigma)\,v
+\]</span></p>
+<p>It then shrinks the estimated noise component and tops it up with
+fresh noise:</p>
+<p><span class="math display">\[
+\mu = (1-\sigma_{\text{next}})\,\hat{x}_0 +
+\sigma_{\text{next}}\cos\!\left(\tfrac{\eta\pi}{2}\right)\hat{\varepsilon},
+\qquad \text{std} =
+\sigma_{\text{next}}\sin\!\left(\tfrac{\eta\pi}{2}\right)
+\]</span></p>
+<p>Because <span class="math inline">\(\cos^2 + \sin^2 = 1\)</span>, the
+old and new noise together have a coefficient of exactly <span
+class="math inline">\(\sigma_{\text{next}}\)</span>, matching the noise
+level the schedule prescribes. Its log-prob in the code is also simpler:
+just <span class="math inline">\(-(x_{\text{next}} - \mu)^2\)</span>,
+without dividing by the variance.</p>
+<h3 id="where-cfg-comes-in">Where CFG comes in</h3>
+<blockquote>
+<p><strong>Where I got stuck</strong>: Cosmos3 has a cond and an uncond
+forward pass. Do models generally have CFG?</p>
+<p>Most do, but not all. <strong>CFG</strong> (classifier-free guidance)
+replaces the prompt at random for part of training, so the same model
+learns both to “draw what the prompt says” and to “draw anything”; at
+sampling time you compute both and extrapolate: <span
+class="math inline">\(v = v_{\text{uncond}} + g\,(v_{\text{cond}} -
+v_{\text{uncond}})\)</span>. The cost is two forward passes per step.
+Distilled models have this effect trained into a single forward pass and
+no longer need it. In H3’s RL recipe <code>guidance_scale</code> is 1.0,
+so each step runs once.</p>
+</blockquote>
+<p>The Cosmos3 recipe uses <span class="math inline">\(g = 4.0\)</span>,
+and its “unconditional” branch uses a negative prompt rather than an
+empty one. The positive and negative prompts have different token
+lengths, and the model takes only one sequence per call, so the two
+forward passes run one after the other.</p>
+<p>For RL, the <span class="math inline">\(v\)</span> in the formulas
+above is the velocity after guidance. Both forward passes carry
+gradients during replay, so what gets optimized is “the guided policy”,
+the same one used at sampling time.</p>
+<h2 id="one-round-of-flowgrpo">One round of FlowGRPO</h2>
+<p>Now to put the pieces together. The Cosmos3-Nano recipe is: 16
+denoising steps, 2 of them SDE steps, 16 images per prompt, PickScore as
+the reward, and only LoRA (rank 64) on the generation-tower attention is
+trained.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/08-rl-loop.png"
+alt="The six stages of one training round. The three blue boxes run the 16B model. AI-generated" />
+<figcaption aria-hidden="true">The six stages of one training round. The
+three blue boxes run the 16B model. AI-generated</figcaption>
+</figure>
+<h3 id="sampling-2-steps-picked-out-of-16">Sampling: 2 steps picked out
+of 16</h3>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/06-rollout-timeline.png"
+alt="Each round draws 2 steps at random from steps 8 to 11 to be SDE steps; the other 14 are deterministic. Drawn by the author" />
+<figcaption aria-hidden="true">Each round draws 2 steps at random from
+steps 8 to 11 to be SDE steps; the other 14 are deterministic. Drawn by
+the author</figcaption>
+</figure>
+<p>Why train only 2 steps: every replayed step runs the model with
+gradients, so fewer steps cost less. As for why the middle of the
+schedule, the repository only says it follows an existing recipe. My
+reading is that when <span class="math inline">\(\sigma\)</span> is
+close to 1, <span class="math inline">\(\sigma/(1-\sigma)\)</span> is
+large and the noise is too strong; and noise added in the last few steps
+has no time to be removed, so the image comes out dirty.</p>
+<p>Inside one SDE step:</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/07-one-sde-step.png"
+alt="One SDE step. The top half is the model forward and CFG; the bottom half turns the velocity into a Gaussian and samples from it. A deterministic step takes the same path with a standard deviation of 0. Drawn by the author" />
+<figcaption aria-hidden="true">One SDE step. The top half is the model
+forward and CFG; the bottom half turns the velocity into a Gaussian and
+samples from it. A deterministic step takes the same path with a
+standard deviation of 0. Drawn by the author</figcaption>
+</figure>
+<p>All of sampling runs under <code>no_grad</code>. Only the latents
+before and after the two chosen steps are stored.</p>
+<h3 id="scoring-and-comparing-within-a-group">Scoring and comparing
+within a group</h3>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/09-group-advantage.png"
+alt="Images from the same prompt are compared with each other. Advantage = (score − group mean) / batch-wide standard deviation. The numbers in the figure are illustrative. Drawn by the author" />
+<figcaption aria-hidden="true">Images from the same prompt are compared
+with each other. Advantage = (score − group mean) / batch-wide standard
+deviation. The numbers in the figure are illustrative. Drawn by the
+author</figcaption>
+</figure>
+<p>Subtracting the group mean removes the effect of “how easy this
+prompt is to draw”. One image has one advantage value, shared by the two
+stored SDE steps of its trajectory.</p>
+<h3 id="replay-and-the-loss">Replay and the loss</h3>
+<p>Sampling had no gradients, so the stored <span
+class="math inline">\((x, x_{\text{next}})\)</span> pairs are fed to the
+model again with one question: under the current model, what is the
+probability of going from <span class="math inline">\(x\)</span> to this
+<span class="math inline">\(x_{\text{next}}\)</span>?</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/10-replay-and-loss.png"
+alt="Replay runs twice: once without gradients for the old log-prob, and once with gradients for the new log-prob. Drawn by the author" />
+<figcaption aria-hidden="true">Replay runs twice: once without gradients
+for the old log-prob, and once with gradients for the new log-prob.
+Drawn by the author</figcaption>
+</figure>
+<p><span class="math display">\[
+\text{ratio} = \exp(\log p_{\text{new}} - \log p_{\text{old}}), \qquad
+L = \max\big(-A\cdot\text{ratio},\;
+-A\cdot\text{clip}(\text{ratio},\,1-c,\,1+c)\big)
+\]</span></p>
+<p><span class="math inline">\(A\)</span> is the advantage and <span
+class="math inline">\(c\)</span> is <code>clip_range</code>. If the
+advantage is positive, the mean <span class="math inline">\(\mu\)</span>
+moves a little toward the <span
+class="math inline">\(x_{\text{next}}\)</span> that was actually
+reached; if negative, it moves the other way.</p>
+<p>The count per sample: sampling is 16 steps × 2 forward passes = 32;
+replay is 2 steps × 2 (positive and negative prompt) × 2 (old and new) =
+8. That makes 40. One round is 48 × 16 = 768 samples.</p>
+<h3 id="clipping-does-nothing-in-this-recipe">Clipping does nothing in
+this recipe</h3>
+<p>I only confirmed this after reading the training loop. The order
+within a round is: replay with the current weights to get the old
+log-prob, then compute the loss sample by sample and accumulate
+gradients, and step the optimizer once for the whole round
+(<code>num_updates_per_batch: 1</code>).</p>
+<p>When the new log-prob is computed, the weights have not changed yet,
+so <strong>the ratio is always 1 and never leaves the clipping
+interval</strong>. The gradient of the loss is then <span
+class="math inline">\(-A\,\nabla \log p\)</span>, plain policy gradient
+with a group baseline. The code even has a check watching for this: if
+the ratio deviates from 1 before the first update, it prints a
+warning.</p>
+<p><code>clip_range</code> only constrains the step when a batch is
+updated on more than once.</p>
+<h3 id="one-algorithm-two-recipes">One algorithm, two recipes</h3>
+<p>H3’s first recipe also uses FlowGRPO, with the same algorithm code.
+The differences are all in the parameters:</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Cosmos3-Nano</th>
+<th>MiniMax-H3</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Canvas</td>
+<td>832×480, single frame</td>
+<td>256×384, 124 frames plus audio</td>
+</tr>
+<tr class="even">
+<td>Denoising steps</td>
+<td>16</td>
+<td>10</td>
+</tr>
+<tr class="odd">
+<td>Noise scheme</td>
+<td>FlowSDE</td>
+<td>CPS</td>
+</tr>
+<tr class="even">
+<td>CFG</td>
+<td>4.0, two forward passes per step</td>
+<td>1.0, one per step</td>
+</tr>
+<tr class="odd">
+<td>Size of a round</td>
+<td>48 prompts × 16</td>
+<td>8 prompts × 16</td>
+</tr>
+<tr class="even">
+<td>Reward</td>
+<td>PickScore</td>
+<td>ImageBind + CLAP</td>
+</tr>
+<tr class="odd">
+<td>LoRA</td>
+<td>Rank 64, generation-tower attention</td>
+<td>Rank 32, attention and feed-forward</td>
+</tr>
+<tr class="even">
+<td><code>clip_range</code></td>
+<td>1e-3</td>
+<td>5e-3</td>
+</tr>
+</tbody>
+</table>
+<p>The H3 reward has a trap, recorded in the recipe’s comments: if
+ImageBind compares only audio and video, the model learns to produce a
+black screen with silence to game the score, so the text-to-video term
+has to be included.</p>
+<h2 id="another-route-diffusionnft">Another route: DiffusionNFT</h2>
+<p>H3 has a second recipe, which uses <strong>DiffusionNFT</strong>. It
+needs no log-prob, so sampling can be fully deterministic (<span
+class="math inline">\(\eta = 0\)</span>).</p>
+<p>It takes the clean latent <span class="math inline">\(x_0\)</span>
+from sampling, re-noises it to some level <span
+class="math inline">\(t\)</span>, and has two models each predict the
+velocity: <span class="math inline">\(v_{\text{new}}\)</span> from the
+one being trained, and <span
+class="math inline">\(v_{\text{old}}\)</span> from a moving average of
+older weights. From these it builds a positive and a negative
+prediction:</p>
+<p><span class="math display">\[
+v^{+} = v_{\text{old}} + \beta\,(v_{\text{new}} - v_{\text{old}}),
+\qquad
+v^{-} = v_{\text{old}} - \beta\,(v_{\text{new}} - v_{\text{old}})
+\]</span></p>
+<p>The positive prediction is a small step from the old model toward the
+new one, and the negative prediction is the same step in the opposite
+direction. Each prediction recovers a clean image, <span
+class="math inline">\(\hat{x}_0 = x_t - t\,v\)</span>.</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/11-diffusion-nft.png"
+alt="The DiffusionNFT loss. Good samples act mainly through the positive prediction, and bad samples mainly through the negative one. AI-generated" />
+<figcaption aria-hidden="true">The DiffusionNFT loss. Good samples act
+mainly through the positive prediction, and bad samples mainly through
+the negative one. AI-generated</figcaption>
+</figure>
+<p>The loss is</p>
+<p><span class="math display">\[
+L = r\,\lVert \hat{x}_0^{+} - x_0 \rVert^2 + (1-r)\,\lVert \hat{x}_0^{-}
+- x_0 \rVert^2
+\]</span></p>
+<p>where <span class="math inline">\(r \in [0, 1]\)</span> is derived
+from the advantage: the advantage is divided by 5, clamped to <span
+class="math inline">\([-1, 1]\)</span>, and mapped linearly to <span
+class="math inline">\([0, 1]\)</span>. In the code both terms are also
+divided by <span class="math inline">\(\beta\)</span> and can be
+weighted adaptively by the size of the error; I leave that out here.</p>
+<p>For a good sample <span class="math inline">\(r\)</span> is close to
+1 and the first term dominates, pulling the new model toward this image.
+For a bad sample <span class="math inline">\(r\)</span> is close to 0
+and the second term dominates: it makes the “opposite-direction”
+prediction fit this image, which amounts to pushing the new model away
+from it.</p>
+<p>Compared with FlowGRPO, it does not store intermediate steps and does
+not keep a full computation graph with gradients for replay. That is why
+H3’s NFT recipe can train all 10 timesteps.</p>
+<h2 id="recap">Recap</h2>
+<ol type="1">
+<li>Diffusion is a generation method and the transformer is a network
+architecture; the two combine. Cosmos3 and H3 are both diffusion with a
+transformer.</li>
+<li>To count towers, check whether different modalities use different
+backbone weights inside one layer. Cosmos3 has two, H3 has one.</li>
+<li>In one Cosmos3 layer attention runs twice: text sees only text;
+image sees text plus image, where the text K and V are borrowed from the
+understanding tower.</li>
+<li>In inference, SFT and RL replay alike, the text is a condition given
+in full. Only the image part is learned and sampled.</li>
+<li>Deterministic sampling has no probability. Add Gaussian noise to a
+few steps and the next latent becomes one action of a Gaussian policy,
+which gives the log-prob a definition.</li>
+<li>One round of FlowGRPO is: sample, score, subtract the group mean to
+get advantages, replay to recompute the log-prob, update the LoRA.</li>
+<li>With one update per batch the ratio is always 1, PPO-style clipping
+does nothing, and training is equivalent to plain policy gradient.</li>
+<li>DiffusionNFT needs no log-prob and instead uses a
+re-noise-and-retrain loss that pulls toward good samples and pushes away
+from bad ones.</li>
+</ol>
+<h2 id="what-i-have-not-figured-out">What I have not figured out</h2>
+<ul>
+<li>The understanding tower’s K and V do not change across the 16 steps.
+I have not measured how much computation caching them would save.</li>
+<li>In H3’s two recipes, one comment says FlowGRPO trains all 10 steps
+and another says it could only afford 4. They disagree, and I have not
+tracked down which one is out of date.</li>
+<li>This post does not derive the FlowSDE mean from the SDE, and I have
+not worked through that derivation myself yet.</li>
+</ul>
+<h2 id="references">References</h2>
+<ul>
+<li>The UniRL repository: <a
+target="_blank" rel="noopener" href="https://github.com/Tencent-Hunyuan/UniRL"
+class="uri">https://github.com/Tencent-Hunyuan/UniRL</a>. This post
+draws on <code>unirl/sde/kernels.py</code>,
+<code>unirl/algorithms/flowgrpo.py</code>,
+<code>unirl/algorithms/diffusionnft.py</code>,
+<code>unirl/train/stack/single.py</code>,
+<code>unirl/models/cosmos3/</code> and
+<code>unirl/models/minimax_h3/</code>.</li>
+<li>The Cosmos3 implementation in diffusers: <a
+target="_blank" rel="noopener" href="https://github.com/huggingface/diffusers/blob/main/src/diffusers/models/transformers/transformer_cosmos3.py"
+class="uri">https://github.com/huggingface/diffusers/blob/main/src/diffusers/models/transformers/transformer_cosmos3.py</a></li>
+<li>Liu et al., <em>Flow-GRPO: Training Flow Matching Models via Online
+RL</em>: <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2505.05470"
+class="uri">https://arxiv.org/abs/2505.05470</a></li>
+<li>Wang et al., <em>Coefficients-Preserving Sampling for Reinforcement
+Learning with Flow Matching</em>: <a
+target="_blank" rel="noopener" href="https://arxiv.org/abs/2509.05952"
+class="uri">https://arxiv.org/abs/2509.05952</a></li>
+<li>Zheng et al., <em>DiffusionNFT: Online Diffusion Reinforcement with
+Forward Process</em>: <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2509.16117"
+class="uri">https://arxiv.org/abs/2509.16117</a></li>
+<li>Ho and Salimans, <em>Classifier-Free Diffusion Guidance</em>: <a
+target="_blank" rel="noopener" href="https://arxiv.org/abs/2207.12598"
+class="uri">https://arxiv.org/abs/2207.12598</a></li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://blog.li-xiang.xyz">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://blog.li-xiang.xyz/2026/11/17/Deep-Learning/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/">https://blog.li-xiang.xyz/2026/11/17/Deep-Learning/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/tags/Multimodal/">Multimodal</a><a class="post-meta__tags" href="/tags/Diffusion/">Diffusion</a><a class="post-meta__tags" href="/tags/Deep-Learning/">Deep Learning</a><a class="post-meta__tags" href="/tags/Flow-Matching/">Flow Matching</a><a class="post-meta__tags" href="/tags/Reinforcement-Learning/">Reinforcement Learning</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/01-three-architectures.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/11/16/CS336/CS336-Lec5-GPUs/" title="CS336 Language Modeling: GPUs (Lecture 5)"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">CS336 Language Modeling: GPUs (Lecture 5)</div></div><div class="info-2"><div class="info-item-1">Notes on CS336 Lecture 5. How a GPU executes code and organizes memory, why most ML workloads are limited by memory bandwidth, the tricks that make GPUs fast (low precision, fusion, recomputation, coalescing, tiling), and how they combine in FlashAttention and online softmax.</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Multimodal/" title="11-711 Advanced NLP: Multimodal Modeling"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-04</div><div class="info-item-2">11-711 Advanced NLP: Multimodal Modeling</div></div><div class="info-2"><div class="info-item-1">Notes on multimodal modeling from CMU 11-711 Advanced NLP, covering ViT, CLIP, LLaVA-style integration, token-based image generation, diffusion, and flow matching.</div></div></div></a><a class="pagination-related" href="/2026/01/28/11868-LLM-Sys/11868-LLM-Sys-15642-ML-Sys-DL-Framworks-and-Auto-Differentiation/" title="11-868 LLM Systems &amp; 15-642 ML Systems: DL Frameworks and Automatic Differentiation"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-28</div><div class="info-item-2">11-868 LLM Systems &amp; 15-642 ML Systems: DL Frameworks and Automatic Differentiation</div></div><div class="info-2"><div class="info-item-1">Comprehensive notes on deep learning frameworks and automatic differentiation from CMU 11-868 LLM Systems and 15-642 ML Systems courses.</div></div></div></a><a class="pagination-related" href="/2025/10/02/Deep-Learning/CNN_P1/" title="CNNs - Part 1"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251002142654568.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-10-02</div><div class="info-item-2">CNNs - Part 1</div></div><div class="info-2"><div class="info-item-1">Notes on Convolutional Neural Networks (CNN)</div></div></div></a><a class="pagination-related" href="/2025/10/03/Deep-Learning/CNN_P2/" title="CNNs - Part 2"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251002142654568.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-10-03</div><div class="info-item-2">CNNs - Part 2</div></div><div class="info-2"><div class="info-item-1">Notes on Convolutional Neural Networks (CNN)</div></div></div></a><a class="pagination-related" href="/2026/01/23/11711-Advanced-NLP/11711-Advanced-NLP-Fundamentals/" title="11-711 Advanced NLP: Fundamentals"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-22</div><div class="info-item-2">11-711 Advanced NLP: Fundamentals</div></div><div class="info-2"><div class="info-item-1">Notes and summaries for CMU 11-711 Advanced NLP.</div></div></div></a><a class="pagination-related" href="/2026/01/29/11711-Advanced-NLP/11711-Advanced-NLP-Learning-Inference/" title="11-711 Advanced NLP: Learning &amp; Inference"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">11-711 Advanced NLP: Learning &amp; Inference</div></div><div class="info-2"><div class="info-item-1">Notes on learning algorithms and inference methods from CMU 11-711 Advanced NLP.</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comments</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li's Blog</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">64</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">123</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#how-diffusion-models-do-reinforcement-learning-from-the-cosmos3-dual-tower-to-one-round-of-flowgrpo"><span class="toc-number">1.</span> <span class="toc-text">How
+Diffusion Models Do Reinforcement Learning: From the Cosmos3 Dual Tower
+to One Round of FlowGRPO</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#diffusion-and-transformer-are-not-alternatives"><span class="toc-number">1.1.</span> <span class="toc-text">Diffusion and
+transformer are not alternatives</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#how-text-enters-the-model-the-cosmos3-dual-tower"><span class="toc-number">1.2.</span> <span class="toc-text">How text
+enters the model: the Cosmos3 dual tower</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#how-shapes-change-in-one-forward-pass"><span class="toc-number">1.2.1.</span> <span class="toc-text">How shapes change in one
+forward pass</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#attention-runs-twice-per-layer"><span class="toc-number">1.2.2.</span> <span class="toc-text">Attention runs twice per
+layer</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#the-single-tower-h3-and-other-multimodal-routes"><span class="toc-number">1.3.</span> <span class="toc-text">The
+single-tower H3, and other multimodal routes</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#why-deterministic-sampling-cannot-do-policy-gradient"><span class="toc-number">1.4.</span> <span class="toc-text">Why
+deterministic sampling cannot do policy gradient</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#mean-and-variance-in-flowsde"><span class="toc-number">1.4.1.</span> <span class="toc-text">Mean and variance in FlowSDE</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#cps-another-way-to-add-noise"><span class="toc-number">1.4.2.</span> <span class="toc-text">CPS: another way to add noise</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#where-cfg-comes-in"><span class="toc-number">1.4.3.</span> <span class="toc-text">Where CFG comes in</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#one-round-of-flowgrpo"><span class="toc-number">1.5.</span> <span class="toc-text">One round of FlowGRPO</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#sampling-2-steps-picked-out-of-16"><span class="toc-number">1.5.1.</span> <span class="toc-text">Sampling: 2 steps picked out
+of 16</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#scoring-and-comparing-within-a-group"><span class="toc-number">1.5.2.</span> <span class="toc-text">Scoring and comparing
+within a group</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#replay-and-the-loss"><span class="toc-number">1.5.3.</span> <span class="toc-text">Replay and the loss</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#clipping-does-nothing-in-this-recipe"><span class="toc-number">1.5.4.</span> <span class="toc-text">Clipping does nothing in
+this recipe</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#one-algorithm-two-recipes"><span class="toc-number">1.5.5.</span> <span class="toc-text">One algorithm, two recipes</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#another-route-diffusionnft"><span class="toc-number">1.6.</span> <span class="toc-text">Another route: DiffusionNFT</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#recap"><span class="toc-number">1.7.</span> <span class="toc-text">Recap</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#what-i-have-not-figured-out"><span class="toc-number">1.8.</span> <span class="toc-text">What I have not figured out</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#references"><span class="toc-number">1.9.</span> <span class="toc-text">References</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/11/17/Deep-Learning/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/" title="How Diffusion Models Do Reinforcement Learning: From the Cosmos3 Dual Tower to One Round of FlowGRPO"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/01-three-architectures.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="How Diffusion Models Do Reinforcement Learning: From the Cosmos3 Dual Tower to One Round of FlowGRPO"/></a><div class="content"><a class="title" href="/2026/11/17/Deep-Learning/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/" title="How Diffusion Models Do Reinforcement Learning: From the Cosmos3 Dual Tower to One Round of FlowGRPO">How Diffusion Models Do Reinforcement Learning: From the Cosmos3 Dual Tower to One Round of FlowGRPO</a><time datetime="2026-11-17T01:30:00.000Z" title="Created 2026-11-16 20:30:00">2026-11-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/11/16/CS336/CS336-Lec5-GPUs/" title="CS336 Language Modeling: GPUs (Lecture 5)"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="CS336 Language Modeling: GPUs (Lecture 5)"/></a><div class="content"><a class="title" href="/2026/11/16/CS336/CS336-Lec5-GPUs/" title="CS336 Language Modeling: GPUs (Lecture 5)">CS336 Language Modeling: GPUs (Lecture 5)</a><time datetime="2026-11-16T03:10:00.000Z" title="Created 2026-11-15 22:10:00">2026-11-15</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11-711 Advanced NLP: Parallelism and Scaling"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11-711 Advanced NLP: Parallelism and Scaling"/></a><div class="content"><a class="title" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11-711 Advanced NLP: Parallelism and Scaling">11-711 Advanced NLP: Parallelism and Scaling</a><time datetime="2026-04-07T03:00:00.000Z" title="Created 2026-04-06 23:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11-711 Advanced NLP: Quantization"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11-711 Advanced NLP: Quantization"/></a><div class="content"><a class="title" href="/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11-711 Advanced NLP: Quantization">11-711 Advanced NLP: Quantization</a><time datetime="2026-04-07T02:00:00.000Z" title="Created 2026-04-06 22:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11-868 LLM Systems: Systems for Mixture-of-Experts Models"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="11-868 LLM Systems: Systems for Mixture-of-Experts Models"/></a><div class="content"><a class="title" href="/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11-868 LLM Systems: Systems for Mixture-of-Experts Models">11-868 LLM Systems: Systems for Mixture-of-Experts Models</a><time datetime="2026-03-21T19:00:00.000Z" title="Created 2026-03-21 15:00:00">2026-03-21</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll to Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || 'b9d25a09337274b541e0bbc82b92d48e'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script defer src="/music/playlist.js"></script><script defer src="/js/site-widgets.js?v=align3"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/metingjs/dist/Meting.min.js"></script><script>(() => {
+  const destroyAplayer = () => {
+    if (window.aplayers) {
+      for (let i = 0; i < window.aplayers.length; i++) {
+        if (!window.aplayers[i].options.fixed) {
+          window.aplayers[i].destroy()
+        }
+      }
+    }
+  }
+
+  const runMetingJS = () => {
+    typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+  }
+
+  btf.addGlobalFn('pjaxSend', destroyAplayer, 'destroyAplayer')
+  btf.addGlobalFn('pjaxComplete', loadMeting, 'runMetingJS')
+})()</script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/404.html') : window.location.href = '/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="data:text/javascript,"></script></div></body></html>

@@ -1,0 +1,946 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>扩散模型怎么做强化学习：从 Cosmos3 的双塔讲到一轮 FlowGRPO | Life is not a race, but a journey</title><meta name="author" content="Xiang Li"><meta name="copyright" content="Xiang Li"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="本文记录我在给 UniRL 加 Cosmos3-Nano 的 RL 训练时弄明白的两件事：双塔模型里文字是怎么被读到的，以及扩散模型怎样通过在几步去噪里加噪声来做强化学习。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="扩散模型怎么做强化学习：从 Cosmos3 的双塔讲到一轮 FlowGRPO">
+<meta property="og:url" content="https://blog.li-xiang.xyz/zh/2026/11/17/Deep-Learning/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/index.html">
+<meta property="og:site_name" content="Life is not a race, but a journey">
+<meta property="og:description" content="本文记录我在给 UniRL 加 Cosmos3-Nano 的 RL 训练时弄明白的两件事：双塔模型里文字是怎么被读到的，以及扩散模型怎样通过在几步去噪里加噪声来做强化学习。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/01-three-architectures.png">
+<meta property="article:published_time" content="2026-11-17T01:30:00.000Z">
+<meta property="article:modified_time" content="2026-11-17T04:01:10.027Z">
+<meta property="article:author" content="Xiang Li">
+<meta property="article:tag" content="Study Notes">
+<meta property="article:tag" content="Deep Learning">
+<meta property="article:tag" content="Diffusion">
+<meta property="article:tag" content="Flow Matching">
+<meta property="article:tag" content="Reinforcement Learning">
+<meta property="article:tag" content="Multimodal">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/01-three-architectures.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "扩散模型怎么做强化学习：从 Cosmos3 的双塔讲到一轮 FlowGRPO",
+  "url": "https://blog.li-xiang.xyz/zh/2026/11/17/Deep-Learning/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/",
+  "image": "https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/01-three-architectures.png",
+  "datePublished": "2026-11-17T01:30:00.000Z",
+  "dateModified": "2026-11-17T04:01:10.027Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Xiang Li",
+      "url": "https://blog.li-xiang.xyz/zh"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/zh/img/favicon.png"><link rel="canonical" href="https://blog.li-xiang.xyz/zh/2026/11/17/Deep-Learning/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/zh/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/zh/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '扩散模型怎么做强化学习：从 Cosmos3 的双塔讲到一轮 FlowGRPO',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/site-widgets.css?v=align3"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">64</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">120</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">18</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page" href="/zh/guestbook/"><i class="fa-fw fas fa-comment-dots"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://li-xiang.xyz"><i class="fa-fw fas fa-globe"></i><span> 主站</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/01-three-architectures.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/zh/"><span class="site-name">Life is not a race, but a journey</span></a><a class="nav-page-title" href="/zh/"><span class="site-name">扩散模型怎么做强化学习：从 Cosmos3 的双塔讲到一轮 FlowGRPO</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/zh/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/zh/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/zh/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/zh/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/zh/List/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/zh/List/gallery/"><i class="fa-fw fa fa-image"></i><span> 相册</span></a></li><li><a class="site-page child" href="/zh/List/movies/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/zh/books/"><i class="fa-fw fas fa-book"></i><span> 书籍</span></a></div><div class="menus_item"><a class="site-page" href="/zh/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/zh/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page" href="/zh/guestbook/"><i class="fa-fw fas fa-comment-dots"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://li-xiang.xyz"><i class="fa-fw fas fa-globe"></i><span> 主站</span></a></div></div><!-- Language switch button styled like menu item--><div class="menus_items lang-switch"><div class="menus_item"><a class="site-page lang-toggle" href="/"><i class="fas fa-language fa-fw"></i><span> English</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">扩散模型怎么做强化学习：从 Cosmos3 的双塔讲到一轮 FlowGRPO</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-11-17T01:30:00.000Z" title="发表于 2026-11-16 20:30:00">2026-11-16</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-11-17T04:01:10.027Z" title="更新于 2026-11-16 23:01:10">2026-11-16</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/zh/categories/Deep-Learning/">Deep Learning</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">5.7k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>19分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1
+id="扩散模型怎么做强化学习从-cosmos3-的双塔讲到一轮-flowgrpo">扩散模型怎么做强化学习：从
+Cosmos3 的双塔讲到一轮 FlowGRPO</h1>
+<p>我最近在给开源项目 UniRL 加 NVIDIA Cosmos3-Nano 的文生图和 RL
+训练配方。代码能跑通之后，我发现自己有两件事讲不清楚：这个「双塔」模型到底是怎么把文字和图像接在一起的，以及一个扩散模型凭什么能做强化学习。这篇文章是我把这两件事问明白的过程。</p>
+<p>我带走的一句话是：<strong>给扩散模型做
+RL，就是在几步去噪里加一点噪声，把「下一个
+latent」变成一个能算概率的动作；模型是双塔还是单塔，只决定这一步前向里文字怎么被读到。</strong></p>
+<p>全文分六部分：先分清扩散和 transformer 的关系，再看 Cosmos3 的双塔和
+MiniMax-H3 的单塔，然后讲加噪声怎么带来 log-prob，接着走完一轮
+FlowGRPO，最后看一条不需要 log-prob 的路
+DiffusionNFT。文中标着「我卡住的地方」的小块，是我当时真的问出口的问题。</p>
+<p>文中的结构和数字来自 UniRL 仓库的代码、配方文件和 diffusers 里的
+<code>transformer_cosmos3.py</code>。</p>
+<h2 id="扩散和-transformer-不是二选一">扩散和 transformer
+不是二选一</h2>
+<blockquote>
+<p><strong>我卡住的地方</strong>：H3 能同时出视频和音频，它是扩散还是
+transformer？我知道图片有 diffusion 和 transformer。</p>
+<p>两个都是。它们回答的是不同的问题。<strong>扩散</strong>（包括
+<strong>flow
+matching</strong>）说的是怎么生成：从噪声出发，一步步去噪。<strong>transformer</strong>
+说的是用什么网络：每一步去噪时，负责算「该往哪走」的那个神经网络。</p>
+</blockquote>
+<p>这两个维度可以自由组合。Stable Diffusion 1.5 是扩散方法配卷积
+U-Net。SD3、Flux、Cosmos3 的生成塔、H3 都是扩散方法配
+transformer。把图片切成离散 token 再逐个预测的那类模型，是自回归方法配
+transformer。我之前以为的「diffusion 和 transformer
+两派」，其实是同一种网络配了两种生成方法。</p>
+<p>本文两个模型用的都是 flow matching。约定是</p>
+<p><span class="math display">\[
+x_t = (1-\sigma)\,x_0 + \sigma\,\varepsilon
+\]</span></p>
+<p>其中 <span class="math inline">\(x_0\)</span> 是干净的 latent，<span
+class="math inline">\(\varepsilon\)</span> 是高斯噪声，<span
+class="math inline">\(\sigma\)</span> 从 1 降到
+0。模型预测<strong>速度</strong> <span class="math inline">\(v =
+\varepsilon - x_0\)</span>。采样就是让 <span
+class="math inline">\(\sigma\)</span> 分若干步降到 0，每步走一小段 <span
+class="math inline">\(x \leftarrow x + v\,dt\)</span>，其中 <span
+class="math inline">\(dt = \sigma_{\text{next}} - \sigma &lt;
+0\)</span>。这叫 Euler 步。</p>
+<h2 id="文字怎么进模型cosmos3-的双塔">文字怎么进模型：Cosmos3
+的双塔</h2>
+<p>Cosmos3-Nano 约 16B 参数，是一个
+<strong>Mixture-of-Transformers</strong>（MoT）：约 8B
+的理解塔读文字，约 7B 的生成塔预测速度。它没有单独的文本编码器。</p>
+<p>理解这个设计，先要和另外两种结构放在一起看。</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/01-three-architectures.png"
+alt="三种把文字送进生成网络的结构。(a) 文本编码器只把最后一层特征交给扩散 transformer；(b) H3 的文字同样来自单独的编码器，视频和音频共用一套权重；(c) Cosmos3 的理解塔每一层的 K、V 都借给生成塔，没有反方向的箭头。自绘" />
+<figcaption aria-hidden="true">三种把文字送进生成网络的结构。(a)
+文本编码器只把最后一层特征交给扩散 transformer；(b) H3
+的文字同样来自单独的编码器，视频和音频共用一套权重；(c) Cosmos3
+的理解塔每一层的 K、V 都借给生成塔，没有反方向的箭头。自绘</figcaption>
+</figure>
+<p>本文的两个模型分别是 (b) 和 (c)。(a)
+是常见的文生图结构，放在这里当参照：H3
+的文字路径和它一样，区别在于主干同时处理视频和音频两种 token。</p>
+<p><strong>塔的判断标准是：同一层里，不同模态是不是用不同的一套主干权重。</strong>
+Cosmos3 的每一层 <code>Cosmos3VLTextMoTDecoderLayer</code> 里，文字走
+<code>to_q / to_k / to_v / to_out</code> 和 <code>mlp</code>，图像走
+<code>add_q_proj / add_k_proj / add_v_proj / to_add_out</code> 和
+<code>mlp_moe_gen</code>。所以是两座塔。</p>
+<h3 id="一次前向里形状怎么变">一次前向里形状怎么变</h3>
+<p>以 832×480 的单张图为例。VAE 是 Wan2.2 的，48 个通道，空间上压缩 16
+倍，所以 latent 是 <code>[48, 1, 30, 52]</code>。</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/02-cosmos3-forward-shapes.png"
+alt="Cosmos3 一次前向的完整路径。左列是文字，右列是图像，两列在 36 层里始终是两个分开的张量。时间步只加在右列。自绘" />
+<figcaption aria-hidden="true">Cosmos3
+一次前向的完整路径。左列是文字，右列是图像，两列在 36
+层里始终是两个分开的张量。时间步只加在右列。自绘</figcaption>
+</figure>
+<p>图里理解塔那一格写的 causal，在训练和推理时是同一条规则。prompt
+是完整给定的，所以一次前向就把所有文字位置并行算完，但每个文字 token
+仍然只看得到它前面的文字。</p>
+<p>几个数字的来历：</p>
+<ul>
+<li><strong>390 个图像 token</strong>：30×52 的网格每 2×2 合成一块，得到
+15×26 = 390 块。每块把 4 个位置的 48 个通道拼起来，是 192 维，再由
+<code>proj_in</code> 变成 4096 维。</li>
+<li><strong>时间步只在入口加一次</strong>：<span
+class="math inline">\(\sigma \times 1000\)</span> 经过
+<code>time_embedder</code> 变成向量，加到带噪的图像 token 上。文字 token
+不加。</li>
+<li><strong>出口和入口对称</strong>：<code>proj_out</code> 把 4096
+维变回 192 维，拼回 <code>[48, 1, 30, 52]</code>，就是速度 <span
+class="math inline">\(v\)</span>。</li>
+</ul>
+<p>层数 36、隐藏维度 4096、查询头 32、键值头 8、词表 151936 是 diffusers
+里这个类的默认参数。我用它们估算的参数量和 Nano
+的规模对得上，但没有直接读检查点的 config 确认。</p>
+<h3 id="一层里注意力算两遍">一层里注意力算两遍</h3>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/03-one-layer-two-passes.png"
+alt="一层解码器内部。第一遍只有文字参与；第二遍图像出查询，键和值是文字的加图像的拼在一起。LoRA 挂的是右边那一格里的四个线性层。自绘" />
+<figcaption
+aria-hidden="true">一层解码器内部。第一遍只有文字参与；第二遍图像出查询，键和值是文字的加图像的拼在一起。LoRA
+挂的是右边那一格里的四个线性层。自绘</figcaption>
+</figure>
+<p>「生成塔能看理解塔，反过来不行」不是靠一张大的注意力掩码实现的，而是直接分两次算：</p>
+<ul>
+<li><strong>第一遍</strong>：文字的 Q、K、V
+都来自文字，因果注意力，每个文字 token 只看它前面的文字。</li>
+<li><strong>第二遍</strong>：Q 来自图像（<code>add_q_proj</code>），K 和
+V 是「文字的」和「图像的」拼在一起。图像 token
+能看到全部文字和全部图像。</li>
+</ul>
+<p>第二遍里借来的文字 K、V，是理解塔自己的 <code>to_k / to_v</code>
+算出来的。生成塔没有另外一套权重去处理文字。</p>
+<blockquote>
+<p><strong>我卡住的地方</strong>：生成的时候，文字 token
+是一次给全的吗？训练的时候呢？</p>
+<p>是，两种情况都是。分词在生成开始前做一次，得到正、负 prompt
+两串固定的 token。之后每一步前向都把整串文字和当前的图像 latent
+拼成一条序列。理解塔在这里只当阅读器用，不会逐词往外生成。因果掩码是结构，自回归采样是用法，这里只有前者。训练时也一样：SFT
+的损失只算在带噪的图像 token 上，RL 回放用的就是采样时存下的那两串
+token。diffusers 的 forward 里 <code>lm_head</code>
+存在，但没有被调用。</p>
+</blockquote>
+<blockquote>
+<p><strong>我卡住的地方</strong>：那为啥要每层都连？算一次，之后每次前向拼进去不就完了。</p>
+<p>关键在「拼一次」拼的是什么。图 (a)
+的结构也把文字拼进序列，但拼的是编码器最后一层的输出，之后由扩散模型用自己的权重重新加工。双塔让生成塔第
+<span class="math inline">\(\ell\)</span> 层直接读理解塔第 <span
+class="math inline">\(\ell\)</span>
+层的表示，浅层的字面信息和深层的语义信息都用得上；生成塔的参数只管图像；理解塔的权重不被改动，仍然是一个完整的语言模型。</p>
+<p>我的直觉对了一半：文字看不到图像，又不带时间步，所以理解塔每一层的结果在
+16 步去噪里完全相同，理论上可以算一次存起来，只是要存每一层的 K、V
+而不是一层输出。但按现在的代码，每次前向理解塔都从第 1 层重算到第 36
+层。</p>
+</blockquote>
+<p><strong>小结</strong>：双塔对训练的含义很直接。理解塔冻结。LoRA
+只挂在生成塔的注意力上，也就是
+<code>add_q_proj / add_k_proj / add_v_proj / to_add_out</code>。</p>
+<h2 id="单塔的-h3和其他多模态路线">单塔的 H3，和其他多模态路线</h2>
+<p>MiniMax-H3 是另一种结构：输入文字，输出视频加立体声音频，33B
+参数。它的文字由一个单独的 Qwen3-VL 编码成向量，然后和视频、音频的 token
+一起进入同一个扩散 transformer。</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/04-joint-audio-video.png"
+alt="H3 把文字向量、视频 token、音频 token 排成一条序列，过同一组 transformer block，一次输出两份速度。AI 生成" />
+<figcaption aria-hidden="true">H3 把文字向量、视频 token、音频 token
+排成一条序列，过同一组 transformer block，一次输出两份速度。AI
+生成</figcaption>
+</figure>
+<p>做法分四步。视频和音频各有一个 VAE，先压成一串向量。三种 token
+拼成一条序列，每个 token
+带着「我是哪种模态」和「我在时间、空间上的位置」。一个 transformer
+对整条序列做自注意力，输出视频速度和音频速度。两边各走一步，重复 10
+步。</p>
+<p>声音和画面能对上，靠的是第三步里视频 token 和音频 token
+互相能看到。两边是一起从模糊变清晰的，所以关门的画面和关门的声音会落在同一时刻。</p>
+<blockquote>
+<p><strong>我卡住的地方</strong>：我能把 H3 理解成三塔吗？</p>
+<p>不能，它是一座塔开了三个门。H3 的每个 block
+里只有一份注意力和一份前馈层，三种 token
+过的是同一套权重。按模态区分的只有三处，都很薄：入口各有一个线性层，出口各有一个线性层，每层归一化之后的缩放和偏移按「时间步
+× 模态」查表。</p>
+</blockquote>
+<p>把两个模型并排放在一起：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Cosmos3-Nano</th>
+<th>MiniMax-H3</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>参数量</td>
+<td>约 16B（理解塔约 8B，生成塔约 7B）</td>
+<td>33B，另有单独的文本编码器</td>
+</tr>
+<tr class="even">
+<td>结构</td>
+<td>双塔，每层两套权重</td>
+<td>单塔，每层一套权重</td>
+</tr>
+<tr class="odd">
+<td>文字怎么进来</td>
+<td>token 直接进理解塔，每层的 K、V 被生成塔读取</td>
+<td>Qwen3-VL 编码成向量，拼进序列</td>
+</tr>
+<tr class="even">
+<td>每次前向输出</td>
+<td>图像 latent 的速度</td>
+<td>视频 latent 和音频 latent 各一份速度</td>
+</tr>
+<tr class="odd">
+<td>最终产物</td>
+<td>图像（本文只用单帧）</td>
+<td>视频加立体声音频</td>
+</tr>
+<tr class="even">
+<td>时间步怎么注入</td>
+<td>入口加一次</td>
+<td>每层归一化后按「时间步 × 模态」调制</td>
+</tr>
+<tr class="odd">
+<td>能不能出文字</td>
+<td>理解塔带 <code>lm_head</code>，文生图路径里没用到</td>
+<td>不能</td>
+</tr>
+<tr class="even">
+<td>LoRA 挂在哪</td>
+<td>只挂生成塔的注意力</td>
+<td>共用的注意力和前馈层</td>
+</tr>
+</tbody>
+</table>
+<p>最后一行是结构差异直接带来的。Cosmos3 可以只挑生成塔的层来训。H3
+没有这种划分，LoRA 一旦挂上，文字、视频、音频三种 token
+的处理都会被改动。</p>
+<blockquote>
+<p><strong>我卡住的地方</strong>：多模态都是这么训的吗，让它既能输出文字又能输出图片？</p>
+<p>不是，双塔只是其中一条路线。别的路线还有：语言模型写出 prompt
+交给独立的文生图模型；把图像也切成离散
+token，和文字放进同一个词表统一预测下一个 token（Chameleon）；同一个
+transformer
+上文字位置做下一词预测、图像位置做扩散（Transfusion）。它们回答的是同一个问题：文字是离散的，图像是连续的，怎么放进一个模型。</p>
+<p>另外，Cosmos3
+的两种能力不是一起训出来的。文字能力来自理解塔，训练时冻结；图像能力来自生成塔。H3
+则根本没有文字输出。</p>
+</blockquote>
+<blockquote>
+<p><strong>我卡住的地方</strong>：音视频的训练压力完全取决于帧数吧？</p>
+<p>更准确地说取决于 token 总数，帧数是其中一个乘数。但在 H3
+这里帧数不是能随便调的旋钮：VAE 在时间上也压缩，124 帧像素对应 37 个
+latent 帧；帧率固定 24 fps，124
+帧是最小的合法值。配方里实际用来省显存的是分辨率，256×384 时回放每步约
+2.2 GB，768×768 时约 12 GB。</p>
+</blockquote>
+<h2
+id="确定性采样为什么做不了策略梯度">确定性采样为什么做不了策略梯度</h2>
+<p>策略梯度需要知道「这个动作的概率有多大」，也就是 log-prob。Euler
+步里，给定当前 latent，下一个 latent 是唯一确定的，没有概率可言。</p>
+<p>确定性采样并不是每次出同一张图：起始噪声是随机抽的，换一份噪声就是另一张图。但起始噪声的分布和模型参数无关，提供不了梯度。另外，这里说的做不了只限于需要
+log-prob 的策略梯度，后面的 DiffusionNFT 用的就是确定性采样。</p>
+<p>解决办法是在某几步往结果里加一点高斯噪声。</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/05-euler-vs-sde.png"
+alt="(a) 确定性一步只有一个结果。(b) 加噪声之后，下一个 latent 服从以均值为中心的高斯，实际走到的点可以算概率。AI 生成" />
+<figcaption aria-hidden="true">(a) 确定性一步只有一个结果。(b)
+加噪声之后，下一个 latent
+服从以均值为中心的高斯，实际走到的点可以算概率。AI 生成</figcaption>
+</figure>
+<p>这样「下一个
+latent」就服从一个高斯分布，模型的输出决定这个高斯的均值。对应到 RL
+的词汇：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>RL</th>
+<th>这里</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>状态</td>
+<td>当前 latent <span
+class="math inline">\(x\)</span>、步号、prompt</td>
+</tr>
+<tr class="even">
+<td>动作</td>
+<td>下一个 latent <span
+class="math inline">\(x_{\text{next}}\)</span></td>
+</tr>
+<tr class="odd">
+<td>策略</td>
+<td>高斯 <span class="math inline">\(\mathcal{N}(\mu,
+\text{std}^2)\)</span>，<span class="math inline">\(\mu\)</span> 由带
+LoRA 的模型决定</td>
+</tr>
+<tr class="even">
+<td>轨迹</td>
+<td>16 步去噪的整条链</td>
+</tr>
+<tr class="odd">
+<td>奖励</td>
+<td>只在最后给：解码成图，打一个分</td>
+</tr>
+</tbody>
+</table>
+<h3 id="flowsde-的均值和方差">FlowSDE 的均值和方差</h3>
+<p>Cosmos3 的配方用 <code>FlowSDEStrategy</code>。记 <span
+class="math inline">\(s =
+\eta\sqrt{\sigma/(1-\sigma)}\)</span>，代码里的均值化简后是</p>
+<p><span class="math display">\[
+\mu = x\left(1 + \frac{\eta^2\,dt}{2(1-\sigma)}\right) + v\left(1 +
+\frac{\eta^2}{2}\right)dt
+\]</span></p>
+<p><span class="math display">\[
+\text{std} = s\,\sqrt{-dt}, \qquad x_{\text{next}} = \mu +
+\text{std}\cdot z,\quad z \sim \mathcal{N}(0, I)
+\]</span></p>
+<p><span class="math inline">\(\eta\)</span> 控制噪声的大小。<span
+class="math inline">\(\eta = 0\)</span> 时均值退回 <span
+class="math inline">\(x + v\,dt\)</span>，标准差为 0，就是 Euler
+步。所以同一个类两种步都能走，代码里靠
+<code>eta if index in sde_set else 0.0</code> 切换。</p>
+<p>代入数字走一遍。第 8 步 <span class="math inline">\(\sigma =
+0.75\)</span>，下一步 <span class="math inline">\(\sigma_{\text{next}} =
+0.70\)</span>，<span class="math inline">\(dt = -0.05\)</span>，<span
+class="math inline">\(\eta = 0.7\)</span>。那么 <span
+class="math inline">\(s = 0.7\sqrt{3} \approx 1.21\)</span>，<span
+class="math inline">\(\text{std} \approx 1.21 \times \sqrt{0.05} \approx
+0.27\)</span>，均值是 <span class="math inline">\(0.951\,x -
+0.062\,v\)</span>。</p>
+<p>log-prob 是高斯的对数密度，每个元素</p>
+<p><span class="math display">\[
+\log p = -\frac{(x_{\text{next}} - \mu)^2}{2\,\text{std}^2} - \log
+\text{std} - \tfrac{1}{2}\log 2\pi
+\]</span></p>
+<p>有两个细节容易漏。第一，代码对所有 latent
+维度取的是<strong>平均</strong>而不是求和，所以数值很小，<code>clip_range</code>
+才会取到 1e-3 这个量级。第二，式子里的 <span
+class="math inline">\(x_{\text{next}}\)</span> 被 <code>.detach()</code>
+了，梯度只经过 <span
+class="math inline">\(\mu\)</span>，也就是只经过模型输出 <span
+class="math inline">\(v\)</span>。</p>
+<h3 id="cps另一种加噪声的方式">CPS：另一种加噪声的方式</h3>
+<p>H3 的配方换成了 <code>CPSSDEStrategy</code>，注释里的理由是 FlowSDE
+在 <span class="math inline">\(\eta = 0.7\)</span>
+时会让画面出现噪点。</p>
+<p>FlowSDE
+是在原有步子上额外加噪声。<strong>CPS</strong>（coefficients-preserving
+sampling）先从当前状态估出干净图和噪声两个成分：</p>
+<p><span class="math display">\[
+\hat{x}_0 = x - \sigma v, \qquad \hat{\varepsilon} = x + (1-\sigma)\,v
+\]</span></p>
+<p>然后把估出的噪声成分缩小，再补上新的噪声：</p>
+<p><span class="math display">\[
+\mu = (1-\sigma_{\text{next}})\,\hat{x}_0 +
+\sigma_{\text{next}}\cos\!\left(\tfrac{\eta\pi}{2}\right)\hat{\varepsilon},
+\qquad \text{std} =
+\sigma_{\text{next}}\sin\!\left(\tfrac{\eta\pi}{2}\right)
+\]</span></p>
+<p>因为 <span class="math inline">\(\cos^2 + \sin^2 =
+1\)</span>，旧噪声和新噪声合起来的系数正好是 <span
+class="math inline">\(\sigma_{\text{next}}\)</span>，和日程规定的噪声水平一致。它的
+log-prob 在代码里也更简单，直接是 <span
+class="math inline">\(-(x_{\text{next}} -
+\mu)^2\)</span>，不除以方差。</p>
+<h3 id="cfg-怎么参与">CFG 怎么参与</h3>
+<blockquote>
+<p><strong>我卡住的地方</strong>：Cosmos3 有 cond 和 uncond
+两次前向，一般都有 CFG 吗？</p>
+<p>大多数有，但不是全部。<strong>CFG</strong>（classifier-free
+guidance）的做法是训练时随机把一部分 prompt 换掉，让同一个模型既会「按
+prompt 画」也会「随便画」；采样时两种都算，再外推：<span
+class="math inline">\(v = v_{\text{uncond}} + g\,(v_{\text{cond}} -
+v_{\text{uncond}})\)</span>。代价是每步两次前向。蒸馏过的模型把这个效果训进了一次前向里，就不需要了。H3
+的 RL 配方里 <code>guidance_scale</code> 是 1.0，每步只跑一次。</p>
+</blockquote>
+<p>Cosmos3 的配方 <span class="math inline">\(g =
+4.0\)</span>，而且它的「无条件」分支用的是负 prompt 而不是空
+prompt。正、负 prompt 的 token
+长度不同，模型一次又只接受一条序列，所以两次前向是先后跑的。</p>
+<p>对 RL 来说，上面公式里的 <span class="math inline">\(v\)</span>
+是引导之后的速度。回放时两次前向都带梯度，所以被优化的是「带引导的策略」，和采样时一致。</p>
+<h2 id="一轮-flowgrpo">一轮 FlowGRPO</h2>
+<p>把前面的东西串起来。Cosmos3-Nano 的配方是：16 步去噪，其中 2 步是 SDE
+步，每个 prompt 生成 16 张图，PickScore 打分，只训练生成塔注意力上的
+LoRA（秩 64）。</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/08-rl-loop.png"
+alt="一轮训练的六个环节。蓝色的三格要跑 16B 的模型。AI 生成" />
+<figcaption aria-hidden="true">一轮训练的六个环节。蓝色的三格要跑 16B
+的模型。AI 生成</figcaption>
+</figure>
+<h3 id="采样16-步里挑-2-步">采样：16 步里挑 2 步</h3>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/06-rollout-timeline.png"
+alt="每轮从第 8 到 11 步里随机抽 2 步做 SDE 步，其余 14 步是确定性的。自绘" />
+<figcaption aria-hidden="true">每轮从第 8 到 11 步里随机抽 2 步做 SDE
+步，其余 14 步是确定性的。自绘</figcaption>
+</figure>
+<p>为什么只训 2
+步：每个回放步都要带梯度跑模型，步数越少越省。为什么选中段，仓库里只写了沿用已有配方。我的理解是
+<span class="math inline">\(\sigma\)</span> 接近 1 时 <span
+class="math inline">\(\sigma/(1-\sigma)\)</span>
+很大，噪声过强；最后几步加的噪声来不及被去掉，图会脏。</p>
+<p>一个 SDE 步的内部是这样的：</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/07-one-sde-step.png"
+alt="一个 SDE 步。上半截是模型前向和 CFG，下半截是把速度变成高斯、再抽样。确定性步走同一条路，只是标准差为 0。自绘" />
+<figcaption aria-hidden="true">一个 SDE 步。上半截是模型前向和
+CFG，下半截是把速度变成高斯、再抽样。确定性步走同一条路，只是标准差为
+0。自绘</figcaption>
+</figure>
+<p>整个采样在 <code>no_grad</code> 下进行。只有抽中那两步前后的 latent
+被存下来。</p>
+<h3 id="打分和组内比较">打分和组内比较</h3>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/09-group-advantage.png"
+alt="同一句 prompt 的图放在一起比。优势 = (得分 − 组内均值) / 整批标准差。图中是示例数字。自绘" />
+<figcaption aria-hidden="true">同一句 prompt 的图放在一起比。优势 =
+(得分 − 组内均值) / 整批标准差。图中是示例数字。自绘</figcaption>
+</figure>
+<p>减组内均值是为了消掉「这句 prompt
+本身好不好画」的影响。一张图只有一个优势值，它那条轨迹里被存下的两个 SDE
+步共用这个值。</p>
+<h3 id="回放和损失">回放和损失</h3>
+<p>采样时没有梯度，所以要把存下来的 <span class="math inline">\((x,
+x_{\text{next}})\)</span> 重新喂给模型，问一句：用现在的模型，从 <span
+class="math inline">\(x\)</span> 走到这个 <span
+class="math inline">\(x_{\text{next}}\)</span> 的概率是多少。</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/10-replay-and-loss.png"
+alt="回放两遍：一遍不带梯度，得到旧 log-prob；一遍带梯度，得到新 log-prob。自绘" />
+<figcaption aria-hidden="true">回放两遍：一遍不带梯度，得到旧
+log-prob；一遍带梯度，得到新 log-prob。自绘</figcaption>
+</figure>
+<p><span class="math display">\[
+\text{ratio} = \exp(\log p_{\text{new}} - \log p_{\text{old}}), \qquad
+L = \max\big(-A\cdot\text{ratio},\;
+-A\cdot\text{clip}(\text{ratio},\,1-c,\,1+c)\big)
+\]</span></p>
+<p><span class="math inline">\(A\)</span> 是优势，<span
+class="math inline">\(c\)</span> 是
+<code>clip_range</code>。优势为正，就把均值 <span
+class="math inline">\(\mu\)</span> 往当时实际走到的 <span
+class="math inline">\(x_{\text{next}}\)</span>
+挪一点；为负就往反方向挪。</p>
+<p>每个样本的账是：采样 16 步 × 2 次前向 = 32 次；回放 2 步 × 2（正、负
+prompt）× 2（旧、新）= 8 次。合计 40 次。一轮是 48 × 16 = 768
+个样本。</p>
+<h3 id="裁剪在这份配方里其实没有生效">裁剪在这份配方里其实没有生效</h3>
+<p>这是我读训练循环之后才确认的。一轮里的顺序是：先用当前权重回放得到旧
+log-prob，然后逐个样本算损失、累积梯度，整轮只更新一次优化器（<code>num_updates_per_batch: 1</code>）。</p>
+<p>算新 log-prob 的时候权重还没变，所以 <strong>ratio 恒等于
+1，落不到裁剪区间之外</strong>。这时损失的梯度就是 <span
+class="math inline">\(-A\,\nabla \log
+p\)</span>，带组内基线的普通策略梯度。代码里还有一个检查专门盯着这件事：第一次更新之前
+ratio 如果偏离 1，就打印警告。</p>
+<p><code>clip_range</code>
+只有在一批数据上更新多次时才真正约束步子。</p>
+<h3 id="同一个算法两份配方">同一个算法，两份配方</h3>
+<p>H3 的第一套配方用的也是
+FlowGRPO，同一份算法代码，差别都在参数上：</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>Cosmos3-Nano</th>
+<th>MiniMax-H3</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>画布</td>
+<td>832×480，单帧</td>
+<td>256×384，124 帧加音频</td>
+</tr>
+<tr class="even">
+<td>去噪步数</td>
+<td>16</td>
+<td>10</td>
+</tr>
+<tr class="odd">
+<td>加噪方式</td>
+<td>FlowSDE</td>
+<td>CPS</td>
+</tr>
+<tr class="even">
+<td>CFG</td>
+<td>4.0，每步两次前向</td>
+<td>1.0，每步一次</td>
+</tr>
+<tr class="odd">
+<td>每轮规模</td>
+<td>48 个 prompt × 16</td>
+<td>8 个 prompt × 16</td>
+</tr>
+<tr class="even">
+<td>奖励</td>
+<td>PickScore</td>
+<td>ImageBind + CLAP</td>
+</tr>
+<tr class="odd">
+<td>LoRA</td>
+<td>秩 64，生成塔注意力</td>
+<td>秩 32，注意力加前馈层</td>
+</tr>
+<tr class="even">
+<td><code>clip_range</code></td>
+<td>1e-3</td>
+<td>5e-3</td>
+</tr>
+</tbody>
+</table>
+<p>H3 的奖励有一个坑，配方注释里记着：如果 ImageBind
+只比较音频和视频，模型会学出黑屏加静音来刷分，所以必须带上文字到视频的那一项。</p>
+<h2 id="另一条路diffusionnft">另一条路：DiffusionNFT</h2>
+<p>H3 还有第二套配方，用的是 <strong>DiffusionNFT</strong>。它不需要
+log-prob，所以采样可以是纯确定性的（<span class="math inline">\(\eta =
+0\)</span>）。</p>
+<p>做法是拿采样得到的干净 latent <span
+class="math inline">\(x_0\)</span>，重新加噪到某个水平 <span
+class="math inline">\(t\)</span>，让两个模型各预测一次速度：当前正在训练的
+<span
+class="math inline">\(v_{\text{new}}\)</span>，和一份滑动平均的旧权重给出的
+<span
+class="math inline">\(v_{\text{old}}\)</span>。然后构造一正一负两个预测：</p>
+<p><span class="math display">\[
+v^{+} = v_{\text{old}} + \beta\,(v_{\text{new}} - v_{\text{old}}),
+\qquad
+v^{-} = v_{\text{old}} - \beta\,(v_{\text{new}} - v_{\text{old}})
+\]</span></p>
+<p>正预测是从旧模型朝新模型走一小步，负预测是朝反方向走同样一步。每个预测都能还原出一张干净图
+<span class="math inline">\(\hat{x}_0 = x_t - t\,v\)</span>。</p>
+<figure>
+<img
+src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/11-diffusion-nft.png"
+alt="DiffusionNFT 的损失。好样本主要通过正预测起作用，坏样本主要通过负预测起作用。AI 生成" />
+<figcaption aria-hidden="true">DiffusionNFT
+的损失。好样本主要通过正预测起作用，坏样本主要通过负预测起作用。AI
+生成</figcaption>
+</figure>
+<p>损失是</p>
+<p><span class="math display">\[
+L = r\,\lVert \hat{x}_0^{+} - x_0 \rVert^2 + (1-r)\,\lVert \hat{x}_0^{-}
+- x_0 \rVert^2
+\]</span></p>
+<p>其中 <span class="math inline">\(r \in [0, 1]\)</span>
+由优势换算而来：优势除以 5 截断到 <span class="math inline">\([-1,
+1]\)</span>，再线性映射到 <span class="math inline">\([0,
+1]\)</span>。代码里两项还各除以 <span
+class="math inline">\(\beta\)</span>，并且可以按误差大小自适应加权，这里省略了。</p>
+<p>好样本 <span class="math inline">\(r\)</span> 接近
+1，第一项起作用，把新模型拉向这张图。坏样本 <span
+class="math inline">\(r\)</span> 接近
+0，第二项起作用：让「反方向」的预测去拟合这张图，等价于把新模型推离它。</p>
+<p>和 FlowGRPO
+比，它不用存中间步，也不用为回放保留整条带梯度的计算图。H3 的 NFT
+配方因此可以训练全部 10 个时间步。</p>
+<h2 id="要点回顾">要点回顾</h2>
+<ol type="1">
+<li>扩散是生成方法，transformer 是网络结构，两者可以组合。Cosmos3 和 H3
+都是扩散配 transformer。</li>
+<li>判断几座塔，看同一层里不同模态是否用不同的主干权重。Cosmos3
+是两座，H3 是一座。</li>
+<li>Cosmos3
+的一层里注意力算两遍：文字只看文字；图像看文字加图像，其中文字的 K、V
+是从理解塔借来的。</li>
+<li>文字在推理、SFT、RL
+回放三处都是整段给定的条件，被学习和被采样的只有图像那一段。</li>
+<li>确定性采样没有概率。往某几步加高斯噪声，下一个 latent
+就成了高斯策略的一次动作，log-prob 随之有了定义。</li>
+<li>FlowGRPO 一轮是：采样、打分、组内减均值得到优势、回放重算
+log-prob、更新 LoRA。</li>
+<li>每批只更新一次时 ratio 恒为 1，PPO
+式的裁剪不起作用，训练等价于普通策略梯度。</li>
+<li>DiffusionNFT 不要
+log-prob，改用「好样本拉近、坏样本推远」的加噪重训损失。</li>
+</ol>
+<h2 id="还没想明白的">还没想明白的</h2>
+<ul>
+<li>理解塔的 K、V 在 16
+步里不变，缓存起来能省多少计算，我没有量过。</li>
+<li>H3 的两份配方里，一处注释说 FlowGRPO 训练全部 10
+步，另一处说它只负担得起 4 步，对不上，我没有去追是哪个过时了。</li>
+<li>FlowSDE 的均值公式是怎么从 SDE
+推出来的，这篇没有讲，我自己也还没有推过一遍。</li>
+</ul>
+<h2 id="参考">参考</h2>
+<ul>
+<li>UniRL 仓库：<a target="_blank" rel="noopener" href="https://github.com/Tencent-Hunyuan/UniRL"
+class="uri">https://github.com/Tencent-Hunyuan/UniRL</a>。本文涉及
+<code>unirl/sde/kernels.py</code>、<code>unirl/algorithms/flowgrpo.py</code>、<code>unirl/algorithms/diffusionnft.py</code>、<code>unirl/train/stack/single.py</code>、<code>unirl/models/cosmos3/</code>
+和 <code>unirl/models/minimax_h3/</code>。</li>
+<li>diffusers 的 Cosmos3 实现：<a
+target="_blank" rel="noopener" href="https://github.com/huggingface/diffusers/blob/main/src/diffusers/models/transformers/transformer_cosmos3.py"
+class="uri">https://github.com/huggingface/diffusers/blob/main/src/diffusers/models/transformers/transformer_cosmos3.py</a></li>
+<li>Liu et al., <em>Flow-GRPO: Training Flow Matching Models via Online
+RL</em>：<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2505.05470"
+class="uri">https://arxiv.org/abs/2505.05470</a></li>
+<li>Wang et al., <em>Coefficients-Preserving Sampling for Reinforcement
+Learning with Flow Matching</em>：<a
+target="_blank" rel="noopener" href="https://arxiv.org/abs/2509.05952"
+class="uri">https://arxiv.org/abs/2509.05952</a></li>
+<li>Zheng et al., <em>DiffusionNFT: Online Diffusion Reinforcement with
+Forward Process</em>：<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2509.16117"
+class="uri">https://arxiv.org/abs/2509.16117</a></li>
+<li>Ho and Salimans, <em>Classifier-Free Diffusion Guidance</em>：<a
+target="_blank" rel="noopener" href="https://arxiv.org/abs/2207.12598"
+class="uri">https://arxiv.org/abs/2207.12598</a></li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://blog.li-xiang.xyz/zh">Xiang Li</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://blog.li-xiang.xyz/zh/2026/11/17/Deep-Learning/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/">https://blog.li-xiang.xyz/zh/2026/11/17/Deep-Learning/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://blog.li-xiang.xyz/zh" target="_blank">Life is not a race, but a journey</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/zh/tags/Study-Notes/">Study Notes</a><a class="post-meta__tags" href="/zh/tags/Deep-Learning/">Deep Learning</a><a class="post-meta__tags" href="/zh/tags/Diffusion/">Diffusion</a><a class="post-meta__tags" href="/zh/tags/Flow-Matching/">Flow Matching</a><a class="post-meta__tags" href="/zh/tags/Reinforcement-Learning/">Reinforcement Learning</a><a class="post-meta__tags" href="/zh/tags/Multimodal/">Multimodal</a></div><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/01-three-architectures.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/zh/2026/11/16/CS336/CS336-Lec5-GPUs/" title="CS336 语言建模：GPU（第 5 讲）"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" onerror="onerror=null;src='/zh/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">CS336 语言建模：GPU（第 5 讲）</div></div><div class="info-2"><div class="info-item-1">本文总结了CS336课程第五讲的内容：GPU 的执行模型和内存层级，为什么大多数 ML 负载卡在内存带宽上，以及低精度、fusion、recomputation、coalescing、tiling 这几个让 GPU 跑快的技巧，最后用它们拆解 FlashAttention 和 online softmax。</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/zh/2026/03/05/11711-Advanced-NLP/11711-Advanced-NLP-Multimodal/" title="11-711 高级自然语言处理：多模态建模"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-04</div><div class="info-item-2">11-711 高级自然语言处理：多模态建模</div></div><div class="info-2"><div class="info-item-1">CMU 11-711 高级自然语言处理中多模态建模的笔记，涵盖 ViT、CLIP、LLaVA 风格对接、基于 token 的图像生成、扩散模型与 flow matching。</div></div></div></a><a class="pagination-related" href="/zh/2026/01/28/11868-LLM-Sys/11868-LLM-Sys-15642-ML-Sys-DL-Framworks-and-Auto-Differentiation/" title="11-868 大语言模型系统 &amp; 15-642 机器学习系统：深度学习框架与自动微分"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-28</div><div class="info-item-2">11-868 大语言模型系统 &amp; 15-642 机器学习系统：深度学习框架与自动微分</div></div><div class="info-2"><div class="info-item-1">关于CMU 11-868 LLM系统和15-642 ML系统课程的深度学习框架和自动微分的综合笔记。</div></div></div></a><a class="pagination-related" href="/zh/2025/10/02/Deep-Learning/CNN_P1/" title="CNNs - Part 1"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251002142654568.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-10-02</div><div class="info-item-2">CNNs - Part 1</div></div><div class="info-2"><div class="info-item-1">Notes on Convolutional Neural Networks (CNN)</div></div></div></a><a class="pagination-related" href="/zh/2025/10/03/Deep-Learning/CNN_P2/" title="CNNs - Part 2"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251002142654568.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-10-03</div><div class="info-item-2">CNNs - Part 2</div></div><div class="info-2"><div class="info-item-1">Notes on Convolutional Neural Networks (CNN)</div></div></div></a><a class="pagination-related" href="/zh/2026/01/26/11868-LLM-Sys/11868-LLM-SyS-GPU-Programming-Acceleration/" title="11-868 大语言模型系统：GPU 编程与加速"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-25</div><div class="info-item-2">11-868 大语言模型系统：GPU 编程与加速</div></div><div class="info-2"><div class="info-item-1">CMU 11-868 LLM系统：GPU编程与加速的笔记和总结。</div></div></div></a><a class="pagination-related" href="/zh/2026/02/12/11868-LLM-Sys/11868-LLM-Sys-Tokenization-and-Embedding/" title="11-868 大语言模型系统：分词与嵌入"><img class="cover" src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-12</div><div class="info-item-2">11-868 大语言模型系统：分词与嵌入</div></div><div class="info-2"><div class="info-item-1">关于大语言模型的分词技术和词汇学习的综合笔记，包括BPE、VOLT以及多语言LLM的实际考虑。</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://pica.zhimg.com/80/v2-b6830c2136b7784c0aba649af7ec2867_1440w.jpeg" onerror="this.onerror=null;this.src='/zh/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Xiang Li</div><div class="author-info-description">Xiang Li 的中文博客</div><div class="site-data"><a href="/zh/archives/"><div class="headline">文章</div><div class="length-num">64</div></a><a href="/zh/tags/"><div class="headline">标签</div><div class="length-num">120</div></a><a href="/zh/categories/"><div class="headline">分类</div><div class="length-num">18</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/XLOverflow"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">Talk is cheap. Show me the code.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%89%A9%E6%95%A3%E6%A8%A1%E5%9E%8B%E6%80%8E%E4%B9%88%E5%81%9A%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%BB%8E-cosmos3-%E7%9A%84%E5%8F%8C%E5%A1%94%E8%AE%B2%E5%88%B0%E4%B8%80%E8%BD%AE-flowgrpo"><span class="toc-number">1.</span> <span class="toc-text">扩散模型怎么做强化学习：从
+Cosmos3 的双塔讲到一轮 FlowGRPO</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%A9%E6%95%A3%E5%92%8C-transformer-%E4%B8%8D%E6%98%AF%E4%BA%8C%E9%80%89%E4%B8%80"><span class="toc-number">1.1.</span> <span class="toc-text">扩散和 transformer
+不是二选一</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%87%E5%AD%97%E6%80%8E%E4%B9%88%E8%BF%9B%E6%A8%A1%E5%9E%8Bcosmos3-%E7%9A%84%E5%8F%8C%E5%A1%94"><span class="toc-number">1.2.</span> <span class="toc-text">文字怎么进模型：Cosmos3
+的双塔</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E6%AC%A1%E5%89%8D%E5%90%91%E9%87%8C%E5%BD%A2%E7%8A%B6%E6%80%8E%E4%B9%88%E5%8F%98"><span class="toc-number">1.2.1.</span> <span class="toc-text">一次前向里形状怎么变</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E5%B1%82%E9%87%8C%E6%B3%A8%E6%84%8F%E5%8A%9B%E7%AE%97%E4%B8%A4%E9%81%8D"><span class="toc-number">1.2.2.</span> <span class="toc-text">一层里注意力算两遍</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%95%E5%A1%94%E7%9A%84-h3%E5%92%8C%E5%85%B6%E4%BB%96%E5%A4%9A%E6%A8%A1%E6%80%81%E8%B7%AF%E7%BA%BF"><span class="toc-number">1.3.</span> <span class="toc-text">单塔的 H3，和其他多模态路线</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A1%AE%E5%AE%9A%E6%80%A7%E9%87%87%E6%A0%B7%E4%B8%BA%E4%BB%80%E4%B9%88%E5%81%9A%E4%B8%8D%E4%BA%86%E7%AD%96%E7%95%A5%E6%A2%AF%E5%BA%A6"><span class="toc-number">1.4.</span> <span class="toc-text">确定性采样为什么做不了策略梯度</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#flowsde-%E7%9A%84%E5%9D%87%E5%80%BC%E5%92%8C%E6%96%B9%E5%B7%AE"><span class="toc-number">1.4.1.</span> <span class="toc-text">FlowSDE 的均值和方差</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#cps%E5%8F%A6%E4%B8%80%E7%A7%8D%E5%8A%A0%E5%99%AA%E5%A3%B0%E7%9A%84%E6%96%B9%E5%BC%8F"><span class="toc-number">1.4.2.</span> <span class="toc-text">CPS：另一种加噪声的方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#cfg-%E6%80%8E%E4%B9%88%E5%8F%82%E4%B8%8E"><span class="toc-number">1.4.3.</span> <span class="toc-text">CFG 怎么参与</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E8%BD%AE-flowgrpo"><span class="toc-number">1.5.</span> <span class="toc-text">一轮 FlowGRPO</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%87%87%E6%A0%B716-%E6%AD%A5%E9%87%8C%E6%8C%91-2-%E6%AD%A5"><span class="toc-number">1.5.1.</span> <span class="toc-text">采样：16 步里挑 2 步</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%93%E5%88%86%E5%92%8C%E7%BB%84%E5%86%85%E6%AF%94%E8%BE%83"><span class="toc-number">1.5.2.</span> <span class="toc-text">打分和组内比较</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%9E%E6%94%BE%E5%92%8C%E6%8D%9F%E5%A4%B1"><span class="toc-number">1.5.3.</span> <span class="toc-text">回放和损失</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A3%81%E5%89%AA%E5%9C%A8%E8%BF%99%E4%BB%BD%E9%85%8D%E6%96%B9%E9%87%8C%E5%85%B6%E5%AE%9E%E6%B2%A1%E6%9C%89%E7%94%9F%E6%95%88"><span class="toc-number">1.5.4.</span> <span class="toc-text">裁剪在这份配方里其实没有生效</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%8C%E4%B8%80%E4%B8%AA%E7%AE%97%E6%B3%95%E4%B8%A4%E4%BB%BD%E9%85%8D%E6%96%B9"><span class="toc-number">1.5.5.</span> <span class="toc-text">同一个算法，两份配方</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%A6%E4%B8%80%E6%9D%A1%E8%B7%AFdiffusionnft"><span class="toc-number">1.6.</span> <span class="toc-text">另一条路：DiffusionNFT</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A6%81%E7%82%B9%E5%9B%9E%E9%A1%BE"><span class="toc-number">1.7.</span> <span class="toc-text">要点回顾</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%98%E6%B2%A1%E6%83%B3%E6%98%8E%E7%99%BD%E7%9A%84"><span class="toc-number">1.8.</span> <span class="toc-text">还没想明白的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">1.9.</span> <span class="toc-text">参考</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/11/17/Deep-Learning/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/" title="扩散模型怎么做强化学习：从 Cosmos3 的双塔讲到一轮 FlowGRPO"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/posts/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/01-three-architectures.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="扩散模型怎么做强化学习：从 Cosmos3 的双塔讲到一轮 FlowGRPO"/></a><div class="content"><a class="title" href="/zh/2026/11/17/Deep-Learning/Diffusion-RL-From-Dual-Tower-To-FlowGRPO/" title="扩散模型怎么做强化学习：从 Cosmos3 的双塔讲到一轮 FlowGRPO">扩散模型怎么做强化学习：从 Cosmos3 的双塔讲到一轮 FlowGRPO</a><time datetime="2026-11-17T01:30:00.000Z" title="发表于 2026-11-16 20:30:00">2026-11-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/11/16/CS336/CS336-Lec5-GPUs/" title="CS336 语言建模：GPU（第 5 讲）"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20251214181527015.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="CS336 语言建模：GPU（第 5 讲）"/></a><div class="content"><a class="title" href="/zh/2026/11/16/CS336/CS336-Lec5-GPUs/" title="CS336 语言建模：GPU（第 5 讲）">CS336 语言建模：GPU（第 5 讲）</a><time datetime="2026-11-16T03:10:00.000Z" title="发表于 2026-11-15 22:10:00">2026-11-15</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11-711 高级自然语言处理：并行与扩展"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11-711 高级自然语言处理：并行与扩展"/></a><div class="content"><a class="title" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Parallelism-Scaling/" title="11-711 高级自然语言处理：并行与扩展">11-711 高级自然语言处理：并行与扩展</a><time datetime="2026-04-07T03:00:00.000Z" title="发表于 2026-04-06 23:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11-711 高级自然语言处理：量化"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11-711 高级自然语言处理：量化"/></a><div class="content"><a class="title" href="/zh/2026/04/07/11711-Advanced-NLP/11711-Advanced-NLP-Quantization/" title="11-711 高级自然语言处理：量化">11-711 高级自然语言处理：量化</a><time datetime="2026-04-07T02:00:00.000Z" title="发表于 2026-04-06 22:00:00">2026-04-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/zh/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11-868 大语言模型系统：混合专家模型（MoE）的系统"><img src="https://raw.githubusercontent.com/XLOverflow/blog-image/main/20260126152238836.png" onerror="this.onerror=null;this.src='/zh/img/404.jpg'" alt="11-868 大语言模型系统：混合专家模型（MoE）的系统"/></a><div class="content"><a class="title" href="/zh/2026/03/21/11868-LLM-Sys/11868-LLM-Sys-MoE-Systems/" title="11-868 大语言模型系统：混合专家模型（MoE）的系统">11-868 大语言模型系统：混合专家模型（MoE）的系统</a><time datetime="2026-03-21T19:00:00.000Z" title="发表于 2026-03-21 15:00:00">2026-03-21</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Xiang Li</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/zh/js/utils.js"></script><script src="/zh/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'fb37ffde539166b338d8',
+      clientSecret: '00c01014243d312219aa68b6a2e22f7f19f4c8ef',
+      repo: 'blog-comments',
+      owner: 'XLOverflow',
+      admin: ['XLOverflow'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '0b436dec2cbc54a5a4e794f732b0f5af'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script defer src="/music/playlist.js"></script><script defer src="/js/site-widgets.js?v=align3"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/metingjs/dist/Meting.min.js"></script><script>(() => {
+  const destroyAplayer = () => {
+    if (window.aplayers) {
+      for (let i = 0; i < window.aplayers.length; i++) {
+        if (!window.aplayers[i].options.fixed) {
+          window.aplayers[i].destroy()
+        }
+      }
+    }
+  }
+
+  const runMetingJS = () => {
+    typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+  }
+
+  btf.addGlobalFn('pjaxSend', destroyAplayer, 'destroyAplayer')
+  btf.addGlobalFn('pjaxComplete', loadMeting, 'runMetingJS')
+})()</script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      const usePjax = true
+      false
+        ? (usePjax ? pjax.loadUrl('/zh/404.html') : window.location.href = '/zh/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})()</script><script async data-pjax src="data:text/javascript,"></script></div></body></html>

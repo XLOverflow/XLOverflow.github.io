@@ -1,0 +1,859 @@
+/*
+ * Styles for /js/site-widgets.js: like button, coding-stats card, ask panel, music player.
+ * Colours come from Butterfly's own CSS variables, so light and dark mode follow the theme.
+ */
+:root {
+  --sw-accent: #49b1f5;
+  --sw-heart: #f0506e;
+  --sw-line: rgba(0, 0, 0, .1);
+  --sw-soft: rgba(0, 0, 0, .05);
+}
+
+[data-theme="dark"] {
+  --sw-accent: #3a8fc7;
+  --sw-heart: #d9506a;
+  --sw-line: rgba(255, 255, 255, .16);
+  --sw-soft: rgba(255, 255, 255, .08);
+}
+
+.site-like:focus-visible,
+#ask-btn:focus-visible,
+#site-ask button:focus-visible,
+#site-ask a:focus-visible,
+#site-music .aplayer-pic:focus-visible,
+#site-music button:focus-visible {
+  outline: 2px solid var(--sw-accent);
+  outline-offset: 2px;
+}
+
+/* ---------- view counters: rows of the theme's own markup, hidden when there is no number ---------- */
+
+.webinfo-item[hidden],
+.post-meta-pv-cv[hidden],
+.post-meta-separator[hidden] {
+  display: none !important;
+}
+
+/* ---------- like button ---------- */
+
+#site-like {
+  margin: 30px 0 10px;
+  text-align: center;
+}
+
+.site-like {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 20px;
+  border: 1px solid var(--sw-line);
+  border-radius: 999px;
+  background: var(--card-bg);
+  color: var(--font-color);
+  font-size: 1em;
+  line-height: 1.6;
+  cursor: pointer;
+  transition: color .2s, border-color .2s;
+}
+
+.site-like:hover,
+.site-like.is-liked {
+  border-color: var(--sw-heart);
+  color: var(--sw-heart);
+}
+
+.site-like i {
+  transition: transform .2s;
+}
+
+.site-like.is-liked i {
+  transform: scale(1.15);
+}
+
+.site-like.is-failed {
+  animation: sw-shake .4s;
+}
+
+@keyframes sw-shake {
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+/* ---------- coding stats card (inside the theme's .card-widget) ---------- */
+
+.card-coding {
+  --sw-live: #1a9f5c;
+}
+
+[data-theme="dark"] .card-coding {
+  --sw-live: #2fbf71;
+}
+
+.card-coding .item-headline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+
+.card-coding .coding-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--card-meta);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.card-coding .coding-status.is-live {
+  color: var(--font-color);
+}
+
+.card-coding .coding-status i {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sw-live);
+}
+
+.card-coding .coding-status i::after {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--sw-live);
+  content: "";
+  animation: sw-pulse 1.8s ease-out infinite;
+}
+
+@keyframes sw-pulse {
+  from { opacity: .7; transform: scale(1); }
+  to { opacity: 0; transform: scale(3); }
+}
+
+.card-coding .coding-total {
+  color: var(--card-meta);
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.card-coding .coding-total strong {
+  color: var(--text-highlight-color);
+  font-weight: 600;
+  font-size: 34px;
+  letter-spacing: -.02em;
+}
+
+.card-coding .coding-sub,
+.card-coding .coding-readout,
+.card-coding .coding-label,
+.card-coding .coding-os,
+.card-coding .coding-empty {
+  color: var(--card-meta);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* seven-day columns */
+
+.card-coding .coding-daily {
+  margin-top: 14px;
+}
+
+.card-coding .coding-readout {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-coding .coding-days {
+  display: flex;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.card-coding .coding-day {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 4px;
+  outline-offset: 1px;
+  cursor: default;
+}
+
+.card-coding .coding-day:focus-visible {
+  outline: 2px solid var(--sw-accent);
+}
+
+.card-coding .coding-day-plot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: 52px;
+  border-bottom: 1px solid var(--sw-line);
+}
+
+.card-coding .coding-day-bar {
+  width: 100%;
+  max-width: 22px;
+  min-height: 2px; /* a day without coding still shows a stub on the baseline */
+  border-radius: 4px 4px 0 0;
+  background: var(--sw-accent);
+  opacity: .5;
+  transform-origin: bottom;
+  transition: opacity .15s;
+}
+
+.card-coding .is-today .coding-day-bar,
+.card-coding .coding-day:hover .coding-day-bar,
+.card-coding .coding-day:focus-visible .coding-day-bar {
+  opacity: 1;
+}
+
+.card-coding .coding-day-name {
+  color: var(--card-meta);
+  font-size: 11px;
+  line-height: 1.8;
+}
+
+.card-coding .is-today .coding-day-name {
+  color: var(--text-highlight-color);
+  font-weight: 600;
+}
+
+/* sections: languages, agents & editors, machines */
+
+.card-coding .coding-section {
+  margin-top: 14px;
+}
+
+.card-coding .coding-label {
+  margin-bottom: 4px;
+}
+
+.card-coding .coding-stack {
+  display: flex;
+  gap: 2px;
+  overflow: hidden;
+  height: 8px;
+  border-radius: 4px;
+  transform-origin: left;
+}
+
+.card-coding .coding-stack span {
+  min-width: 2px;
+  background: var(--c);
+}
+
+.card-coding .coding-legend {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 0 12px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card-coding .coding-legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.card-coding .coding-legend i {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--c);
+}
+
+[data-theme="dark"] .card-coding .coding-stack span,
+[data-theme="dark"] .card-coding .coding-legend i {
+  background: var(--cd);
+}
+
+.card-coding .coding-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-coding .coding-pct {
+  margin-left: auto;
+  color: var(--card-meta);
+  font-variant-numeric: tabular-nums;
+}
+
+.card-coding .coding-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.card-coding .coding-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 2px 8px 2px 6px;
+  border-radius: 999px;
+  background: var(--sw-soft);
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.card-coding .coding-chip > svg,
+.card-coding .coding-chip > i {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  color: var(--card-meta);
+  font-size: 10px;
+  line-height: 12px;
+  text-align: center;
+}
+
+.card-coding .coding-chip > .is-agent {
+  fill: currentColor;
+}
+
+.card-coding .coding-chip > .is-editor {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.card-coding .coding-chip .coding-pct {
+  margin-left: 0;
+}
+
+.card-coding .coding-os {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.card-coding .coding-empty {
+  margin-top: 12px;
+}
+
+/* entrance: bars grow once, when the numbers have just been fetched */
+
+.card-coding.is-fresh .coding-day-bar {
+  animation: sw-grow-y .5s cubic-bezier(.2, .7, .3, 1) both;
+  animation-delay: calc(var(--i) * 40ms);
+}
+
+.card-coding.is-fresh .coding-stack {
+  animation: sw-grow-x .6s cubic-bezier(.2, .7, .3, 1) .2s both;
+}
+
+@keyframes sw-grow-y {
+  from { transform: scaleY(0); }
+}
+
+@keyframes sw-grow-x {
+  from { transform: scaleX(0); }
+}
+
+/* ---------- ask pill and panel ---------- */
+
+/* Beside Butterfly's right-side button column (10-45px from the edge, shown after scrolling), at
+   the same height as its lowest button, so the two never overlap in either state. */
+#ask-btn {
+  position: fixed;
+  right: 55px;
+  bottom: 40px;
+  z-index: 99;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 35px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--sw-accent);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, .18);
+  color: #fff;
+  font-size: 14px;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: filter .2s;
+}
+
+#ask-btn[hidden],
+.read-mode #ask-btn {
+  display: none;
+}
+
+#ask-btn:hover {
+  filter: brightness(1.08);
+}
+
+@media (max-width: 768px) {
+  /* Phones: the glyph alone, the size of the theme's own buttons. */
+  #ask-btn {
+    width: 35px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  #ask-btn span {
+    display: none;
+  }
+}
+
+
+#site-ask {
+  position: fixed;
+  right: 55px; /* left of Butterfly's right-side button column */
+  bottom: 40px;
+  z-index: 101;
+  display: flex;
+  flex-direction: column;
+  width: 360px;
+  max-height: min(560px, calc(100vh - 80px));
+  border: 1px solid var(--sw-line);
+  border-radius: 12px;
+  background: var(--card-bg);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .18);
+  color: var(--font-color);
+  font-size: 14px;
+  line-height: 1.6;
+  animation: sw-rise .2s ease-out;
+}
+
+#site-ask[hidden] {
+  display: none;
+}
+
+@keyframes sw-rise {
+  from { opacity: 0; transform: translateY(8px); }
+}
+
+#site-ask header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 8px 8px 14px;
+  border-bottom: 1px solid var(--sw-line);
+  font-weight: 600;
+}
+
+#site-ask button {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+#site-ask .site-ask-close:hover {
+  background: var(--sw-soft);
+}
+
+#site-ask .site-ask-log {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  min-height: 120px;
+  padding: 12px 14px;
+  overscroll-behavior: contain;
+}
+
+#site-ask .site-ask-hint {
+  margin: 0;
+  color: var(--card-meta);
+  font-size: 13px;
+}
+
+#site-ask .site-ask-examples {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: var(--card-meta);
+  font-size: 13px;
+}
+
+#site-ask .site-ask-examples[hidden] {
+  display: none;
+}
+
+#site-ask .site-ask-examples button {
+  width: auto;
+  height: auto;
+  padding: 3px 10px;
+  border: 1px solid var(--sw-line);
+  border-radius: 999px;
+  color: var(--font-color);
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: left;
+}
+
+#site-ask .site-ask-examples button:hover {
+  border-color: var(--sw-accent);
+  color: var(--sw-accent);
+}
+
+#site-ask .site-ask-msg {
+  max-width: 92%;
+  padding: 8px 12px;
+  border-radius: 12px;
+  overflow-wrap: anywhere;
+}
+
+#site-ask .is-user {
+  align-self: flex-end;
+  background: var(--sw-accent);
+  color: #fff;
+  white-space: pre-wrap;
+}
+
+#site-ask .is-bot {
+  align-self: flex-start;
+  background: var(--sw-soft);
+}
+
+#site-ask .site-ask-text p {
+  margin: 0 0 8px;
+  white-space: pre-wrap;
+}
+
+#site-ask .site-ask-text p:last-child {
+  margin-bottom: 0;
+}
+
+#site-ask .site-ask-text.is-pending,
+#site-ask .site-ask-error {
+  color: var(--card-meta);
+  font-style: italic;
+}
+
+#site-ask .site-ask-text + .site-ask-error {
+  margin-top: 8px;
+}
+
+#site-ask code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--sw-soft);
+  color: inherit;
+  font-size: .92em;
+}
+
+#site-ask a {
+  color: var(--sw-accent);
+  text-decoration: underline;
+}
+
+#site-ask .site-ask-sources {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--sw-line);
+  font-size: 13px;
+}
+
+#site-ask .site-ask-sources[hidden] {
+  display: none;
+}
+
+#site-ask .site-ask-sources span {
+  color: var(--card-meta);
+}
+
+#site-ask form {
+  display: flex;
+  gap: 6px;
+  padding: 8px;
+  border-top: 1px solid var(--sw-line);
+}
+
+#site-ask input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--sw-line);
+  border-radius: 8px;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font-size: 14px;
+}
+
+#site-ask input:focus {
+  border-color: var(--sw-accent);
+}
+
+#site-ask .site-ask-send {
+  background: var(--sw-accent);
+  color: #fff;
+}
+
+#site-ask .site-ask-send:disabled {
+  opacity: .5;
+  cursor: default;
+}
+
+@media (max-width: 768px) {
+  /* A sheet above the bottom edge: clears the music player, leaves the top of the article readable. */
+  #site-ask {
+    right: 8px;
+    bottom: 74px;
+    left: 8px;
+    width: auto;
+    max-height: min(60vh, calc(100vh - 150px));
+  }
+
+  /* 16px keeps iOS from zooming the page when the field gets focus. */
+  #site-ask input {
+    font-size: 16px;
+  }
+}
+
+/* ---------- music player (APlayer in fixed mode, bottom-left corner) ---------- */
+
+/* APlayer measures the bar once, when it starts. Size it from the viewport instead, so it still
+   fits (and its collapse tab stays reachable) after a phone is rotated or a window is resized. */
+#site-music:not(.aplayer-narrow) .aplayer-body {
+  width: min(400px, calc(100vw - 18px)) !important;
+}
+
+@media (max-width: 1260px) {
+  /* Collapsed, the cover would sit on the article's first column of text: keep only APlayer's
+     18px expand tab, which fits in the page margin. */
+  #site-music.aplayer-narrow .aplayer-body {
+    width: 0 !important;
+  }
+
+  #site-music.aplayer-narrow .aplayer-pic {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Expanded, the player spans the bottom edge of a phone: lift the theme's buttons above it. */
+  body:has(#site-music:not(.aplayer-narrow)) #rightside {
+    bottom: 76px;
+  }
+}
+
+[data-theme="dark"] #site-music .aplayer-body,
+[data-theme="dark"] #site-music .aplayer-list,
+[data-theme="dark"] #site-music .aplayer-miniswitcher {
+  background: #1f1f1f;
+}
+
+[data-theme="dark"] #site-music,
+[data-theme="dark"] #site-music .aplayer-list ol li .aplayer-list-author,
+[data-theme="dark"] #site-music .aplayer-info .aplayer-music .aplayer-author {
+  color: rgba(255, 255, 255, .7);
+}
+
+[data-theme="dark"] #site-music .aplayer-info,
+[data-theme="dark"] #site-music .aplayer-list ol li {
+  border-color: #333;
+}
+
+[data-theme="dark"] #site-music .aplayer-list ol li:hover,
+[data-theme="dark"] #site-music .aplayer-list ol li.aplayer-list-light {
+  background: #2c2c2c;
+}
+
+[data-theme="dark"] #site-music .aplayer-pic {
+  filter: brightness(.8);
+}
+
+[data-theme="dark"] #site-music .aplayer-icon path {
+  fill: rgba(255, 255, 255, .6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #site-ask,
+  .site-like.is-failed,
+  .card-coding .coding-day-bar,
+  .card-coding .coding-stack,
+  .card-coding .coding-status i::after {
+    animation: none !important;
+  }
+}
+
+/* ---------- guestbook (source/guestbook/ on both sites) ---------- */
+
+#site-guestbook { margin-top: 10px; }
+
+#site-guestbook .gb-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 30px;
+  padding: 20px;
+  border: 1px solid var(--sw-line);
+  border-radius: 8px;
+  background: var(--sw-soft);
+}
+
+#site-guestbook .gb-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+}
+
+#site-guestbook .gb-field > span {
+  color: var(--card-meta);
+  font-size: 14px;
+}
+
+#site-guestbook input,
+#site-guestbook textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--sw-line);
+  border-radius: 6px;
+  background: var(--card-bg);
+  color: var(--font-color);
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.6;
+  box-sizing: border-box;
+}
+
+#site-guestbook .gb-field:first-of-type input { max-width: 320px; }
+#site-guestbook textarea { min-height: 110px; resize: vertical; }
+
+#site-guestbook input:focus,
+#site-guestbook textarea:focus {
+  border-color: var(--sw-accent);
+  outline: none;
+}
+
+#site-guestbook .gb-trap {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+#site-guestbook .gb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+
+#site-guestbook button {
+  padding: 7px 20px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--sw-accent);
+  color: #fff;
+  font-size: 15px;
+  cursor: pointer;
+  transition: opacity .2s;
+}
+
+#site-guestbook button:hover { opacity: .85; }
+#site-guestbook button:disabled { opacity: .55; cursor: progress; }
+
+#site-guestbook button:focus-visible,
+#site-guestbook input:focus-visible,
+#site-guestbook textarea:focus-visible {
+  outline: 2px solid var(--sw-accent);
+  outline-offset: 2px;
+}
+
+#site-guestbook .gb-count {
+  color: var(--card-meta);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+#site-guestbook .gb-status { font-size: 14px; color: var(--font-color); }
+#site-guestbook .gb-status.is-ok { color: var(--sw-live, #2ea44f); }
+#site-guestbook .gb-status.is-error { color: var(--sw-heart); }
+
+#site-guestbook .gb-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#site-guestbook .gb-list li {
+  margin: 0;
+  padding: 14px 2px;
+  border-bottom: 1px dashed var(--sw-line);
+}
+
+#site-guestbook .gb-list li::before { display: none; }
+
+#site-guestbook .gb-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+
+#site-guestbook .gb-head b {
+  color: var(--font-color);
+  overflow-wrap: anywhere;
+}
+
+#site-guestbook .gb-head time {
+  color: var(--card-meta);
+  font-size: 13px;
+}
+
+#site-guestbook .gb-list p {
+  margin: 4px 0 0;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+#site-guestbook .gb-empty,
+#site-guestbook .gb-note { color: var(--card-meta); }
+
+/* ---------- aside alignment: one left edge for titles, one for rows, one right edge for counts ---------- */
+
+/* The theme's template leaves a space between the icon and the title in some cards (Archives,
+   Categories) and not in others; as flex items the whitespace disappears. */
+#aside-content .card-widget .item-headline {
+  display: flex;
+  align-items: center;
+}
+#aside-content .card-widget .item-headline .card-more-btn { margin-left: auto; }
+
+/* Row text starts on the same line as the card titles (the content edge) and counts end on the
+   right edge with the ">" button. The rows keep their 8px padding for the hover highlight and
+   pull it outside the edge with a negative margin, so only the highlight sticks out. */
+#aside-content .card-archives ul.card-archive-list > .card-archive-list-item a,
+#aside-content .card-categories ul.card-category-list > .card-category-list-item a,
+#aside-content .card-widget.card-webinfo .webinfo .webinfo-item {
+  margin-left: -8px;
+  margin-right: -8px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+/* Each tag carries 4px of its own side padding; pull the cloud out by the same amount. */
+#aside-content .card-tag-cloud { padding-inline: 0; margin-inline: -4px; }
